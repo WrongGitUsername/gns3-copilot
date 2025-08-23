@@ -1,0 +1,26 @@
+# GNS3网络自动化工具依赖
+gns3fy==0.7.0
+requests>=2.25.1
+python-dotenv>=1.0.0
+
+# LangChain和LLM相关
+langchain>=0.1.0
+langchain-community>=0.0.20
+langchain-huggingface>=0.3.1
+langchain-openai>=0.0.5
+langchain-core>=0.1.0
+ollama>=0.1.7
+openai>=1.0.0
+pydantic>=1.10.0
+
+# RAG知识库相关
+faiss-gpu>=1.7.0
+sentence-transformers>=2.2.2
+transformers>=4.21.0
+torch>=2.0.0  # GPU版本通过安装脚本指定
+
+# 文档处理
+pypdf>=3.17.0
+unstructured>=0.11.0
+markdown>=3.5.1
+python-docx>=0.8.11
