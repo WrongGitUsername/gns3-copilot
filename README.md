@@ -17,6 +17,8 @@ An AI-powered network device management system for GNS3 environments, featuring 
 | **[🚀 QUICK_DEPLOY.md](QUICK_DEPLOY.md)** | 5-minute deployment guide | 5分钟快速部署指南 |
 | **[📖 PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)** | Complete project introduction | 完整项目介绍 |
 | **[🔧 TECHNICAL_SPECS.md](TECHNICAL_SPECS.md)** | Technical specifications | 技术规格文档 |
+| **[🆕 ENHANCEMENTS_LOG.md](ENHANCEMENTS_LOG.md)** | Latest feature enhancements | 最新功能增强记录 |
+| **[🧪 tests/README.md](tests/README.md)** | Testing documentation | 测试文档说明 |
 | **[📝 README.md](README.md)** | This file - Quick reference | 本文件 - 快速参考 |
 
 ## ✨ Quick Features / 核心特性
@@ -25,9 +27,11 @@ An AI-powered network device management system for GNS3 environments, featuring 
 |---------|-------------|----------|
 | 🧠 **AI-Powered** | LLM integration with DeepSeek, Ollama, OpenAI | LLM集成：DeepSeek、Ollama、OpenAI |
 | 📚 **RAG Enhanced** | Vector knowledge base with BGE-M3 + FAISS | RAG增强：BGE-M3嵌入 + FAISS搜索 |
-| 🌍 **Multi-Language** | English-first with intelligent Chinese switching | 英文优先，智能中文切换 |
+| 🌍 **Multi-Language** | Perfect dual-language support with auto-detection | 完美双语支持与自动检测 |
+| 🔍 **Smart Connectivity** | Intelligent device IP discovery & connectivity analysis | 智能设备IP发现与连通性分析 |
 | 🛠️ **Network Management** | Complete GNS3 device configuration & analysis | 完整的GNS3设备配置和分析 |
-| ⚡ **High Performance** | GPU acceleration & large file handling | GPU加速和大文件处理 |
+| 🎯 **Command Validation** | Advanced command verification & execution safety | 高级命令验证与执行安全 |
+| ⚡ **High Performance** | GPU acceleration & concurrent processing | GPU加速和并发处理 |
 
 ## 🚀 Quick Start / 快速开始
 
@@ -50,50 +54,94 @@ python main.py
 
 ## 💬 Usage Examples / 使用示例
 
-### English Queries
+### Smart Connectivity Analysis / 智能连通性分析
 ```
-🙋 You: show OSPF neighbor status
+🙋 You: ping from R1 to R2
+🤖 Assistant: Analyzing connectivity request...
+✅ Found project: network_ai
+🔍 Discovering device IPs from configurations...
+   R1: 192.168.1.1 | R2: 192.168.1.2
+🔧 Executing: ping 192.168.1.2 source 192.168.1.1
+📊 Analysis: Connectivity test successful
+```
+
+### English Network Commands / 英文网络命令
+```
+🙋 You: show OSPF neighbor status on R3
 🤖 Assistant: Analyzing request...
-✅ Found 1 open project(s): network_ai
+✅ Found device: R3 (Console: 5004)
 🔧 Executing: show ip ospf neighbor
+📋 OSPF neighbors found and analyzed
 ```
 
 ### Chinese Queries / 中文查询
 ```
-🙋 您: 查看R1到R6的路由信息
+🙋 您: 检查所有路由器的路由表
 🤖 助手: 正在分析请求...
-✅ 找到 1 个打开的项目: network_ai
-🔧 执行: show ip route
+✅ 找到 6 台设备: R1-R6
+🔧 批量执行: show ip route
+📊 路由表分析完成
+```
+
+### Multi-Device Operations / 多设备操作
+```
+🙋 You: collect configuration from all devices
+🤖 Assistant: Starting batch collection...
+✅ Devices: R1(5000), R2(5002), R3(5004), R4(5006), R5(5008), R6(5010)
+🔧 Executing: show running-config
+📁 Configurations saved to device_configs/
 ```
 
 ## 📁 Project Structure / 项目结构
 
 ```
-📦 GNS3/tools/
-├── 🎯 main.py                   # Main application / 主程序
-├── ⚙️ setup_rag.py             # RAG setup / RAG设置
-├── 📋 requirements.txt          # Dependencies / 依赖
-├── 📂 core/                    # Core modules / 核心模块
-│   ├── 🧠 intelligent_processor.py
-│   ├── 🌍 language_adapter.py
-│   ├── 📚 network_rag_kb.py
-│   └── 🔧 rag_enhanced_executor.py
-├── 📚 knowledge_base/          # RAG documents / RAG文档
-├── 🗄️ vector_store/           # Vector database / 向量数据库
-└── 📊 analysis_reports/        # Analysis output / 分析输出
+📦 GNS3/gns3-copilot/
+├── 🎯 main.py                          # Main application / 主程序
+├── ⚙️ setup_rag.py                     # RAG setup / RAG设置
+├── 📋 requirements.txt                  # Dependencies / 依赖
+├── 📂 core/                            # Core modules / 核心模块
+│   ├── 🧠 intelligent_processor.py     # AI request analysis / AI请求分析
+│   ├── 🌍 language_adapter.py          # Dual-language support / 双语支持
+│   ├── 📚 network_rag_kb.py            # RAG knowledge base / RAG知识库
+│   ├── 🔧 rag_enhanced_executor.py     # Enhanced command execution / 增强命令执行
+│   ├── 🎯 intelligent_command_executor.py # Smart command processing / 智能命令处理
+│   ├── ⚡ concurrent_command_executor.py  # Batch processing / 批量处理
+│   └── � get_all_devices_config.py    # Device discovery / 设备发现
+├── �📚 knowledge_base/                  # RAG documents / RAG文档
+├── 🗄️ vector_store/                   # Vector database / 向量数据库
+├── 📊 analysis_reports/                # Analysis output / 分析输出
+├── 🗂️ device_configs/                 # Device configurations / 设备配置
+└── 🧪 tests/                          # Test files / 测试文件
+    ├── test_connectivity_analysis.py   # Connectivity testing / 连通性测试
+    ├── test_english_connectivity.py    # English mode testing / 英文模式测试
+    └── test_enhanced_executor.py       # Enhanced features testing / 增强功能测试
 ```
 
 ## 🏗️ Architecture / 系统架构
 
 ```mermaid
 graph TD
-    A[User Input / 用户输入] --> B[Language Adapter / 语言适配器]
-    B --> C[LLM Processor / LLM处理器]
-    C --> D[RAG Knowledge Base / RAG知识库]
-    D --> E[Command Executor / 命令执行器]
-    E --> F[GNS3 Integration / GNS3集成]
-    F --> G[Response Formatter / 响应格式化]
-    G --> H[Multi-language Output / 多语言输出]
+    A[User Input / 用户输入] --> B[Language Detector / 语言检测器]
+    B --> C[Intelligent Processor / 智能处理器]
+    C --> D[Command Validator / 命令验证器]
+    D --> E[Device Discovery / 设备发现]
+    E --> F[RAG Knowledge Base / RAG知识库]
+    F --> G[Enhanced Executor / 增强执行器]
+    G --> H[GNS3 Integration / GNS3集成]
+    H --> I[Connectivity Analysis / 连通性分析]
+    I --> J[Multi-language Output / 多语言输出]
+    
+    subgraph "Core Features / 核心功能"
+        K[IP Discovery / IP发现]
+        L[Batch Processing / 批量处理]
+        M[Config Analysis / 配置分析]
+        N[Smart Validation / 智能验证]
+    end
+    
+    G --> K
+    G --> L
+    G --> M
+    G --> N
 ```
 
 ## 🔧 Configuration / 配置

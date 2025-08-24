@@ -12,7 +12,7 @@ from .get_topology_info import TopologyManager
 from .get_config_info import DeviceConfigManager
 from .get_all_devices_config import DeviceConfigCollector
 from .get_interface_connections import InterfaceConnectionManager
-from .language_adapter import get_message, format_device_info, format_project_info, format_skip_reason
+from .language_adapter import get_message, format_device_info, format_project_info, format_skip_reason, language_adapter
 
 
 class GNS3AgentTools:
@@ -73,7 +73,7 @@ class GNS3AgentTools:
             topology_data = self.projects_cache.get('topology_data', {})
             
             if not topology_data:
-                return "❌ 没有找到拓扑信息"
+                return get_message("no_topology_found")
             
             result = "🗺️ 网络拓扑信息：\n\n"
             
@@ -120,7 +120,7 @@ class GNS3AgentTools:
             return result
             
         except Exception as e:
-            return f"❌ 获取拓扑信息失败: {e}"
+            return get_message("get_topology_failed", str(e))
     
     def get_device_config(self, device_name: str) -> str:
         """获取设备配置"""
@@ -169,21 +169,24 @@ class GNS3AgentTools:
             return summary
             
         except Exception as e:
-            return f"❌ 获取 {device_name} 配置失败: {e}"
+            return get_message("get_device_config_failed", device_name, str(e))
     
     def list_devices(self) -> str:
         """列出所有设备"""
         try:
             self.update_cache()
             
-            result = "📱 可配置设备列表：\n\n"
+            result = get_message("configurable_devices_list") + "\n\n"
             total_devices = 0
             
             for project_name, project_devices in self.devices_cache.items():
                 configurable_devices = project_devices.get('configurable_devices', [])
                 
                 if configurable_devices:
-                    result += f"📁 项目: {project_name}\n"
+                    if language_adapter.current_config.use_english:
+                        result += f"📁 Project: {project_name}\n"
+                    else:
+                        result += f"📁 项目: {project_name}\n"
                     
                     for device in configurable_devices:
                         name = device.get('name', 'Unknown')
@@ -192,20 +195,20 @@ class GNS3AgentTools:
                         console = device.get('console', 'N/A')
                         
                         status_emoji = "🟢" if status == "started" else "🔴"
-                        result += f"   {status_emoji} {name} ({device_type}) - 端口:{console}\n"
+                        result += format_device_info(name, device_type, console) + "\n"
                         total_devices += 1
                     
                     result += "\n"
             
             if total_devices == 0:
-                result += "❌ 没有找到可配置的设备\n"
+                result += get_message("no_configurable_devices") + "\n"
             else:
-                result += f"📊 总计: {total_devices} 个可配置设备\n"
+                result += get_message("total_devices", total_devices) + "\n"
             
             return result
             
         except Exception as e:
-            return f"❌ 获取设备列表失败: {e}"
+            return get_message("get_device_list_failed", str(e))
     
     def get_project_status(self) -> str:
         """获取项目状态"""
@@ -215,7 +218,7 @@ class GNS3AgentTools:
             opened_projects = self.projects_cache.get('opened_projects', [])
             
             if not opened_projects:
-                return "❌ 没有找到打开的项目"
+                return get_message("no_open_projects")
             
             result = f"📋 项目状态信息 ({len(opened_projects)} 个打开的项目)：\n\n"
             
@@ -239,7 +242,7 @@ class GNS3AgentTools:
             return result
             
         except Exception as e:
-            return f"❌ 获取项目状态失败: {e}"
+            return get_message("get_project_status_failed", str(e))
     
     def build_context(self) -> str:
         """构建系统上下文"""

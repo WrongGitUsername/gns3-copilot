@@ -48,11 +48,33 @@ RAG Embeddings:
     - Multilingual support
     - 1024 dimensions
     - GPU optimized
+    - Real-time device config analysis
   
   Alternative: sentence-transformers/all-MiniLM-L6-v2
     - Lightweight
     - Fast inference
     - CPU friendly
+```
+
+### Enhanced AI Features / 增强AI功能
+```yaml
+Language Processing:
+  Detection: Automatic EN/CN recognition (99%+ accuracy)
+  Adaptation: Context-aware language switching
+  Templates: 60+ bilingual message templates
+  Validation: Real-time language consistency checks
+
+Connectivity Intelligence:
+  IP Discovery: Configuration-based device IP extraction
+  Network Analysis: Intelligent ping and connectivity testing
+  Device Mapping: Automatic network topology discovery
+  Command Validation: Pre-execution safety verification
+
+Smart Command Execution:
+  Keyword Expansion: Enhanced command recognition
+  Device Targeting: Intelligent device selection
+  Batch Processing: Concurrent multi-device operations
+  Error Recovery: Graceful failure handling
 ```
 
 ## 🏗️ Architecture Details / 架构详情

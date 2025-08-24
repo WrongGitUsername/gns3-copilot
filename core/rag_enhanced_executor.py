@@ -37,6 +37,9 @@ class RAGEnhancedCommandExecutor:
         self.use_rag = use_rag
         self.rag_kb = None
         
+        # 设备IP缓存
+        self.device_ip_cache = {}
+        
         if use_rag:
             try:
                 self.rag_kb = NetworkTroubleshootingRAG()
@@ -230,6 +233,10 @@ class RAGEnhancedCommandExecutor:
                                 target_device: str = None) -> str:
         """执行智能查询 - RAG增强版本"""
         try:
+            # 检查是否为连通性查询，如果是则使用智能连通性分析
+            if self._is_connectivity_query(user_query):
+                return self._handle_connectivity_query(user_query, devices_info, target_device)
+            
             print(get_message("using_rag_enhanced_command_selection"))
             
             # 1. 使用增强的命令获取
@@ -246,7 +253,7 @@ class RAGEnhancedCommandExecutor:
             if not selected_commands:
                 return get_message("llm_no_suitable_commands")
             
-            print(f"🤖 LLM选择的命令: {selected_commands}")
+            print(get_message("llm_selected_commands", selected_commands))
             
             # 3. 使用基础执行器的其他功能
             # 确定目标设备
@@ -255,7 +262,7 @@ class RAGEnhancedCommandExecutor:
             )
             
             if not target_devices:
-                return f"❌ 无法确定目标设备"
+                return get_message("unable_to_determine_target_device")
             
             # 4. 执行命令并收集结果
             execution_results = []
@@ -276,7 +283,7 @@ class RAGEnhancedCommandExecutor:
             return final_report
             
         except Exception as e:
-            return f"❌ RAG增强查询执行失败: {e}"
+            return get_message("rag_enhanced_query_failed", e)
     
     def _generate_enhanced_analysis(self, query: str, execution_results: List[Dict], 
                                   commands: List[str], all_commands: List[Dict]) -> str:
@@ -298,16 +305,162 @@ class RAGEnhancedCommandExecutor:
                 })
         
         if rag_suggestions:
-            rag_section = "\n\n📚 RAG知识库补充建议:\n"
+            rag_section = get_message("rag_knowledge_suggestions")
             for i, suggestion in enumerate(rag_suggestions[:3], 1):
                 rag_section += f"{i}. {suggestion['command']}\n"
-                rag_section += f"   相关度: {suggestion['score']:.2f}\n"
+                rag_section += get_message("relevance_score").format(suggestion['score']) + "\n"
                 if suggestion['context']:
-                    rag_section += f"   背景: {suggestion['context'][:150]}...\n"
+                    rag_section += get_message("background_context").format(suggestion['context'][:150]) + "\n"
             
             base_report += rag_section
         
         return base_report
+    
+    def _is_connectivity_query(self, query: str) -> bool:
+        """检查是否为连通性查询"""
+        connectivity_keywords = ['ping', 'connectivity', 'connect', 'reachable', '连通', '连接', '通信', 'test connection']
+        query_lower = query.lower()
+        return any(keyword in query_lower for keyword in connectivity_keywords)
+    
+    def _handle_connectivity_query(self, user_query: str, devices_info: List[Dict], 
+                                 target_device: str = None) -> str:
+        """处理连通性查询"""
+        try:
+            print(get_message("connectivity_query_detected"))
+            
+            # 解析查询以确定源设备和目标设备
+            devices = [device['name'] for device in devices_info]
+            source_device, target_device_name = self._parse_connectivity_query(user_query, devices, target_device)
+            
+            if not source_device or not target_device_name:
+                return get_message("unable_to_determine_devices")
+            
+            # 获取目标设备的IP地址
+            target_ip = self._get_device_ip(target_device_name, devices_info)
+            if not target_ip:
+                return get_message("unable_to_get_device_ip", target_device_name)
+            
+            # 构造并执行ping命令
+            ping_command = f"ping {target_ip}"
+            print(get_message("executing_ping_command", source_device, ping_command))
+            
+            # 使用基础执行器的命令执行方法
+            result = self._execute_simple_command(source_device, ping_command, devices_info)
+            
+            return self._format_connectivity_result(source_device, target_device_name, target_ip, result)
+            
+        except Exception as e:
+            return get_message("connectivity_test_failed", str(e))
+    
+    def _parse_connectivity_query(self, query: str, devices: List[str], target_device: str = None) -> tuple:
+        """解析连通性查询，提取源设备和目标设备"""
+        query_lower = query.lower()
+        
+        # 如果指定了目标设备，使用它作为源设备
+        source_device = target_device
+        target_device_name = None
+        
+        # 尝试从查询中提取设备名
+        for device in devices:
+            if device.lower() in query_lower:
+                if not source_device:
+                    source_device = device
+                elif device != source_device:
+                    target_device_name = device
+                    break
+        
+        # 如果只找到一个设备，尝试提取IP地址模式
+        if source_device and not target_device_name:
+            import re
+            ip_pattern = r'\b(?:\d{1,3}\.){3}\d{1,3}\b'
+            ips = re.findall(ip_pattern, query)
+            if ips:
+                # 使用找到的IP作为目标
+                return source_device, ips[0]
+        
+        return source_device, target_device_name
+    
+    def _get_device_ip(self, device_name: str, devices_info: List[Dict]) -> str:
+        """获取设备的IP地址"""
+        # 检查缓存
+        if device_name in self.device_ip_cache:
+            return self.device_ip_cache[device_name]
+        
+        try:
+            # 执行show ip interface brief命令获取IP地址
+            show_ip_result = self._execute_simple_command(device_name, "show ip interface brief", devices_info)
+            
+            # 解析结果提取IP地址
+            ip_address = self._extract_ip_from_show_result(show_ip_result)
+            
+            if ip_address:
+                # 缓存结果
+                self.device_ip_cache[device_name] = ip_address
+                return ip_address
+            
+        except Exception as e:
+            print(get_message("getting_device_ip_failed", device_name, str(e)))
+        
+        return None
+    
+    def _extract_ip_from_show_result(self, show_result: str) -> str:
+        """从show ip interface brief结果中提取IP地址"""
+        import re
+        
+        # 查找有效的IP地址（排除127.0.0.1和0.0.0.0）
+        ip_pattern = r'\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b'
+        ips = re.findall(ip_pattern, show_result)
+        
+        for ip in ips:
+            if ip not in ['127.0.0.1', '0.0.0.0'] and not ip.startswith('0.'):
+                return ip
+        
+        return None
+    
+    def _format_connectivity_result(self, source_device: str, target_device: str, 
+                                  target_ip: str, ping_result: str) -> str:
+        """格式化连通性测试结果"""
+        result = get_message("connectivity_test_results")
+        result += get_message("source_device", source_device) + "\n"
+        result += get_message("target_device", target_device) + "\n"
+        result += get_message("target_ip", target_ip) + "\n"
+        result += get_message("test_command", f"ping {target_ip}") + "\n"
+        result += get_message("execution_results")
+        result += ping_result
+        result += f"\n{'='*30}\n"
+        
+        return result
+        
+    def _execute_simple_command(self, device_name: str, command: str, devices_info: List[Dict]) -> str:
+        """执行简单命令的封装方法"""
+        try:
+            # 查找设备的控制台端口
+            device_info = None
+            for device in devices_info:
+                if device['name'] == device_name:
+                    device_info = device
+                    break
+            
+            if not device_info:
+                if language_adapter.current_config.use_english:
+                    return f"Device {device_name} not found"
+                else:
+                    return f"找不到设备 {device_name}"
+            
+            # 使用基础执行器的单命令执行方法
+            result = self.base_executor._execute_single_command(
+                device_name, 
+                device_info['console'], 
+                command
+            )
+            
+            return result.get('output', '') if isinstance(result, dict) else str(result)
+            
+        except Exception as e:
+            if language_adapter.current_config.use_english:
+                return f"Command execution failed: {str(e)}"
+            else:
+                return f"执行命令失败: {str(e)}"
 
 if __name__ == "__main__":
     # 测试RAG增强执行器

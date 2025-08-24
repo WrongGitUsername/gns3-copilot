@@ -328,10 +328,10 @@ def test_super_large_config():
         filename = f"/home/yueguobin/myCode/GNS3/tools/super_large_config_{device_name}_{timestamp}.txt"
         
         with open(filename, 'w', encoding='utf-8') as f:
-            f.write(f"设备: {device_name}\\n")
-            f.write(f"获取时间: {datetime.now()}\\n")
-            f.write(f"总耗时: {end_time - start_time:.2f} 秒\\n")
-            f.write("="*50 + "\\n")
+            f.write(f"设备: {device_name}\n")
+            f.write(f"获取时间: {datetime.now()}\n")
+            f.write(f"总耗时: {end_time - start_time:.2f} 秒\n")
+            f.write("="*50 + "\n")
             f.write(config)
         
         print(f"💾 配置已保存到: {filename}")

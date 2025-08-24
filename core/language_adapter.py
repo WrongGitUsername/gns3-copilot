@@ -212,6 +212,18 @@ class MessageAdapter:
                 "en": "✅ Configurable device list:",
                 "zh": "✅ 可配置设备列表:"
             },
+            "configurable_devices_list": {
+                "en": "📱 Configurable device list:",
+                "zh": "📱 可配置设备列表："
+            },
+            "no_configurable_devices": {
+                "en": "❌ No configurable devices found",
+                "zh": "❌ 没有找到可配置的设备"
+            },
+            "total_devices": {
+                "en": "📊 Total: {} configurable device(s)",
+                "zh": "📊 总计: {} 个可配置设备"
+            },
             "skipped_device_list": {
                 "en": "⏭️ Skipped devices:",
                 "zh": "⏭️ 跳过的设备:"
@@ -265,6 +277,32 @@ class MessageAdapter:
             "config_size": {
                 "en": "📊 Configuration size: {:,} characters",
                 "zh": "📊 配置大小: {:,} 字符"
+            },
+            
+            # 错误消息
+            "get_topology_failed": {
+                "en": "❌ Failed to get topology information: {}",
+                "zh": "❌ 获取拓扑信息失败: {}"
+            },
+            "get_device_config_failed": {
+                "en": "❌ Failed to get {} configuration: {}",
+                "zh": "❌ 获取 {} 配置失败: {}"
+            },
+            "get_device_list_failed": {
+                "en": "❌ Failed to get device list: {}",
+                "zh": "❌ 获取设备列表失败: {}"
+            },
+            "get_project_status_failed": {
+                "en": "❌ Failed to get project status: {}",
+                "zh": "❌ 获取项目状态失败: {}"
+            },
+            "no_topology_found": {
+                "en": "❌ No topology information found",
+                "zh": "❌ 没有找到拓扑信息"
+            },
+            "no_open_projects": {
+                "en": "❌ No open projects found",
+                "zh": "❌ 没有找到打开的项目"
             },
             "config_lines": {
                 "en": "📄 Configuration lines: {:,} lines",
@@ -462,9 +500,103 @@ class MessageAdapter:
                 "en": "  ✅ Command execution complete, output length: {} characters",
                 "zh": "  ✅ 命令执行完成，输出长度: {} 字符"
             },
+            "device_summary": {
+                "en": "\nDevice: {}",
+                "zh": "\n设备: {}"
+            },
+            "device_no_console": {
+                "en": "Device {} has no available console port",
+                "zh": "设备 {} 没有可用的控制台端口"
+            },
+            "command_details": {
+                "en": "  Command: {}",
+                "zh": "  命令: {}"
+            },
+            "command_failed": {
+                "en": " - Execution failed or no output",
+                "zh": " - 执行失败或无输出"
+            },
+            "command_output": {
+                "en": "  Output: {}",
+                "zh": "  输出: {}"
+            },
             "command_execution_failed": {
                 "en": "  ❌ Command execution failed: {}",
                 "zh": "  ❌ 命令执行失败: {}"
+            },
+            "output_truncated": {
+                "en": "\n... (output truncated)",
+                "zh": "\n... (输出已截断)"
+            },
+            "rag_knowledge_suggestions": {
+                "en": "\n\n📚 RAG Knowledge Base Suggestions:\n",
+                "zh": "\n\n📚 RAG知识库补充建议:\n"
+            },
+            "relevance_score": {
+                "en": "   Relevance: {:.2f}",
+                "zh": "   相关度: {:.2f}"
+            },
+            "background_context": {
+                "en": "   Background: {}...",
+                "zh": "   背景: {}..."
+            },
+            
+            # 连通性测试相关消息
+            "connectivity_query_detected": {
+                "en": "Detected connectivity query, analyzing device configuration...",
+                "zh": "检测到连通性查询，正在分析设备配置..."
+            },
+            "executing_ping_command": {
+                "en": "Executing command on device {}: {}",
+                "zh": "在设备 {} 上执行命令: {}"
+            },
+            "connectivity_test_results": {
+                "en": "\n=== Connectivity Test Results ===\n",
+                "zh": "\n=== 连通性测试结果 ===\n"
+            },
+            "source_device": {
+                "en": "Source device: {}",
+                "zh": "源设备: {}"
+            },
+            "target_device": {
+                "en": "Target device: {}",
+                "zh": "目标设备: {}"
+            },
+            "target_ip": {
+                "en": "Target IP: {}",
+                "zh": "目标IP: {}"
+            },
+            "test_command": {
+                "en": "Test command: {}",
+                "zh": "测试命令: {}"
+            },
+            "execution_results": {
+                "en": "\n--- Execution Results ---\n",
+                "zh": "\n--- 执行结果 ---\n"
+            },
+            "connectivity_test_failed": {
+                "en": "Connectivity test failed: {}",
+                "zh": "连通性测试失败: {}"
+            },
+            "unable_to_determine_devices": {
+                "en": "Unable to determine source and target devices, please specify the devices for connectivity testing.",
+                "zh": "无法确定源设备和目标设备，请明确指定要测试连通性的设备。"
+            },
+            "unable_to_get_device_ip": {
+                "en": "Unable to get IP address for device {}, please check device configuration.",
+                "zh": "无法获取设备 {} 的IP地址，请检查设备配置。"
+            },
+            "getting_device_ip_failed": {
+                "en": "Failed to get IP address for device {}: {}",
+                "zh": "获取设备 {} IP地址失败: {}"
+            },
+            "unable_to_determine_target_device": {
+                "en": "❌ Unable to determine target device",
+                "zh": "❌ 无法确定目标设备"
+            },
+            "rag_enhanced_query_failed": {
+                "en": "❌ RAG enhanced query execution failed: {}",
+                "zh": "❌ RAG增强查询执行失败: {}"
             },
             
             # 设备状态相关消息
@@ -515,6 +647,52 @@ class MessageAdapter:
                 "zh": "🔧 命令模式数量: {}"
             },
             
+            # 分析报告相关消息
+            "intelligent_network_analysis_report": {
+                "en": "🔍 Intelligent Network Analysis Report",
+                "zh": "🔍 智能网络查询分析报告"
+            },
+            "network_query_execution_report": {
+                "en": "🔍 Network Query Execution Report",
+                "zh": "🔍 网络查询执行报告"
+            },
+            "query_information": {
+                "en": "📋 Query Information:",
+                "zh": "📋 查询信息:"
+            },
+            "user_query": {
+                "en": "   - User query: {}",
+                "zh": "   - 用户查询: {}"
+            },
+            "executed_commands": {
+                "en": "   - Executed commands: {}",
+                "zh": "   - 执行命令: {}"
+            },
+            "query_time": {
+                "en": "   - Query time: {}",
+                "zh": "   - 查询时间: {}"
+            },
+            "devices_involved": {
+                "en": "   - Devices involved: {} devices",
+                "zh": "   - 涉及设备: {} 台"
+            },
+            "ai_analysis_results": {
+                "en": "🤖 AI Analysis Results:",
+                "zh": "🤖 AI 分析结果:"
+            },
+            "detailed_execution_results": {
+                "en": "📊 Detailed Execution Results:",
+                "zh": "📊 详细执行结果:"
+            },
+            "ai_analysis_failed": {
+                "en": "❌ AI analysis failed: {}",
+                "zh": "❌ AI分析失败: {}"
+            },
+            "execution_results": {
+                "en": "📊 Execution Results:",
+                "zh": "📊 执行结果:"
+            },
+            
             # 错误消息
             "error_occurred": {
                 "en": "❌ Error occurred: {}",
@@ -551,8 +729,8 @@ class MessageAdapter:
                 "zh": "🌟 GNS3 智能代理 v6.0"
             },
             "app_description": {
-                "en": "   Network device management AI agent based on LangChain + Ollama",
-                "zh": "   基于 LangChain + Ollama 的网络设备管理智能体"
+                "en": "   Network device management AI agent based on LangChain Agent",
+                "zh": "   基于 LangChain Agent 的网络设备管理智能体"
             },
             "app_version": {
                 "en": "   Refactored version - Modular design",
@@ -635,11 +813,18 @@ User Request: {user_input}
 
 Please analyze user requirements and execute corresponding operations. If the user wants to get device configuration but hasn't specified device name, please list devices first for user selection.
 
+IMPORTANT RESTRICTIONS:
+- NEVER generate fake technical data, command outputs, or test results
+- If you cannot execute actual network commands, clearly state this limitation
+- Do not simulate ping results, routing tables, or any network diagnostics
+- Only provide information that can be verified from the actual system context
+
 Response Requirements:
 - Reply in English
 - Provide clear and structured information
 - For configuration analysis, provide professional network technology advice
 - Maintain friendly and professional tone
+- Be honest about system limitations
 
 Execute operations and reply:""",
                 "zh": """你是一个专业的网络设备管理助手，专门帮助用户管理和分析GNS3网络环境。
@@ -654,13 +839,55 @@ Execute operations and reply:""",
 
 请分析用户需求并执行相应操作。如果用户要获取设备配置但没有指定设备名称，请先列出设备让用户选择。
 
+重要限制：
+- 绝对不要生成虚假的技术数据、命令输出或测试结果
+- 如果无法执行实际的网络命令，请明确说明这个限制
+- 不要模拟ping结果、路由表或任何网络诊断数据
+- 只提供可以从实际系统上下文中验证的信息
+
 回答要求：
 - 使用中文回复
 - 提供清晰、结构化的信息
 - 对于配置分析，提供专业的网络技术建议
 - 保持友好和专业的语气
+- 诚实说明系统限制
 
 执行操作并回复："""
+            },
+            
+            "command_execution_analysis_template": {
+                "en": """Analyze the following OSPF network status results and provide a concise network analysis report.
+
+User Query: {query}
+Commands Executed: {commands}
+
+Network Device Results:
+{results_text}
+
+Based on the OSPF command outputs above, provide a brief analysis focusing on:
+1. OSPF Neighbor Status Summary
+2. Area Configuration Analysis  
+3. Router ID Information
+4. Adjacency State Health
+5. Any Issues or Recommendations
+
+Keep the response concise and technical. Focus on actual network status, not template explanations.""",
+                "zh": """分析以下OSPF网络状态结果，并提供简洁的网络分析报告。
+
+用户查询: {query}
+执行的命令: {commands}
+
+网络设备结果:
+{results_text}
+
+基于上述OSPF命令输出，请提供简要分析，重点关注：
+1. OSPF邻居状态摘要
+2. 区域配置分析
+3. 路由器ID信息
+4. 邻接状态健康度
+5. 任何问题或建议
+
+保持回复简洁和技术性。专注于实际网络状态，而不是模板解释。"""
             },
             
             "analysis_prompt_template": {

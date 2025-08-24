@@ -11,7 +11,7 @@ import re
 from typing import List, Dict, Optional, Tuple
 from datetime import datetime
 from .network_commands_kb import get_command_suggestions, search_commands_by_keyword
-from .language_adapter import get_message, language_adapter
+from .language_adapter import get_message, get_prompt_template, language_adapter
 
 
 class IntelligentCommandExecutor:
@@ -283,7 +283,7 @@ ping ***
         if not console_port:
             return [{
                 "command": "connection_check",
-                "output": f"设备 {device_name} 没有可用的控制台端口",
+                "output": get_message("device_no_console").format(device_name),
                 "success": False
             }]
         
@@ -461,7 +461,7 @@ ping ***
         results_summary = []
         for device_result in execution_results:
             device_name = device_result["device"]["name"]
-            results_summary.append(f"\\n设备: {device_name}")
+            results_summary.append(get_message("device_summary").format(device_name))
             
             for cmd_result in device_result["results"]:
                 command = cmd_result["command"]
@@ -471,68 +471,55 @@ ping ***
                 if success and output.strip():
                     # 截断过长的输出
                     if len(output) > 1000:
-                        output = output[:1000] + "\\n... (输出已截断)"
-                    results_summary.append(f"  命令: {command}")
-                    results_summary.append(f"  输出: {output}")
+                        output = output[:1000] + get_message("output_truncated")
+                    results_summary.append(get_message("command_details").format(command))
+                    results_summary.append(get_message("command_output").format(output))
                 else:
-                    results_summary.append(f"  命令: {command} - 执行失败或无输出")
+                    results_summary.append(get_message("command_details").format(command) + get_message("command_failed"))
         
-        results_text = "\\n".join(results_summary)
+        results_text = "\n".join(results_summary)
         
-        analysis_prompt = f"""
-作为专业的网络工程师，请分析以下网络命令执行结果，并提供专业的分析报告。
-
-用户查询: {query}
-执行的命令: {', '.join(commands)}
-
-命令执行结果:
-{results_text}
-
-请提供一份结构化的分析报告，包括：
-1. 执行摘要
-2. 关键发现
-3. 状态分析
-4. 问题识别（如果有）
-5. 建议和下一步操作
-
-请使用中文回复，保持专业性和简洁性。
-"""
+        # 使用language_adapter的分析提示词模板
+        analysis_prompt = get_prompt_template("command_execution_analysis", 
+                                            query=query, 
+                                            commands=', '.join(commands),
+                                            results_text=results_text)
         
         try:
             analysis = self.llm.invoke(analysis_prompt)
             content = analysis.content if hasattr(analysis, 'content') else str(analysis)
             
             # 构建最终报告
-            report = f"""🔍 智能网络查询分析报告
+            report = f"""{get_message("intelligent_network_analysis_report")}
 {'='*50}
 
-📋 查询信息:
-   - 用户查询: {query}
-   - 执行命令: {', '.join(commands)}
-   - 查询时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-   - 涉及设备: {len(execution_results)} 台
+{get_message("query_information")}
+{get_message("user_query", query)}
+{get_message("executed_commands", ', '.join(commands))}
+{get_message("query_time", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))}
+{get_message("devices_involved", len(execution_results))}
 
-🤖 AI 分析结果:
+{get_message("ai_analysis_results")}
 {content}
 
-📊 详细执行结果:
+{get_message("detailed_execution_results")}
 {results_text}
 """
             return report
             
         except Exception as e:
             # LLM分析失败时返回基础报告
-            return f"""🔍 网络查询执行报告
+            return f"""{get_message("network_query_execution_report")}
 {'='*50}
 
-📋 查询信息:
-   - 用户查询: {query}
-   - 执行命令: {', '.join(commands)}
-   - 查询时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-   - 涉及设备: {len(execution_results)} 台
+{get_message("query_information")}
+{get_message("user_query", query)}
+{get_message("executed_commands", ', '.join(commands))}
+{get_message("query_time", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))}
+{get_message("devices_involved", len(execution_results))}
 
-❌ AI分析失败: {e}
+{get_message("ai_analysis_failed", e)}
 
-📊 执行结果:
+{get_message("execution_results")}
 {results_text}
 """

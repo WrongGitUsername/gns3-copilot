@@ -83,12 +83,22 @@ class IntelligentProcessor:
     
     def _init_base_executor(self):
         """初始化基础命令执行器"""
-        from .intelligent_command_executor import IntelligentCommandExecutor
-        self.command_executor = IntelligentCommandExecutor(
-            telnet_host=self.tools.telnet_host, 
-            llm=self.llm
-        )
-        print("📋 基础命令执行器初始化成功")
+        # 优先使用增强型命令执行器
+        try:
+            from .enhanced_command_executor import EnhancedIntelligentCommandExecutor
+            self.command_executor = EnhancedIntelligentCommandExecutor(
+                telnet_host=self.tools.telnet_host, 
+                llm=self.llm
+            )
+            print("🚀 增强型命令执行器初始化成功")
+        except ImportError:
+            # 回退到基础命令执行器
+            from .intelligent_command_executor import IntelligentCommandExecutor
+            self.command_executor = IntelligentCommandExecutor(
+                telnet_host=self.tools.telnet_host, 
+                llm=self.llm
+            )
+            print("📋 基础命令执行器初始化成功")
     
     def process_user_request(self, user_input: str) -> str:
         """处理用户请求"""
@@ -110,7 +120,7 @@ class IntelligentProcessor:
         # 构建对话历史字符串
         history_str = ""
         for i, chat in enumerate(self.chat_history[-3:]):  # 只显示最近3轮对话
-            history_str += f"用户{i+1}: {chat['user']}\\n助手{i+1}: {chat['assistant']}\\n\\n"
+            history_str += f"用户{i+1}: {chat['user']}\n助手{i+1}: {chat['assistant']}\n\n"
         
         # 生成提示
         prompt = prompt_template.format(
@@ -148,9 +158,20 @@ class IntelligentProcessor:
         
         # 1. 优先检查是否为网络命令查询（使用智能命令执行器）
         network_command_keywords = [
-            'ospf', 'bgp', 'neighbor', 'route', 'routing', 'interface', 'vlan', 
-            'stp', 'spanning', 'version', 'show', 'display',
-            '邻居', '路由', '接口状态', '版本信息', '生成树', '状态'
+            # 路由协议相关
+            'ospf', 'bgp', 'neighbor', 'route', 'routing', 'eigrp', 'rip',
+            # 接口和链路相关
+            'interface', 'vlan', 'stp', 'spanning', 'link', 'port',
+            # 网络测试和诊断
+            'ping', 'traceroute', 'trace', 'connectivity', 'reachability',
+            'check', 'test', 'verify', 'status', 'state',
+            # 显示命令
+            'show', 'display', 'get', 'list',
+            # 系统信息
+            'version', 'uptime', 'memory', 'cpu', 'process',
+            # 中文关键词
+            '邻居', '路由', '接口状态', '版本信息', '生成树', '状态',
+            '连通性', '测试', '检查', '验证', 'ping测试', '路径跟踪'
         ]
         
         # 判断是否为网络命令查询
@@ -201,9 +222,34 @@ class IntelligentProcessor:
                 else:
                     return self.tools.get_device_config(device_name)
             else:
-                return self.tools.list_devices() + "\\n\\n请指定要获取配置的设备名称，例如：'获取R-1的配置'"
+                return self.tools.list_devices() + "\n\n请指定要获取配置的设备名称，例如：'获取R-1的配置'"
         
-        # 如果没有匹配到特定操作，返回 LLM 的通用回复
+        # 如果没有匹配到特定操作，检查是否可能是技术查询
+        technical_keywords = [
+            'ping', 'traceroute', 'connectivity', 'reachability', 'test', 'check',
+            'verify', 'troubleshoot', 'diagnose', 'analyze', 'monitor',
+            '测试', '检查', '验证', '诊断', '分析', '监控', '连通性'
+        ]
+        
+        if any(keyword in user_input_lower for keyword in technical_keywords):
+            # 这可能是一个技术查询，但没有被正确处理
+            # 提示用户并建议使用智能命令执行器
+            return f"""⚠️  检测到可能的网络技术查询，但未能自动处理。
+
+🔧 建议操作：
+1. 请尝试使用更具体的命令描述
+2. 或者直接说明要执行的网络命令
+
+💡 示例：
+- "在R-1上执行ping 6.6.6.6"
+- "检查所有设备的OSPF邻居状态"
+- "显示R-1的路由表"
+
+📝 您的原始请求：{user_input}
+
+如果这不是技术查询，我可以为您提供一般性的帮助。"""
+        
+        # 对于非技术查询，返回 LLM 的通用回复
         return llm_response
     
     def _analyze_device_config(self, device_name: str) -> str:
