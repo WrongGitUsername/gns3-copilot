@@ -139,6 +139,74 @@ graph TD
     I --> J[Multi-language Output]
     
     subgraph "Core Features"
+
+### English Network Commands / 英文网络命令
+```
+🙋 You: show OSPF neighbor status on R3
+🤖 Assistant: Analyzing request...
+✅ Found device: R3 (Console: 5004)
+🔧 Executing: show ip ospf neighbor
+📋 OSPF neighbors found and analyzed
+```
+
+### Chinese Queries / 中文查询
+```
+🙋 您: 检查所有路由器的路由表
+🤖 助手: 正在分析请求...
+✅ 找到 6 台设备: R1-R6
+🔧 批量执行: show ip route
+📊 路由表分析完成
+```
+
+### Multi-Device Operations / 多设备操作
+```
+🙋 You: collect configuration from all devices
+🤖 Assistant: Starting batch collection...
+✅ Devices: R1(5000), R2(5002), R3(5004), R4(5006), R5(5008), R6(5010)
+🔧 Executing: show running-config
+📁 Configurations saved to device_configs/
+```
+
+## 📁 Project Structure / 项目结构
+
+```
+📦 GNS3/gns3-copilot/
+├── 🎯 main.py                          # Main application / 主程序
+├── ⚙️ setup_rag.py                     # RAG setup / RAG设置
+├── 📋 requirements.txt                  # Dependencies / 依赖
+├── 📂 core/                            # Core modules / 核心模块
+│   ├── 🧠 intelligent_processor.py     # AI request analysis / AI请求分析
+│   ├── 🌍 language_adapter.py          # Dual-language support / 双语支持
+│   ├── 📚 network_rag_kb.py            # RAG knowledge base / RAG知识库
+│   ├── 🔧 rag_enhanced_executor.py     # Enhanced command execution / 增强命令执行
+│   ├── 🎯 intelligent_command_executor.py # Smart command processing / 智能命令处理
+│   ├── ⚡ concurrent_command_executor.py  # Batch processing / 批量处理
+│   └── � get_all_devices_config.py    # Device discovery / 设备发现
+├── �📚 knowledge_base/                  # RAG documents / RAG文档
+├── 🗄️ vector_store/                   # Vector database / 向量数据库
+├── 📊 analysis_reports/                # Analysis output / 分析输出
+├── 🗂️ device_configs/                 # Device configurations / 设备配置
+└── 🧪 tests/                          # Test files / 测试文件
+    ├── test_connectivity_analysis.py   # Connectivity testing / 连通性测试
+    ├── test_english_connectivity.py    # English mode testing / 英文模式测试
+    └── test_enhanced_executor.py       # Enhanced features testing / 增强功能测试
+```
+
+## 🏗️ Architecture / 系统架构
+
+```mermaid
+graph TD
+    A[User Input / 用户输入] --> B[Language Detector / 语言检测器]
+    B --> C[Intelligent Processor / 智能处理器]
+    C --> D[Command Validator / 命令验证器]
+    D --> E[Device Discovery / 设备发现]
+    E --> F[RAG Knowledge Base / RAG知识库]
+    F --> G[Enhanced Executor / 增强执行器]
+    G --> H[GNS3 Integration / GNS3集成]
+    H --> I[Connectivity Analysis / 连通性分析]
+    I --> J[Multi-language Output / 多语言输出]
+    
+    subgraph "Core Features / 核心功能"
         K[IP Discovery]
         L[Batch Processing]
         M[Config Analysis]

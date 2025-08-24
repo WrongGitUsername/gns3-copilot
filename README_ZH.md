@@ -35,11 +35,11 @@
 
 <div align="center">
 
-[![GNS3 Copilot Demo](https://img.youtube.com/vi/YNi7KF_a_k0/maxresdefault.jpg)](https://youtu.be/YNi7KF_a_k0)
+[![GNS3 Copilot Demo](https://pic1.zhimg.com/v2-7c4c4b9c5c4c4b9c5c4c4b9c5c4c4b9c_b.jpg)](https://www.zhihu.com/zvideo/1942927472871086076)
 
-**🎥 [▶️ 点击观看演示视频](https://youtu.be/YNi7KF_a_k0) 🎥**
+**🎥 [▶️ 点击观看演示视频](https://www.zhihu.com/zvideo/1942927472871086076) 🎥**
 
-*注意：视频将在YouTube中打开（GitHub不支持嵌入式视频播放）*
+*注意：视频将在知乎中打开（GitHub不支持嵌入式视频播放）*
 
 </div>
 
