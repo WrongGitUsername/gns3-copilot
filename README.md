@@ -35,11 +35,19 @@ An AI-powered network device management system for GNS3 environments, featuring 
 
 ## 🎬 Demo Video / 演示视频
 
+<div align="center">
+
 [![GNS3 Copilot Demo](https://img.youtube.com/vi/YNi7KF_a_k0/maxresdefault.jpg)](https://youtu.be/YNi7KF_a_k0)
+
+**🎥 [▶️ CLICK TO WATCH DEMO VIDEO](https://youtu.be/YNi7KF_a_k0) 🎥**
+
+*Note: Video opens in YouTube (GitHub doesn't support embedded video playback)*
+
+</div>
 
 **🎥 Watch the live demo** to see GNS3 Copilot in action! This video showcases:
 - Real-time network device management
-- AI-powered command analysis
+- AI-powered command analysis  
 - Smart connectivity testing
 - Bilingual interface demonstration
 
