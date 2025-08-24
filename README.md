@@ -33,6 +33,22 @@ An AI-powered network device management system for GNS3 environments, featuring 
 | 🎯 **Command Validation** | Advanced command verification & execution safety | 高级命令验证与执行安全 |
 | ⚡ **High Performance** | GPU acceleration & concurrent processing | GPU加速和并发处理 |
 
+## 🎬 Demo Video / 演示视频
+
+[![GNS3 Copilot Demo](https://img.youtube.com/vi/YNi7KF_a_k0/maxresdefault.jpg)](https://youtu.be/YNi7KF_a_k0)
+
+**🎥 Watch the live demo** to see GNS3 Copilot in action! This video showcases:
+- Real-time network device management
+- AI-powered command analysis
+- Smart connectivity testing
+- Bilingual interface demonstration
+
+**🎥 观看现场演示** 了解GNS3 Copilot的实际运行效果！视频展示：
+- 实时网络设备管理
+- AI驱动的命令分析
+- 智能连通性测试
+- 双语界面演示
+
 ## 🚀 Quick Start / 快速开始
 
 ```bash
