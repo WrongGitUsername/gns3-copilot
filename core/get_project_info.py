@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-GNS3项目信息获取模块
-提供获取GNS3项目详细信息的功能
+GNS3 project information retrieval module.
+
+Provides functionality to retrieve detailed information about GNS3 projects.
 """
 
 import os
@@ -10,28 +11,28 @@ from gns3fy import Gns3Connector, Project
 from dotenv import load_dotenv
 from .language_adapter import get_message, language_adapter
 
-# 加载环境变量
+# Load environment variables
 load_dotenv()
 
 class ProjectInfoManager:
-    """项目信息管理器"""
+    """Project information manager."""
     
     def __init__(self, server_url=None):
         """
-        初始化项目信息管理器
+        Initialize project information manager.
         
         Args:
-            server_url: GNS3服务器地址，如果不指定则从环境变量获取
+            server_url: GNS3 server address, if not specified, get from environment variables
         """
         self.server_url = server_url or os.getenv("GNS3_SERVER_URL", "http://192.168.101.1:3080")
         self.server = Gns3Connector(self.server_url)
     
     def get_projects_summary(self):
         """
-        获取项目摘要
+        Get project summary.
         
         Returns:
-            list: 项目摘要列表
+            list: Project summary list
         """
         try:
             return self.server.projects_summary(is_print=False)
@@ -41,13 +42,13 @@ class ProjectInfoManager:
     
     def get_opened_projects(self):
         """
-        获取所有打开的项目
+        Get all opened projects.
         
         Returns:
-            list: 打开的项目信息列表
+            list: List of opened project information
         """
         projects_summary = self.get_projects_summary()
-        # 筛选出当前处于"opened"状态的项目 (元组的第4个元素是Status)
+        # Filter projects currently in "opened" status (4th element of tuple is Status)
         opened_projects = [p for p in projects_summary if p[4] == "opened"]
         return opened_projects
     

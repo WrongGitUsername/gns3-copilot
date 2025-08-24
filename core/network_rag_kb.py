@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-基于RAG的网络命令知识库
-使用LangChain向量化网络排错书籍，智能检索相关命令
+RAG-based network command knowledge base.
+
+Uses LangChain to vectorize network troubleshooting books and intelligently retrieve related commands.
 """
 
 import os
@@ -13,7 +14,7 @@ from pathlib import Path
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.schema import Document
 
-# 导入语言适配器
+# Import language adapter
 try:
     from .language_adapter import get_message, language_adapter
     LANGUAGE_ADAPTER_AVAILABLE = True
@@ -21,7 +22,7 @@ except ImportError:
     LANGUAGE_ADAPTER_AVAILABLE = False
 
 try:
-    # 尝试新版本导入 (langchain-huggingface)
+    # Try new version import (langchain-huggingface)
     from langchain_huggingface import HuggingFaceEmbeddings
     from langchain_community.vectorstores import FAISS
     from langchain_community.document_loaders import (
@@ -32,7 +33,7 @@ try:
     )
 except ImportError:
     try:
-        # 回退到社区版本
+        # Fallback to community version
         from langchain_community.embeddings import HuggingFaceEmbeddings
         from langchain_community.vectorstores import FAISS
         from langchain_community.document_loaders import (
@@ -42,7 +43,7 @@ except ImportError:
             DirectoryLoader
         )
     except ImportError:
-        # 最后回退到旧版本导入
+        # Final fallback to old version import
         from langchain.embeddings import HuggingFaceEmbeddings
         from langchain.vectorstores import FAISS
         from langchain.document_loaders import (

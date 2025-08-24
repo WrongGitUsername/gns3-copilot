@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-GNS3 智能代理工具模块
-提供智能代理所需的各种工具函数，支持多语言适配
+GNS3 intelligent agent tools module.
+
+Provides various tool functions required by intelligent agents,
+supporting multi-language adaptation.
 """
 
 import re
@@ -16,25 +18,25 @@ from .language_adapter import get_message, format_device_info, format_project_in
 
 
 class GNS3AgentTools:
-    """GNS3智能代理工具集"""
+    """GNS3 intelligent agent toolset."""
     
     def __init__(self, server_url: str, telnet_host: str):
         self.server_url = server_url
         self.telnet_host = telnet_host
         
-        # 初始化管理器
+        # Initialize managers
         self.topology_manager = TopologyManager(server_url)
         self.config_manager = DeviceConfigManager(telnet_host)
         self.collector = DeviceConfigCollector(server_url, telnet_host)
         self.interface_manager = InterfaceConnectionManager(server_url)
         
-        # 缓存相关
+        # Cache related attributes
         self.projects_cache = {}
         self.devices_cache = {}
         self.last_cache_update = None
     
     def update_cache(self, force=False):
-        """更新缓存"""
+        """Update cache."""
         now = datetime.now()
         
         if (not force and self.last_cache_update and 
@@ -67,7 +69,7 @@ class GNS3AgentTools:
             print(get_message("error_occurred", str(e)))
     
     def get_topology_info(self) -> str:
-        """获取拓扑信息（包含设备和接口连接）"""
+        """Get topology information (including devices and interface connections)."""
         try:
             self.update_cache()
             topology_data = self.projects_cache.get('topology_data', {})
@@ -94,10 +96,10 @@ class GNS3AgentTools:
                         status_emoji = "🟢" if status == "started" else "🔴"
                         result += f"      {status_emoji} {name} ({node_type})\n"
                 
-                # 添加接口连接信息
+                # Add interface connection information
                 if links:
                     result += "\n   🔗 设备连接关系:\n"
-                    # 构建节点ID到名称的映射
+                    # Build mapping from node ID to node name
                     node_name_map = {node.get('node_id'): node.get('name', 'Unknown') for node in nodes}
                     
                     for i, link in enumerate(links, 1):
@@ -123,11 +125,11 @@ class GNS3AgentTools:
             return get_message("get_topology_failed", str(e))
     
     def get_device_config(self, device_name: str) -> str:
-        """获取设备配置"""
+        """Get device configuration."""
         try:
             self.update_cache()
             
-            # 查找设备
+            # Search for device
             device_info = None
             device_name_lower = device_name.lower()
             
@@ -172,7 +174,7 @@ class GNS3AgentTools:
             return get_message("get_device_config_failed", device_name, str(e))
     
     def list_devices(self) -> str:
-        """列出所有设备"""
+        """List all devices."""
         try:
             self.update_cache()
             
@@ -211,7 +213,7 @@ class GNS3AgentTools:
             return get_message("get_device_list_failed", str(e))
     
     def get_project_status(self) -> str:
-        """获取项目状态"""
+        """Get project status."""
         try:
             self.update_cache()
             
@@ -245,7 +247,7 @@ class GNS3AgentTools:
             return get_message("get_project_status_failed", str(e))
     
     def build_context(self) -> str:
-        """构建系统上下文"""
+        """Build system context."""
         self.update_cache()
         
         opened_projects = self.projects_cache.get('opened_projects', [])
@@ -261,13 +263,13 @@ GNS3服务器: {self.server_url}
         return context
     
     def extract_device_name(self, text: str) -> Optional[str]:
-        """从文本中提取设备名称"""
-        # 常见的设备名称模式
+        """Extract device name from text."""
+        # Common device name patterns
         patterns = [
             r'([Rr]-\d+)',  # R-1, R-2
             r'([Ss]witch-\d+)',  # Switch-1
             r'([Rr]outer-\d+)',  # Router-1
-            r'([A-Za-z]+\d+)',  # 通用模式
+            r'([A-Za-z]+\d+)',  # Generic pattern
         ]
         
         for pattern in patterns:
@@ -278,7 +280,7 @@ GNS3服务器: {self.server_url}
         return None
     
     def _extract_interface_name(self, label_info) -> str:
-        """从标签信息中提取接口名称"""
+        """Extract interface name from label information."""
         if isinstance(label_info, dict):
             return label_info.get('text', 'Unknown')
         elif isinstance(label_info, str):
@@ -287,9 +289,9 @@ GNS3服务器: {self.server_url}
             return 'Unknown'
     
     def get_interface_connections(self, device_name: str = None) -> str:
-        """获取设备接口连接信息"""
+        """Get device interface connection information."""
         return self.interface_manager.get_device_interfaces(device_name)
     
     def get_network_connections_summary(self) -> str:
-        """获取网络连接汇总"""
+        """Get network connections summary."""
         return self.interface_manager.get_network_connections_summary()

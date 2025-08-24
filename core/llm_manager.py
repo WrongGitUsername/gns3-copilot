@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-LLM模型管理器
-负责不同LLM模型的初始化和切换
+LLM model manager.
+
+Responsible for initialization and switching between different LLM models.
 """
 
 import os
@@ -11,7 +12,7 @@ from langchain_ollama import OllamaLLM
 from langchain_openai import ChatOpenAI
 from langchain_core.language_models.base import BaseLanguageModel
 
-# 尝试导入 langchain-deepseek
+# Try to import langchain-deepseek
 try:
     from langchain_deepseek import ChatDeepSeek
     DEEPSEEK_AVAILABLE = True
@@ -20,7 +21,7 @@ except ImportError:
     print("⚠️ langchain-deepseek not installed, DeepSeek functionality unavailable")
     print("Install command: pip install langchain-deepseek")
 
-# 导入语言适配器
+# Import language adapter
 try:
     from .language_adapter import get_message, language_adapter
     LANGUAGE_ADAPTER_AVAILABLE = True
@@ -29,17 +30,17 @@ except ImportError:
 
 
 class LLMManager:
-    """LLM模型管理器"""
+    """LLM model manager."""
     
     def __init__(self):
         self.current_model = None
         self.model_name = None
-        self._deepseek_model_name = None  # 用于保存 DeepSeek 模型名称
-        # 自动初始化 LLM
+        self._deepseek_model_name = None  # Store DeepSeek model name
+        # Auto-initialize LLM
         self.init_llm()
     
     def get_current_model_info(self) -> str:
-        """获取当前模型信息"""
+        """Get current model information."""
         if not self.current_model:
             if LANGUAGE_ADAPTER_AVAILABLE:
                 return get_message("model_not_initialized")

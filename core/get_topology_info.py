@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-GNS3拓扑信息获取模块
-提供获取GNS3项目拓扑信息和链路摘要的功能
+GNS3 topology information retrieval module.
+
+Provides functionality to retrieve GNS3 project topology information and link summaries.
 """
 
 import os
@@ -10,24 +11,24 @@ from gns3fy import Gns3Connector, Project
 from dotenv import load_dotenv
 from .language_adapter import get_message, language_adapter
 
-# 加载环境变量
+# Load environment variables
 load_dotenv()
 
 class TopologyManager:
-    """拓扑信息管理器"""
+    """Topology information manager."""
     
     def __init__(self, server_url=None):
         """
-        初始化拓扑管理器
+        Initialize topology manager.
         
         Args:
-            server_url: GNS3服务器URL，如果不指定则从环境变量获取
+            server_url: GNS3 server URL, if not specified, get from environment variables
         """
         self.server_url = server_url or os.getenv("GNS3_SERVER_URL", "http://192.168.101.1:3080")
         self.server = Gns3Connector(url=self.server_url)
     
     def get_opened_projects(self):
-        """获取所有打开的项目"""
+        """Get all opened projects."""
         try:
             print(get_message("getting_project_summary"))
             projects_data = self.server.projects_summary(is_print=False)

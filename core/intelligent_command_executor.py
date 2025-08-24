@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-智能命令执行器
-基于RAG和LLM的动态网络命令执行系统
+Intelligent command executor.
+
+Dynamic network command execution system based on RAG and LLM.
 """
 
 import time
@@ -15,39 +16,39 @@ from .language_adapter import get_message, get_prompt_template, language_adapter
 
 
 class IntelligentCommandExecutor:
-    """智能命令执行器"""
+    """Intelligent command executor."""
     
     def __init__(self, telnet_host: str, llm):
         """
-        初始化智能命令执行器
+        Initialize intelligent command executor.
         
         Args:
-            telnet_host: Telnet主机地址
-            llm: LLM模型实例
+            telnet_host: Telnet host address
+            llm: LLM model instance
         """
         self.telnet_host = telnet_host
         self.llm = llm
-        self.command_cache = {}  # 缓存执行结果
+        self.command_cache = {}  # Cache execution results
     
     def _is_valid_command(self, command: str) -> bool:
-        """验证命令是否有效"""
+        """Validate if command is valid."""
         if not command or not command.strip():
             return False
             
         command = command.strip()
         
-        # 检查命令是否以有效前缀开始
+        # Check if command starts with valid prefix
         valid_prefixes = ['show ', 'display ', 'ping ', 'traceroute ', 'debug ']
         if not any(command.startswith(prefix) for prefix in valid_prefixes):
             return False
         
-        # 检查是否包含无效字符
-        # 允许：字母、数字、空格、连字符、点号、斜杠、下划线
+        # Check for invalid characters
+        # Allow: letters, numbers, spaces, hyphens, dots, slashes, underscores
         invalid_chars_pattern = r'[^a-zA-Z0-9\s\-\./_]'
         if re.search(invalid_chars_pattern, command):
             return False
         
-        # 检查是否包含通配符或占位符
+        # Check for wildcards or placeholders
         invalid_patterns = [
             r'\*+',           # 星号通配符
             r'\?+',           # 问号通配符  

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-RAG增强的智能命令执行器
-结合向量化知识库和现有命令库
+RAG-enhanced intelligent command executor.
+
+Combines vectorized knowledge base with existing command library.
 """
 
 import os
@@ -16,28 +17,28 @@ from core.network_commands_kb import get_command_suggestions, search_commands_by
 from core.language_adapter import get_prompt_template, get_message, language_adapter
 
 class RAGEnhancedCommandExecutor:
-    """RAG增强的命令执行器"""
+    """RAG-enhanced command executor."""
     
     def __init__(self, telnet_host: str, llm, use_rag: bool = True):
         """
-        初始化RAG增强的命令执行器
+        Initialize RAG-enhanced command executor.
         
         Args:
-            telnet_host: Telnet主机地址
-            llm: LLM模型实例  
-            use_rag: 是否使用RAG知识库
+            telnet_host: Telnet host address
+            llm: LLM model instance  
+            use_rag: Whether to use RAG knowledge base
         """
-        # 导入原有的智能命令执行器
+        # Import original intelligent command executor
         from core.intelligent_command_executor import IntelligentCommandExecutor
         
-        # 继承原有功能
+        # Inherit original functionality
         self.base_executor = IntelligentCommandExecutor(telnet_host, llm)
         
-        # RAG知识库
+        # RAG knowledge base
         self.use_rag = use_rag
         self.rag_kb = None
         
-        # 设备IP缓存
+        # Device IP cache
         self.device_ip_cache = {}
         
         if use_rag:

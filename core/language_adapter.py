@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-智能语言适配器
-根据用户输入自动检测语言并调整输出消息的语言风格
+Intelligent language adapter.
+
+Automatically detects language based on user input and adjusts 
+the language style of output messages.
 """
 
 import re
@@ -11,39 +13,39 @@ from dataclasses import dataclass
 
 @dataclass
 class LanguageConfig:
-    """语言配置类"""
-    use_english: bool = True  # 默认使用英文
+    """Language configuration class."""
+    use_english: bool = True  # Use English by default
     mixed_mode: bool = False
     tech_terms_english: bool = True
 
 class LanguageDetector:
-    """语言检测器"""
+    """Language detector."""
     
     def __init__(self):
-        # 中文字符范围（包括中文标点）
+        # Chinese character range (including Chinese punctuation)
         self.chinese_pattern = re.compile(r'[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]')
-        # 英文字母范围
+        # English letter range
         self.english_pattern = re.compile(r'[a-zA-Z]')
         
     def detect_language(self, text: str) -> LanguageConfig:
         """
-        检测文本语言并返回语言配置
+        Detect text language and return language configuration.
         
         Args:
-            text: 输入文本
+            text: Input text
             
         Returns:
-            LanguageConfig: 语言配置对象
+            LanguageConfig: Language configuration object
         """
         if not text or not text.strip():
             return LanguageConfig()
         
-        # 计算中文和英文字符数量
+        # Count Chinese and English characters
         chinese_chars = len(self.chinese_pattern.findall(text))
         english_chars = len(self.english_pattern.findall(text))
         total_chars = len(text.strip())
         
-        # 忽略空格和标点符号
+        # Ignore spaces and punctuation marks
         meaningful_chars = chinese_chars + english_chars
         
         if meaningful_chars == 0:

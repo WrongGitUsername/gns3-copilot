@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-GNS3设备接口连接信息获取模块
-提供获取设备接口状态和互联关系的功能
+GNS3 device interface connection information retrieval module.
+
+Provides functionality to retrieve device interface status and interconnection relationships.
 """
 
 import os
@@ -12,25 +13,25 @@ from .language_adapter import get_message, language_adapter
 try:
     from .get_topology_info import TopologyManager
 except ImportError:
-    # 用于独立测试时的导入
+    # Import for standalone testing
     from get_topology_info import TopologyManager
 
 class InterfaceConnectionManager:
-    """接口连接信息管理器"""
+    """Interface connection information manager."""
     
     def __init__(self, server_url=None):
         """
-        初始化接口连接管理器
+        Initialize interface connection manager.
         
         Args:
-            server_url: GNS3服务器URL，如果不指定则从环境变量获取
+            server_url: GNS3 server URL, if not specified, get from environment variables
         """
         self.server_url = server_url or os.getenv("GNS3_SERVER_URL", "http://192.168.101.1:3080")
         self.topology_manager = TopologyManager(server_url)
-        self._node_name_cache = {}  # 节点ID到名称的缓存
+        self._node_name_cache = {}  # Cache for node ID to name mapping
     
     def _build_node_cache(self, topology_data: Dict) -> None:
-        """构建节点ID到名称的映射缓存"""
+        """Build node ID to name mapping cache."""
         self._node_name_cache.clear()
         
         for project_name, project_info in topology_data.items():
@@ -42,7 +43,7 @@ class InterfaceConnectionManager:
                     self._node_name_cache[node_id] = node_name
     
     def _extract_interface_name(self, label_info) -> str:
-        """从标签信息中提取接口名称"""
+        """Extract interface name from label information."""
         if isinstance(label_info, dict):
             return label_info.get('text', 'Unknown')
         elif isinstance(label_info, str):

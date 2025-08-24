@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Core模块导入验证脚本
-Verification script for core module imports
+Core module import verification script.
+Verification script for core module imports.
 """
 
 import sys
 import os
 
-# 添加core目录到Python路径
+# Add core directory to Python path
 sys.path.append(os.path.dirname(__file__))
 
 def verify_core_modules():
-    """验证core目录下的所有主要模块"""
+    """Verify all main modules in the core directory."""
     print("🔍 Verifying Core Modules / 验证核心模块")
     print("=" * 60)
     

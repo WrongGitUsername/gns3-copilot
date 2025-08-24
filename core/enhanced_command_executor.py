@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-增强型智能命令执行器
-添加设备配置分析和智能命令构造功能
+Enhanced intelligent command executor.
+
+Adds device configuration analysis and intelligent command construction functionality.
 """
 
 import re
@@ -14,30 +15,30 @@ from .intelligent_command_executor import IntelligentCommandExecutor
 from .language_adapter import get_message, language_adapter
 
 class EnhancedIntelligentCommandExecutor(IntelligentCommandExecutor):
-    """增强型智能命令执行器"""
+    """Enhanced intelligent command executor."""
     
     def __init__(self, telnet_host: str, llm):
         super().__init__(telnet_host, llm)
-        self.device_ip_cache = {}  # 缓存设备IP地址信息
+        self.device_ip_cache = {}  # Cache device IP address information
     
     def execute_intelligent_query(self, user_query: str, devices_info: List[Dict], 
                                 target_device: str = None) -> str:
         """
-        增强的智能查询执行
+        Enhanced intelligent query execution.
         """
         try:
-            # 检查是否为需要设备间通信的查询
+            # Check if it's a query requiring device-to-device communication
             if self._is_connectivity_query(user_query):
                 return self._handle_connectivity_query(user_query, devices_info, target_device)
             
-            # 对于其他查询，使用原有逻辑
+            # For other queries, use original logic
             return super().execute_intelligent_query(user_query, devices_info, target_device)
             
         except Exception as e:
             return f"❌ Enhanced intelligent query execution failed: {e}"
     
     def _is_connectivity_query(self, query: str) -> bool:
-        """判断是否为连通性查询"""
+        """Determine if it's a connectivity query."""
         connectivity_keywords = [
             'ping', 'connectivity', 'reachability', 'test connection',
             'from', 'to', 'between', '连通性', '测试', 'reach'
@@ -48,15 +49,15 @@ class EnhancedIntelligentCommandExecutor(IntelligentCommandExecutor):
     
     def _handle_connectivity_query(self, user_query: str, devices_info: List[Dict], 
                                  target_device: str = None) -> str:
-        """处理连通性查询"""
+        """Handle connectivity query."""
         try:
-            # 1. 解析查询中的设备信息
+            # 1. Parse device information from the query
             source_device, target_device_name = self._parse_connectivity_query(user_query, devices_info)
             
             if not source_device or not target_device_name:
                 return self._fallback_to_basic_ping(user_query, devices_info, target_device)
             
-            # 2. 获取源设备和目标设备的IP地址
+            # 2. Get IP addresses of source and target devices
             source_ips = self._get_device_ip_addresses(source_device)
             target_ips = self._get_device_ip_addresses_by_name(target_device_name, devices_info)
             
@@ -74,10 +75,10 @@ class EnhancedIntelligentCommandExecutor(IntelligentCommandExecutor):
 2. 检查设备是否在线
 3. 或直接指定要测试的IP地址"""
             
-            # 3. 构造智能ping命令
+            # 3. Construct intelligent ping commands
             ping_commands = self._construct_intelligent_ping_commands(source_ips, target_ips)
             
-            # 4. 执行命令
+            # 4. Execute commands
             execution_results = []
             device_results = self._execute_commands_on_device(source_device, ping_commands)
             execution_results.append({
@@ -85,7 +86,7 @@ class EnhancedIntelligentCommandExecutor(IntelligentCommandExecutor):
                 "results": device_results
             })
             
-            # 5. 生成智能分析报告
+            # 5. Generate intelligent analysis report
             return self._generate_connectivity_report(
                 user_query, source_device, target_device_name, 
                 source_ips, target_ips, execution_results
@@ -95,7 +96,7 @@ class EnhancedIntelligentCommandExecutor(IntelligentCommandExecutor):
             return f"❌ Connectivity query processing failed: {e}"
     
     def _parse_connectivity_query(self, query: str, devices_info: List[Dict]) -> Tuple[Dict, str]:
-        """解析连通性查询中的设备信息"""
+        """Parse device information from connectivity query."""
         device_names = [device['name'] for device in devices_info]
         
         # 查找查询中提到的设备

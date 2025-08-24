@@ -1,50 +1,51 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-网络命令知识库
-包含常用的网络设备命令和相关信息，用于RAG检索
+Network commands knowledge base.
+
+Contains commonly used network device commands and related information for RAG retrieval.
 """
 
 NETWORK_COMMANDS_KB = {
-    # OSPF 相关命令
+    # OSPF related commands
     "ospf": {
         "commands": [
             {
                 "command": "show ip ospf neighbor",
-                "description": "显示OSPF邻居信息",
-                "purpose": "查看OSPF邻居状态、邻接关系",
-                "typical_output": "邻居ID、优先级、状态、死亡时间、地址、接口",
+                "description": "Display OSPF neighbor information",
+                "purpose": "View OSPF neighbor status and adjacency relationships",
+                "typical_output": "Neighbor ID, priority, status, dead time, address, interface",
                 "platforms": ["cisco", "juniper"],
                 "keywords": ["ospf", "邻居", "neighbor"]
             },
             {
                 "command": "show ip ospf",
-                "description": "显示OSPF进程信息",
-                "purpose": "查看OSPF进程状态、路由器ID、区域信息",
-                "typical_output": "路由器ID、进程ID、区域列表、LSA统计",
+                "description": "Display OSPF process information",
+                "purpose": "View OSPF process status, router ID, area information",
+                "typical_output": "Router ID, process ID, area list, LSA statistics",
                 "platforms": ["cisco"],
                 "keywords": ["ospf", "进程", "process"]
             },
             {
                 "command": "show ip ospf database",
-                "description": "显示OSPF数据库",
-                "purpose": "查看OSPF链路状态数据库",
-                "typical_output": "LSA类型、链路ID、ADV路由器、年龄、序列号",
+                "description": "Display OSPF database",
+                "purpose": "View OSPF link state database",
+                "typical_output": "LSA type, link ID, ADV router, age, sequence number",
                 "platforms": ["cisco"],
                 "keywords": ["ospf", "数据库", "database", "lsa"]
             },
             {
                 "command": "show ip route ospf",
-                "description": "显示OSPF学习的路由",
-                "purpose": "查看通过OSPF协议学习到的路由信息",
-                "typical_output": "OSPF路由条目、下一跳、管理距离、度量值",
+                "description": "Display OSPF learned routes",
+                "purpose": "View route information learned through OSPF protocol",
+                "typical_output": "OSPF route entries, next hop, administrative distance, metric",
                 "platforms": ["cisco"],
                 "keywords": ["ospf", "路由", "route", "宣告", "advertise", "学习", "learned"]
             }
         ]
     },
     
-    # BGP 相关命令
+    # BGP related commands
     "bgp": {
         "commands": [
             {

@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-超大配置文件处理器
-专门处理配置信息非常多的设备（如核心交换机、大型路由器等）
-使用多种策略确保完整获取配置
+Super large configuration file handler.
+
+Specifically handles devices with extensive configuration information 
+(such as core switches, large routers, etc.).
+Uses multiple strategies to ensure complete configuration retrieval.
 """
 
 import telnetlib
@@ -15,22 +17,22 @@ from datetime import datetime
 from dotenv import load_dotenv
 from .language_adapter import get_message, language_adapter
 
-# 加载环境变量
+# Load environment variables
 load_dotenv()
 
 class LargeConfigHandler:
-    """超大配置文件处理器"""
+    """Super large configuration file handler."""
     
     def __init__(self, host, port, timeout=120):
         self.host = host
         self.port = port
         self.timeout = timeout
-        self.max_config_wait = 600  # 最大等待10分钟
+        self.max_config_wait = 600  # Maximum wait 10 minutes
         
     def get_large_config_with_monitoring(self, device_name):
         """
-        使用监控机制获取大配置文件
-        包括进度监控、超时处理、完整性验证
+        Get large configuration files using monitoring mechanism.
+        Includes progress monitoring, timeout handling, and integrity verification.
         """
         
         print(f"🚀 启动超大配置获取: {device_name}")

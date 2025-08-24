@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-智能请求处理器
-负责处理用户输入、意图分析和动作执行
-增强版：集成RAG和LLM的智能命令执行系统，支持多语言适配
+Intelligent request processor.
+
+Responsible for processing user input, intent analysis and action execution.
+Enhanced version: Intelligent command execution system integrating RAG and LLM,
+supporting multi-language adaptation.
 """
 
 import re
@@ -17,21 +19,21 @@ from .language_adapter import get_message, get_prompt_template, language_adapter
 
 
 class IntelligentProcessor:
-    """智能请求处理器"""
+    """Intelligent request processor."""
     
     def __init__(self, tools: GNS3AgentTools, llm):
         self.tools = tools
         self.llm = llm
         self.chat_history: List[Dict[str, str]] = []
         
-        # 加载RAG配置
+        # Load RAG configuration
         self.config = self._load_rag_config()
         
-        # 根据配置初始化命令执行器
+        # Initialize command executor based on configuration
         self._initialize_command_executor()
     
     def _load_rag_config(self) -> configparser.ConfigParser:
-        """加载RAG配置"""
+        """Load RAG configuration."""
         config = configparser.ConfigParser()
         config_path = Path(__file__).parent.parent / "rag_config.ini"
         
@@ -43,7 +45,7 @@ class IntelligentProcessor:
                 print("⚠️ RAG configuration file not found, using default settings")
             else:
                 print("⚠️ 未找到RAG配置文件，使用默认设置")
-            # 设置默认配置
+            # Set default configuration
             config['rag'] = {
                 'enabled': 'false',
                 'knowledge_base_path': './knowledge_base',

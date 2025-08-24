@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-GNS3设备配置信息批量获取工具
-功能：获取拓扑信息后，批量登录各设备获取配置信息
-整合三个模块：get_topology_info, get_config_info, get_project_info
-支持多语言适配
+GNS3 device configuration batch retrieval tool.
+
+Features: After obtaining topology information, batch login to devices 
+to retrieve configuration information.
+Integrates three modules: get_topology_info, get_config_info, get_project_info.
+Supports multi-language adaptation.
 """
 
 import os
@@ -13,14 +15,14 @@ from datetime import datetime
 from dotenv import load_dotenv
 from .language_adapter import get_message, format_device_info, format_skip_reason
 
-# 导入自定义模块
+# Import custom modules
 try:
-    # 当作为模块导入时使用相对导入
+    # Use relative imports when imported as a module
     from .get_topology_info import TopologyManager
     from .get_config_info import DeviceConfigManager
     from .get_project_info import ProjectInfoManager
 except ImportError:
-    # 当直接运行时使用绝对导入
+    # Use absolute imports when running directly
     import sys
     import os
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -28,35 +30,35 @@ except ImportError:
     from core.get_config_info import DeviceConfigManager
     from core.get_project_info import ProjectInfoManager
 
-# 加载环境变量
+# Load environment variables
 load_dotenv()
 
 class DeviceConfigCollector:
     def __init__(self, server_url=None, telnet_host=None):
         """
-        初始化配置收集器
+        Initialize configuration collector.
         
         Args:
-            server_url: GNS3服务器地址，如果不指定则从环境变量获取
-            telnet_host: Telnet连接的主机地址，如果不指定则从环境变量获取
+            server_url: GNS3 server address, if not specified, get from environment variables
+            telnet_host: Telnet connection host address, if not specified, get from environment variables
         """
         self.server_url = server_url or os.getenv("GNS3_SERVER_URL", "http://192.168.101.1:3080")
         self.telnet_host = telnet_host or os.getenv("TELNET_HOST", "192.168.102.1")
         
-        # 初始化各个管理器
+        # Initialize managers
         self.topology_manager = TopologyManager(self.server_url)
         self.config_manager = DeviceConfigManager(self.telnet_host)
         self.project_manager = ProjectInfoManager(self.server_url)
         
-        # 创建配置文件保存目录
+        # Create configuration file save directory
         self.config_dir = "/home/yueguobin/myCode/GNS3/tools/device_configs"
         if not os.path.exists(self.config_dir):
             os.makedirs(self.config_dir)
     
     def get_topology_info(self):
         """
-        获取拓扑信息和链路摘要
-        使用 topology_manager 模块
+        Get topology information and link summary.
+        Uses topology_manager module.
         
         Returns:
             tuple: (opened_projects, topology_data)
@@ -72,11 +74,11 @@ class DeviceConfigCollector:
     
     def get_project_details(self):
         """
-        获取项目详细信息
-        使用 project_manager 模块
+        Get project detailed information.
+        Uses project_manager module.
         
         Returns:
-            dict: 项目详细信息
+            dict: Project detailed information
         """
         try:
             print("使用项目管理器获取项目详细信息...")
@@ -87,15 +89,15 @@ class DeviceConfigCollector:
     
     def get_device_config(self, device_name, console_port):
         """
-        获取单个设备配置信息
-        使用 config_manager 模块
+        Get single device configuration information.
+        Uses config_manager module.
         
         Args:
-            device_name: 设备名称
-            console_port: 控制台端口
+            device_name: Device name
+            console_port: Console port
             
         Returns:
-            str: 设备配置信息
+            str: Device configuration information
         """
         try:
             return self.config_manager.get_device_config(device_name, console_port)

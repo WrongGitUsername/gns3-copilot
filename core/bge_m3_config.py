@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-BGE-M3优化的RAG配置
-针对网络技术文档的多语言向量检索优化
+BGE-M3 optimized RAG configuration.
+
+Multi-language vector retrieval optimization for network technical documents.
 """
 
 import configparser
@@ -11,29 +12,29 @@ from typing import Dict, Any
 from .language_adapter import get_message, language_adapter
 
 class BGEM3Config:
-    """BGE-M3模型配置管理"""
+    """BGE-M3 model configuration management."""
     
     def __init__(self, config_path: str = "rag_config.ini"):
         self.config_path = Path(config_path)
         self.config = self._load_config()
     
     def _load_config(self) -> configparser.ConfigParser:
-        """加载配置文件"""
+        """Load configuration file."""
         config = configparser.ConfigParser()
         
         if self.config_path.exists():
             config.read(self.config_path)
         else:
-            # 创建默认的BGE-M3配置
+            # Create default BGE-M3 configuration
             self._create_default_config(config)
             self._save_config(config)
         
         return config
     
     def _create_default_config(self, config: configparser.ConfigParser):
-        """创建BGE-M3优化的默认配置"""
+        """Create BGE-M3 optimized default configuration."""
         
-        # RAG基础配置
+        # RAG basic configuration
         config.add_section('rag')
         config.set('rag', 'enabled', 'true')
         config.set('rag', 'knowledge_base_path', './knowledge_base')
@@ -44,7 +45,7 @@ class BGEM3Config:
         config.set('rag', 'search_results', '5')
         config.set('rag', 'max_commands_per_result', '3')
         
-        # BGE-M3特有配置
+        # BGE-M3 specific configuration
         config.add_section('bge_m3')
         config.set('bge_m3', 'max_length', '8192')
         config.set('bge_m3', 'normalize_embeddings', 'true')

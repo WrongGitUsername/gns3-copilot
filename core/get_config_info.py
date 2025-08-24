@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-设备配置信息获取模块
-支持通过Telnet连接获取设备配置
-增强版：支持超大配置文件和智能完成检测
+Device configuration information retrieval module.
+
+Supports retrieving device configurations through Telnet connections.
+Enhanced version: Supports large configuration files and intelligent completion detection.
 """
 
 import telnetlib
@@ -13,38 +14,38 @@ from datetime import datetime
 from dotenv import load_dotenv
 from .language_adapter import get_message, language_adapter
 
-# 加载环境变量
+# Load environment variables
 load_dotenv()
 
 class DeviceConfigManager:
-    """设备配置管理器"""
+    """Device configuration manager."""
     
     def __init__(self, telnet_host=None):
         """
-        初始化配置管理器
+        Initialize configuration manager.
         
         Args:
-            telnet_host: Telnet主机地址，如果不指定则从环境变量获取
+            telnet_host: Telnet host address, if not specified, get from environment variables
         """
         self.telnet_host = telnet_host or os.getenv("TELNET_HOST", "192.168.102.1")
-        self.configs = {}  # 存储获取的配置信息
+        self.configs = {}  # Store retrieved configuration information
     
     def get_device_config(self, device_name, console_port, max_wait_time=180, use_large_config_handler=False):
         """
-        获取指定设备的配置信息
-        增强版本：支持超大型配置文件，多策略智能处理
+        Get configuration information for specified device.
+        Enhanced version: Supports large configuration files with intelligent multi-strategy processing.
         
         Args:
-            device_name: 设备名称
-            console_port: Console端口号
-            max_wait_time: 最大等待时间（秒），默认180秒
-            use_large_config_handler: 是否使用超大配置处理器
+            device_name: Device name
+            console_port: Console port number
+            max_wait_time: Maximum wait time (seconds), default 180 seconds
+            use_large_config_handler: Whether to use large configuration handler
         """
         print(get_message("getting_device_config").format(device_name))
         print(get_message("console_port").format(console_port))
         print(get_message("max_wait_time").format(max_wait_time))
         
-        # 如果需要，使用超大配置处理器
+        # Use large configuration handler if needed
         if use_large_config_handler:
             return self._get_large_config_with_fallback(device_name, console_port, max_wait_time)
         
