@@ -1,4 +1,17 @@
-# 🌟 GNS3 Intelligent Agent
+# 🌟 GNS3 ## 📚 Documentation
+
+**📂 All documentation has been organized in the [`docs/`](./docs/) directory!**
+
+| Document | Description |
+|----------|-------------|
+| **[📚 docs/README.md](docs/README.md)** | **📖 Documentation Center** - Start here! |
+| **[🚀 docs/getting-started/QUICK_DEPLOY.md](docs/getting-started/QUICK_DEPLOY.md)** | 5-minute deployment guide |
+| **[🌐 docs/getting-started/README_ZH.md](docs/getting-started/README_ZH.md)** | 中文文档 |
+| **[🌍 docs/getting-started/README_EN.md](docs/getting-started/README_EN.md)** | English Documentation |
+| **[📖 docs/development/PROJECT_OVERVIEW.md](docs/development/PROJECT_OVERVIEW.md)** | Complete project introduction |
+| **[🔧 docs/development/TECHNICAL_SPECS.md](docs/development/TECHNICAL_SPECS.md)** | Technical specifications |
+| **[⚡ docs/features/README_RAG.md](docs/features/README_RAG.md)** | RAG functionality guide |
+| **[📊 docs/updates/COMMANDS_EXPANSION_REPORT.md](docs/updates/COMMANDS_EXPANSION_REPORT.md)** | Latest command expansion report |gent
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://python.org)
 [![LangChain](https://img.shields.io/badge/LangChain-Latest-green.svg)](https://langchain.com)
@@ -10,14 +23,17 @@ An AI-powered network device management system for GNS3 environments, featuring 
 
 ## 📚 Documentation
 
+**📂 All documentation has been moved to the [`docs/`](./docs/) directory!**
+
 | Document | Description |
 |----------|-------------|
-| **[🚀 QUICK_DEPLOY.md](QUICK_DEPLOY.md)** | 5-minute deployment guide |
-| **[📖 PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)** | Complete project introduction |
-| **[🔧 TECHNICAL_SPECS.md](TECHNICAL_SPECS.md)** | Technical specifications |
-| **[🆕 ENHANCEMENTS_LOG.md](ENHANCEMENTS_LOG.md)** | Latest feature enhancements |
-| **[🧪 tests/README.md](tests/README.md)** | Testing documentation |
-| **[📝 README.md](README.md)** | This file - Quick reference |
+| **[� docs/README.md](docs/README.md)** | **📖 Documentation Center** - Start here! |
+| **[�🚀 docs/QUICK_DEPLOY.md](docs/QUICK_DEPLOY.md)** | 5-minute deployment guide |
+| **[📖 docs/PROJECT_OVERVIEW.md](docs/PROJECT_OVERVIEW.md)** | Complete project introduction |
+| **[🔧 docs/TECHNICAL_SPECS.md](docs/TECHNICAL_SPECS.md)** | Technical specifications |
+| **[📊 docs/COMMANDS_EXPANSION_REPORT.md](docs/COMMANDS_EXPANSION_REPORT.md)** | Latest command expansion report |
+| **[🌐 docs/README_ZH.md](docs/README_ZH.md)** | 中文文档 |
+| **[🌍 docs/README_EN.md](docs/README_EN.md)** | English Documentation |
 
 ## ✨ Core Features
 
@@ -118,11 +134,20 @@ python main.py
 ├── 🗄️ vector_store/                   # Vector database
 ├── 📊 analysis_reports/                # Analysis output
 ├── 🗂️ device_configs/                 # Device configurations
+├── 📚 docs/                           # 📖 **Documentation Center**
+│   ├── README.md                      # Documentation index
+│   ├── QUICK_DEPLOY.md               # Quick deployment
+│   ├── PROJECT_OVERVIEW.md           # Project overview
+│   ├── TECHNICAL_SPECS.md            # Technical specs
+│   ├── COMMANDS_EXPANSION_REPORT.md  # Latest updates
+│   └── ...                           # More documentation
 └── 🧪 tests/                          # Test files
     ├── test_connectivity_analysis.py   # Connectivity testing
     ├── test_english_connectivity.py    # English mode testing
     └── test_enhanced_executor.py       # Enhanced features testing
 ```
+
+> 📝 **For detailed documentation, visit the [`docs/`](./docs/) directory!**
 
 ## 🏗️ Architecture
 
