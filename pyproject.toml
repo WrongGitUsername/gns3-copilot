@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gns3-copilot-tools"
+version = "0.1.0"
+description = "A collection of tools to interact with GNS3 for a Copilot agent."
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "websocket-client",
+    "requests",
+    "pydantic",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/yueguobin/gns3-copilot"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["gns3fy*", "models*", "tools*"]
+

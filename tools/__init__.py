@@ -18,14 +18,14 @@ GNS3 工具模块
     result = executor.execute_multiple_commands(project_id, node_id, ["show version"])
 """
 
+from .gns3_command_executor import GNS3CommandExecutor, print_execution_summary
 from .gns3_node_finder import DeviceFinder
-from .gns3_command_executor import GNS3CommandExecutor, execute_commands
 
 # 导出的公共接口
 __all__ = [
-    'DeviceFinder',
-    'GNS3CommandExecutor',
-    'execute_commands'
+    "GNS3CommandExecutor",
+    "print_execution_summary",
+    "DeviceFinder",
 ]
 
 # 模块元信息

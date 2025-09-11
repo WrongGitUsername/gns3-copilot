@@ -21,13 +21,15 @@ from .get_open_project_info import (
     print_open_projects_summary,
     save_open_projects_to_file
 )
+from .gns3_web_console import GNS3WebConsole
 
 # 导出的公共接口
 __all__ = [
     'GNS3ProjectManager',
     'get_open_projects_info', 
     'print_open_projects_summary',
-    'save_open_projects_to_file'
+    'save_open_projects_to_file',
+    "GNS3WebConsole",
 ]
 
 # 模块元信息
