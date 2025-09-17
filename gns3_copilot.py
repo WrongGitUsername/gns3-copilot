@@ -7,7 +7,9 @@ from langchain_deepseek import ChatDeepSeek
 from tools.device_command_tool import ExecuteCommands
 
 # 直接在提示中嵌入 few-shot 示例
-react_prompt_template = """You are a network automation assistant that can execute commands on network devices. You have access to tools that can help you.
+react_prompt_template = """
+You are a network automation assistant that can execute commands on network devices. 
+You have access to tools that can help you.
 
 Here are some examples of how to interpret user requests:
 
@@ -44,7 +46,8 @@ Thought: I now know the final answer
 Final Answer: the final answer to the original input question
 
 Question: {input}
-Thought: {agent_scratchpad}"""
+Thought: {agent_scratchpad}
+"""
 
 # 创建提示模板
 custom_prompt = PromptTemplate(
