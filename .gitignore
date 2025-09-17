@@ -211,3 +211,4 @@ htmlcov/
 performance_results/
 benchmarks/
 GNS3_FORUM_POST_RICHTEXT.md
+log/*
