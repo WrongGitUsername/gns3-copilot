@@ -5,15 +5,15 @@ import json
 import logging
 from pprint import pprint
 from netmiko import ConnectHandler, NetmikoTimeoutException
-from .gns3_topology_reader import get_open_project_topology
 from langchain.tools import BaseTool
+from .gns3_topology_reader import get_open_project_topology
 
 # config log
-logger = logging.getLogger("device_command_tool")
+logger = logging.getLogger("display_tools")
 logger.setLevel(logging.DEBUG)
 
 # log to files
-file_handler = logging.FileHandler("log/device_command_tool.log", mode="a")
+file_handler = logging.FileHandler("log/display_tools.log", mode="a")
 file_handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 file_handler.setFormatter(formatter)
@@ -27,17 +27,17 @@ console_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 logger.addHandler(console_handler)
 
-class ExecuteCommands(BaseTool):
+class ExecuteDisplayCommands(BaseTool):
     """
-    A tools to execute commands on devices in a GNS3 topology.
-    This class uses Netmiko to connect to devices and execute a list of commands.
+    A tool to execute display (show) commands on devices in a GNS3 topology.
+    This class uses Netmiko to connect to devices and execute a list of display-related commands.
     """
 
-    name: str = "execute_device_commands"
+    name: str = "execute_display(show)_commands"
     description: str = """
-    Executes a list of commands on a specified device in the GNS3 topology.
-    Input is a JSON object containing the device name and a list of commands.
-    example:
+    Executes a list of display (show) commands on a specified device in the current GNS3 topology.
+    Input should be a JSON object with the device name and a list of commands to execute.
+    Example input:
         {
             "device_name": "R-4",
             "commands": [
@@ -47,12 +47,12 @@ class ExecuteCommands(BaseTool):
                 "show ip ospf database"
             ]
         }
-        returns JSON with results.
+    Returns a JSON object mapping each command to its output.
     """
 
     def _run(self, tool_input: str, run_manager = None) -> dict:  # pylint: disable=unused-argument
         """
-        Executes a list of commands on a specified device in the GNS3 topology.
+        Executes a list of display (show) commands on a specified device in the current GNS3 topology.
 
         Args:
             device_name (str): The name of the device to connect to.
@@ -66,7 +66,7 @@ class ExecuteCommands(BaseTool):
         device_name = input_data.get("device_name")
         commands = input_data.get("commands", [])
 
-        # get topology info 
+        # get topology information
         topology = get_open_project_topology()
 
         # check if node and console_port exist
@@ -107,8 +107,12 @@ class ExecuteCommands(BaseTool):
             # execute commands
             for command in commands:
                 logger.info("--- Executing: %s ---", command)
-                output = conn.send_command(command, read_timeout=60)
-                results[command] = output
+                try:
+                    output = conn.send_command(command, read_timeout=60)
+                    results[command] = output
+                except Exception as e:
+                    logger.error("Error occurred while executing command '%s': %s", command, e)
+                    results[command] = f"Error: {str(e)}"
 
             # output results
             logger.debug(
@@ -145,7 +149,7 @@ if __name__ == "__main__":
     'show ip interface brief',
     'show version',
     'show ip ospf interface',
-    #'show ip ospf events', # 耗时太长，内容太多。
+    #'show ip ospf events', # time too long
     'show ip ospf statistics',
     'show ip ospf border-routers',
     'show ip ospf virtual-links',
@@ -165,7 +169,7 @@ if __name__ == "__main__":
     'show ip ospf neighbor detail'
     ])
 
-    exe_cmd = ExecuteCommands()
+    exe_cmd = ExecuteDisplayCommands()
     result = exe_cmd._run(tool_input=json.dumps({
         "device_name": dev_name,
         "commands": cmds
