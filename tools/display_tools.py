@@ -31,6 +31,11 @@ class ExecuteDisplayCommands(BaseTool):
     """
     A tool to execute display (show) commands on devices in a GNS3 topology.
     This class uses Netmiko to connect to devices and execute a list of display-related commands.
+
+    **Important:**
+    This tool is strictly for read-only operations.
+    It is forbidden to execute any configuration commands, including 'configure terminal' or any command that changes device state.
+    Only use this tool for safe, non-intrusive 'show' or display commands.
     """
 
     name: str = "execute_display(show)_commands"
@@ -48,6 +53,8 @@ class ExecuteDisplayCommands(BaseTool):
             ]
         }
     Returns a JSON object mapping each command to its output.
+
+    **Do NOT use this tool for any configuration commands (such as 'configure terminal').**
     """
 
     def _run(self, tool_input: str, run_manager = None) -> dict:  # pylint: disable=unused-argument

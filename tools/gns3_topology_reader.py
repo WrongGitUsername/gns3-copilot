@@ -3,7 +3,7 @@ This module retrieves the topology of the currently open GNS3 project.
 """
 import logging
 from pprint import pprint
-from gns3fy import Gns3Connector, Project
+from .gns3fy import Gns3Connector, Project
 
 # 配置日志记录
 logger = logging.getLogger("gns3_topology_reader")
