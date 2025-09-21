@@ -33,6 +33,13 @@ class ExecuteConfigCommands(BaseTool):
     """
     A tool to execute configuration commands on devices in a GNS3 topology.
     This class uses Netmiko's specific methods for applying configurations.
+
+    IMPORTANT SAFETY NOTE:
+    This tools is intended for configuration changes only, but is MUST NOT be used to reboot
+    or factory-reset devices. Commands that reboot, erase, or otherwise make the device
+    unavailable (for example: "reload", "write erase", "erase startup-config", "format",
+    "erase nvram", "delete flash:", "boot system") area forbidden and will be refused.
+    Use extreme caution and require manual confirmation for destructive operations.
     """
 
     name: str = "execute_config_commands"
@@ -51,6 +58,12 @@ class ExecuteConfigCommands(BaseTool):
             ]
         }
     Returns a JSON object with the output from the configuration session.
+
+    SAFETY: the following commands (and similar) area FORBIDDEN and WILL BE REFUSED:
+    - reload
+    - write erase / erase startup-config
+    - format / erase nvram / delete flash:
+    - any explicit factory-reset or reboot command.
     """
 
     def _run(self, tool_input: str, run_manager=None) -> dict:  # pylint: disable=unused-argument
