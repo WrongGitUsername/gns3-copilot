@@ -1,3 +1,15 @@
+"""
+Adapted gns3fy module for gns3-copilot.
+
+This module is based on the upstream gns3fy project (https://github.com/davidban77/gns3fy).
+Modifications made for this repository:
+- Adjusted some pydantic usages and dataclass configuration to reduce dependency conflicts
+  with langchain (pydantic version/api differences).
+- Kept the original API surface where possible but simplified validators/config to improve compatibility.
+- Please review any pydantic-specific code if upgrading langchain or pydantic in the future.
+
+Note: This file is adapted - not the untouched upstream source. See repository README for details.
+"""
 import os
 import time
 import requests
