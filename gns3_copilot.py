@@ -1,3 +1,6 @@
+import gradio as gr
+import threading
+import time
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -6,6 +9,7 @@ from langchain.agents import create_react_agent, AgentExecutor
 from langchain_deepseek import ChatDeepSeek
 from tools.display_tools import ExecuteDisplayCommands
 from tools.config_tools import ExecuteConfigCommands
+from ui.gradio_ui import run_gradio_ui
 
 # create ReAct agent using custom prompt(few-shot)
 react_prompt_template = """
@@ -64,11 +68,13 @@ Action: the action to take, should be one of [{tool_names}]
 Action Input: the input to the action (should be a JSON string)
 Observation: the result of the action
 ... (this Thought/Action/Action Input/Observation can repeat N times)
-Thought: I now know the final answer.**I MUST use the Final Answer to respond to the user.**
-**Final Answer: the final answer to the original input question**
+Thought: I now know the final answer.
+Final Answer: the final answer to the original input question
+
+Begin!
 
 Question: {input}
-Thought: {agent_scratchpad}
+Thought:{agent_scratchpad}
 """
 
 # create custom prompt
@@ -77,7 +83,7 @@ custom_prompt = PromptTemplate(
     input_variables=["input", "agent_scratchpad", "tools", "tool_names"]
 )
 
-llm = ChatDeepSeek(model="deepseek-chat", temperature=0)
+llm = ChatDeepSeek(model="deepseek-chat", temperature=0, )
 
 tools = [ExecuteDisplayCommands(), ExecuteConfigCommands()]
 
@@ -90,10 +96,17 @@ agent_executor = AgentExecutor(
     tools=tools, 
     verbose=True,
     handle_parsing_errors=True,
-    max_iterations=15
+    max_iterations=15,
 )
 
 if __name__ == "__main__":
+
+    gradio_thread = threading.Thread(target=run_gradio_ui, args=(agent_executor,))
+    gradio_thread.daemon = True
+    gradio_thread.start()
+
+    time.sleep(5)
+
     print("GNS3 Network Assistant - input 'quit' to exit")
 
     while True:
