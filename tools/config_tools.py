@@ -82,21 +82,21 @@ class ExecuteConfigCommands(BaseTool):
             config_commands = input_data.get("config_commands", [])
         except json.JSONDecodeError as e:
             logger.error("Invalid JSON input: %s", e)
-            return {"error": f"Invalid JSON input: {e}"}
+            return f"Observation: {{\"error\": \"Invalid JSON input: {e}\"}}\n"
 
         if not device_name or not config_commands:
-            return {"error": "Missing 'device_name' or 'config_commands' in input."}
+            return f"Observation: {{\"error\": \"Missing 'device_name' or 'config_commands' in input.\"}}\n"
 
         topology = get_open_project_topology()
 
         if not topology or device_name not in topology.get("nodes", {}):
             logger.error("Device '%s' not found in the topology.", device_name)
-            return {"error": f"Device '{device_name}' not found in the topology."}
+            return f"Observation: {{\"error\": \"Device '{device_name}' not found in the topology.\"}}\n"
 
         node_info = topology["nodes"][device_name]
         if "console_port" not in node_info:
             logger.error("Device '%s' does not have a console_port.", device_name)
-            return {"error": f"Device '{device_name}' does not have a console_port."}
+            return f"Observation: {{\"error\": \"Device '{device_name}' does not have a console_port.\"}}\n"
 
         device = {
             'device_type': 'cisco_ios_telnet',
@@ -132,14 +132,14 @@ class ExecuteConfigCommands(BaseTool):
                 )
                 logger.info("Configuration session on %s finished.", device_name)
 
-                return results
+                return f"Observation: {results}\n"
 
         except NetmikoTimeoutException:
             logger.error("Connection to %s timed out during configuration.", device_name)
-            return {"error": f"Connection to {device_name} timed out."}
+            return f"Observation: {{\"error\": \"Connection to {device_name} timed out.\"}}\n"
         except Exception as e:
             logger.error("An error occurred during configuration on %s: %s", device_name, e, exc_info=True)
-            return {"error": f"An error occurred: {e}"}
+            return f"Observation: {{\"error\": \"An error occurred: {e}\"}}\n"
 
 
 if __name__ == "__main__":

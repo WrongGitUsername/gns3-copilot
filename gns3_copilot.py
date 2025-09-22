@@ -53,8 +53,12 @@ Thought: Based on the output, I can now decide whether to create a new loopback 
 Action: execute_config_commands
 Action Input: {{"device_name": "R-3", "config_commands": ["interface loopback0", "ip address 3.3.3.31 255.255.255.255", "exit"]}}
 Observation: [Configuration commands executed successfully]
-Thought: The loopback interface has been configured successfully.**I can now provide the final answer.**
-**Final Answer: A loopback interface has been configured on R-3 with address 3.3.3.31/32.**
+Thought: The configuration commands have been executed. Now I need to verify that the loopback interface was created successfully by checking the interface status again.
+Action: execute_device_commands
+Action Input: {{"device_name": "R-3", "commands": ["show ip interface brief", "show running-config interface loopback0"]}}
+Observation: [Verification output showing loopback interface status and configuration]
+Thought: I can see from the verification output that the loopback interface has been successfully created and configured with the correct IP address. **I can now provide the final answer.**
+**Final Answer: A loopback interface has been successfully configured on R-3 with address 3.3.3.31/32. The configuration has been verified and the interface is now active.**
 
 You have access to the following tools:
 
@@ -101,11 +105,11 @@ agent_executor = AgentExecutor(
 
 if __name__ == "__main__":
 
-    gradio_thread = threading.Thread(target=run_gradio_ui, args=(agent_executor,))
-    gradio_thread.daemon = True
-    gradio_thread.start()
+    #gradio_thread = threading.Thread(target=run_gradio_ui, args=(agent_executor,))
+    #gradio_thread.daemon = True
+    #gradio_thread.start()
 
-    time.sleep(5)
+    #time.sleep(5)
 
     print("GNS3 Network Assistant - input 'quit' to exit")
 

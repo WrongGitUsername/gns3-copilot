@@ -12,20 +12,22 @@ from .gns3_topology_reader import get_open_project_topology
 logger = logging.getLogger("display_tools")
 logger.setLevel(logging.DEBUG)
 
-# log to files
-file_handler = logging.FileHandler("log/display_tools.log", mode="a")
-file_handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(formatter)
+# Prevent duplicate handlers if the module is reloaded
+if not logger.handlers:
+    # log to files
+    file_handler = logging.FileHandler("log/display_tools.log", mode="a")
+    file_handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    file_handler.setFormatter(formatter)
 
-# log to console
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
-console_handler.setFormatter(formatter)
+    # log to console
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(formatter)
 
-# add the handlers to the logger
-logger.addHandler(file_handler)
-logger.addHandler(console_handler)
+    # add the handlers to the logger
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
 
 class ExecuteDisplayCommands(BaseTool):
     """
@@ -69,9 +71,16 @@ class ExecuteDisplayCommands(BaseTool):
             dict: A dictionary containing the command outputs.
         """
 
-        input_data = json.loads(tool_input)
-        device_name = input_data.get("device_name")
-        commands = input_data.get("commands", [])
+        try:
+            input_data = json.loads(tool_input)
+            device_name = input_data.get("device_name")
+            commands = input_data.get("commands", [])
+        except json.JSONDecodeError as e:
+            logger.error("Invalid JSON input: %s", e)
+            return f"Observation: {{\"error\": \"Invalid JSON input: {e}\"}}\n"
+
+        if not device_name or not commands:
+            return f"Observation: {{\"error\": \"Missing 'device_name' or 'commands' in input.\"}}\n"
 
         # get topology information
         topology = get_open_project_topology()
@@ -79,12 +88,12 @@ class ExecuteDisplayCommands(BaseTool):
         # check if node and console_port exist
         if not topology or device_name not in topology.get("nodes", {}):
             logger.error("Device '%s' not found in the topology.", device_name)
-            return {}
+            return f"Observation: {{\"error\": \"Device '{device_name}' not found in the topology.\"}}\n"
 
         node_info = topology["nodes"][device_name]
         if "console_port" not in node_info:
             logger.error("Device '%s' found, but it does not have a console_port.", device_name)
-            return {}
+            return f"Observation: {{\"error\": \"Device '{device_name}' does not have a console_port.\"}}\n"
 
         # define device connection parameters
         device = {
@@ -130,7 +139,7 @@ class ExecuteDisplayCommands(BaseTool):
             logger.info("Disconnecting...")
             conn.disconnect()
 
-            return results
+            return f"Observation: {results}\n"
 
         except NetmikoTimeoutException:
             logger.error(
@@ -138,10 +147,10 @@ class ExecuteDisplayCommands(BaseTool):
                 "and if the device is responsive.",
                 device_name
                 )
-            return {}
+            return f"Observation: {{\"error\": \"Connection to {device_name} timed out.\"}}\n"
         except (ValueError, KeyError, TypeError) as e:
             logger.error("Error occurred: %s", e)
-            return {}
+            return f"Observation: {{\"error\": \"An error occurred: {e}\"}}\n"
 
 if __name__ == "__main__":
     # input device name and commands to execute
