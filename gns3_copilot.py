@@ -105,12 +105,6 @@ agent_executor = AgentExecutor(
 
 if __name__ == "__main__":
 
-    #gradio_thread = threading.Thread(target=run_gradio_ui, args=(agent_executor,))
-    #gradio_thread.daemon = True
-    #gradio_thread.start()
-
-    #time.sleep(5)
-
     print("GNS3 Network Assistant - input 'quit' to exit")
 
     while True:
