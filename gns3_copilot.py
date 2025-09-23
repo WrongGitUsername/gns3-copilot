@@ -9,6 +9,7 @@ from langchain.agents import create_react_agent, AgentExecutor
 from langchain_deepseek import ChatDeepSeek
 from tools.display_tools import ExecuteDisplayCommands
 from tools.config_tools import ExecuteConfigCommands
+from tools.gns3_topology_reader import GNS3TopologyTool
 
 # create ReAct agent using custom prompt(few-shot)
 react_prompt_template = """
@@ -88,7 +89,7 @@ custom_prompt = PromptTemplate(
 
 llm = ChatDeepSeek(model="deepseek-chat", temperature=0, )
 
-tools = [ExecuteDisplayCommands(), ExecuteConfigCommands()]
+tools = [GNS3TopologyTool(), ExecuteDisplayCommands(), ExecuteConfigCommands()]
 
 # create ReAct agent using custom prompt
 agent = create_react_agent(llm, tools, custom_prompt)
@@ -99,7 +100,7 @@ agent_executor = AgentExecutor(
     tools=tools, 
     verbose=True,
     handle_parsing_errors=True,
-    max_iterations=15,
+    max_iterations=30,
 )
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ import logging
 from pprint import pprint
 from netmiko import ConnectHandler, NetmikoTimeoutException
 from langchain.tools import BaseTool
-from .gns3_topology_reader import get_open_project_topology
+from .gns3_topology_reader import GNS3TopologyTool
 
 # --- Logging Configuration ---
 logger = logging.getLogger("device_config_tool")
@@ -87,7 +87,8 @@ class ExecuteConfigCommands(BaseTool):
         if not device_name or not config_commands:
             return f"Observation: {{\"error\": \"Missing 'device_name' or 'config_commands' in input.\"}}\n"
 
-        topology = get_open_project_topology()
+        topo = GNS3TopologyTool()
+        topology = topo._run()
 
         if not topology or device_name not in topology.get("nodes", {}):
             logger.error("Device '%s' not found in the topology.", device_name)
