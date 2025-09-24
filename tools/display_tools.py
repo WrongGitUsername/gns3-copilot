@@ -6,7 +6,7 @@ import logging
 from pprint import pprint
 from netmiko import ConnectHandler, NetmikoTimeoutException
 from langchain.tools import BaseTool
-from .gns3_topology_reader import GNS3TopologyTool
+from tools.gns3_topology_reader import GNS3TopologyTool
 
 # config log
 logger = logging.getLogger("display_tools")
@@ -140,7 +140,7 @@ class ExecuteDisplayCommands(BaseTool):
             logger.info("Disconnecting...")
             conn.disconnect()
 
-            return f"Observation: {results}\n"
+            return f"\nObservation: {results}\n"
 
         except NetmikoTimeoutException:
             logger.error(

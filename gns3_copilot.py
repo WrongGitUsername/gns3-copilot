@@ -1,6 +1,3 @@
-import gradio as gr
-import threading
-import time
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -10,6 +7,10 @@ from langchain_deepseek import ChatDeepSeek
 from tools.display_tools import ExecuteDisplayCommands
 from tools.config_tools import ExecuteConfigCommands
 from tools.gns3_topology_reader import GNS3TopologyTool
+from tools.gns3_get_node_temp import GNS3TemplateTool
+from tools.gns3_create_node import GNS3CreateNodeTool
+from tools.gns3_create_link import GNS3LinkTool
+from tools.gns3_start_node import GNS3StartNodeTool
 
 # create ReAct agent using custom prompt(few-shot)
 react_prompt_template = """
@@ -89,7 +90,15 @@ custom_prompt = PromptTemplate(
 
 llm = ChatDeepSeek(model="deepseek-chat", temperature=0, )
 
-tools = [GNS3TopologyTool(), ExecuteDisplayCommands(), ExecuteConfigCommands()]
+tools = [
+    GNS3TemplateTool(), 
+    GNS3TopologyTool(), 
+    GNS3CreateNodeTool(),
+    GNS3LinkTool(),
+    GNS3StartNodeTool(),
+    ExecuteDisplayCommands(), 
+    ExecuteConfigCommands()
+    ]
 
 # create ReAct agent using custom prompt
 agent = create_react_agent(llm, tools, custom_prompt)

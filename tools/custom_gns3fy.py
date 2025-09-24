@@ -1596,8 +1596,11 @@ class Project:
             "router01": {
                 "server": "127.0.0.1",
                 "name": "router01",
+                "node_id": uuid,
                 "console_port": 5077,
-                "type": "vEOS"
+                "type": "vEOS",
+                "x": 100,
+                "y": 200
             }
         }`
 
@@ -1620,10 +1623,13 @@ class Project:
                     _n.name: {
                         "server": _server,
                         "name": _n.name,
+                        "node_id": _n.node_id,
                         "console_port": _n.console,
                         "console_type": _n.console_type,
                         "type": _n.node_type,
-                        "template": _n.template,
+                        #"template": _n.template,
+                        "x": _n.x,
+                        "y": _n.y
                     }
                 }
             )

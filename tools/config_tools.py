@@ -7,7 +7,7 @@ import logging
 from pprint import pprint
 from netmiko import ConnectHandler, NetmikoTimeoutException
 from langchain.tools import BaseTool
-from .gns3_topology_reader import GNS3TopologyTool
+from tools.gns3_topology_reader import GNS3TopologyTool
 
 # --- Logging Configuration ---
 logger = logging.getLogger("device_config_tool")
@@ -133,7 +133,7 @@ class ExecuteConfigCommands(BaseTool):
                 )
                 logger.info("Configuration session on %s finished.", device_name)
 
-                return f"Observation: {results}\n"
+                return f"\nObservation: {results}\n"
 
         except NetmikoTimeoutException:
             logger.error("Connection to %s timed out during configuration.", device_name)
