@@ -35,10 +35,10 @@ class ExecuteConfigCommands(BaseTool):
     This class uses Netmiko's specific methods for applying configurations.
 
     IMPORTANT SAFETY NOTE:
-    This tools is intended for configuration changes only, but is MUST NOT be used to reboot
+    This tool is intended for configuration changes only, but MUST NOT be used to reboot
     or factory-reset devices. Commands that reboot, erase, or otherwise make the device
     unavailable (for example: "reload", "write erase", "erase startup-config", "format",
-    "erase nvram", "delete flash:", "boot system") area forbidden and will be refused.
+    "erase nvram", "delete flash:", "boot system") are forbidden and will be refused.
     Use extreme caution and require manual confirmation for destructive operations.
     """
 
@@ -57,13 +57,14 @@ class ExecuteConfigCommands(BaseTool):
                 "description CONFIG_BY_TOOL"
             ]
         }
-    Returns a JSON object with the output from the configuration session.
+    Returns a dictionary with the output from the configuration session.
 
-    SAFETY: the following commands (and similar) area FORBIDDEN and WILL BE REFUSED:
+    SAFETY: the following commands (and similar) are FORBIDDEN and WILL BE REFUSED:
     - reload
     - write erase / erase startup-config
     - format / erase nvram / delete flash:
     - any explicit factory-reset or reboot command.
+    - interaction commands requiring user confirmation (prompts like "Contiue? [confirm]")
     """
 
     def _run(self, tool_input: str, run_manager=None) -> dict:  # pylint: disable=unused-argument
@@ -82,22 +83,22 @@ class ExecuteConfigCommands(BaseTool):
             config_commands = input_data.get("config_commands", [])
         except json.JSONDecodeError as e:
             logger.error("Invalid JSON input: %s", e)
-            return f"Observation: {{\"error\": \"Invalid JSON input: {e}\"}}\n"
+            return {"error": f"Invalid JSON input: {e}"}
 
         if not device_name or not config_commands:
-            return f"Observation: {{\"error\": \"Missing 'device_name' or 'config_commands' in input.\"}}\n"
+            return {"error": "Missing 'device_name' or 'config_commands' in input."}
 
         topo = GNS3TopologyTool()
         topology = topo._run()
 
         if not topology or device_name not in topology.get("nodes", {}):
             logger.error("Device '%s' not found in the topology.", device_name)
-            return f"Observation: {{\"error\": \"Device '{device_name}' not found in the topology.\"}}\n"
+            return {"error": f"Device '{device_name}' not found in the topology."}
 
         node_info = topology["nodes"][device_name]
         if "console_port" not in node_info:
             logger.error("Device '%s' does not have a console_port.", device_name)
-            return f"Observation: {{\"error\": \"Device '{device_name}' does not have a console_port.\"}}\n"
+            return {"error": f"Device '{device_name}' does not have a console_port."}
 
         device = {
             'device_type': 'cisco_ios_telnet',
@@ -133,14 +134,14 @@ class ExecuteConfigCommands(BaseTool):
                 )
                 logger.info("Configuration session on %s finished.", device_name)
 
-                return f"\nObservation: {results}\n"
+                return results
 
         except NetmikoTimeoutException:
             logger.error("Connection to %s timed out during configuration.", device_name)
-            return f"Observation: {{\"error\": \"Connection to {device_name} timed out.\"}}\n"
+            return {"error": f"Connection to {device_name} timed out."}
         except Exception as e:
             logger.error("An error occurred during configuration on %s: %s", device_name, e, exc_info=True)
-            return f"Observation: {{\"error\": \"An error occurred: {e}\"}}\n"
+            return {"error": f"An error occurred: {e}"}
 
 
 if __name__ == "__main__":

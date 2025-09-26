@@ -40,13 +40,13 @@ class GNS3CreateNodeTool(BaseTool):
         }
 
     **Output:**
-    A JSON object containing the created node's details (node_id, name, x, y).
+    A dictionary containing the created node's details (node_id, name).
     Example output:
         {
             "node_id": "uuid-of-node",
-            "name": "NodeName",
+            "name": "NodeName"
         }
-    If an error occurs, returns a JSON object with an error message.
+    If an error occurs, returns a dictionary with an error message.
     """
 
     name: str = "create_gns3_node"
@@ -61,11 +61,11 @@ class GNS3CreateNodeTool(BaseTool):
             "x": 100,
             "y": -200
         }
-    Returns a JSON object with the created node's details (node_id, name, x, y).
-    If the operation fails, returns a JSON object with an error message.
+    Returns a dictionary with the created node's details (node_id, name).
+    If the operation fails, returns a dictionary with an error message.
     """
 
-    def _run(self, tool_input: str, run_manager=None) -> str:
+    def _run(self, tool_input: str, run_manager=None) -> dict:
         """
         Creates a node in a GNS3 project using the provided template_id and coordinates.
 
@@ -74,7 +74,7 @@ class GNS3CreateNodeTool(BaseTool):
             run_manager: LangChain run manager (unused).
 
         Returns:
-            str: A JSON string with the created node's details or an error message.
+            dict: A dictionary with the created node's details or an error message.
         """
         try:
             # Parse input JSON
@@ -87,7 +87,7 @@ class GNS3CreateNodeTool(BaseTool):
             # Validate input
             if not all([project_id, template_id, isinstance(x, (int, float)), isinstance(y, (int, float))]):
                 logger.error("Invalid input: Missing or invalid project_id, template_id, x, or y.")
-                return json.dumps({"error": "Missing or invalid project_id, template_id, x, or y."})
+                return {"error": "Missing or invalid project_id, template_id, x, or y."}
 
             # Initialize Gns3Connector
             logger.info("Connecting to GNS3 server at http://localhost:3080...")
@@ -118,15 +118,14 @@ class GNS3CreateNodeTool(BaseTool):
             logger.debug("Created node: %s", json.dumps(node_info, indent=2, ensure_ascii=False))
 
             # Return JSON-formatted result
-            result_json = json.dumps(node_info, ensure_ascii=False)
-            return f"\nObservation: {result_json}\n"
+            return node_info
 
         except json.JSONDecodeError as e:
             logger.error("Invalid JSON input: %s", e)
-            return json.dumps({"error": f"Invalid JSON input: {e}"})
+            return {"error": f"Invalid JSON input: {e}"}
         except Exception as e:
             logger.error("Failed to create node: %s", e)
-            return json.dumps({"error": f"Failed to create node: {str(e)}"})
+            return {"error": f"Failed to create node: {str(e)}"}
 
 if __name__ == "__main__":
     # Test the tool locally
@@ -138,4 +137,4 @@ if __name__ == "__main__":
     })
     tool = GNS3CreateNodeTool()
     result = tool._run(test_input)
-    print(result)
+    pprint(result)

@@ -36,7 +36,7 @@ class GNS3TemplateTool(BaseTool):
     (http://localhost:3080) and retrieves all templates.
 
     **Output:**
-    A JSON object containing a list of dictionaries, each with the name, template_id, and
+    A dictionary containing a list of dictionaries, each with the name, template_id, and
     template_type of a template. Example output:
         {
             "templates": [
@@ -44,13 +44,13 @@ class GNS3TemplateTool(BaseTool):
                 {"name": "Switch1", "template_id": "uuid2", "template_type": "ethernet_switch"}
             ]
         }
-    If an error occurs, returns a JSON object with an error message.
+    If an error occurs, returns a dictionary with an error message.
     """
 
     name: str = "get_gns3_templates"
     description: str = """
     Retrieves all available device templates from a GNS3 server.
-    Returns a JSON object containing a list of dictionaries, each with the name, template_id,
+    Returns a dictionary containing a list of dictionaries, each with the name, template_id,
     and template_type of a template. No input is required.
     Example output:
         {
@@ -59,10 +59,10 @@ class GNS3TemplateTool(BaseTool):
                 {"name": "Switch1", "template_id": "uuid2", "template_type": "ethernet_switch"}
             ]
         }
-    If the connection fails, returns a JSON object with an error message.
+    If the connection fails, returns a dictionary with an error message.
     """
 
-    def _run(self, tool_input: str = "", run_manager=None) -> str:
+    def _run(self, tool_input: str = "", run_manager=None) -> dict:
         """
         Connects to the GNS3 server and retrieves a list of all available device templates.
 
@@ -71,7 +71,7 @@ class GNS3TemplateTool(BaseTool):
             run_manager: LangChain run manager (unused).
 
         Returns:
-            str: A JSON string containing the list of templates or an error message.
+            dict: A dictionary containing the list of templates or an error message.
         """
         try:
             # Initialize Gns3Connector
@@ -95,15 +95,14 @@ class GNS3TemplateTool(BaseTool):
             logger.debug("Retrieved templates: %s", json.dumps(template_info, indent=2, ensure_ascii=False))
             
             # Return JSON-formatted result
-            result_json = json.dumps({"templates": template_info}, ensure_ascii=False)
-            return f"\nObservation: {result_json}\n"
+            return {"templates": template_info}
 
         except Exception as e:
             logger.error("Failed to connect to GNS3 server or retrieve templates: %s", e)
-            return json.dumps({"error": f"Failed to retrieve templates: {str(e)}"})
+            return {"error": f"Failed to retrieve templates: {str(e)}"}
 
 if __name__ == "__main__":
     # Test the tool locally
     tool = GNS3TemplateTool()
     result = tool._run("")
-    print(result)
+    pprint(result)

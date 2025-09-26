@@ -1,0 +1,24 @@
+# GNS3 Copilot Dependencies
+# Core AI and Automation Framework
+langchain>=0.1.0
+langchain-deepseek>=0.1.0
+
+# Network Automation
+netmiko>=4.1.2
+
+# Environment Management
+python-dotenv>=1.0.0
+
+# HTTP Requests (for GNS3 API)
+requests>=2.31.0
+
+# Data Validation
+pydantic>=2.0.0
+
+# Logging and Utilities
+# (Standard library dependencies - no external packages needed)
+# json, logging, pprint, time, math, os, functools, urllib.parse
+
+# Development Dependencies (optional)
+# pylint>=2.17.0  # For code linting
+# pytest>=7.4.0   # For testing

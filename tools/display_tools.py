@@ -3,6 +3,7 @@ This module provides a tool to execute commands on devices in a GNS3 topology.
 """
 import json
 import logging
+import time
 from pprint import pprint
 from netmiko import ConnectHandler, NetmikoTimeoutException
 from langchain.tools import BaseTool
@@ -54,21 +55,20 @@ class ExecuteDisplayCommands(BaseTool):
                 "show ip ospf database"
             ]
         }
-    Returns a JSON object mapping each command to its output.
+    Returns a dictionary mapping each command to its output, or an error dictionary if an error occurs.
 
     **Do NOT use this tool for any configuration commands (such as 'configure terminal').**
     """
 
-    def _run(self, tool_input: str, run_manager = None) -> dict:  # pylint: disable=unused-argument
+    def _run(self, tool_input: str, run_manager=None) -> dict:  # pylint: disable=unused-argument
         """
         Executes a list of display (show) commands on a specified device in the current GNS3 topology.
 
         Args:
-            device_name (str): The name of the device to connect to.
-            commands (list): A list of commands to execute.
+            tool_input (str): A JSON string containing the device name and a list of commands to execute.
 
         Returns:
-            dict: A dictionary containing the command outputs.
+            dict: A dictionary containing the command outputs, or an error dictionary if an error occurs.
         """
 
         try:
@@ -77,10 +77,10 @@ class ExecuteDisplayCommands(BaseTool):
             commands = input_data.get("commands", [])
         except json.JSONDecodeError as e:
             logger.error("Invalid JSON input: %s", e)
-            return f"Observation: {{\"error\": \"Invalid JSON input: {e}\"}}\n"
+            return {"error": f"Invalid JSON input: {e}"}
 
         if not device_name or not commands:
-            return f"Observation: {{\"error\": \"Missing 'device_name' or 'commands' in input.\"}}\n"
+            return {"error": "Missing 'device_name' or 'commands' in input."}
 
         # get topology information
         topo = GNS3TopologyTool()
@@ -89,12 +89,12 @@ class ExecuteDisplayCommands(BaseTool):
         # check if node and console_port exist
         if not topology or device_name not in topology.get("nodes", {}):
             logger.error("Device '%s' not found in the topology.", device_name)
-            return f"Observation: {{\"error\": \"Device '{device_name}' not found in the topology.\"}}\n"
+            return {"error": f"Device '{device_name}' not found in the topology."}
 
         node_info = topology["nodes"][device_name]
         if "console_port" not in node_info:
             logger.error("Device '%s' found, but it does not have a console_port.", device_name)
-            return f"Observation: {{\"error\": \"Device '{device_name}' does not have a console_port.\"}}\n"
+            return {"error": f"Device '{device_name}' does not have a console_port."}
 
         # define device connection parameters
         device = {
@@ -109,6 +109,12 @@ class ExecuteDisplayCommands(BaseTool):
         try:
             logger.info("Connecting to %s at localhost:%s...", device_name, device['port'])
             conn = ConnectHandler(**device)
+
+            # fix "Error: Pattern not detected: 'terminal\\ length\\ 0' in output"
+            time.sleep(1)
+            conn.write_channel("\n")
+            time.sleep(1)
+            conn.write_channel("\n")
 
             # disable paging to ensure long output is returned in one go
             conn.disable_paging()
@@ -140,7 +146,7 @@ class ExecuteDisplayCommands(BaseTool):
             logger.info("Disconnecting...")
             conn.disconnect()
 
-            return f"\nObservation: {results}\n"
+            return results
 
         except NetmikoTimeoutException:
             logger.error(
@@ -148,10 +154,10 @@ class ExecuteDisplayCommands(BaseTool):
                 "and if the device is responsive.",
                 device_name
                 )
-            return f"Observation: {{\"error\": \"Connection to {device_name} timed out.\"}}\n"
+            return {"error": f"Connection to {device_name} timed out."}
         except (ValueError, KeyError, TypeError) as e:
             logger.error("Error occurred: %s", e)
-            return f"Observation: {{\"error\": \"An error occurred: {e}\"}}\n"
+            return {"error": f"An error occurred: {e}"}
 
 if __name__ == "__main__":
     # input device name and commands to execute

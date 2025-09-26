@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import time
 from langchain.tools import BaseTool
 from tools.custom_gns3fy import Gns3Connector, Node
 
@@ -25,6 +26,30 @@ console_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 logger.addHandler(console_handler)
 
+def show_progress_bar(duration=90, interval=1):
+    """
+    Display a simple text progress bar.
+    
+    Args:
+        duration: Total duration of the progress bar in seconds
+        interval: Update interval in seconds
+    """
+    print("Starting node, please wait...")
+    for elapsed in range(duration):
+        # Calculate progress percentage
+        progress = (elapsed + 1) / duration * 100
+        
+        # Create progress bar display
+        bar_length = 30
+        filled_length = int(bar_length * elapsed // duration)
+        bar = '=' * filled_length + '>' + ' ' * (bar_length - filled_length - 1)
+        
+        # Print progress bar (only percentage)
+        print(f'\r[{bar}] {progress:.1f}%', end='', flush=True)
+        time.sleep(interval)
+    
+    print("\nNode startup completed!")
+
 class GNS3StartNodeTool(BaseTool):
     """
     A LangChain tool to start a node in a GNS3 project.
@@ -38,18 +63,16 @@ class GNS3StartNodeTool(BaseTool):
         }
 
     **Output**:
-    A string starting with "Observation: " followed by a JSON object with node details and status.
-    Example:
-        Observation: {"node_id": "uuid-of-node", "name": "R-1", "status": "started"}
+    A dictionary with node details: {"node_id": "...", "name": "...", "status": "..."}
     """
 
     name: str = "start_gns3_node"
     description: str = """
     Starts a node in a GNS3 project. Input: JSON with project_id and node_id.
-    Returns: Observation: {"node_id": "...", "name": "...", "status": "..."}
+    Returns: A dictionary with node details: {"node_id": "...", "name": "...", "status": "..."}
     """
 
-    def _run(self, tool_input: str, run_manager=None) -> str:
+    def _run(self, tool_input: str, run_manager=None) -> dict:
         logger.debug("Received input: %s", tool_input)
         try:
             # Parse input JSON
@@ -60,7 +83,7 @@ class GNS3StartNodeTool(BaseTool):
             # Validate input
             if not all([project_id, node_id]):
                 logger.error("Missing required fields: project_id or node_id.")
-                return f"Observation: {json.dumps({'error': 'Missing required fields: project_id or node_id.'}, ensure_ascii=False)}"
+                return {"error": "Missing required fields: project_id or node_id."}
 
             # Initialize Gns3Connector
             logger.info("Connecting to GNS3 server at http://localhost:3080...")
@@ -74,10 +97,12 @@ class GNS3StartNodeTool(BaseTool):
             node.get()
             if not node.node_id:
                 logger.error("Node %s not found in project %s.", node_id, project_id)
-                return f"Observation: {json.dumps({'error': f'Node {node_id} not found in project {project_id}.'}, ensure_ascii=False)}"
+                return {"error": f"Node {node_id} not found in project {project_id}."}
 
             # Start the node
             node.start()
+            # Show progress bar for 120 seconds
+            show_progress_bar(duration=120, interval=1)
             logger.info("Node %s started successfully.", node_id)
 
             # Retrieve updated node information
@@ -94,14 +119,14 @@ class GNS3StartNodeTool(BaseTool):
             logger.debug("Started node: %s", json.dumps(node_info, indent=2, ensure_ascii=False))
 
             # Return JSON-formatted result
-            return f"Observation: {json.dumps(node_info, ensure_ascii=False)}"
+            return node_info
 
         except json.JSONDecodeError as e:
             logger.error("Invalid JSON input: %s", e)
-            return f"Observation: {json.dumps({'error': f'Invalid JSON input: {e}'}, ensure_ascii=False)}"
+            return {"error": f"Invalid JSON input: {e}"}
         except Exception as e:
             logger.error("Failed to start node: %s", e)
-            return f"Observation: {json.dumps({'error': f'Failed to start node: {str(e)}'}, ensure_ascii=False)}"
+            return {"error": f"Failed to start node: {str(e)}"}
 
 if __name__ == "__main__":
     from pprint import pprint
@@ -111,8 +136,4 @@ if __name__ == "__main__":
     })
     tool = GNS3StartNodeTool()
     result = tool._run(test_input)
-    if result.startswith("Observation: "):
-        json_result = json.loads(result[len("Observation: "):])
-        pprint(json_result)
-    else:
-        print("Unexpected result format:", result)
+    pprint(result)

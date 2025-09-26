@@ -5,26 +5,26 @@ import logging
 from langchain_core.tools import BaseTool
 from tools.custom_gns3fy import Gns3Connector, Project
 
-# 配置日志记录
+# Configure logging
 logger = logging.getLogger("gns3_topology_reader")
 logger.setLevel(logging.DEBUG)
 
-# 文件日志处理
+# File logging handler
 file_handler = logging.FileHandler("log/gns3_topology_reader.log", mode="a")
 file_handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 file_handler.setFormatter(formatter)
 
-# 控制台日志处理
+# Console logging handler
 console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.INFO)
 console_handler.setFormatter(formatter)
 
-# 将日志添加到日志记录
+# Add handlers to logger
 logger.addHandler(file_handler)
 logger.addHandler(console_handler)
 
-# 定义 LangChain 工具类
+# Define LangChain tool class
 class GNS3TopologyTool(BaseTool):
     name: str = "gns3_topology_reader"
     description: str = """
@@ -32,7 +32,7 @@ class GNS3TopologyTool(BaseTool):
     Returns a dictionary containing the project ID, name, status, nodes, and links.
     """
 
-    def _run(self, tool_input = None, run_manager = None) -> dict:
+    def _run(self, tool_input=None, run_manager=None) -> dict:
         """
         Synchronous method to retrieve the topology of the currently open GNS3 project.
 
@@ -41,20 +41,21 @@ class GNS3TopologyTool(BaseTool):
             run_manager : Callback manager for tool run.
 
         Returns:
-            dict: A dictionary containing the project ID, name, status, nodes, and links.
-            dict: Empty dict if no projects are found or no project is open.
+            dict: A dictionary containing the project ID, name, status, nodes, and links,
+                  or an empty dict if no projects are found or no project is open,
+                  or an error dictionary if an exception occurs.
         """
 
         try:
             server = Gns3Connector(url="http://localhost:3080/")
             projects = server.projects_summary(is_print=False)
 
-            # 检查是否有项目
+            # Check if any projects exist
             if not projects:
                 logger.warning("No projects found.")
                 return {}
 
-            # 获取打开的项目ID
+            # Get the ID of the opened project
             pro_id = None
             for p in projects:
                 if p[4] == "opened":
@@ -65,9 +66,9 @@ class GNS3TopologyTool(BaseTool):
                 return {}
 
             project = Project(project_id=pro_id, connector=server)
-            project.get()  # 加载项目细节
+            project.get()  # Load project details
 
-            # 获取拓扑JSON：包括节点（设备）、链接等
+            # Get topology JSON: includes nodes (devices), links, etc.
             topology = {
                 "project_id": project.project_id,
                 "name": project.name,
@@ -84,7 +85,7 @@ class GNS3TopologyTool(BaseTool):
 
 if __name__ == "__main__":
     from pprint import pprint
-    # 测试工具
+    # Test the tool
     tool = GNS3TopologyTool()
     result = tool._run()
     pprint(result)
