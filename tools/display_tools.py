@@ -158,6 +158,9 @@ class ExecuteDisplayCommands(BaseTool):
         except (ValueError, KeyError, TypeError) as e:
             logger.error("Error occurred: %s", e)
             return {"error": f"An error occurred: {e}"}
+        except Exception as e:
+            logger.error("Connection to %s failed: %s", device_name, e)
+            return {"error": f"Connection to {device_name} failed: {e}"}
 
 if __name__ == "__main__":
     # input device name and commands to execute
