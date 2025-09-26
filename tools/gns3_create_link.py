@@ -22,135 +22,237 @@ if not logger.handlers:
 
 class GNS3LinkTool(BaseTool):
     """
-    A LangChain tool to create a link between two nodes in a GNS3 project.
+    A LangChain tool to create one or multiple links between nodes in a GNS3 project.
 
     **Input**:
-    A JSON object with project_id, node_id1, port1, node_id2, port2.
-    Example:
+    A JSON object with project_id and links array containing link definitions.
+    
+    Single link example:
         {
             "project_id": "uuid-of-project",
-            "node_id1": "uuid-of-node1",
-            "port1": "Ethernet0/0",
-            "node_id2": "uuid-of-node2",
-            "port2": "Ethernet0/0"
+            "links": [
+                {
+                    "node_id1": "uuid-of-node1",
+                    "port1": "Ethernet0/0",
+                    "node_id2": "uuid-of-node2",
+                    "port2": "Ethernet0/0"
+                }
+            ]
+        }
+
+    Multiple links example:
+        {
+            "project_id": "uuid-of-project",
+            "links": [
+                {
+                    "node_id1": "uuid-of-node1",
+                    "port1": "Ethernet0/0",
+                    "node_id2": "uuid-of-node2",
+                    "port2": "Ethernet0/0"
+                },
+                {
+                    "node_id1": "uuid-of-node1",
+                    "port1": "Ethernet0/1",
+                    "node_id2": "uuid-of-node3",
+                    "port2": "Ethernet0/0"
+                }
+            ]
         }
 
     **Output**:
-    A dictionary with link details.
-    Example:
-        {"link_id": "uuid-of-link", "node_id1": "uuid-of-node1", "port1": "Ethernet0/0", "node_id2": "uuid-of-node2", "port2": "Ethernet0/0"}
+    A list containing created link details or error messages for each link attempt.
+    
+    Success example:
+        [
+            {
+                "link_id": "uuid-of-link1",
+                "node_id1": "uuid-of-node1",
+                "port1": "Ethernet0/0",
+                "node_id2": "uuid-of-node2",
+                "port2": "Ethernet0/0"
+            },
+            {
+                "link_id": "uuid-of-link2",
+                "node_id1": "uuid-of-node1",
+                "port1": "Ethernet0/1",
+                "node_id2": "uuid-of-node3",
+                "port2": "Ethernet0/0"
+            }
+        ]
+
+    Error example:
+        [
+            {"error": "Missing required field: project_id"}
+        ]
     """
 
     name: str = "create_gns3_link"
     description: str = """
-    Creates a link between two GNS3 nodes. Input: JSON with project_id, node_id1, port1, node_id2, port2.
-    Returns: A dictionary with link details: {"link_id": "...", "node_id1": "...", "port1": "...", "node_id2": "...", "port2": "..."}
+    Creates links between GNS3 nodes. 
+    Input: JSON with project_id and links array containing link definitions.
+    Example: {"project_id": "uuid", "links": [{"node_id1": "uuid1", "port1": "Ethernet0/0", "node_id2": "uuid2", "port2": "Ethernet0/0"}]}
+    Returns: List of created link details.
     """
 
-    def _run(self, tool_input: str, run_manager=None) -> dict:
+    def _run(self, tool_input: str, run_manager=None) -> list:
         """
-        Creates a link between two nodes in a GNS3 project.
+        Creates one or multiple links between nodes in a GNS3 project.
 
         Args:
-            tool_input (str): A JSON string with project_id, node_id1, port1, node_id2, port2.
+            tool_input (str): A JSON string containing project_id and links array.
             run_manager: LangChain run manager (unused).
 
         Returns:
-            dict: A dictionary with link details or an error message.
+            list: A list containing dictionaries with created link details or error messages.
         """
         try:
             # Parse input JSON
             input_data = json.loads(tool_input)
             project_id = input_data.get("project_id")
-            node_id1 = input_data.get("node_id1")
-            port1 = input_data.get("port1")
-            node_id2 = input_data.get("node_id2")
-            port2 = input_data.get("port2")
+            links_data = input_data.get("links", [])
 
             # Validate input
-            if not all([project_id, node_id1, port1, node_id2, port2]):
-                logger.error("Missing required fields: project_id, node_id1, port1, node_id2, or port2.")
-                return {"error": "Missing required fields: project_id, node_id1, port1, node_id2, or port2."}
+            if not project_id:
+                logger.error("Missing required field: project_id")
+                return [{"error": "Missing required field: project_id"}]
+            
+            if not isinstance(links_data, list) or len(links_data) == 0:
+                logger.error("Invalid links data: must be a non-empty array")
+                return [{"error": "Invalid links data: must be a non-empty array"}]
 
             # Initialize Gns3Connector
             logger.info("Connecting to GNS3 server at http://localhost:3080...")
             gns3_server = Gns3Connector(url="http://localhost:3080")
 
-            # Get node details to validate ports and extract adapter/port numbers
-            logger.info("Validating ports for nodes %s and %s...", node_id1, node_id2)
-            node1 = gns3_server.get_node(project_id=project_id, node_id=node_id1)
-            node2 = gns3_server.get_node(project_id=project_id, node_id=node_id2)
-            if not node1 or not node2:
-                logger.error("Node not found: %s or %s.", node_id1, node_id2)
-                return {"error": f"Node not found: {node_id1 or node_id2}."}
+            created_links = []
+            
+            # Process each link definition
+            for i, link_data in enumerate(links_data):
+                try:
+                    logger.info("Creating link %d/%d", i + 1, len(links_data))
+                    
+                    # Extract link parameters
+                    node_id1 = link_data.get("node_id1")
+                    port1 = link_data.get("port1")
+                    node_id2 = link_data.get("node_id2")
+                    port2 = link_data.get("port2")
 
-            # Find port1 in node1's ports
-            port1_info = next((port for port in node1.get("ports", []) if port.get("name") == port1), None)
-            if not port1_info:
-                logger.error("Port %s not found on node %s.", port1, node_id1)
-                return {"error": f"Port {port1} not found on node {node_id1}."}
+                    # Validate link parameters
+                    if not all([node_id1, port1, node_id2, port2]):
+                        error_msg = f"Missing required fields in link definition {i}"
+                        logger.error(error_msg)
+                        created_links.append({"error": error_msg})
+                        continue
 
-            # Find port2 in node2's ports
-            port2_info = next((port for port in node2.get("ports", []) if port.get("name") == port2), None)
-            if not port2_info:
-                logger.error("Port %s not found on node %s.", port2, node_id2)
-                return {"error": f"Port {port2} not found on node {node_id2}."}
+                    # Get node details
+                    node1 = gns3_server.get_node(project_id=project_id, node_id=node_id1)
+                    node2 = gns3_server.get_node(project_id=project_id, node_id=node_id2)
+                    if not node1 or not node2:
+                        error_msg = f"Node not found in link {i}"
+                        logger.error(error_msg)
+                        created_links.append({"error": error_msg})
+                        continue
 
-            # Create link
-            logger.info("Creating link between node %s (%s) and node %s (%s) in project %s...", 
-                        node_id1, port1, node_id2, port2, project_id)
-            link = Link(
-                project_id=project_id,
-                connector=gns3_server,
-                nodes=[
-                    {
-                        "node_id": node_id1,
-                        "adapter_number": port1_info.get("adapter_number", 0),
-                        "port_number": port1_info.get("port_number", 0),
-                        "label": {"text": port1}
-                    },
-                    {
-                        "node_id": node_id2,
-                        "adapter_number": port2_info.get("adapter_number", 0),
-                        "port_number": port2_info.get("port_number", 0),
-                        "label": {"text": port2}
+                    # Find port information
+                    port1_info = next((port for port in node1.get("ports", []) if port.get("name") == port1), None)
+                    port2_info = next((port for port in node2.get("ports", []) if port.get("name") == port2), None)
+                    if not port1_info or not port2_info:
+                        error_msg = f"Port not found in link {i}"
+                        logger.error(error_msg)
+                        created_links.append({"error": error_msg})
+                        continue
+
+                    # Create the link
+                    link = Link(
+                        project_id=project_id,
+                        connector=gns3_server,
+                        nodes=[
+                            {
+                                "node_id": node_id1,
+                                "adapter_number": port1_info.get("adapter_number", 0),
+                                "port_number": port1_info.get("port_number", 0),
+                                "label": {"text": port1}
+                            },
+                            {
+                                "node_id": node_id2,
+                                "adapter_number": port2_info.get("adapter_number", 0),
+                                "port_number": port2_info.get("port_number", 0),
+                                "label": {"text": port2}
+                            }
+                        ]
+                    )
+                    link.create()
+                    link.get()
+
+                    # Collect link details
+                    link_info = {
+                        "link_id": link.link_id,
+                        "node_id1": node_id1,
+                        "port1": port1,
+                        "node_id2": node_id2,
+                        "port2": port2
                     }
-                ]
-            )
-            link.create()
+                    created_links.append(link_info)
+                    logger.debug("Successfully created link: %s", json.dumps(link_info, ensure_ascii=False))
 
-            # Retrieve link details
-            link.get()
-            link_info = {
-                "link_id": link.link_id,
-                "node_id1": node_id1,
-                "port1": port1,
-                "node_id2": node_id2,
-                "port2": port2
-            }
+                except Exception as e:
+                    error_msg = f"Failed to create link {i}: {str(e)}"
+                    logger.error(error_msg)
+                    created_links.append({"error": error_msg})
 
-            # Log the created link details
-            logger.debug("Created link: %s", json.dumps(link_info, indent=2, ensure_ascii=False))
-
-            # Return JSON-formatted result with Observation prefix
-            return link_info
+            # Log final results
+            success_count = len([link for link in created_links if "error" not in link])
+            logger.info("Link creation completed: %d successful, %d failed", 
+                       success_count, len(links_data) - success_count)
+            
+            return created_links
 
         except json.JSONDecodeError as e:
             logger.error("Invalid JSON input: %s", e)
-            return {"error": f"Invalid JSON input: {e}"}
+            return [{"error": f"Invalid JSON input: {e}"}]
         except Exception as e:
-            logger.error("Failed to create link: %s", e)
-            return {"error": f"Failed to create link: {str(e)}"}
+            logger.error("Failed to process link creation: %s", e)
+            return [{"error": f"Failed to process link creation: {str(e)}"}]
 
 if __name__ == "__main__":
-    # Test the tool locally
-    test_input = json.dumps({
-        "project_id": "your-project-uuid",  # Replace with actual project UUID
-        "node_id1": "your-node1-uuid",     # Replace with actual node1 UUID
-        "port1": "Ethernet0/0",
-        "node_id2": "your-node2-uuid",     # Replace with actual node2 UUID
-        "port2": "Ethernet0/0"
+    # Test with single link
+    single_link_input = json.dumps({
+        "project_id": "your-project-uuid",
+        "links": [
+            {
+                "node_id1": "your-node1-uuid",
+                "port1": "Ethernet0/0",
+                "node_id2": "your-node2-uuid",
+                "port2": "Ethernet0/0"
+            }
+        ]
     })
+    
+    # Test with multiple links
+    multiple_links_input = json.dumps({
+        "project_id": "your-project-uuid",
+        "links": [
+            {
+                "node_id1": "your-node1-uuid",
+                "port1": "Ethernet0/0",
+                "node_id2": "your-node2-uuid",
+                "port2": "Ethernet0/0"
+            },
+            {
+                "node_id1": "your-node1-uuid",
+                "port1": "Ethernet0/1",
+                "node_id2": "your-node3-uuid",
+                "port2": "Ethernet0/0"
+            }
+        ]
+    })
+    
     tool = GNS3LinkTool()
-    result = tool._run(test_input)
+    
+    print("=== Testing Single Link Creation ===")
+    result = tool._run(single_link_input)
+    pprint(result)
+    
+    print("\n=== Testing Multiple Links Creation ===")
+    result = tool._run(multiple_links_input)
     pprint(result)
