@@ -29,7 +29,45 @@ class GNS3TopologyTool(BaseTool):
     name: str = "gns3_topology_reader"
     description: str = """
     Retrieves the topology of the currently open GNS3 project.
-    Returns a dictionary containing the project ID, name, status, nodes, and links.
+
+    Input: Optional JSON string or dictionary specifying the GNS3 server URL (defaults to 'http://localhost:3080/').
+
+    Output: A dictionary containing:
+    - `project_id` (str): UUID of the open project.
+    - `name` (str): Project name.
+    - `status` (str): Project status (e.g., 'opened').
+    - `nodes` (dict): Dictionary with node names as keys and details as values, including:
+    - `node_id` (str): Node UUID.
+    - `ports` (list): List of port details (e.g., `{"name": "Gi0/0", "adapter_number": int, "port_number": int, ...}`).
+    - Other fields like `console_port`, `type`, `x`, `y`.
+    - `links` (list): List of link details (e.g., `[{"link_id": str, "nodes": list, ...}]`), empty if no links exist.
+    - If no project is open or found: `{}`.
+    - If an error occurs: `{"error": str}` (e.g., `{"error": "Failed to retrieve topology: ..."}`).
+
+    Example Input: `None`
+
+    Example Output*:
+    {
+    "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+    "name": "network llm iosv",
+    "status": "opened",
+    "nodes": {
+        "R-1": {
+        "node_id": "e5ca32a8-9f5d-45b0-82aa-ccfbf1d1a070",
+        "name": "R-1",
+        "ports": [
+            {"name": "Gi0/0", "adapter_number": 0, "port_number": 0, "link_type": "ethernet", ...},
+            {"name": "Gi0/1", "adapter_number": 1, "port_number": 0, "link_type": "ethernet", ...}
+        ],
+        "console_port": 5000,
+        "type": "qemu",
+        ...
+        },
+        "R-2": {...}
+    },
+    "links": [('R-1', 'Gi0/0', 'R-2', 'Gi0/0')]
+    }
+    **Node**: Requires a running GNS3 server at the specified URL and an open project.Use the ports field(e.g., name: "Gi0/0") to provide input for the create_gns3_link tool.
     """
 
     def _run(self, tool_input=None, run_manager=None) -> dict:

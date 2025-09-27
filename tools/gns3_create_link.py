@@ -21,77 +21,48 @@ if not logger.handlers:
     logger.addHandler(console_handler)
 
 class GNS3LinkTool(BaseTool):
-    """
-    A LangChain tool to create one or multiple links between nodes in a GNS3 project.
+    name: str = "create_gns3_link"
+    description: str = """
+    Creates one or more links between nodes in a GNS3 project.
 
-    **Input**:
-    A JSON object with project_id and links array containing link definitions.
-    
-    Single link example:
-        {
-            "project_id": "uuid-of-project",
-            "links": [
-                {
-                    "node_id1": "uuid-of-node1",
-                    "port1": "Ethernet0/0",
-                    "node_id2": "uuid-of-node2",
-                    "port2": "Ethernet0/0"
-                }
-            ]
-        }
+    Input: A JSON string with:
+    - `project_id` (str): The UUID of the GNS3 project.
+    - `links` (list): A non-empty array of link definitions, each containing:
+    - `node_id1` (str): UUID of the first node.
+    - `port1` (str): Port name of the first node (e.g., 'Ethernet0/0').
+    - `node_id2` (str): UUID of the second node.
+    - `port2` (str): Port name of the second node (e.g., 'Ethernet0/0').
+    Note: Port names must match those retrieved from the `gns3_topology_reader` tool.
 
-    Multiple links example:
-        {
-            "project_id": "uuid-of-project",
-            "links": [
-                {
-                    "node_id1": "uuid-of-node1",
-                    "port1": "Ethernet0/0",
-                    "node_id2": "uuid-of-node2",
-                    "port2": "Ethernet0/0"
-                },
-                {
-                    "node_id1": "uuid-of-node1",
-                    "port1": "Ethernet0/1",
-                    "node_id2": "uuid-of-node3",
-                    "port2": "Ethernet0/0"
-                }
-            ]
-        }
-
-    **Output**:
-    A list containing created link details or error messages for each link attempt.
-    
-    Success example:
-        [
+    Example Input:
+    {
+        "project_id": "uuid-of-project",
+        "links": [
             {
-                "link_id": "uuid-of-link1",
                 "node_id1": "uuid-of-node1",
                 "port1": "Ethernet0/0",
                 "node_id2": "uuid-of-node2",
                 "port2": "Ethernet0/0"
-            },
-            {
-                "link_id": "uuid-of-link2",
-                "node_id1": "uuid-of-node1",
-                "port1": "Ethernet0/1",
-                "node_id2": "uuid-of-node3",
-                "port2": "Ethernet0/0"
-            }
+            }   
         ]
+    }
+    Output: A list of dictionaries, each containing:
+    - For successfule links: link_id(str),node_id1(str),port1(str),port1(str),node_id(str),port2(str).
+    - For failed links: error(str) with an error message(e.g., 'Missing required field: project_id')
 
-    Error example:
-        [
-            {"error": "Missing required field: project_id"}
-        ]
-    """
-
-    name: str = "create_gns3_link"
-    description: str = """
-    Creates links between GNS3 nodes. 
-    Input: JSON with project_id and links array containing link definitions.
-    Example: {"project_id": "uuid", "links": [{"node_id1": "uuid1", "port1": "Ethernet0/0", "node_id2": "uuid2", "port2": "Ethernet0/0"}]}
-    Returns: List of created link details.
+    Example Output:
+    [
+        {
+            "link_id": "uuid-of-link",
+            "node_id1": "uuid-of-node1",
+            "port1" : "Ethernet0/0",
+            "node_id2": "uuid-of-node2",
+            "port2": "Ethernet0/0"
+        },
+        {
+            "error": "Port not found in link 1"
+        },
+    ]
     """
 
     def _run(self, tool_input: str, run_manager=None) -> list:

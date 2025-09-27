@@ -109,15 +109,26 @@ agent_executor = AgentExecutor(
     tools=tools, 
     verbose=True,
     handle_parsing_errors=True,
-    max_iterations=30,
+    max_iterations=50,
 )
 
+def get_multi_line_input():
+    print("Please enter your question (submit with two consecutive empty lines):")
+    lines = []
+    empty_line_count = 0
+    while empty_line_count < 2:
+        line = input()
+        if line.strip() == "":
+            empty_line_count += 1
+        else:
+            empty_line_count = 0
+            lines.append(line)
+    return "\n".join(lines)
+
 if __name__ == "__main__":
-
-    print("GNS3 Network Assistant - input 'quit' to exit")
-
+    print("GNS3 Network Assistant - Type 'quit' to exit")
     while True:
-        user_input = input("\nPlease enter your question: ")
+        user_input = get_multi_line_input()
 
         if user_input.lower() in ['quit', 'exit', '退出']:
             break

@@ -1599,6 +1599,7 @@ class Project:
                 "node_id": uuid,
                 "console_port": 5077,
                 "type": "vEOS",
+                "ports": "[port detila]",
                 "x": 100,
                 "y": 200
             }
@@ -1627,6 +1628,7 @@ class Project:
                         "console_port": _n.console,
                         "console_type": _n.console_type,
                         "type": _n.node_type,
+                        "ports": _n.ports,
                         #"template": _n.template,
                         "x": _n.x,
                         "y": _n.y
