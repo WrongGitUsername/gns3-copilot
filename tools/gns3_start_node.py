@@ -120,8 +120,8 @@ class GNS3StartNodeTool(BaseTool):
                 except Exception as e:
                     logger.error("Failed to send start command for node %s: %s", node_id, e)
 
-            # Calculate progress bar duration: 120s base + 10s per additional node
-            base_duration = 120
+            # Calculate progress bar duration: 140s base + 10s per additional node
+            base_duration = 140
             extra_duration = max(0, len(node_ids) - 1) * 10
             total_duration = base_duration + extra_duration
 
