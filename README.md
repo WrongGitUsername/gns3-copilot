@@ -22,7 +22,7 @@ Before using GNS3 Copilot, ensure you have:
 - **GNS3** installed and running (version 2.2 or later)
 - **GNS3 Server** accessible at `http://localhost:3080`
 - **Python 3.8+** installed
-- At least one **GNS3 project** with network devices (preferably Cisco IOS devices)
+- At least one **GNS3 project** with network devices (Preferably use Cisco IOSv devices; only tested with Cisco IOSv image.)
 
 ## 🛠 Installation
 
@@ -61,7 +61,8 @@ python gns3_copilot.py
 ```
 GNS3 Network Assistant - input 'quit' to exit
 
-Please enter your question: check R-1 and R-2 interfaces status
+Please enter your question (submit with two consecutive empty lines):
+check R-1 and R-2 interfaces status
 ```
 
 ## 💬 Example Commands
@@ -80,6 +81,9 @@ Please enter your question: check R-1 and R-2 interfaces status
 - `"show current topology"`
 - `"list all devices in the project"`
 - `"start all nodes"`
+
+### Create lab
+- `"Create a topology with six routers. Test OSPF with multiple areas. Configure the hostname as the device name."`
 
 ## 🛡 Safety Features
 
@@ -117,7 +121,7 @@ GNS3 Copilot
 - **Link Management**: Create and manage network links
 
 ### Supported Device Types
-- Cisco IOS (primary support, telnet console)
+- Cisco IOSv (primary support, telnet console)
 - Other network devices via Netmiko (extensible)
 
 ## 📁 Project Structure
