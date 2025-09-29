@@ -52,18 +52,16 @@ DEEPSEEK_API_KEY=your_api_key_here  # If using DeepSeek API
 ## 🎯 Quick Start
 
 1. **Start GNS3 and open your project**
-2. **Run the assistant**:
+2. **Run the assistant** (使用端口 8502):
 ```bash
-python gns3_copilot.py
+streamlit run gns3_copilot.py --server.port 8502
 ```
 
-3. **Start interacting** with natural language commands:
-```
-GNS3 Network Assistant - input 'quit' to exit
-
-Please enter your question (submit with two consecutive empty lines):
-check R-1 and R-2 interfaces status
-```
+3. **Open your browser** to the URL shown in the terminal (typically `http://localhost:8502`)
+4. **Start interacting** with natural language commands in the web interface:
+   - Enter commands in the chat input at the bottom
+   - View real-time agent reasoning and execution steps
+   - See final results displayed in the interface
 
 ## 💬 Example Commands
 
@@ -100,6 +98,7 @@ GNS3 Copilot includes built-in safety mechanisms:
 
 ```
 GNS3 Copilot
+├── Web Interface (Streamlit)
 ├── AI Agent (LangChain + DeepSeek)
 ├── Tool System
 │   ├── GNS3TopologyTool - Reads project topology
@@ -124,11 +123,21 @@ GNS3 Copilot
 - Cisco IOSv (primary support, telnet console)
 - Other network devices via Netmiko (extensible)
 
+## 🌐 Web Interface Features
+
+The GNS3 Copilot now features a modern web interface with:
+
+- **Real-time Chat Interface**: Interactive conversation with the AI assistant
+- **Live Agent Reasoning**: Watch the agent's thought process in real-time
+- **Message History**: View previous interactions in the chat
+- **Visual Feedback**: Clear status indicators and progress updates
+- **Responsive Design**: Works on desktop and mobile browsers
+
 ## 📁 Project Structure
 
 ```
 gns3-copilot/
-├── gns3_copilot.py          # Main application
+├── gns3_copilot.py          # Main Streamlit application
 ├── requirements.txt         # Python dependencies
 ├── LICENSE                  # MIT License
 ├── .env                    # Environment variables (optional)

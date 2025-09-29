@@ -1,9 +1,12 @@
+import streamlit as st
 from dotenv import load_dotenv
 load_dotenv()
 
 from langchain.prompts import PromptTemplate
+from langchain_community.callbacks.streamlit import StreamlitCallbackHandler
 from langchain.agents import create_react_agent, AgentExecutor
 from langchain_deepseek import ChatDeepSeek
+
 from tools.display_tools import ExecuteDisplayCommands
 from tools.config_tools import ExecuteConfigCommands
 from tools.gns3_topology_reader import GNS3TopologyTool
@@ -112,29 +115,52 @@ agent_executor = AgentExecutor(
     max_iterations=50,
 )
 
-def get_multi_line_input():
-    print("Please enter your question (submit with two consecutive empty lines):")
-    lines = []
-    empty_line_count = 0
-    while empty_line_count < 2:
-        line = input()
-        if line.strip() == "":
-            empty_line_count += 1
-        else:
-            empty_line_count = 0
-            lines.append(line)
-    return "\n".join(lines)
+st.title("🤖 GNS3 Network Automation Assistant")
+st.caption("Agent runs based on current instructions and environment tools each time.")
 
-if __name__ == "__main__":
-    print("GNS3 Network Assistant - Type 'quit' to exit")
-    while True:
-        user_input = get_multi_line_input()
+# 1. Initialize Streamlit session state to store UI messages
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-        if user_input.lower() in ['quit', 'exit', '退出']:
-            break
+# 2. Iterate through and display historical messages (UI display only)
+for message in st.session_state.messages:
+    # message['role'] is 'user' or 'assistant'
+    role = message["role"]
+    content = message["content"]
+
+    # Customize roles and avatars
+    if role == "user":
+        avatar_icon = "🙋‍♂️" # Set user avatar
+    else:
+        avatar_icon = "🤖" # Set assistant avatar
+
+    st.chat_message(role, avatar=avatar_icon).write(content)
+
+# 3. Chat input box (Chat Input)
+if prompt := st.chat_input("Enter your GNS3 command..."):
+    
+    # 3a. Record and display user input
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    st.chat_message("user", avatar="🙋‍♂️").write(prompt)
+
+    # 3b. Prepare assistant message container and callback
+    with st.chat_message("assistant", avatar="🤖"):
+        st_callback = StreamlitCallbackHandler(
+            st.container(),
+            expand_new_thoughts=True
+        )
+
+        # 3c. Call AgentExecutor (no memory passed in)
+        with st.spinner("Agent is analyzing and executing the command..."):
             
-        try:
-            result = agent_executor.invoke({"input": user_input})
-            print("\nAnswer:", result['output'])
-        except Exception as e:
-            print(f"Error: {e}")
+            # Agent runs only depends on 'prompt'
+            result = agent_executor.invoke(
+                {"input": prompt},
+                {"callbacks": [st_callback]}
+            )
+            
+            final_answer = result["output"]
+            
+            # 3d. Display final result and record to UI history
+            st.info(final_answer)
+            st.session_state.messages.append({"role": "assistant", "content": final_answer})
