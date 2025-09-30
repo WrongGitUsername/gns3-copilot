@@ -1,12 +1,10 @@
-import streamlit as st
+import chainlit as cl
 from dotenv import load_dotenv
 load_dotenv()
 
 from langchain.prompts import PromptTemplate
-from langchain_community.callbacks.streamlit import StreamlitCallbackHandler
 from langchain.agents import create_react_agent, AgentExecutor
 from langchain_deepseek import ChatDeepSeek
-
 from tools.display_tools import ExecuteDisplayCommands
 from tools.config_tools import ExecuteConfigCommands
 from tools.gns3_topology_reader import GNS3TopologyTool
@@ -15,7 +13,7 @@ from tools.gns3_create_node import GNS3CreateNodeTool
 from tools.gns3_create_link import GNS3LinkTool
 from tools.gns3_start_node import GNS3StartNodeTool
 
-# create ReAct agent using custom prompt(few-shot)
+# 自定义 ReAct Prompt（保持不变）
 react_prompt_template = """
 You are a network automation assistant that can execute commands on network devices. 
 You have access to tools that can help you.
@@ -85,13 +83,14 @@ Question: {input}
 Thought:{agent_scratchpad}
 """
 
-# create custom prompt
+# 创建自定义 Prompt
 custom_prompt = PromptTemplate(
     template=react_prompt_template,
     input_variables=["input", "agent_scratchpad", "tools", "tool_names"]
 )
 
-llm = ChatDeepSeek(model="deepseek-chat", temperature=0, )
+# 启用 LLM 的流式输出
+llm = ChatDeepSeek(model="deepseek-chat", temperature=0, streaming=True)
 
 tools = [
     GNS3TemplateTool(), 
@@ -101,66 +100,56 @@ tools = [
     GNS3StartNodeTool(),
     ExecuteDisplayCommands(), 
     ExecuteConfigCommands()
-    ]
+]
 
-# create ReAct agent using custom prompt
-agent = create_react_agent(llm, tools, custom_prompt)
-
-# create AgentExecutor
-agent_executor = AgentExecutor(
-    agent=agent, 
-    tools=tools, 
-    verbose=True,
-    handle_parsing_errors=True,
-    max_iterations=50,
-)
-
-st.title("🤖 GNS3 Network Automation Assistant")
-st.caption("Agent runs based on current instructions and environment tools each time.")
-
-# 1. Initialize Streamlit session state to store UI messages
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-# 2. Iterate through and display historical messages (UI display only)
-for message in st.session_state.messages:
-    # message['role'] is 'user' or 'assistant'
-    role = message["role"]
-    content = message["content"]
-
-    # Customize roles and avatars
-    if role == "user":
-        avatar_icon = "🙋‍♂️" # Set user avatar
-    else:
-        avatar_icon = "🤖" # Set assistant avatar
-
-    st.chat_message(role, avatar=avatar_icon).write(content)
-
-# 3. Chat input box (Chat Input)
-if prompt := st.chat_input("Enter your GNS3 command..."):
+@cl.on_chat_start
+async def start():
+    """在聊天开始时初始化 AgentExecutor"""
+    # 创建 ReAct agent
+    agent = create_react_agent(llm, tools, custom_prompt)
     
-    # 3a. Record and display user input
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    st.chat_message("user", avatar="🙋‍♂️").write(prompt)
+    # 创建 AgentExecutor，禁用默认的 verbose 回调以避免冲突
+    agent_executor = AgentExecutor(
+        agent=agent, 
+        tools=tools, 
+        verbose=False,  # 关闭 verbose 以避免默认回调干扰
+        handle_parsing_errors=True,
+        max_iterations=50,
+        return_intermediate_steps=True
+    )
+    
+    cl.user_session.set("agent_executor", agent_executor)
+    
+    # 发送欢迎消息
+    await cl.Message(content="欢迎使用GNS3网络助手！请问我如何帮助您进行网络自动化任务？").send()
 
-    # 3b. Prepare assistant message container and callback
-    with st.chat_message("assistant", avatar="🤖"):
-        st_callback = StreamlitCallbackHandler(
-            st.container(),
-            expand_new_thoughts=True
+@cl.on_message
+async def main(message: cl.Message):
+    """处理用户消息并实时展示推理过程"""
+    # 从用户会话中获取 agent_executor
+    agent_executor = cl.user_session.get("agent_executor")
+    user_input = message.content
+    
+    # 检查退出命令
+    if user_input.lower() in ['quit', 'exit', '退出']:
+        await cl.Message(content="再见！").send()
+        return
+
+    try:
+        # 创建 Chainlit 的 LangChain 回调处理器，兼容 Chainlit 2.8.1
+        callback_handler = cl.LangchainCallbackHandler(
+            stream_final_answer=True,  # 启用最终答案的流式输出
+            answer_prefix_tokens=["Final", "Answer"]  # 匹配 Prompt 中的前缀
         )
-
-        # 3c. Call AgentExecutor (no memory passed in)
-        with st.spinner("Agent is analyzing and executing the command..."):
-            
-            # Agent runs only depends on 'prompt'
-            result = agent_executor.invoke(
-                {"input": prompt},
-                {"callbacks": [st_callback]}
-            )
-            
-            final_answer = result["output"]
-            
-            # 3d. Display final result and record to UI history
-            st.info(final_answer)
-            st.session_state.messages.append({"role": "assistant", "content": final_answer})
+        
+        # 使用 astream 进行流式处理，依赖回调处理器渲染所有输出
+        async for _ in agent_executor.astream(
+            {"input": user_input},
+            config={"callbacks": [callback_handler]}
+        ):
+            # 依赖 cl.LangchainCallbackHandler 渲染，无需手动处理
+            pass
+        
+    except Exception as e:
+        # 错误处理
+        await cl.Message(content=f"错误: {str(e)}").send()
