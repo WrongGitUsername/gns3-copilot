@@ -1,3 +1,12 @@
+"""
+GNS3 Network Automation Assistant
+
+This module implements a conversational AI assistant for GNS3 network automation tasks.
+It uses Chainlit for the user interface, LangChain for agent orchestration, and DeepSeek LLM
+for natural language processing. The assistant can execute network commands, configure devices,
+and manage GNS3 topology operations.
+"""
+
 import chainlit as cl
 from dotenv import load_dotenv
 load_dotenv()
@@ -13,7 +22,9 @@ from tools.gns3_create_node import GNS3CreateNodeTool
 from tools.gns3_create_link import GNS3LinkTool
 from tools.gns3_start_node import GNS3StartNodeTool
 
-# 自定义 ReAct Prompt（保持不变）
+
+# ReAct (Reasoning + Acting) prompt template for the agent
+# This template guides the agent on how to reason about network automation tasks
 react_prompt_template = """
 You are a network automation assistant that can execute commands on network devices. 
 You have access to tools that can help you.
@@ -83,73 +94,80 @@ Question: {input}
 Thought:{agent_scratchpad}
 """
 
-# 创建自定义 Prompt
+# Custom prompt template for the ReAct agent
 custom_prompt = PromptTemplate(
     template=react_prompt_template,
     input_variables=["input", "agent_scratchpad", "tools", "tool_names"]
 )
 
-# 启用 LLM 的流式输出
+# Initialize the DeepSeek language model
+# Using temperature=0 for deterministic responses in network automation tasks
 llm = ChatDeepSeek(model="deepseek-chat", temperature=0, streaming=True)
 
+# Define the available tools for the agent
+# These tools provide capabilities for GNS3 topology management and network device operations
 tools = [
-    GNS3TemplateTool(), 
-    GNS3TopologyTool(), 
-    GNS3CreateNodeTool(),
-    GNS3LinkTool(),
-    GNS3StartNodeTool(),
-    ExecuteDisplayCommands(), 
-    ExecuteConfigCommands()
+    GNS3TemplateTool(),        # Get GNS3 node templates
+    GNS3TopologyTool(),        # Read GNS3 topology information
+    GNS3CreateNodeTool(),      # Create new nodes in GNS3
+    GNS3LinkTool(),            # Create links between nodes
+    GNS3StartNodeTool(),       # Start GNS3 nodes
+    ExecuteDisplayCommands(),  # Execute show/display commands on network devices
+    ExecuteConfigCommands()    # Execute configuration commands on network devices
 ]
 
 @cl.on_chat_start
 async def start():
-    """在聊天开始时初始化 AgentExecutor"""
-    # 创建 ReAct agent
+    """Initialize AgentExecutor when chat starts"""
+    # Create ReAct agent with custom prompt
     agent = create_react_agent(llm, tools, custom_prompt)
     
-    # 创建 AgentExecutor，禁用默认的 verbose 回调以避免冲突
+    # Create AgentExecutor with configuration to handle network automation tasks
+    # Disable default verbose callback to avoid conflicts with Chainlit
     agent_executor = AgentExecutor(
         agent=agent, 
         tools=tools, 
-        verbose=False,  # 关闭 verbose 以避免默认回调干扰
-        handle_parsing_errors=True,
-        max_iterations=50,
-        return_intermediate_steps=True
+        verbose=False,  # Turn off verbose to prevent default callback interference
+        handle_parsing_errors=True,  # Handle parsing errors gracefully
+        max_iterations=50,  # Limit maximum iterations to prevent infinite loops
+        return_intermediate_steps=True  # Return intermediate reasoning steps
     )
     
+    # Store agent executor in user session for later use
     cl.user_session.set("agent_executor", agent_executor)
     
-    # 发送欢迎消息
-    await cl.Message(content="欢迎使用GNS3网络助手！请问我如何帮助您进行网络自动化任务？").send()
+    # Send welcome message
+    await cl.Message(content="Welcome to GNS3 Network Assistant! How can I help you with network automation tasks?").send()
 
 @cl.on_message
 async def main(message: cl.Message):
-    """处理用户消息并实时展示推理过程"""
-    # 从用户会话中获取 agent_executor
+    """Process user messages and display reasoning process in real-time"""
+    # Get agent executor from user session
     agent_executor = cl.user_session.get("agent_executor")
     user_input = message.content
     
-    # 检查退出命令
+    # Check for exit commands
     if user_input.lower() in ['quit', 'exit', '退出']:
-        await cl.Message(content="再见！").send()
+        await cl.Message(content="Goodbye!").send()
         return
 
     try:
-        # 创建 Chainlit 的 LangChain 回调处理器，兼容 Chainlit 2.8.1
+        # Create Chainlit's LangChain callback handler, compatible with Chainlit 2.8.1
+        # This handler enables streaming of the agent's reasoning process
         callback_handler = cl.LangchainCallbackHandler(
-            stream_final_answer=True,  # 启用最终答案的流式输出
-            answer_prefix_tokens=["Final", "Answer"]  # 匹配 Prompt 中的前缀
+            stream_final_answer=True,  # Enable streaming of final answers
+            answer_prefix_tokens=["Final", "Answer"]  # Match prefix in the prompt template
         )
         
-        # 使用 astream 进行流式处理，依赖回调处理器渲染所有输出
+        # Use astream for streaming processing, relying on callback handler to render all output
+        # The agent processes the user input and streams the reasoning steps
         async for _ in agent_executor.astream(
             {"input": user_input},
             config={"callbacks": [callback_handler]}
         ):
-            # 依赖 cl.LangchainCallbackHandler 渲染，无需手动处理
+            # Rely on cl.LangchainCallbackHandler for rendering, no manual processing needed
             pass
         
     except Exception as e:
-        # 错误处理
-        await cl.Message(content=f"错误: {str(e)}").send()
+        # Error handling for any exceptions during agent execution
+        await cl.Message(content=f"Error: {str(e)}").send()

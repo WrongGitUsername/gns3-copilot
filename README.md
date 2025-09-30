@@ -2,17 +2,19 @@
 
 ![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
 ![LangChain](https://img.shields.io/badge/LangChain-0.1.0+-green.svg)
+![Chainlit](https://img.shields.io/badge/Chainlit-1.0.0+-purple.svg)
 ![GNS3](https://img.shields.io/badge/GNS3-2.2+-orange.svg)
 
-GNS3 Copilot is an intelligent network automation assistant that combines the power of AI with GNS3 network simulation platform. It allows you to manage and configure network devices using natural language commands.
+GNS3 Copilot is an intelligent network automation assistant that combines the power of AI with GNS3 network simulation platform. It allows you to manage and configure network devices using natural language commands through a conversational interface.
 
 ## 🚀 Features
 
 - **Natural Language Interface**: Control network devices using simple English commands
+- **Conversational AI**: Interactive chat-based interface powered by Chainlit
 - **GNS3 Integration**: Seamlessly works with your existing GNS3 projects
 - **Multi-Tool Support**: Execute display commands, configuration commands, and topology operations
+- **Real-time Reasoning**: Watch the AI agent's thought process in real-time
 - **Safety First**: Built-in safety mechanisms to prevent dangerous operations
-- **Real-time Interaction**: Live communication with network devices
 - **Comprehensive Logging**: Detailed logs for debugging and auditing
 
 ## 📋 Prerequisites
@@ -52,13 +54,17 @@ DEEPSEEK_API_KEY=your_api_key_here  # If using DeepSeek API
 ## 🎯 Quick Start
 
 1. **Start GNS3 and open your project**
-2. **Run the assistant** (使用端口 8502):
+2. **Run the assistant**:
 ```bash
-streamlit run gns3_copilot.py --server.port 8502
+chainlit run gns3_copilot.py
+```
+or
+```bash
+chainlit run gns3_copilot.py --host 192.168.1.3 --port 8090
 ```
 
-3. **Open your browser** to the URL shown in the terminal (typically `http://localhost:8502`)
-4. **Start interacting** with natural language commands in the web interface:
+3. **Open your browser** to the URL shown in the terminal (typically `http://localhost:8000`)
+4. **Start interacting** with natural language commands in the chat interface:
    - Enter commands in the chat input at the bottom
    - View real-time agent reasoning and execution steps
    - See final results displayed in the interface
@@ -80,7 +86,7 @@ streamlit run gns3_copilot.py --server.port 8502
 - `"list all devices in the project"`
 - `"start all nodes"`
 
-### Create lab
+### Create Lab
 - `"Create a topology with six routers. Test OSPF with multiple areas. Configure the hostname as the device name."`
 
 ## 🛡 Safety Features
@@ -98,12 +104,13 @@ GNS3 Copilot includes built-in safety mechanisms:
 
 ```
 GNS3 Copilot
-├── Web Interface (Streamlit)
+├── Web Interface (Chainlit)
 ├── AI Agent (LangChain + DeepSeek)
 ├── Tool System
 │   ├── GNS3TopologyTool - Reads project topology
 │   ├── ExecuteDisplayCommands - Show commands
 │   ├── ExecuteConfigCommands - Configuration commands
+│   ├── GNS3TemplateTool - Get node templates
 │   ├── GNS3CreateNodeTool - Node management
 │   ├── GNS3LinkTool - Link management
 │   └── GNS3StartNodeTool - Node control
@@ -114,6 +121,7 @@ GNS3 Copilot
 
 ### Core Tools
 - **GNS3 Topology Reader**: Retrieves current project topology
+- **GNS3 Template Tool**: Gets available node templates
 - **Display Commands Executor**: Executes show commands on devices
 - **Configuration Commands Executor**: Applies configuration changes
 - **Node Management**: Create, start, and manage GNS3 nodes
@@ -125,23 +133,25 @@ GNS3 Copilot
 
 ## 🌐 Web Interface Features
 
-The GNS3 Copilot now features a modern web interface with:
+The GNS3 Copilot features a modern conversational interface with:
 
 - **Real-time Chat Interface**: Interactive conversation with the AI assistant
-- **Live Agent Reasoning**: Watch the agent's thought process in real-time
+- **Live Agent Reasoning**: Watch the agent's thought process in real-time using the ReAct framework
 - **Message History**: View previous interactions in the chat
 - **Visual Feedback**: Clear status indicators and progress updates
 - **Responsive Design**: Works on desktop and mobile browsers
+- **Streaming Responses**: Real-time streaming of agent reasoning and final answers
 
 ## 📁 Project Structure
 
 ```
 gns3-copilot/
-├── gns3_copilot.py          # Main Streamlit application
+├── gns3_copilot.py          # Main Chainlit application
 ├── requirements.txt         # Python dependencies
 ├── LICENSE                  # MIT License
 ├── .env                    # Environment variables (optional)
 ├── README.md               # This file
+├── chat_logs/              # Chat conversation logs
 ├── log/                    # Application logs
 └── tools/                  # Tool implementations
     ├── config_tools.py     # Configuration commands
@@ -194,6 +204,7 @@ This project is open source and available under the [MIT License](LICENSE).
 - **GNS3 Team** for the excellent network simulation platform
 - **LangChain** for the powerful AI agent framework
 - **DeepSeek** for the AI language model capabilities
+- **Chainlit** for the conversational UI framework
 - **Netmiko** for network device communication
 
 ## 📞 Support
