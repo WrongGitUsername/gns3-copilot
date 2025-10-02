@@ -215,3 +215,4 @@ log/*
 *.jsonl
 *.json
 chainlit.md
+.chainlit/.langchain.db

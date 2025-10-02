@@ -41,7 +41,7 @@ Action: execute_device_commands
 Action Input: {{"device_name": "R-2", "commands": ["show ip interface brief"]}}
 Observation: [R-2 interface status output]
 Thought: I have the interface status for both R-1 and R-2. **I can now provide the final answer.**
-**Final Answer: The interface status for R-1 and R-2 is as follows: [R-1 status], [R-2 status]**
+Final Answer: The interface status for R-1 and R-2 is as follows: [R-1 status], [R-2 status]
 
 Example 2: Check OSPF status
 Input: check R-3 and R-4 ospf status
@@ -53,7 +53,7 @@ Action: execute_device_commands
 Action Input: {{"device_name": "R-4", "commands": ["show ip ospf neighbor", "show ip ospf interface brief"]}}
 Observation: [R-4 OSPF status output]
 Thought: I have the OSPF status for both R-3 and R-4. **I can now provide the final answer.**
-**Final Answer: The OSPF status for R-3 and R-4 is as follows: [R-3 OSPF status], [R-4 OSPF status]**
+Final Answer: The OSPF status for R-3 and R-4 is as follows: [R-3 OSPF status], [R-4 OSPF status]
 
 Example 3: Configure a loopback interface (with pre-check)
 Input: Configure a loopback interface on device R-3 with address 3.3.3.31/32.
@@ -71,7 +71,7 @@ Action: execute_device_commands
 Action Input: {{"device_name": "R-3", "commands": ["show ip interface brief", "show running-config interface loopback0"]}}
 Observation: [Verification output showing loopback interface status and configuration]
 Thought: I can see from the verification output that the loopback interface has been successfully created and configured with the correct IP address. **I can now provide the final answer.**
-**Final Answer: A loopback interface has been successfully configured on R-3 with address 3.3.3.31/32. The configuration has been verified and the interface is now active.**
+Final Answer: A loopback interface has been successfully configured on R-3 with address 3.3.3.31/32. The configuration has been verified and the interface is now active.
 
 You have access to the following tools:
 
@@ -101,11 +101,9 @@ custom_prompt = PromptTemplate(
 )
 
 # Initialize the DeepSeek language model
-# Using temperature=0 for deterministic responses in network automation tasks
 llm = ChatDeepSeek(model="deepseek-chat", temperature=0, streaming=True)
 
 # Define the available tools for the agent
-# These tools provide capabilities for GNS3 topology management and network device operations
 tools = [
     GNS3TemplateTool(),        # Get GNS3 node templates
     GNS3TopologyTool(),        # Read GNS3 topology information
@@ -123,13 +121,12 @@ async def start():
     agent = create_react_agent(llm, tools, custom_prompt)
     
     # Create AgentExecutor with configuration to handle network automation tasks
-    # Disable default verbose callback to avoid conflicts with Chainlit
     agent_executor = AgentExecutor(
         agent=agent, 
         tools=tools, 
-        verbose=False,  # Turn off verbose to prevent default callback interference
-        handle_parsing_errors=True,  # Handle parsing errors gracefully
-        max_iterations=50,  # Limit maximum iterations to prevent infinite loops
+        verbose=False, 
+        handle_parsing_errors=True, 
+        max_iterations=50,  
         return_intermediate_steps=True  # Return intermediate reasoning steps
     )
     
@@ -152,15 +149,13 @@ async def main(message: cl.Message):
         return
 
     try:
-        # Create Chainlit's LangChain callback handler, compatible with Chainlit 2.8.1
-        # This handler enables streaming of the agent's reasoning process
+        # Create Chainlit's LangChain callback handler
         callback_handler = cl.LangchainCallbackHandler(
-            stream_final_answer=True,  # Enable streaming of final answers
-            answer_prefix_tokens=["Final", "Answer"]  # Match prefix in the prompt template
+            stream_final_answer=True,  
+            answer_prefix_tokens=["Final", "Answer"]  
         )
         
         # Use astream for streaming processing, relying on callback handler to render all output
-        # The agent processes the user input and streams the reasoning steps
         async for _ in agent_executor.astream(
             {"input": user_input},
             config={"callbacks": [callback_handler]}

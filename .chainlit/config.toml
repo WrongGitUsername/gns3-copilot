@@ -9,7 +9,7 @@ session_timeout = 3600
 user_session_timeout = 1296000  # 15 days
 
 # Enable third parties caching (e.g., LangChain cache)
-cache = false
+cache = true
 
 # Whether to persist user environment variables (API keys) to the database
 # Set to true to store user env vars in DB, false to exclude them for security
