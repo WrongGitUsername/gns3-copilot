@@ -4,12 +4,14 @@ GNS3 Copilot Tools Package
 This package provides various tools for interacting with GNS3 network simulator, including:
 - Device configuration command execution
 - Display command execution
+- Multiple device command execution using Nornir
 - GNS3 topology reading
 - Node and link management
 
 Main modules:
 - config_tools: Device configuration command execution tool
 - display_tools: Display command execution tool
+- display_tools_nornir: Multiple device command execution tool using Nornir
 - gns3_topology_reader: GNS3 topology reading tool
 - gns3_create_node: GNS3 node creation tool
 - gns3_create_link: GNS3 link creation tool
@@ -24,6 +26,7 @@ Author: GNS3 Copilot Team
 # Import main tool classes
 from .config_tools import ExecuteConfigCommands
 from .display_tools import ExecuteDisplayCommands
+from .display_tools_nornir import ExecuteMultipleDeviceCommands
 from .gns3_topology_reader import GNS3TopologyTool
 from .gns3_create_node import GNS3CreateNodeTool
 from .gns3_create_link import GNS3LinkTool
@@ -38,6 +41,7 @@ __author__ = "GNS3 Copilot Team"
 __all__ = [
     "ExecuteConfigCommands",
     "ExecuteDisplayCommands", 
+    "ExecuteMultipleDeviceCommands",
     "GNS3TopologyTool",
     "GNS3CreateNodeTool",
     "GNS3LinkTool",
