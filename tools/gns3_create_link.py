@@ -2,7 +2,7 @@ import json
 import logging
 from pprint import pprint
 from langchain.tools import BaseTool
-from tools.custom_gns3fy import Gns3Connector, Link
+from .custom_gns3fy import Gns3Connector, Link
 
 # Configure logging
 logger = logging.getLogger("gns3_link_tool")

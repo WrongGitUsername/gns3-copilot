@@ -3,7 +3,7 @@ import logging
 import os
 import time
 from langchain.tools import BaseTool
-from tools.custom_gns3fy import Gns3Connector, Node
+from .custom_gns3fy import Gns3Connector, Node
 
 # Ensure log directory exists
 log_dir = "log"

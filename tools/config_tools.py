@@ -7,7 +7,7 @@ import logging
 from pprint import pprint
 from netmiko import ConnectHandler, NetmikoTimeoutException
 from langchain.tools import BaseTool
-from tools.gns3_topology_reader import GNS3TopologyTool
+from .gns3_topology_reader import GNS3TopologyTool
 
 # --- Logging Configuration ---
 logger = logging.getLogger("device_config_tool")

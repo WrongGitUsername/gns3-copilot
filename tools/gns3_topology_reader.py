@@ -3,7 +3,12 @@ This module provides a LangChain BaseTool to retrieve the topology of the curren
 """
 import logging
 from langchain_core.tools import BaseTool
-from tools.custom_gns3fy import Gns3Connector, Project
+try:
+    # For external imports (from test directory, etc.)
+    from tools.custom_gns3fy import Gns3Connector, Project
+except ImportError:
+    # For internal imports (within tools package)
+    from .custom_gns3fy import Gns3Connector, Project
 
 # Configure logging
 logger = logging.getLogger("gns3_topology_reader")
