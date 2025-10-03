@@ -106,10 +106,20 @@ class ExecuteMultipleDeviceCommands(BaseTool):
             logger.error("Invalid JSON input: %s", e)
             return [{"error": f"Invalid JSON input: {e}"}]
 
-        # Task to execute multiple commands for a specific device
-        def run_device_commands(task: Task, commands: list) -> Result:
-            """Execute specified commands on a device"""
+        # Create a mapping of device names to their commands
+        device_commands_map = {}
+        for device_cmd in device_commands_list:
+            device_name = device_cmd["device_name"]
+            commands = device_cmd["commands"]
+            device_commands_map[device_name] = commands
+
+        # Task to execute commands for all devices concurrently
+        def run_all_device_commands(task: Task) -> Result:
+            """Execute commands for a device based on device_commands_map"""
+            device_name = task.host.name
+            commands = device_commands_map.get(device_name, [])
             results = {}
+            
             for cmd in commands:
                 try:
                     result = task.run(
@@ -171,55 +181,60 @@ class ExecuteMultipleDeviceCommands(BaseTool):
         
         results = []
         
-        for device_cmd in device_commands_list:
-            device_name = device_cmd["device_name"]
-            commands = device_cmd["commands"]
+        # Execute all devices concurrently in a single run
+        try:
+            task_result = dynamic_nr.run(
+                task=run_all_device_commands
+            )
             
-            # Check if device is in dynamically built hosts_data
-            if device_name not in hosts_data:
-                # Device not found in topology or missing console_port
-                device_result = {"device_name": device_name}
-                for cmd in commands:
-                    device_result[cmd] = f"Device '{device_name}' not found in topology or missing console_port"
-                results.append(device_result)
-                continue
-            
-            # Filter device
-            filtered_nr = dynamic_nr.filter(name=device_name)
-            
-            if len(filtered_nr.inventory.hosts) == 0:
-                # Device not found, add error message
-                device_result = {"device_name": device_name}
-                for cmd in commands:
-                    device_result[cmd] = f"Device '{device_name}' not found in inventory"
-                results.append(device_result)
-                continue
-            
-            # Execute commands
-            try:
-                task_result = filtered_nr.run(
-                    task=run_device_commands,
-                    commands=commands
-                )
+            # Process results for all devices
+            for device_cmd in device_commands_list:
+                device_name = device_cmd["device_name"]
+                commands = device_cmd["commands"]
                 
-                # Format results
+                # Check if device is in dynamically built hosts_data
+                if device_name not in hosts_data:
+                    # Device not found in topology or missing console_port
+                    device_result = {"device_name": device_name}
+                    for cmd in commands:
+                        device_result[cmd] = f"Device '{device_name}' not found in topology or missing console_port"
+                    results.append(device_result)
+                    continue
+                
+                # Check if device has results
+                if device_name not in task_result:
+                    # Device not found in task results
+                    device_result = {"device_name": device_name}
+                    for cmd in commands:
+                        device_result[cmd] = f"Device '{device_name}' not found in task results"
+                    results.append(device_result)
+                    continue
+                
+                # Process task results
+                multi_result = task_result[device_name]
                 device_result = {"device_name": device_name}
-                for host_name, multi_result in task_result.items():
-                    if multi_result[0].failed:
-                        # Task execution failed
-                        for cmd in commands:
-                            device_result[cmd] = f"Task execution failed: {multi_result[0].exception}"
-                    else:
-                        # Task execution successful
-                        command_results = multi_result[0].result
-                        for cmd, output in command_results.items():
-                            device_result[cmd] = output
+                
+                if multi_result[0].failed:
+                    # Task execution failed
+                    for cmd in commands:
+                        device_result[cmd] = f"Task execution failed: {multi_result[0].exception}"
+                else:
+                    # Task execution successful
+                    command_results = multi_result[0].result
+                    for cmd in commands:
+                        if cmd in command_results:
+                            device_result[cmd] = command_results[cmd]
+                        else:
+                            device_result[cmd] = f"Command '{cmd}' not executed or no result"
                 
                 results.append(device_result)
                 
-            except Exception as e:
-                # Overall execution failed
-                logger.error("Error executing commands on device %s: %s", device_name, e)
+        except Exception as e:
+            # Overall execution failed
+            logger.error("Error executing commands on all devices: %s", e)
+            for device_cmd in device_commands_list:
+                device_name = device_cmd["device_name"]
+                commands = device_cmd["commands"]
                 device_result = {"device_name": device_name}
                 for cmd in commands:
                     device_result[cmd] = f"Execution error: {str(e)}"
