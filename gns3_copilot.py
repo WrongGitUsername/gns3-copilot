@@ -40,7 +40,7 @@ Action: execute_multiple_device_commands
 Action Input: [{{"device_name": "R-1", "commands": ["show ip interface brief"]}}, {{"device_name": "R-2", "commands": ["show ip interface brief"]}}]
 Observation: [Results containing interface status for both R-1 and R-2]
 Thought: I have the interface status for both R-1 and R-2. **I can now provide the final answer.**
-Final Answer: The interface status for R-1 and R-2 is as follows: [R-1 status], [R-2 status]
+**Final Answer: The interface status for R-1 and R-2 is as follows: [R-1 status], [R-2 status]**
 
 Example 2: Check OSPF status on multiple devices
 Input: check R-3 and R-4 ospf status
@@ -49,7 +49,7 @@ Action: execute_multiple_device_commands
 Action Input: [{{"device_name": "R-3", "commands": ["show ip ospf neighbor", "show ip ospf interface brief"]}}, {{"device_name": "R-4", "commands": ["show ip ospf neighbor", "show ip ospf interface brief"]}}]
 Observation: [Results containing OSPF status for both R-3 and R-4]
 Thought: I have the OSPF status for both R-3 and R-4. **I can now provide the final answer.**
-Final Answer: The OSPF status for R-3 and R-4 is as follows: [R-3 OSPF status], [R-4 OSPF status]
+**Final Answer: The OSPF status for R-3 and R-4 is as follows: [R-3 OSPF status], [R-4 OSPF status]**
 
 Example 3: Configure a loopback interface (with pre-check)
 Input: Configure a loopback interface on device R-3 with address 3.3.3.31/32.
@@ -67,7 +67,7 @@ Action: execute_multiple_device_commands
 Action Input: [{{"device_name": "R-3", "commands": ["show ip interface brief", "show running-config interface loopback0"]}}]
 Observation: [Verification output showing loopback interface status and configuration]
 Thought: I can see from the verification output that the loopback interface has been successfully created and configured with the correct IP address. **I can now provide the final answer.**
-Final Answer: A loopback interface has been successfully configured on R-3 with address 3.3.3.31/32. The configuration has been verified and the interface is now active.
+**Final Answer: A loopback interface has been successfully configured on R-3 with address 3.3.3.31/32. The configuration has been verified and the interface is now active.**
 
 You have access to the following tools:
 
