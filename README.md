@@ -13,6 +13,7 @@ GNS3 Copilot is an intelligent network automation assistant that combines the po
 - **Conversational AI**: Interactive chat-based interface powered by Chainlit
 - **GNS3 Integration**: Seamlessly works with your existing GNS3 projects
 - **Multi-Tool Support**: Execute display commands, configuration commands, and topology operations
+- **Concurrent Multi-Device Operations**: Execute commands on multiple devices simultaneously using Nornir framework
 - **Real-time Reasoning**: Watch the AI agent's thought process in real-time
 - **Safety First**: Built-in safety mechanisms to prevent dangerous operations
 - **Comprehensive Logging**: Detailed logs for debugging and auditing
@@ -109,7 +110,8 @@ GNS3 Copilot
 ├── Tool System
 │   ├── GNS3TopologyTool - Reads project topology
 │   ├── ExecuteMultipleDeviceCommands - Show commands on multiple devices (Nornir-based)
-│   ├── ExecuteConfigCommands - Configuration commands
+│   ├── ExecuteMultipleDeviceConfigCommands - Configuration commands on multiple devices (Nornir-based)
+│   ├── ExecuteConfigCommands - Configuration commands (single device)
 │   ├── GNS3TemplateTool - Get node templates
 │   ├── GNS3CreateNodeTool - Node management
 │   ├── GNS3LinkTool - Link management
@@ -123,9 +125,15 @@ GNS3 Copilot
 - **GNS3 Topology Reader**: Retrieves current project topology
 - **GNS3 Template Tool**: Gets available node templates
 - **Multiple Device Commands Executor**: Executes show commands on multiple devices concurrently using Nornir
-- **Configuration Commands Executor**: Applies configuration changes
+- **Multiple Device Configuration Executor**: Executes configuration commands on multiple devices concurrently using Nornir
+- **Configuration Commands Executor**: Applies configuration changes to single devices
 - **Node Management**: Create, start, and manage GNS3 nodes
 - **Link Management**: Create and manage network links
+
+### Tool Selection Strategy
+- **For multi-device operations**: Use Nornir-based tools for concurrent execution and better performance
+- **For single-device operations**: Both single-device and Nornir tools are available for compatibility
+- **For device-specific compatibility**: Single-device tools provide broader device type support
 
 ### Supported Device Types
 - Cisco IOSv (primary support, telnet console)
@@ -155,7 +163,8 @@ gns3-copilot/
 ├── chat_logs/              # Chat conversation logs
 ├── log/                    # Application logs
 └── tools/                  # Tool implementations
-    ├── config_tools.py     # Configuration commands
+    ├── config_tools_nornir.py  # Multi-device configuration commands (Nornir-based)
+    ├── config_tools.py     # Configuration commands (single device)
     ├── display_tools_nornir.py  # Multi-device display commands (Nornir-based)
     ├── display_tools.py    # Legacy display commands (deprecated)
     ├── gns3_topology_reader.py
@@ -184,9 +193,10 @@ gns3-copilot/
 
 ### Logs
 Check the `log/` directory for detailed operation logs:
+- `config_tools_nornir.log` - Multi-device configuration command executions (Nornir-based)
 - `display_tools_nornir.log` - Multi-device display command executions (Nornir-based)
 - `display_tools.log` - Legacy display command executions (deprecated)
-- `device_config_tool.log` - Configuration operations
+- `device_config_tool.log` - Configuration operations (single device)
 - `gns3_topology_reader.log` - Topology reading operations
 
 ## 🤝 Contributing

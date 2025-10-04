@@ -9,6 +9,7 @@ Welcome to **GNS3 Copilot** - your intelligent network automation companion! Thi
 - **GNS3 Integration**: Seamlessly interact with your existing GNS3 projects
 - **Multi-device Operations**: Execute commands across multiple devices simultaneously using Nornir
 - **Concurrent Execution**: Run commands on multiple devices at the same time for faster results
+- **Multi-device Configuration**: Configure multiple devices concurrently using Nornir framework
 - **Safe Automation**: Built-in safety mechanisms prevent dangerous operations
 
 ## 🎯 Quick Start
@@ -31,6 +32,8 @@ Welcome to **GNS3 Copilot** - your intelligent network automation companion! Thi
 - `"configure a loopback interface on R-3 with address 3.3.3.31/32"`
 - `"enable OSPF on R-1"`
 - `"set interface description on R-2 GigabitEthernet0/0"`
+- `"configure loopback interfaces on R-1 and R-2 simultaneously"` (executes configuration on multiple devices concurrently)
+- `"enable OSPF on all routers in the topology"` (executes configuration on multiple devices concurrently)
 
 ### Topology Operations
 - `"show current topology"`

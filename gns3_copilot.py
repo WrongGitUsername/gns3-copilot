@@ -14,9 +14,10 @@ load_dotenv()
 from langchain.prompts import PromptTemplate
 from langchain.agents import create_react_agent, AgentExecutor
 from langchain_deepseek import ChatDeepSeek
-from tools.display_tools import ExecuteDisplayCommands
-from tools.config_tools import ExecuteConfigCommands
+#from tools.display_tools import ExecuteDisplayCommands
+#from tools.config_tools import ExecuteConfigCommands
 from tools.display_tools_nornir import ExecuteMultipleDeviceCommands
+from tools.config_tools_nornir import ExecuteMultipleDeviceConfigCommands
 from tools.gns3_topology_reader import GNS3TopologyTool
 from tools.gns3_get_node_temp import GNS3TemplateTool
 from tools.gns3_create_node import GNS3CreateNodeTool
@@ -107,7 +108,8 @@ tools = [
     GNS3StartNodeTool(),               # Start GNS3 nodes
     #ExecuteDisplayCommands(),          # Execute show/display commands on single network device
     ExecuteMultipleDeviceCommands(),   # Execute show/display commands on multiple network devices using Nornir
-    ExecuteConfigCommands()            # Execute configuration commands on network devices
+    ExecuteMultipleDeviceConfigCommands(),  # Execute configuration commands on multiple network devices using Nornir
+    #ExecuteConfigCommands()            # Execute configuration commands on network devices
 ]
 
 @cl.on_chat_start
@@ -120,12 +122,12 @@ async def start():
     agent_executor = AgentExecutor(
         agent=agent, 
         tools=tools, 
-        verbose=False, 
+        verbose=True, 
         handle_parsing_errors=True, 
         max_iterations=50,  
         return_intermediate_steps=True  # Return intermediate reasoning steps
     )
-    
+
     # Store agent executor in user session for later use
     cl.user_session.set("agent_executor", agent_executor)
     
