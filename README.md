@@ -72,8 +72,8 @@ chainlit run gns3_copilot.py --host 192.168.1.3 --port 8090
 ## 💬 Example Commands
 
 ### Display Operations
-- `"check R-1 and R-2 interfaces status"`
-- `"show OSPF status on R-3 and R-4"`
+- `"check R-1 and R-2 interfaces status"` (executes commands on multiple devices concurrently)
+- `"show OSPF status on R-3 and R-4"` (executes commands on multiple devices concurrently)
 - `"display running configuration on R-1"`
 
 ### Configuration Operations
@@ -108,7 +108,7 @@ GNS3 Copilot
 ├── AI Agent (LangChain + DeepSeek)
 ├── Tool System
 │   ├── GNS3TopologyTool - Reads project topology
-│   ├── ExecuteDisplayCommands - Show commands
+│   ├── ExecuteMultipleDeviceCommands - Show commands on multiple devices (Nornir-based)
 │   ├── ExecuteConfigCommands - Configuration commands
 │   ├── GNS3TemplateTool - Get node templates
 │   ├── GNS3CreateNodeTool - Node management
@@ -122,7 +122,7 @@ GNS3 Copilot
 ### Core Tools
 - **GNS3 Topology Reader**: Retrieves current project topology
 - **GNS3 Template Tool**: Gets available node templates
-- **Display Commands Executor**: Executes show commands on devices
+- **Multiple Device Commands Executor**: Executes show commands on multiple devices concurrently using Nornir
 - **Configuration Commands Executor**: Applies configuration changes
 - **Node Management**: Create, start, and manage GNS3 nodes
 - **Link Management**: Create and manage network links
@@ -130,6 +130,7 @@ GNS3 Copilot
 ### Supported Device Types
 - Cisco IOSv (primary support, telnet console)
 - Other network devices via Netmiko (extensible)
+- **Concurrent Multi-Device Operations**: Execute commands on multiple devices simultaneously using Nornir
 
 ## 🌐 Web Interface Features
 
@@ -155,7 +156,8 @@ gns3-copilot/
 ├── log/                    # Application logs
 └── tools/                  # Tool implementations
     ├── config_tools.py     # Configuration commands
-    ├── display_tools.py    # Display commands
+    ├── display_tools_nornir.py  # Multi-device display commands (Nornir-based)
+    ├── display_tools.py    # Legacy display commands (deprecated)
     ├── gns3_topology_reader.py
     ├── gns3_create_node.py
     ├── gns3_create_link.py
@@ -182,7 +184,8 @@ gns3-copilot/
 
 ### Logs
 Check the `log/` directory for detailed operation logs:
-- `display_tools.log` - Display command executions
+- `display_tools_nornir.log` - Multi-device display command executions (Nornir-based)
+- `display_tools.log` - Legacy display command executions (deprecated)
 - `device_config_tool.log` - Configuration operations
 - `gns3_topology_reader.log` - Topology reading operations
 
@@ -206,6 +209,7 @@ This project is open source and available under the [MIT License](LICENSE).
 - **DeepSeek** for the AI language model capabilities
 - **Chainlit** for the conversational UI framework
 - **Netmiko** for network device communication
+- **Nornir** for concurrent multi-device automation
 
 ## 📞 Support
 

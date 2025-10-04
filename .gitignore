@@ -214,5 +214,4 @@ GNS3_FORUM_POST_RICHTEXT.md
 log/*
 *.jsonl
 *.json
-chainlit.md
 .chainlit/.langchain.db

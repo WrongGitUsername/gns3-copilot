@@ -9,6 +9,9 @@ chainlit>=1.0.0
 
 # Network Automation
 netmiko>=4.1.2
+nornir>=3.3.0
+nornir-netmiko>=0.2.0
+nornir-utils>=0.2.0
 
 # Environment Management
 python-dotenv>=1.0.0
