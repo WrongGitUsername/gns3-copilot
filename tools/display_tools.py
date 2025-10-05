@@ -8,27 +8,10 @@ from pprint import pprint
 from netmiko import ConnectHandler, NetmikoTimeoutException
 from langchain.tools import BaseTool
 from .gns3_topology_reader import GNS3TopologyTool
+from .logging_config import setup_tool_logger
 
 # config log
-logger = logging.getLogger("display_tools")
-logger.setLevel(logging.DEBUG)
-
-# Prevent duplicate handlers if the module is reloaded
-if not logger.handlers:
-    # log to files
-    file_handler = logging.FileHandler("log/display_tools.log", mode="a")
-    file_handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-    file_handler.setFormatter(formatter)
-
-    # log to console
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO)
-    console_handler.setFormatter(formatter)
-
-    # add the handlers to the logger
-    logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
+logger = setup_tool_logger("display_tools")
 
 class ExecuteDisplayCommands(BaseTool):
     """
@@ -164,36 +147,37 @@ class ExecuteDisplayCommands(BaseTool):
 
 if __name__ == "__main__":
     # input device name and commands to execute
-    dev_name, cmds = ('R-4', [
-    'show running-config | section ospf',
-    'show ip ospf neighbor',
-    'show ip ospf interface brief',
-    'show ip ospf database',
-    'show ip ospf',
-    'show ip route ospf',
-    'show ip protocols',
-    'show ip interface brief',
-    'show version',
-    'show ip ospf interface',
-    #'show ip ospf events', # time too long
-    'show ip ospf statistics',
-    'show ip ospf border-routers',
-    'show ip ospf virtual-links',
-    'show ip ospf sham-links',
-    'show ip ospf traffic',
-    'show ip ospf retransmission-list',
-    'show ip ospf request-list',
-    'show ip ospf database router',
-    'show ip ospf database network',
-    'show ip ospf database summary',
-    'show ip ospf database external',
-    'show ip ospf database opaque-area',
-    'show ip ospf database opaque-as',
-    'show ip ospf database self-originate',
-    'show ip ospf max-metric',
-    'show ip ospf mpls ldp interface',
-    'show ip ospf neighbor detail'
-    ])
+    dev_name = 'R-4'
+    cmds = [
+        'show running-config | section ospf',
+        'show ip ospf neighbor',
+        'show ip ospf interface brief',
+        'show ip ospf database',
+        'show ip ospf',
+        'show ip route ospf',
+        'show ip protocols',
+        'show ip interface brief',
+        'show version',
+        'show ip ospf interface',
+        #'show ip ospf events', # time too long
+        'show ip ospf statistics',
+        'show ip ospf border-routers',
+        'show ip ospf virtual-links',
+        'show ip ospf sham-links',
+        'show ip ospf traffic',
+        'show ip ospf retransmission-list',
+        'show ip ospf request-list',
+        'show ip ospf database router',
+        'show ip ospf database network',
+        'show ip ospf database summary',
+        'show ip ospf database external',
+        'show ip ospf database opaque-area',
+        'show ip ospf database opaque-as',
+        'show ip ospf database self-originate',
+        'show ip ospf max-metric',
+        'show ip ospf mpls ldp interface',
+        'show ip ospf neighbor detail'
+    ]
 
     exe_cmd = ExecuteDisplayCommands()
     result = exe_cmd._run(tool_input=json.dumps({

@@ -8,25 +8,10 @@ from pprint import pprint
 from netmiko import ConnectHandler, NetmikoTimeoutException
 from langchain.tools import BaseTool
 from .gns3_topology_reader import GNS3TopologyTool
+from .logging_config import setup_tool_logger
 
 # --- Logging Configuration ---
-logger = logging.getLogger("device_config_tool")
-logger.setLevel(logging.DEBUG)
-
-# Prevent duplicate handlers if the module is reloaded
-if not logger.handlers:
-    # Log to file
-    file_handler = logging.FileHandler("log/device_config_tool.log", mode="a")
-    file_handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
-
-    # Log to console
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO)
-    console_handler.setFormatter(formatter)
-    logger.addHandler(console_handler)
+logger = setup_tool_logger("device_config_tool")
 
 
 class ExecuteConfigCommands(BaseTool):

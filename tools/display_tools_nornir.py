@@ -10,27 +10,10 @@ from nornir_netmiko.tasks import netmiko_send_command
 from nornir_utils.plugins.functions import print_result
 from langchain.tools import BaseTool
 from .gns3_topology_reader import GNS3TopologyTool
+from .logging_config import setup_tool_logger
 
 # config log
-logger = logging.getLogger("display_tools_nornir")
-logger.setLevel(logging.DEBUG)
-
-# Prevent duplicate handlers if the module is reloaded
-if not logger.handlers:
-    # log to files
-    file_handler = logging.FileHandler("log/display_tools_nornir.log", mode="a")
-    file_handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-    file_handler.setFormatter(formatter)
-
-    # log to console
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO)
-    console_handler.setFormatter(formatter)
-
-    # add the handlers to the logger
-    logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
+logger = setup_tool_logger("display_tools_nornir")
 
 # Nornir configuration groups
 groups_data = {

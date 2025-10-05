@@ -9,25 +9,10 @@ try:
 except ImportError:
     # For internal imports (within tools package)
     from .custom_gns3fy import Gns3Connector, Project
+from .logging_config import setup_tool_logger
 
 # Configure logging
-logger = logging.getLogger("gns3_topology_reader")
-logger.setLevel(logging.DEBUG)
-
-# File logging handler
-file_handler = logging.FileHandler("log/gns3_topology_reader.log", mode="a")
-file_handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(formatter)
-
-# Console logging handler
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
-console_handler.setFormatter(formatter)
-
-# Add handlers to logger
-logger.addHandler(file_handler)
-logger.addHandler(console_handler)
+logger = setup_tool_logger("gns3_topology_reader")
 
 # Define LangChain tool class
 class GNS3TopologyTool(BaseTool):

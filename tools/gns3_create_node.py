@@ -2,28 +2,11 @@ import json
 import logging
 from pprint import pprint
 from langchain.tools import BaseTool
-from .custom_gns3fy import Gns3Connector, Node
+from .custom_gns3fy import Gns3Connector, Node, Project
+from .logging_config import setup_tool_logger
 
 # Configure logging
-logger = logging.getLogger("gns3_create_node_tool")
-logger.setLevel(logging.DEBUG)
-
-# Prevent duplicate handlers if the module is reloaded
-if not logger.handlers:
-    # Log to file
-    file_handler = logging.FileHandler("log/gns3_create_node_tool.log", mode="a")
-    file_handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-    file_handler.setFormatter(formatter)
-
-    # Log to console
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO)
-    console_handler.setFormatter(formatter)
-
-    # Add handlers to the logger
-    logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
+logger = setup_tool_logger("gns3_create_node_tool")
 
 class GNS3CreateNodeTool(BaseTool):
     """

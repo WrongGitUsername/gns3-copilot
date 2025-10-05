@@ -1,30 +1,12 @@
 import json
 import logging
-import os
 import time
 from langchain.tools import BaseTool
 from .custom_gns3fy import Gns3Connector, Node
-
-# Ensure log directory exists
-log_dir = "log"
-if not os.path.exists(log_dir):
-    os.makedirs(log_dir)
+from .logging_config import setup_tool_logger
 
 # Configure logging
-logger = logging.getLogger("gns3_start_node_tool")
-logger.setLevel(logging.DEBUG)
-
-# Clear existing handlers to prevent duplicates
-logger.handlers = []
-file_handler = logging.FileHandler(os.path.join(log_dir, "gns3_start_node_tool.log"), mode="a")
-file_handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(formatter)
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
-console_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
-logger.addHandler(console_handler)
+logger = setup_tool_logger("gns3_start_node_tool")
 
 def show_progress_bar(duration=120, interval=1, node_count=1):
     """
