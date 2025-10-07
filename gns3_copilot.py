@@ -13,8 +13,6 @@ from dotenv import load_dotenv
 from langchain.prompts import PromptTemplate
 from langchain.agents import create_react_agent, AgentExecutor
 from langchain_deepseek import ChatDeepSeek
-# from tools.display_tools import ExecuteDisplayCommands
-# from tools.config_tools import ExecuteConfigCommands
 from tools.display_tools_nornir import ExecuteMultipleDeviceCommands
 from tools.config_tools_nornir import ExecuteMultipleDeviceConfigCommands
 from tools.gns3_topology_reader import GNS3TopologyTool
@@ -40,10 +38,8 @@ tools = [
     GNS3CreateNodeTool(),              # Create new nodes in GNS3
     GNS3LinkTool(),                    # Create links between nodes
     GNS3StartNodeTool(),               # Start GNS3 nodes
-    #ExecuteDisplayCommands(),          # Execute show/display commands on single network device
     ExecuteMultipleDeviceCommands(),   # Execute show/display commands on multiple devices
     ExecuteMultipleDeviceConfigCommands(),  # Execute configuration commands on multiple devices
-    #ExecuteConfigCommands()            # Execute configuration commands on network devices
 ]
 
 # Log application startup
