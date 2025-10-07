@@ -7,6 +7,7 @@ for natural language processing. The assistant can execute network commands, con
 and manage GNS3 topology operations.
 """
 
+import asyncio
 import chainlit as cl
 from dotenv import load_dotenv
 from langchain.prompts import PromptTemplate
@@ -55,12 +56,26 @@ custom_prompt = PromptTemplate(
     input_variables=["input", "agent_scratchpad", "tools", "tool_names"]
 )
 
+@cl.on_stop
+async def on_stop():
+    """Handle stop event when user clicks stop button"""
+    logger.info("User clicked stop button, cancelling agent execution")
+
+    # Set stop flag in user session
+    cl.user_session.set("stop_requested", True)
+
+    logger.debug("Stop flag set in user session")
+
 @cl.on_chat_start
 async def start():
     """Initialize AgentExecutor when chat starts"""
     logger.info("GNS3 Copilot session started")
 
     try:
+        # Initialize stop flag
+        cl.user_session.set("stop_requested", False)
+        logger.debug("Stop flag initialized to False")
+
         # Create ReAct agent with custom prompt
         logger.debug("Creating ReAct agent with custom prompt")
         agent = create_react_agent(llm, tools, custom_prompt)
@@ -87,7 +102,7 @@ async def start():
         ).send()
         logger.debug("Welcome message sent to user")
 
-    except Exception as e:
+    except (ImportError, ConnectionError, RuntimeError, ValueError) as e:
         logger.error("Error during session start: %s", str(e), exc_info=True)
         await cl.Message(content=f"Failed to initialize session: {str(e)}").send()
 
@@ -109,6 +124,10 @@ async def main(message: cl.Message):
         await cl.Message(content="Goodbye!").send()
         return
 
+    # Reset stop flag for new message
+    cl.user_session.set("stop_requested", False)
+    logger.debug("Stop flag reset for new message")
+
     try:
         # Create Chainlit's LangChain callback handler
         logger.debug("Creating LangChain callback handler")
@@ -117,22 +136,33 @@ async def main(message: cl.Message):
             answer_prefix_tokens=["Final", "Answer"]
         )
 
-        # Use astream for streaming processing, relying on callback handler to render all output
+        # Use astream for streaming processing with cancellation support
         logger.debug("Starting agent execution stream")
-        async for _ in agent_executor.astream(
-            {"input": user_input},
-            config={"callbacks": [callback_handler]}
-        ):
-            # Rely on cl.LangchainCallbackHandler for rendering, no manual processing needed
-            pass
+        try:
+            async for _ in agent_executor.astream(
+                {"input": user_input},
+                config={"callbacks": [callback_handler]}
+            ):
+                # Check if stop was requested
+                if cl.user_session.get("stop_requested", False):
+                    logger.info("Agent execution cancelled by user")
+                    await cl.Message(content="⏹️ Execution stopped by user.").send()
+                    break
 
-        logger.info("Agent execution completed successfully")
+                # Rely on cl.LangchainCallbackHandler for rendering, no manual processing needed
+            else:
+                # This runs only if the loop wasn't broken (no cancellation)
+                logger.info("Agent execution completed successfully")
+
+        except asyncio.CancelledError:
+            logger.info("Agent execution was cancelled")
+            # Don't send additional message here since Chainlit already shows "Task manual stopped."
 
     except (RuntimeError, ValueError, KeyError) as e:
         # Error handling for common exceptions during agent execution
         logger.warning("Agent execution error: %s", str(e))
         await cl.Message(content=f"Error: {str(e)}").send()
-    except Exception as e:
-        # Catch-all for any other unexpected exceptions
+    except (AttributeError, TypeError, OSError) as e:
+        # Catch-all for other specific unexpected exceptions
         logger.error("Unexpected error during message processing: %s", str(e), exc_info=True)
         await cl.Message(content=f"Unexpected error: {str(e)}").send()
