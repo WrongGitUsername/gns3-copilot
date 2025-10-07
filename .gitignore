@@ -215,3 +215,4 @@ log/*
 *.jsonl
 *.json
 .chainlit/.langchain.db
+GNS3_Copilot_demo.md
