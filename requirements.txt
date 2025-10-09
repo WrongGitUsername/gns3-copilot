@@ -12,7 +12,7 @@ netmiko>=4.1.2
 nornir>=3.3.0
 nornir-netmiko>=0.2.0
 nornir-utils>=0.2.0
-
+nornir-salt>=0.22.0
 # Environment Management
 python-dotenv>=1.0.0
 
