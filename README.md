@@ -4,19 +4,32 @@
 ![LangChain](https://img.shields.io/badge/LangChain-0.1.0+-green.svg)
 ![Chainlit](https://img.shields.io/badge/Chainlit-1.0.0+-purple.svg)
 ![GNS3](https://img.shields.io/badge/GNS3-2.2+-orange.svg)
+![Nornir](https://img.shields.io/badge/Nornir-3.3.0+-red.svg)
 
-GNS3 Copilot is an intelligent network automation assistant that combines the power of AI with GNS3 network simulation platform. It allows you to manage and configure network devices using natural language commands through a conversational interface.
+GNS3 Copilot is an intelligent network automation assistant that combines the power of AI with GNS3 network simulation platform. It uses DeepSeek LLM for natural language processing, LangChain for agent orchestration, and Chainlit for the web interface. It allows you to manage and configure network devices using natural language commands through a conversational interface with real-time reasoning display.
 
 ## 🚀 Features
 
 - **Natural Language Interface**: Control network devices using simple English commands
-- **Conversational AI**: Interactive chat-based interface powered by Chainlit
-- **GNS3 Integration**: Seamlessly works with your existing GNS3 projects
+- **Conversational AI**: Interactive chat-based interface powered by Chainlit with streaming responses
+- **GNS3 Integration**: Seamlessly works with your existing GNS3 projects via REST API
 - **Multi-Tool Support**: Execute display commands, configuration commands, and topology operations
-- **Concurrent Multi-Device Operations**: Execute commands on multiple devices simultaneously using Nornir framework
-- **Real-time Reasoning**: Watch the AI agent's thought process in real-time
+- **Concurrent Multi-Device Operations**: Execute commands on multiple devices simultaneously using Nornir framework (up to 10 concurrent workers)
+- **Real-time Reasoning**: Watch the AI agent's thought process in real-time using ReAct framework
 - **Safety First**: Built-in safety mechanisms to prevent dangerous operations
-- **Comprehensive Logging**: Detailed logs for debugging and auditing
+- **Comprehensive Logging**: Detailed logs for debugging and auditing with separate log files for each tool
+- **Dynamic Topology Discovery**: Automatically discovers devices and their console ports from GNS3 projects
+- **Session Management**: Supports stop/cancel operations during long-running tasks
+
+## 🔧 Technology Stack
+
+- **AI Framework**: LangChain with ReAct (Reasoning + Acting) agent pattern
+- **Language Model**: DeepSeek Chat LLM for natural language understanding and generation
+- **Web Interface**: Chainlit for conversational UI with streaming responses
+- **Network Automation**: Nornir framework for concurrent multi-device operations
+- **Device Connectivity**: Netmiko for network device communication
+- **Network Simulation**: GNS3 API integration for topology management
+- **Logging**: Python logging with structured log files for each component
 
 ## 📋 Prerequisites
 
@@ -25,6 +38,7 @@ Before using GNS3 Copilot, ensure you have:
 - **GNS3** installed and running (version 2.2 or later)
 - **GNS3 Server** accessible at `http://localhost:3080`
 - **Python 3.8+** installed
+- **DeepSeek API Key** (optional, for enhanced AI capabilities)
 - At least one **GNS3 project** with network devices (Preferably use Cisco IOSv devices; only tested with Cisco IOSv image.)
 
 ## 🛠 Installation
@@ -160,19 +174,23 @@ gns3-copilot/
 ├── LICENSE                  # MIT License
 ├── .env                    # Environment variables (optional)
 ├── README.md               # This file
+├── chainlit.md             # Chainlit interface documentation
 ├── chat_logs/              # Chat conversation logs
 ├── log/                    # Application logs
+├── prompts/                # AI prompt templates
+│   ├── __init__.py
+│   └── react_prompt.py     # ReAct agent prompt template
 └── tools/                  # Tool implementations
+    ├── __init__.py
     ├── config_tools_nornir.py  # Multi-device configuration commands (Nornir-based)
-    ├── config_tools.py     # Configuration commands (single device)
-    ├── display_tools_nornir.py  # Multi-device display commands (Nornir-based)
-    ├── display_tools.py    # Legacy display commands (deprecated)
-    ├── gns3_topology_reader.py
-    ├── gns3_create_node.py
-    ├── gns3_create_link.py
-    ├── gns3_start_node.py
-    ├── gns3_get_node_temp.py
-    └── custom_gns3fy.py    # GNS3 API adapter
+    ├── custom_gns3fy.py        # GNS3 API adapter
+    ├── display_tools_nornir.py # Multi-device display commands (Nornir-based)
+    ├── gns3_create_link.py     # GNS3 link management
+    ├── gns3_create_node.py     # GNS3 node creation
+    ├── gns3_get_node_temp.py   # GNS3 template retrieval
+    ├── gns3_start_node.py      # GNS3 node control
+    ├── gns3_topology_reader.py # GNS3 topology discovery
+    └── logging_config.py       # Logging configuration utilities
 ```
 
 ## 🐛 Troubleshooting
@@ -193,11 +211,14 @@ gns3-copilot/
 
 ### Logs
 Check the `log/` directory for detailed operation logs:
+- `gns3_copilot.log` - Main application logs and session management
 - `config_tools_nornir.log` - Multi-device configuration command executions (Nornir-based)
 - `display_tools_nornir.log` - Multi-device display command executions (Nornir-based)
-- `display_tools.log` - Legacy display command executions (deprecated)
-- `device_config_tool.log` - Configuration operations (single device)
-- `gns3_topology_reader.log` - Topology reading operations
+- `gns3_topology_reader.log` - GNS3 topology discovery and API interactions
+- `gns3_create_node.log` - Node creation operations
+- `gns3_create_link.log` - Link creation operations
+- `gns3_start_node.log` - Node control operations
+- `gns3_get_node_temp.log` - Template retrieval operations
 
 ## 🤝 Contributing
 

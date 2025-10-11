@@ -1,14 +1,16 @@
 # GNS3 Copilot - AI-Powered Network Automation Assistant 🤖🌐
 
-Welcome to **GNS3 Copilot** - your intelligent network automation companion! This AI-powered assistant combines the power of natural language processing with GNS3 network simulation to make network automation accessible and intuitive.
+Welcome to **GNS3 Copilot** - your intelligent network automation companion! This AI-powered assistant combines DeepSeek LLM for natural language processing, LangChain for agent orchestration, and GNS3 network simulation to make network automation accessible and intuitive. It features real-time reasoning display using the ReAct framework.
 
 ## 🚀 What You Can Do
 
 - **Natural Language Control**: Manage network devices using simple English commands
-- **Real-time Reasoning**: Watch the AI agent's thought process as it works
-- **GNS3 Integration**: Seamlessly interact with your existing GNS3 projects
-- **Multi-device Operations**: Execute commands across multiple devices simultaneously using Nornir
-- **Concurrent Execution**: Run commands on multiple devices at the same time for faster results
+- **Real-time Reasoning**: Watch the AI agent's thought process in real-time using ReAct framework
+- **Streaming Responses**: See the AI reasoning and results appear instantly in the chat
+- **GNS3 Integration**: Seamlessly interact with your existing GNS3 projects via REST API
+- **Multi-device Operations**: Execute commands across multiple devices simultaneously using Nornir (up to 10 concurrent workers)
+- **Dynamic Topology Discovery**: Automatically discovers devices and their console ports from GNS3 projects
+- **Session Management**: Supports stop/cancel operations during long-running tasks
 - **Multi-device Configuration**: Configure multiple devices concurrently using Nornir framework
 - **Safe Automation**: Built-in safety mechanisms prevent dangerous operations
 
@@ -62,12 +64,27 @@ Your network is protected with:
 ## 📖 Need Help?
 
 - **Documentation**: Check the project README.md for detailed setup instructions
-- **Troubleshooting**: View logs in the `log/` directory for debugging
+- **Troubleshooting**: View logs in the `log/` directory for debugging:
+  - `gns3_copilot.log` - Main application logs and session management
+  - `config_tools_nornir.log` - Multi-device configuration executions
+  - `display_tools_nornir.log` - Multi-device display command executions
+  - `gns3_topology_reader.log` - GNS3 topology discovery and API interactions
+  - Additional tool-specific logs for node/link management operations
+- **Session Control**: Use the stop button to cancel long-running operations
 - **Support**: Open issues on GitHub for assistance
 
 ## 🎉 Ready to Automate?
 
 Start by typing a network command in the chat below! The AI assistant will guide you through the process and show you exactly what it's doing every step of the way.
+
+## 🔧 Technology Stack
+
+- **AI Framework**: LangChain with ReAct (Reasoning + Acting) agent pattern
+- **Language Model**: DeepSeek Chat LLM for natural language understanding
+- **Web Interface**: Chainlit for conversational UI with streaming responses
+- **Network Automation**: Nornir framework for concurrent multi-device operations
+- **Device Connectivity**: Netmiko for network device communication
+- **Network Simulation**: GNS3 API integration for topology management
 
 ---
 

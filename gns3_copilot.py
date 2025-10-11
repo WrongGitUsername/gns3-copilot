@@ -81,7 +81,7 @@ async def start():
         agent_executor = AgentExecutor(
             agent=agent,
             tools=tools,
-            verbose=True,
+            verbose=False,
             handle_parsing_errors=True,
             max_iterations=50,
             return_intermediate_steps=True  # Return intermediate reasoning steps
@@ -142,7 +142,7 @@ async def main(message: cl.Message):
                 # Check if stop was requested
                 if cl.user_session.get("stop_requested", False):
                     logger.info("Agent execution cancelled by user")
-                    await cl.Message(content="⏹️ Execution stopped by user.").send()
+                    await cl.Message(content="Execution stopped by user.").send()
                     break
 
                 # Rely on cl.LangchainCallbackHandler for rendering, no manual processing needed
