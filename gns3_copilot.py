@@ -22,6 +22,8 @@ from tools.gns3_create_link import GNS3LinkTool
 from tools.gns3_start_node import GNS3StartNodeTool
 from tools.logging_config import setup_logger
 from prompts.react_prompt import REACT_PROMPT_TEMPLATE
+from process_analyzer import LearningDocumentationCallback
+from process_analyzer.langchain_callback import LearningLangChainCallback
 
 load_dotenv()
 
@@ -71,6 +73,11 @@ async def start():
         # Initialize stop flag
         cl.user_session.set("stop_requested", False)
         logger.debug("Stop flag initialized to False")
+
+        # Initialize process analyzer callback
+        learning_cb = LearningDocumentationCallback(output_dir="process_docs")
+        cl.user_session.set("learning_callback", learning_cb)
+        logger.debug("Process analyzer callback initialized")
 
         # Create ReAct agent with custom prompt
         logger.debug("Creating ReAct agent with custom prompt")
@@ -125,19 +132,32 @@ async def main(message: cl.Message):
     logger.debug("Stop flag reset for new message")
 
     try:
-        # Create Chainlit's LangChain callback handler
+        # Get learning callback from session
+        learning_cb = cl.user_session.get("learning_callback")
+
+        # Create callback handlers list
+        callbacks = []
+
+        # Add Chainlit's LangChain callback handler
         logger.debug("Creating LangChain callback handler")
         callback_handler = cl.LangchainCallbackHandler(
             stream_final_answer=True,
             answer_prefix_tokens=["Final", "Answer"]
         )
+        callbacks.append(callback_handler)
+
+        # Add learning documentation callback if available
+        if learning_cb:
+            learning_callback_handler = LearningLangChainCallback(learning_cb)
+            callbacks.append(learning_callback_handler)
+            logger.debug("Learning documentation callback added")
 
         # Use astream for streaming processing with cancellation support
         logger.debug("Starting agent execution stream")
         try:
             async for _ in agent_executor.astream(
                 {"input": user_input},
-                config={"callbacks": [callback_handler]}
+                config={"callbacks": callbacks}
             ):
                 # Check if stop was requested
                 if cl.user_session.get("stop_requested", False):
