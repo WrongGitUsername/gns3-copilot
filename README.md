@@ -134,38 +134,6 @@ GNS3 Copilot
 └── GNS3 API Integration
 ```
 
-## 🔧 Available Tools
-
-### Core Tools
-- **GNS3 Topology Reader**: Retrieves current project topology
-- **GNS3 Template Tool**: Gets available node templates
-- **Multiple Device Commands Executor**: Executes show commands on multiple devices concurrently using Nornir
-- **Multiple Device Configuration Executor**: Executes configuration commands on multiple devices concurrently using Nornir
-- **Configuration Commands Executor**: Applies configuration changes to single devices
-- **Node Management**: Create, start, and manage GNS3 nodes
-- **Link Management**: Create and manage network links
-
-### Tool Selection Strategy
-- **For multi-device operations**: Use Nornir-based tools for concurrent execution and better performance
-- **For single-device operations**: Both single-device and Nornir tools are available for compatibility
-- **For device-specific compatibility**: Single-device tools provide broader device type support
-
-### Supported Device Types
-- **Cisco IOSv** (primary support, telnet console) - Currently tested and supported
-- **Note**: Only Cisco IOSv devices have been tested and verified to work
-- **Concurrent Multi-Device Operations**: Execute commands on multiple devices simultaneously using Nornir
-
-## 🌐 Web Interface Features
-
-The GNS3 Copilot features a modern conversational interface with:
-
-- **Real-time Chat Interface**: Interactive conversation with the AI assistant
-- **Live Agent Reasoning**: Watch the agent's thought process in real-time using the ReAct framework
-- **Message History**: View previous interactions in the chat
-- **Visual Feedback**: Clear status indicators and progress updates
-- **Responsive Design**: Works on desktop and mobile browsers
-- **Streaming Responses**: Real-time streaming of agent reasoning and final answers
-
 ## 📁 Project Structure
 
 ```
@@ -175,29 +143,14 @@ gns3-copilot/
 ├── LICENSE                  # MIT License
 ├── .env                    # Environment variables (optional)
 ├── README.md               # This file
+├── README_ZH.md            # Chinese documentation
 ├── chainlit.md             # Chainlit interface documentation
 ├── log/                    # Application logs
 ├── process_docs/           # Process analyzer documentation output
 ├── process_analyzer/       # Process analysis module
-│   ├── __init__.py
-│   ├── process_callback.py
-│   ├── langchain_callback.py
-│   ├── documentation_generator.py
-│   └── README.md
 ├── prompts/                # AI prompt templates
-│   ├── __init__.py
-│   └── react_prompt.py     # ReAct agent prompt template
-└── tools/                  # Tool implementations
-    ├── __init__.py
-    ├── config_tools_nornir.py  # Multi-device configuration commands (Nornir-based)
-    ├── custom_gns3fy.py        # GNS3 API adapter
-    ├── display_tools_nornir.py # Multi-device display commands (Nornir-based)
-    ├── gns3_create_link.py     # GNS3 link management
-    ├── gns3_create_node.py     # GNS3 node creation
-    ├── gns3_get_node_temp.py   # GNS3 template retrieval
-    ├── gns3_start_node.py      # GNS3 node control
-    ├── gns3_topology_reader.py # GNS3 topology discovery
-    └── logging_config.py       # Logging configuration utilities
+├── tools/                  # Tool implementations
+└── docs/                   # Additional documentation
 ```
 
 ## 🐛 Troubleshooting
@@ -222,38 +175,14 @@ Check the `log/` directory for detailed operation logs:
 - `config_tools_nornir.log` - Multi-device configuration command executions (Nornir-based)
 - `display_tools_nornir.log` - Multi-device display command executions (Nornir-based)
 - `gns3_topology_reader.log` - GNS3 topology discovery and API interactions
-- `gns3_create_node.log` - Node creation operations
-- `gns3_create_link.log` - Link creation operations
-- `gns3_start_node.log` - Node control operations
-- `gns3_get_node_temp.log` - Template retrieval operations
+- Other tool-specific log files
 
-## 🤝 Contributing
+## 📚 Additional Documentation
 
-We welcome contributions! Please see our [Contributing Guide](docs/CONTRIBUTING.md) for detailed guidelines on:
-
-- New device support
-- Additional tools and features
-- Bug fixes and improvements
-- Documentation enhancements
-
-### Quick Start for Contributors
-
-```bash
-# Fork and clone the repository
-git clone https://github.com/your-username/gns3-copilot.git
-cd gns3-copilot
-
-# Set up development environment
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-pip install pylint pytest black mypy  # Development dependencies
-
-# Create a feature branch
-git checkout -b feature/your-feature-name
-
-# Make your changes and submit a pull request
-```
+- **[API Reference](docs/API_REFERENCE.md)** - Detailed API documentation for all tools and modules
+- **[Contributing Guide](docs/CONTRIBUTING.md)** - Development contribution guidelines
+- **[Process Analyzer](process_analyzer/README.md)** - Process analyzer module documentation
+- **[README_ZH.md](README_ZH.md)** - Chinese documentation
 
 ## 📄 License
 
@@ -268,84 +197,6 @@ This project is open source and available under the [MIT License](LICENSE).
 - **Netmiko** for network device communication
 - **Nornir** for concurrent multi-device automation
 
-## 📞 Support
-
-For questions and support:
-- Open an issue on GitHub
-- Check the troubleshooting section above
-- Review the code documentation
-
-## 📚 Additional Documentation
-
-- **[API Reference](docs/API_REFERENCE.md)** - Detailed API documentation for all tools and modules
-- **[Process Analyzer](process_analyzer/README.md)** - Comprehensive guide to process analysis and documentation
-- **[Chainlit Interface](chainlit.md)** - User interface documentation and usage guide
-
-## 🔗 Cross-References
-
-### Documentation Structure
-```
-Documentation
-├── README.md                    # Main project documentation (this file)
-├── docs/
-│   └── API_REFERENCE.md         # Complete API reference
-├── process_analyzer/
-│   └── README.md               # Process analyzer module documentation
-└── chainlit.md                 # Chainlit interface guide
-```
-
-### Quick Navigation
-- **Getting Started**: See [Quick Start](#-quick-start) section
-- **Tool Documentation**: See [API Reference](docs/API_REFERENCE.md#core-tools)
-- **Process Analysis**: See [Process Analyzer Integration](#-process-analyzer-integration)
-- **Troubleshooting**: See [Troubleshooting](#-troubleshooting) section
-- **Interface Guide**: See [Chainlit Documentation](chainlit.md)
-
 ---
-
-## 📊 Process Analyzer Integration
-
-GNS3 Copilot includes a powerful process analyzer module that captures and documents complete execution workflows:
-
-### Features
-- **Complete Process Capture**: Records full ReAct execution cycles (Thought/Action/Action Input/Observation/Final Answer)
-- **Error Recovery**: Automatic interruption handling and emergency save functionality
-- **Documentation Generation**: Creates technical analysis and summary reports automatically
-- **Session Management**: Tracks all user interactions with detailed session history
-
-### Generated Reports
-- **Technical Analysis**: Detailed execution process with tool usage statistics
-- **Summary Reports**: Quick overview of key points and results
-- **Session History**: Complete record of all interactions stored in `process_docs/` directory
-
-### Accessing Reports
-- Reports are automatically generated after each command execution
-- Technical reports are shared directly in the chat interface
-- All session data is saved to the `process_docs/` directory for reference
-- Reports include timestamps for easy session tracking
-
-For detailed information about the process analyzer, see [`process_analyzer/README.md`](process_analyzer/README.md).
-
-## ⚙️ Configuration Options
-
-### Environment Variables
-```env
-DEEPSEEK_API_KEY=your_api_key_here  # Optional: For enhanced AI capabilities
-```
-
-### GNS3 Server Configuration
-- Default server: `http://localhost:3080`
-- Ensure GNS3 server is running before starting the application
-- Verify firewall settings allow connections to port 3080
-
-### Logging Configuration
-- Log files are automatically created in the `log/` directory
-- Each tool has its own log file for detailed debugging
-- Log rotation is handled automatically to prevent disk space issues
-
-### Performance Tuning
-- **Concurrent Workers**: Up to 10 devices can be configured simultaneously
-- **Timeout Settings**: Configurable per tool for different network conditions
-- **Memory Management**: Automatic cleanup of completed sessions
 
 **Version**: 1.0.0 - Stable release with full feature support

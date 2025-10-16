@@ -78,14 +78,6 @@ The process analyzer automatically generates comprehensive reports for each user
 - **Automatic Sharing**: Technical reports are automatically shared in the Chainlit chat interface
 - **Historical Tracking**: Complete session history maintained for analysis and debugging
 
-### Report Content
-Each technical report includes:
-- Session metadata (timestamp, user input, duration)
-- Complete ReAct execution cycle
-- Tool usage statistics and performance metrics
-- Error analysis and recovery actions
-- Final results and recommendations
-
 ### Accessing Reports
 ```bash
 # List all generated reports
@@ -137,24 +129,6 @@ async def main(message: cl.Message):
     await process_agent_message(message, callbacks=[langchain_cb])
 ```
 
-## 🛠️ Development
-
-### Extending Functionality
-
-```python
-class CustomCallback(LearningDocumentationCallback):
-    def custom_method(self, data):
-        # Custom logic
-        pass
-```
-
-### Debug Mode
-
-```python
-import logging
-logging.basicConfig(level=logging.DEBUG)
-```
-
 ## 🐛 Troubleshooting
 
 ### Common Issues
@@ -174,11 +148,6 @@ logging.basicConfig(level=logging.DEBUG)
    - **Solution**: Ensure write permissions for the application user
    - **Command**: `chmod 755 ../process_docs/`
 
-4. **Memory Issues**
-   - **Symptom**: Application becomes slow during long sessions
-   - **Cause**: Large session data accumulation
-   - **Solution**: Automatic cleanup of completed sessions
-
 ### Error Recovery
 
 The process analyzer includes robust error recovery mechanisms:
@@ -187,12 +156,6 @@ The process analyzer includes robust error recovery mechanisms:
 - **Emergency Save**: Automatically saves session progress during unexpected termination
 - **Error Classification**: Distinguishes between different types of errors for targeted recovery
 - **Graceful Degradation**: Continues operation even if some components fail
-
-### Log Analysis
-
-For detailed troubleshooting, check these log files:
-- `../log/gns3_copilot.log` - Main application and session management
-- Process analyzer specific logs are included in the main application log
 
 ## ⚙️ Configuration
 
@@ -207,14 +170,6 @@ learning_cb = LearningDocumentationCallback(output_dir="/custom/path")
 # Configure session retention
 learning_cb.max_sessions = 100  # Maximum sessions to keep
 learning_cb.cleanup_interval = 3600  # Cleanup interval in seconds
-```
-
-### Report Customization
-```python
-# Custom report templates
-learning_cb.report_template = "custom_template.md"
-learning_cb.include_timing = True  # Include timing information
-learning_cb.include_errors = True  # Include error analysis
 ```
 
 ## 📈 Performance Considerations

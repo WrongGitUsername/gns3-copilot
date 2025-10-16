@@ -22,49 +22,28 @@ Thank you for your interest in contributing to GNS3 Copilot! This document provi
 
 ### Code Contributions
 
-#### Prerequisites
-
-- Python 3.8 or higher
-- Git
-- Familiarity with network automation concepts
-- Understanding of GNS3, LangChain, and Chainlit (helpful but not required)
-
 #### Development Setup
 
-1. **Fork the Repository**:
-   ```bash
-   # Fork on GitHub, then clone your fork
-   git clone https://github.com/your-username/gns3-copilot.git
-   cd gns3-copilot
-   ```
+```bash
+# 1. Fork and clone repository
+git clone https://github.com/your-username/gns3-copilot.git
+cd gns3-copilot
 
-2. **Create a Virtual Environment**:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+# 2. Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
-3. **Install Dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   # Install development dependencies
-   pip install pylint pytest black mypy
-   ```
+# 3. Install dependencies
+pip install -r requirements.txt
+pip install pylint pytest black mypy  # Development dependencies
 
-4. **Create a Branch**:
-   ```bash
-   git checkout -b feature/your-feature-name
-   # or
-   git checkout -b fix/your-bug-fix
-   ```
+# 4. Create branch
+git checkout -b feature/your-feature-name
+```
 
 #### Code Style Guidelines
 
-We use the following tools for code quality:
-
-- **Black**: Code formatting
-- **Pylint**: Code linting
-- **MyPy**: Type checking
+Use the following tools for code quality:
 
 ```bash
 # Format code
@@ -77,17 +56,6 @@ pylint **/*.py
 mypy **/*.py
 ```
 
-#### Code Structure
-
-```
-gns3-copilot/
-├── tools/                  # Core tool implementations
-├── process_analyzer/       # Process analysis module
-├── prompts/               # AI prompt templates
-├── docs/                  # Documentation
-└── tests/                 # Test files (to be added)
-```
-
 #### Adding New Tools
 
 1. **Create Tool File**: Add new tool in `tools/` directory
@@ -96,7 +64,7 @@ gns3-copilot/
 4. **Update Documentation**: Add tool to API reference
 5. **Add Tests**: Create comprehensive tests
 
-Example tool structure:
+Tool structure example:
 
 ```python
 """
@@ -110,9 +78,7 @@ logger = setup_tool_logger("tool_name")
 
 class NewTool(BaseTool):
     name: str = "tool_name"
-    description: str = """
-    Detailed tool description for the AI agent.
-    """
+    description: str = "Detailed tool description for the AI agent."
     
     def _run(self, tool_input, run_manager=None) -> dict:
         """Implement tool logic here"""
@@ -124,16 +90,6 @@ class NewTool(BaseTool):
         except Exception as e:
             logger.error(f"Tool failed: {str(e)}")
             return {"error": str(e)}
-```
-
-#### Testing
-
-```bash
-# Run tests (when implemented)
-pytest tests/
-
-# Run with coverage
-pytest tests/ --cov=tools --cov=process_analyzer
 ```
 
 #### Submitting Changes
