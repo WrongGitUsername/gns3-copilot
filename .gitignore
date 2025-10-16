@@ -216,3 +216,4 @@ log/*
 *.json
 .chainlit/.langchain.db
 process_docs/*
+.files/*

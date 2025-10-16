@@ -5,6 +5,7 @@
 ![Chainlit](https://img.shields.io/badge/Chainlit-1.0.0+-purple.svg)
 ![GNS3](https://img.shields.io/badge/GNS3-2.2+-orange.svg)
 ![Nornir](https://img.shields.io/badge/Nornir-3.3.0+-red.svg)
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
 
 GNS3 Copilot is an intelligent network automation assistant that combines the power of AI with GNS3 network simulation platform. It uses DeepSeek LLM for natural language processing, LangChain for agent orchestration, and Chainlit for the web interface. It allows you to manage and configure network devices using natural language commands through a conversational interface with real-time reasoning display.
 
@@ -150,8 +151,8 @@ GNS3 Copilot
 - **For device-specific compatibility**: Single-device tools provide broader device type support
 
 ### Supported Device Types
-- Cisco IOSv (primary support, telnet console)
-- Other network devices via Netmiko (extensible)
+- **Cisco IOSv** (primary support, telnet console) - Currently tested and supported
+- **Note**: Only Cisco IOSv devices have been tested and verified to work
 - **Concurrent Multi-Device Operations**: Execute commands on multiple devices simultaneously using Nornir
 
 ## 🌐 Web Interface Features
@@ -175,8 +176,14 @@ gns3-copilot/
 ├── .env                    # Environment variables (optional)
 ├── README.md               # This file
 ├── chainlit.md             # Chainlit interface documentation
-├── chat_logs/              # Chat conversation logs
 ├── log/                    # Application logs
+├── process_docs/           # Process analyzer documentation output
+├── process_analyzer/       # Process analysis module
+│   ├── __init__.py
+│   ├── process_callback.py
+│   ├── langchain_callback.py
+│   ├── documentation_generator.py
+│   └── README.md
 ├── prompts/                # AI prompt templates
 │   ├── __init__.py
 │   └── react_prompt.py     # ReAct agent prompt template
@@ -222,12 +229,31 @@ Check the `log/` directory for detailed operation logs:
 
 ## 🤝 Contributing
 
-We welcome contributions! Please feel free to submit pull requests or open issues for:
+We welcome contributions! Please see our [Contributing Guide](docs/CONTRIBUTING.md) for detailed guidelines on:
 
 - New device support
 - Additional tools and features
 - Bug fixes and improvements
 - Documentation enhancements
+
+### Quick Start for Contributors
+
+```bash
+# Fork and clone the repository
+git clone https://github.com/your-username/gns3-copilot.git
+cd gns3-copilot
+
+# Set up development environment
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+pip install pylint pytest black mypy  # Development dependencies
+
+# Create a feature branch
+git checkout -b feature/your-feature-name
+
+# Make your changes and submit a pull request
+```
 
 ## 📄 License
 
@@ -249,6 +275,77 @@ For questions and support:
 - Check the troubleshooting section above
 - Review the code documentation
 
+## 📚 Additional Documentation
+
+- **[API Reference](docs/API_REFERENCE.md)** - Detailed API documentation for all tools and modules
+- **[Process Analyzer](process_analyzer/README.md)** - Comprehensive guide to process analysis and documentation
+- **[Chainlit Interface](chainlit.md)** - User interface documentation and usage guide
+
+## 🔗 Cross-References
+
+### Documentation Structure
+```
+Documentation
+├── README.md                    # Main project documentation (this file)
+├── docs/
+│   └── API_REFERENCE.md         # Complete API reference
+├── process_analyzer/
+│   └── README.md               # Process analyzer module documentation
+└── chainlit.md                 # Chainlit interface guide
+```
+
+### Quick Navigation
+- **Getting Started**: See [Quick Start](#-quick-start) section
+- **Tool Documentation**: See [API Reference](docs/API_REFERENCE.md#core-tools)
+- **Process Analysis**: See [Process Analyzer Integration](#-process-analyzer-integration)
+- **Troubleshooting**: See [Troubleshooting](#-troubleshooting) section
+- **Interface Guide**: See [Chainlit Documentation](chainlit.md)
+
 ---
 
-**Note**: This is an alpha version. Features and APIs may change as the project evolves.
+## 📊 Process Analyzer Integration
+
+GNS3 Copilot includes a powerful process analyzer module that captures and documents complete execution workflows:
+
+### Features
+- **Complete Process Capture**: Records full ReAct execution cycles (Thought/Action/Action Input/Observation/Final Answer)
+- **Error Recovery**: Automatic interruption handling and emergency save functionality
+- **Documentation Generation**: Creates technical analysis and summary reports automatically
+- **Session Management**: Tracks all user interactions with detailed session history
+
+### Generated Reports
+- **Technical Analysis**: Detailed execution process with tool usage statistics
+- **Summary Reports**: Quick overview of key points and results
+- **Session History**: Complete record of all interactions stored in `process_docs/` directory
+
+### Accessing Reports
+- Reports are automatically generated after each command execution
+- Technical reports are shared directly in the chat interface
+- All session data is saved to the `process_docs/` directory for reference
+- Reports include timestamps for easy session tracking
+
+For detailed information about the process analyzer, see [`process_analyzer/README.md`](process_analyzer/README.md).
+
+## ⚙️ Configuration Options
+
+### Environment Variables
+```env
+DEEPSEEK_API_KEY=your_api_key_here  # Optional: For enhanced AI capabilities
+```
+
+### GNS3 Server Configuration
+- Default server: `http://localhost:3080`
+- Ensure GNS3 server is running before starting the application
+- Verify firewall settings allow connections to port 3080
+
+### Logging Configuration
+- Log files are automatically created in the `log/` directory
+- Each tool has its own log file for detailed debugging
+- Log rotation is handled automatically to prevent disk space issues
+
+### Performance Tuning
+- **Concurrent Workers**: Up to 10 devices can be configured simultaneously
+- **Timeout Settings**: Configurable per tool for different network conditions
+- **Memory Management**: Automatic cleanup of completed sessions
+
+**Version**: 1.0.0 - Stable release with full feature support

@@ -1,8 +1,8 @@
 """
 Documentation Generator for Process Analysis Sessions
 
-This module provides functionality to generate various formats of documentation
-from captured learning session data.
+This module provides functionality to generate various formats of
+documentation from captured learning session data.
 """
 
 import json
@@ -11,7 +11,8 @@ from typing import Dict, Any, List
 
 class DocumentationGenerator:
     """
-    Generator for creating various documentation formats from learning session data.
+    Generator for creating various documentation formats from learning 
+    session data.
 
     This class can generate:
     - Markdown reports for easy reading
@@ -19,81 +20,111 @@ class DocumentationGenerator:
     - Summary reports for quick overview
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the documentation generator."""
-        pass
 
     def _format_content_for_display(self, content: Any) -> str:
         """
-        Format content for display in Markdown, properly handling newlines and special characters.
+        Format content for display in Markdown, handling newlines and
+        special characters properly.
 
         Args:
-            content (Any): Raw content to format
+            content: Raw content to format
 
         Returns:
-            str: Formatted content ready for Markdown display
+            Formatted content ready for Markdown display
         """
         if isinstance(content, (dict, list)):
             return json.dumps(content, indent=2, ensure_ascii=False)
-        elif isinstance(content, str):
-            # Handle escaped newlines and other special characters
-            # Replace literal \n with actual newlines for display
-            formatted = content.replace('\\n', '\n')
 
-            # Handle other common escape sequences
+        if isinstance(content, str):
+            # Handle escaped newlines and other special characters
+            formatted = content.replace('\\n', '\n')
             formatted = formatted.replace('\\t', '\t')
             formatted = formatted.replace('\\"', '"')
             formatted = formatted.replace("\\'", "'")
-
             return formatted
-        else:
-            return str(content)
 
-    def _truncate_long_content(self, content: str, max_lines: int = 1000) -> str:
+        return str(content)
+
+    def _truncate_long_content(
+        self,
+        content: str,
+        max_lines: int = 1000
+    ) -> str:
         """
-        Truncate long content while preserving readability using line count control.
+        Truncate long content while preserving readability using line 
+        count control.
 
         Args:
-            content (str): Content to truncate
-            max_lines (int): Maximum number of lines before truncation
+            content: Content to truncate
+            max_lines: Maximum number of lines before truncation
 
         Returns:
-            str: Truncated content with ellipsis if needed
+            Truncated content with ellipsis if needed
         """
         lines = content.split('\n')
 
         if len(lines) <= max_lines:
             return content
 
-        # Keep the most important lines (first 80% and last 20% if very long)
+        # Keep first 80% and last 20% if very long
         if len(lines) > max_lines * 1.5:
-            keep_lines = lines[:int(max_lines * 0.8)] + ['...'] + lines[-int(max_lines * 0.2):]
+            keep_lines = (
+                lines[:int(max_lines * 0.8)]
+                + ['...']
+                + lines[-int(max_lines * 0.2):]
+            )
             truncated_content = '\n'.join(keep_lines)
         else:
             truncated_content = '\n'.join(lines[:max_lines])
 
-        return truncated_content + '\n... (content truncated)'
+        return f"{truncated_content}\n... (content truncated)"
 
-    def generate_technical_analysis(self, session_data: Dict[str, Any], output_path: str) -> None:
+    def _format_json_block(self, data: Any) -> str:
+        """Format JSON data as a Markdown code block."""
+        json_str = json.dumps(data, indent=2, ensure_ascii=False)
+        return f"```{json_str}\n```"
+
+    def _format_step_header(self, step_num: int, step_type: str) -> str:
+        """Format step header for Markdown."""
+        type_mapping = {
+            'thought': 'Thought Process',
+            'action': 'Execute Action', 
+            'observation': 'Observation Result'
+        }
+        step_title = type_mapping.get(step_type, 'Unknown Step')
+        return f"### Step {step_num}: {step_title}\n\n"
+
+    def generate_technical_analysis(
+        self,
+        session_data: Dict[str, Any],
+        output_path: str
+    ) -> None:
         """
-        Generate a technical analysis document focusing on tool usage and inputs/outputs.
+        Generate technical analysis document focusing on tool usage and 
+        inputs/outputs.
 
         Args:
-            session_data (Dict[str, Any]): Complete session data
-            output_path (str): Path to save the technical analysis file
+            session_data: Complete session data
+            output_path: Path to save the technical analysis file
         """
         content = self._build_technical_analysis_content(session_data)
 
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(content)
 
-    def generate_summary_report(self, session_data: Dict[str, Any], output_path: str) -> None:
+    def generate_summary_report(
+        self,
+        session_data: Dict[str, Any],
+        output_path: str
+    ) -> None:
         """
-        Generate a summary report with key highlights.
+        Generate summary report with key highlights.
 
         Args:
-            session_data (Dict[str, Any]): Complete session data
-            output_path (str): Path to save the summary file
+            session_data: Complete session data
+            output_path: Path to save the summary file
         """
         content = self._build_summary_content(session_data)
 
@@ -101,8 +132,31 @@ class DocumentationGenerator:
             f.write(content)
 
     def _build_markdown_content(self, session_data: Dict[str, Any]) -> str:
-        """Build comprehensive Markdown content."""
-        content = f"""# GNS3 Copilot Learning Report
+        """Build comprehensive Markdown content using efficient string ops."""
+        parts = [
+            self._build_execution_overview(session_data),
+            "## Detailed Execution Process\n\n"
+        ]
+
+        for step in session_data['reaction_steps']:
+            parts.append(self._format_step_block(step))
+
+        parts.extend([
+            self._build_final_answer_section(session_data),
+            self._build_tool_statistics(session_data)
+        ])
+
+        return ''.join(parts)
+
+    def _build_execution_overview(self, session_data: Dict[str, Any]) -> str:
+        """Build execution overview section."""
+        tools_used = (
+            ', '.join(session_data['metadata']['tools_used'])
+            if session_data['metadata']['tools_used']
+            else 'None'
+        )
+
+        return f"""# GNS3 Copilot Learning Report
 
 ## Execution Overview
 - **Session ID**: {session_data['session_id']}
@@ -111,42 +165,57 @@ class DocumentationGenerator:
 - **End Time**: {session_data['end_time']}
 - **Execution Duration**: {session_data['metadata']['execution_duration']}
 - **Total Steps**: {session_data['metadata']['total_steps']}
-- **Tools Used**: {', '.join(session_data['metadata']['tools_used']) if session_data['metadata']['tools_used'] else 'None'}
-
-## Detailed Execution Process
+- **Tools Used**: {tools_used}
 
 """
 
-        for step in session_data['reaction_steps']:
-            step_num = step['step_number']
-            step_type = step['step_type']
-            timestamp = step['timestamp']
+    def _format_step_block(self, step: Dict[str, Any]) -> str:
+        """Format individual step as Markdown block."""
+        step_num = step['step_number']
+        step_type = step['step_type']
+        timestamp = step['timestamp']
 
-            if step_type == 'thought':
-                content += f"### Step {step_num}: Thought Process\n\n"
-                content += f"**Time**: {timestamp}\n\n"
-                content += f"{step['content']}\n\n"
+        if step_type == 'thought':
+            return (
+                self._format_step_header(step_num, step_type) +
+                f"**Time**: {timestamp}\n\n" +
+                f"{step['content']}\n\n"
+            )
 
-            elif step_type == 'action':
-                content += f"### Step {step_num}: Execute Action\n\n"
-                content += f"**Time**: {timestamp}\n\n"
-                content += f"**Tool Used**: `{step['tool_name']}`\n\n"
-                content += f"**Input Parameters**:\n```json\n{json.dumps(step['action_input'], indent=2, ensure_ascii=False)}\n```\n\n"
+        if step_type == 'action':
+            return (
+                self._format_step_header(step_num, step_type) +
+                f"**Time**: {timestamp}\n\n" +
+                f"**Tool Used**: `{step['tool_name']}`\n\n" +
+                "**Input Parameters**:\n" +
+                self._format_json_block(step['action_input']) +
+                "\n"
+            )
 
-            elif step_type == 'observation':
-                content += f"### Step {step_num}: Observation Result\n\n"
-                content += f"**Time**: {timestamp}\n\n"
-                if isinstance(step['content'], (dict, list)):
-                    content += f"```json\n{json.dumps(step['content'], indent=2, ensure_ascii=False)}\n```\n\n"
-                else:
-                    # Format content with proper newline handling
-                    formatted_content = self._format_content_for_display(step['content'])
-                    # Truncate if too long
-                    if len(formatted_content) > 2000:
-                        formatted_content = self._truncate_long_content(formatted_content, 2000)
-                    content += f"```\n{formatted_content}\n```\n\n"
+        if step_type == 'observation':
+            content = self._format_observation_content(step['content'])
+            return (
+                self._format_step_header(step_num, step_type) +
+                f"**Time**: {timestamp}\n\n" +
+                f"{content}"
+            )
 
-        content += f"""## Final Answer
+        return ""
+
+    def _format_observation_content(self, content: Any) -> str:
+        """Format observation content for display."""
+        if isinstance(content, (dict, list)):
+            return f"{self._format_json_block(content)}\n\n"
+
+        formatted = self._format_content_for_display(content)
+        if len(formatted) > 2000:
+            formatted = self._truncate_long_content(formatted, 2000)
+
+        return f"```\n{formatted}\n```\n\n"
+
+    def _build_final_answer_section(self, session_data: Dict[str, Any]) -> str:
+        """Build final answer section."""
+        return f"""## Final Answer
 
 {session_data['final_answer']}
 
@@ -159,28 +228,50 @@ class DocumentationGenerator:
 - **Tool Usage Statistics**:
 """
 
+    def _build_tool_statistics(self, session_data: Dict[str, Any]) -> str:
+        """Build tool usage statistics."""
+        stats = []
         for tool in session_data['metadata']['tools_used']:
-            tool_count = sum(1 for step in session_data['reaction_steps']
-                           if step['step_type'] == 'action' and step['tool_name'] == tool)
-            content += f"  - `{tool}`: {tool_count} uses\n"
+            tool_count = sum(
+                1 for step in session_data['reaction_steps']
+                if (step['step_type'] == 'action'
+                    and step['tool_name'] == tool)
+            )
+            stats.append(f"  - `{tool}`: {tool_count} uses")
 
-        content += "\n---\n*This report is automatically generated by GNS3 Copilot learning system*"
+        footer = (
+            "\n---\n"
+            "*This report is automatically generated by "
+            "GNS3 Copilot learning system*"
+        )
 
-        return content
+        return '\n'.join(stats + ['', footer])
 
-    def _build_technical_analysis_content(self, session_data: Dict[str, Any]) -> str:
+    def _build_technical_analysis_content(
+        self,
+        session_data: Dict[str, Any]
+    ) -> str:
         """Build technical analysis content focusing on tool details."""
+        parts = [self._build_tech_overview(session_data)]
 
-        # Determine execution status and format it
+        config_tools, display_tools, gns3_tools = self._categorize_tools(
+            session_data['reaction_steps']
+        )
+
+        for step in session_data['reaction_steps']:
+            if step['step_type'] == 'react_step':
+                parts.append(self._format_react_step(step))
+            else:
+                parts.append(self._format_legacy_step(step))
+
+        parts.extend(self._build_tool_stats(config_tools, display_tools, gns3_tools))
+        parts.append(self._build_tech_final_answer(session_data))
+
+        return ''.join(parts)
+
+    def _build_tech_overview(self, session_data: Dict[str, Any]) -> str:
+        """Build technical analysis overview."""
         execution_status = session_data.get('execution_status', 'unknown')
-        status_emoji = {
-            'completed': '✅',
-            'interrupted': '⚠️',
-            'failed': '❌',
-            'running': '🔄',
-            'unknown': '❓'
-        }.get(execution_status, '❓')
-
         status_text = {
             'completed': 'Completed Successfully',
             'interrupted': 'Interrupted',
@@ -189,172 +280,256 @@ class DocumentationGenerator:
             'unknown': 'Unknown Status'
         }.get(execution_status, 'Unknown Status')
 
-        content = f"""# GNS3 Copilot Technical Analysis Report
+        overview = [
+            "# GNS3 Copilot Technical Analysis Report\n\n",
+            "## Execution Overview\n",
+            f"- **User Input**: {session_data['user_input']}\n",
+            f"- **Session ID**: {session_data['session_id']}\n",
+            f"- **Execution Status**: {status_text}\n",
+            f"- **Start Time**: {session_data['start_time']}\n"
+        ]
 
-## Execution Overview
-- **User Input**: {session_data['user_input']}
-- **Session ID**: {session_data['session_id']}
-- **Execution Status**: {status_emoji} {status_text}
-- **Start Time**: {session_data['start_time']}
-"""
-
-        # Add end time and interruption reason if available
         if session_data.get('end_time'):
-            content += f"- **End Time**: {session_data['end_time']}\n"
+            overview.append(f"- **End Time**: {session_data['end_time']}\n")
         else:
-            content += "- **End Time**: N/A\n"
+            overview.append("- **End Time**: N/A\n")
 
-        content += f"""- **Total Steps**: {session_data['metadata']['total_steps']}
-- **Execution Duration**: {session_data['metadata']['execution_duration']}
-"""
+        overview.extend([
+            f"- **Total Steps**: {session_data['metadata']['total_steps']}\n",
+            f"- **Execution Duration**: {session_data['metadata']['execution_duration']}\n"
+        ])
 
-        # Add interruption reason if session was interrupted or failed
-        if session_data.get('interruption_reason'):
-            content += f"- **Interruption Reason**: {session_data['interruption_reason']}\n"
+        if interruption := session_data.get('interruption_reason'):
+            overview.append(
+                f"- **Interruption Reason**: {interruption}\n"
+            )
 
-        content += "\n## Detailed Execution Process Analysis\n\n"
+        overview.append("\n## Detailed Execution Process Analysis\n\n")
+        return ''.join(overview)
 
-        # Analyze tool usage
+    def _categorize_tools(self, steps: List[Dict[str, Any]]) -> tuple:
+        """Categorize tools used in steps."""
         config_tools = []
         display_tools = []
         gns3_tools = []
 
-        for step in session_data['reaction_steps']:
-            if step['step_type'] == 'react_step':
-                content += f"### Step {step['step_number']}: ReAct Execution Cycle\n\n"
+        for step in steps:
+            tool_name = step.get('tool_name', '')
+            tool_lower = tool_name.lower()
 
-                # Thought part
-                if step.get('thought'):
-                    content += f"**Thought Process**:\n{step['thought']}\n\n"
+            if 'config' in tool_lower:
+                config_tools.append(tool_name)
+            elif 'display' in tool_lower or 'command' in tool_lower:
+                display_tools.append(tool_name)
+            elif 'gns3' in tool_lower:
+                gns3_tools.append(tool_name)
 
-                # Action part
-                tool_name = step.get('tool_name')
-                if tool_name:
-                    content += f"**Tool Used**: `{tool_name}`\n\n"
+        return config_tools, display_tools, gns3_tools
 
-                    # Categorize tools
-                    if 'config' in tool_name.lower():
-                        config_tools.append(tool_name)
-                    elif 'display' in tool_name.lower() or 'command' in tool_name.lower():
-                        display_tools.append(tool_name)
-                    elif 'gns3' in tool_name.lower():
-                        gns3_tools.append(tool_name)
+    def _format_react_step(
+        self,
+        step: Dict[str, Any]
+    ) -> str:
+        """Format ReAct step with detailed analysis."""
+        parts = [
+            f"### Step {step['step_number']}: ReAct Execution Cycle\n\n"
+        ]
 
-                # Action Input part
-                action_input = step.get('action_input')
-                if action_input is not None:
-                    content += f"**Tool Input Parameters**:\n```json\n{json.dumps(action_input, indent=2, ensure_ascii=False)}\n```\n\n"
+        if thought := step.get('thought'):
+            parts.append(f"**Thought Process**:\n{thought}\n\n")
 
-                    # Add specific analysis based on tool type
-                    if tool_name and 'config' in tool_name.lower():
-                        content += "**Configuration Tool Analysis**:\n"
-                        if isinstance(action_input, list) and action_input:
-                            for item in action_input:
-                                if isinstance(item, dict) and 'device_name' in item:
-                                    device_name = item.get('device_name', 'Unknown')
-                                    commands = item.get('config_commands', item.get('commands', []))
-                                    content += f"- Device `{device_name}`: {len(commands)} configuration commands\n"
-                        content += "\n"
+        if tool_name := step.get('tool_name'):
+            parts.append(f"**Tool Used**: `{tool_name}`\n\n")
 
-                # Error handling part
-                if "parsing_error" in step:
-                    content += f"**ReAct Parsing Error**:\n```\n{step['parsing_error']['error_message']}\n```\n\n"
+            if tool_name and 'config' in tool_name.lower():
+                parts.append(self._format_config_analysis(step.get('action_input')))
 
-                if "tool_error" in step:
-                    content += f"**Tool Execution Error**:\n```\n{step['tool_error']['error_message']}\n```\n\n"
+        if action_input := step.get('action_input'):
+            parts.extend([
+                "**Tool Input Parameters**:\n",
+                self._format_json_block(action_input),
+                "\n"
+            ])
 
-                # Observation part
-                observation = step.get('observation')
-                if observation is not None:
-                    content += f"**Observation Result**:\n"
+        if parsing_error := step.get('parsing_error'):
+            parts.extend([
+                "**ReAct Parsing Error**:\n",
+                f"```\n{parsing_error['error_message']}\n```\n\n"
+            ])
 
-                    # Format observation based on type
-                    if isinstance(observation, list):
-                        content += "**Multi-Device Results**:\n"
-                        for i, result in enumerate(observation):
-                            if isinstance(result, dict) and 'device_name' in result:
-                                device_name = result['device_name']
-                                content += f"#### Device: {device_name}\n\n"
-                                for key, value in result.items():
-                                    if key != 'device_name':
-                                        if isinstance(value, str):
-                                            # Format and truncate very long output
-                                            formatted_value = self._format_content_for_display(value)
-                                            truncated_value = self._truncate_long_content(formatted_value)
-                                            content += f"**{key}**:\n```\n{truncated_value}\n```\n\n"
-                                        else:
-                                            formatted_value = self._format_content_for_display(value)
-                                            content += f"**{key}**:\n```\n{formatted_value}\n```\n\n"
-                            else:
-                                content += f"#### Result {i+1}:\n```json\n{json.dumps(result, indent=2, ensure_ascii=False)}\n```\n\n"
-                    else:
-                        if isinstance(observation, (dict, list)):
-                            content += f"```json\n{json.dumps(observation, indent=2, ensure_ascii=False)}\n```\n\n"
-                        else:
-                            # Handle long text output with proper formatting
-                            if isinstance(observation, str):
-                                formatted_observation = self._format_content_for_display(observation)
-                                content += f"```\n{formatted_observation}\n```\n\n"
-                            else:
-                                content += f"```\n{observation}\n```\n\n"
+        if tool_error := step.get('tool_error'):
+            parts.extend([
+                "**Tool Execution Error**:\n",
+                f"```\n{tool_error['error_message']}\n```\n\n"
+            ])
 
-            # Legacy support for old step types
-            elif step['step_type'] == 'thought':
-                content += f"### Step {step['step_number']}: Thought Process\n\n"
-                content += f"{step['content']}\n\n"
+        if observation := step.get('observation'):
+            parts.append(self._format_observation_result(observation))
 
-            elif step['step_type'] == 'action':
-                tool_name = step['tool_name']
-                content += f"### Step {step['step_number']}: Execute Action\n\n"
-                content += f"**Tool Used**: `{tool_name}`\n\n"
+        return ''.join(parts)
 
-                # Categorize tools
-                if 'config' in tool_name.lower():
-                    config_tools.append(tool_name)
-                elif 'display' in tool_name.lower() or 'command' in tool_name.lower():
-                    display_tools.append(tool_name)
-                elif 'gns3' in tool_name.lower():
-                    gns3_tools.append(tool_name)
+    def _format_config_analysis(self, action_input: Any) -> str:
+        """Format configuration tool analysis."""
+        if not isinstance(action_input, list) or not action_input:
+            return "\n"
 
-                # Format and display input parameters
-                action_input = step['action_input']
-                content += f"**Tool Input Parameters**:\n```json\n{json.dumps(action_input, indent=2, ensure_ascii=False)}\n```\n\n"
+        analysis = ["**Configuration Tool Analysis**:\n"]
+        for item in action_input:
+            if isinstance(item, dict) and 'device_name' in item:
+                device_name = item.get('device_name', 'Unknown')
+                commands = item.get('config_commands', item.get('commands', []))
+                analysis.append(
+                    f"- Device `{device_name}`: {len(commands)} "
+                    "configuration commands\n"
+                )
 
-            elif step['step_type'] == 'observation':
-                content += f"### Step {step['step_number']}: Observation Result\n\n"
+        analysis.append("\n")
+        return ''.join(analysis)
 
-                # Format observation based on type
-                observation = step['content']
-                if isinstance(observation, (dict, list)):
-                    content += f"```json\n{json.dumps(observation, indent=2, ensure_ascii=False)}\n```\n\n"
-                else:
-                    content += f"```\n{observation}\n```\n\n"
+    def _format_observation_result(self, observation: Any) -> str:
+        """Format observation result for technical analysis."""
+        result_parts = ["**Observation Result**:\n"]
 
-        # Tool usage statistics
-        content += "## Tool Usage Statistics\n\n"
-        content += f"- **Configuration Tool Usage Count**: {len(config_tools)} times\n"
+        if isinstance(observation, list):
+            result_parts.extend(self._format_list_observation(observation))
+        else:
+            result_parts.extend(self._format_single_observation(observation))
+
+        return ''.join(result_parts)
+
+    def _format_list_observation(self, observation: List[Any]) -> List[str]:
+        """Format list-type observation results."""
+        result_parts = ["**Multi-Device Results**:\n"]
+
+        for i, result in enumerate(observation):
+            if isinstance(result, dict) and 'device_name' in result:
+                result_parts.extend(self._format_device_result(result))
+            else:
+                result_parts.extend([
+                    f"#### Result {i+1}:\n",
+                    self._format_json_block(result),
+                    "\n"
+                ])
+
+        return result_parts
+
+    def _format_device_result(self, result: Dict[str, Any]) -> List[str]:
+        """Format device-specific observation result."""
+        device_name = result['device_name']
+        result_parts = [f"#### Device: {device_name}\n\n"]
+
+        for key, value in result.items():
+            if key != 'device_name':
+                result_parts.extend(self._format_device_property(key, value))
+
+        return result_parts
+
+    def _format_device_property(self, key: str, value: Any) -> List[str]:
+        """Format a single device property."""
+        formatted = self._format_content_for_display(value)
+
+        if isinstance(value, str):
+            truncated = self._truncate_long_content(formatted)
+            return [
+                f"**{key}**:\n",
+                f"```\n{truncated}\n```\n\n"
+            ]
+
+        return [
+            f"**{key}**:\n",
+            f"```\n{formatted}\n```\n\n"
+        ]
+
+    def _format_single_observation(self, observation: Any) -> List[str]:
+        """Format single observation result."""
+        if isinstance(observation, (dict, list)):
+            return [f"{self._format_json_block(observation)}\n\n"]
+
+        if isinstance(observation, str):
+            formatted = self._format_content_for_display(observation)
+            return [f"```\n{formatted}\n```\n\n"]
+
+        return [f"```\n{observation}\n```\n\n"]
+
+    def _format_legacy_step(self, step: Dict[str, Any]) -> str:
+        """Format legacy step types."""
+        step_type = step['step_type']
+
+        if step_type == 'thought':
+            return (
+                self._format_step_header(step['step_number'], step_type) +
+                f"{step['content']}\n\n"
+            )
+
+        if step_type == 'action':
+            tool_name = step['tool_name']
+            return (
+                self._format_step_header(step['step_number'], step_type) +
+                f"**Tool Used**: `{tool_name}`\n\n" +
+                f"{self._format_json_block(step['action_input'])}\n\n"
+            )
+
+        if step_type == 'observation':
+            observation = step['content']
+            header = self._format_step_header(step['step_number'], step_type)
+
+            if isinstance(observation, (dict, list)):
+                return f"{header}{self._format_json_block(observation)}\n\n"
+            return f"{header}```\n{observation}\n```\n\n"
+
+        return ""
+
+    def _build_tool_stats(
+        self,
+        config_tools: List[str],
+        display_tools: List[str],
+        gns3_tools: List[str]
+    ) -> List[str]:
+        """Build tool usage statistics sections."""
+        stats = ["## Tool Usage Statistics\n\n"]
+
+        # Configuration tools
+        stats.append(
+            f"- **Configuration Tool Usage Count**: {len(config_tools)} times\n"
+        )
         if config_tools:
-            unique_config_tools = list(set(config_tools))
-            content += f"  - Configuration tools used: {', '.join(unique_config_tools)}\n"
+            unique = ', '.join(set(config_tools))
+            stats.append(f"  - Configuration tools used: {unique}\n")
 
-        content += f"- **Display Tool Usage Count**: {len(display_tools)} times\n"
+        # Display tools
+        stats.append(
+            f"- **Display Tool Usage Count**: {len(display_tools)} times\n"
+        )
         if display_tools:
-            unique_display_tools = list(set(display_tools))
-            content += f"  - Display tools used: {', '.join(unique_display_tools)}\n"
+            unique = ', '.join(set(display_tools))
+            stats.append(f"  - Display tools used: {unique}\n")
 
-        content += f"- **GNS3 Tool Usage Count**: {len(gns3_tools)} times\n"
+        # GNS3 tools
+        stats.append(
+            f"- **GNS3 Tool Usage Count**: {len(gns3_tools)} times\n"
+        )
         if gns3_tools:
-            unique_gns3_tools = list(set(gns3_tools))
-            content += f"  - GNS3 tools used: {', '.join(unique_gns3_tools)}\n"
+            unique = ', '.join(set(gns3_tools))
+            stats.append(f"  - GNS3 tools used: {unique}\n")
 
-        content += f"\n## Final Answer\n\n{session_data['final_answer']}\n\n"
-        content += "---\n*This technical analysis report is automatically generated by GNS3 Copilot learning system*"
+        stats.append("\n")
+        return stats
 
-        return content
+    def _build_tech_final_answer(self, session_data: Dict[str, Any]) -> str:
+        """Build final answer for technical report."""
+        return (
+            f"## Final Answer\n\n{session_data['final_answer']}\n\n"
+            "---\n"
+            "*This technical analysis report is automatically generated by "
+            "GNS3 Copilot learning system*"
+        )
 
     def _build_summary_content(self, session_data: Dict[str, Any]) -> str:
         """Build summary content with key highlights."""
-        content = f"""# GNS3 Copilot Execution Summary
+        counts = self._calculate_step_counts(session_data['reaction_steps'])
+
+        parts = [
+            f"""# GNS3 Copilot Execution Summary
 
 ## Basic Information
 - **Session ID**: {session_data['session_id']}
@@ -363,46 +538,98 @@ class DocumentationGenerator:
 - **Total Steps**: {session_data['metadata']['total_steps']}
 
 ## Execution Flow Overview
-"""
+""",
+            f"- **Thought Steps**: {counts['thought']} times\n",
+            f"- **Action Steps**: {counts['action']} times\n",
+            f"- **Observation Steps**: {counts['observation']} times\n\n"
+        ]
 
-        # Create a simplified flow overview
-        thought_count = sum(1 for step in session_data['reaction_steps'] if step['step_type'] == 'thought')
-        action_count = sum(1 for step in session_data['reaction_steps'] if step['step_type'] == 'action')
-        observation_count = sum(1 for step in session_data['reaction_steps'] if step['step_type'] == 'observation')
+        if tools_used := session_data['metadata']['tools_used']:
+            parts.append(self._build_tools_summary(tools_used, session_data))
 
-        content += f"- **Thought Steps**: {thought_count} times\n"
-        content += f"- **Action Steps**: {action_count} times\n"
-        content += f"- **Observation Steps**: {observation_count} times\n\n"
+        parts.append(self._build_key_steps_summary(session_data['reaction_steps']))
+        parts.append(self._build_summary_final(session_data))
 
-        # List tools used
-        if session_data['metadata']['tools_used']:
-            content += "## Tools Used\n\n"
-            for tool in session_data['metadata']['tools_used']:
-                tool_count = sum(1 for step in session_data['reaction_steps']
-                               if step['step_type'] == 'action' and step['tool_name'] == tool)
-                content += f"- `{tool}` ({tool_count} times)\n"
-            content += "\n"
+        return ''.join(parts)
 
-        # Key steps summary
-        content += "## Key Steps Summary\n\n"
-        for step in session_data['reaction_steps']:
+    def _calculate_step_counts(self, steps: List[Dict[str, Any]]) -> Dict[str, int]:
+        """Calculate counts for different step types."""
+        return {
+            'thought': sum(1 for step in steps if step['step_type'] == 'thought'),
+            'action': sum(1 for step in steps if step['step_type'] == 'action'),
+            'observation': sum(
+                1 for step in steps if step['step_type'] == 'observation'
+            )
+        }
+
+    def _build_tools_summary(
+        self,
+        tools_used: List[str],
+        session_data: Dict[str, Any]
+    ) -> str:
+        """Build tools usage summary."""
+        tool_stats = []
+        steps = session_data['reaction_steps']
+
+        for tool in tools_used:
+            count = sum(
+                1 for step in steps
+                if (step['step_type'] == 'action' and step['tool_name'] == tool)
+            )
+            tool_stats.append(f"- `{tool}` ({count} times)")
+
+        return "## Tools Used\n\n" + '\n'.join(tool_stats) + "\n\n"
+
+    def _build_key_steps_summary(self, steps: List[Dict[str, Any]]) -> str:
+        """Build key steps summary."""
+        summary_parts = ["## Key Steps Summary\n\n"]
+
+        for step in steps:
             if step['step_type'] == 'action':
                 tool_name = step['tool_name']
-                content += f"1. **Tool Used**: `{tool_name}`\n"
-                if isinstance(step['action_input'], list) and step['action_input']:
-                    # Show key input details
-                    first_item = step['action_input'][0]
-                    if isinstance(first_item, dict):
-                        if 'device_name' in first_item:
-                            devices = [item.get('device_name', 'Unknown') for item in step['action_input'] if isinstance(item, dict)]
-                            content += f"   - Target Devices: {', '.join(devices)}\n"
-                        if 'commands' in first_item or 'config_commands' in first_item:
-                            cmd_key = 'commands' if 'commands' in first_item else 'config_commands'
-                            cmd_count = sum(len(item.get(cmd_key, [])) for item in step['action_input'] if isinstance(item, dict))
-                            content += f"   - Command Count: {cmd_count}\n"
-                content += "\n"
+                summary_parts.append(f"1. **Tool Used**: `{tool_name}`\n")
 
-        content += f"""## Final Result
+                if isinstance(step['action_input'], list) and step['action_input']:
+                    summary_parts.extend(
+                        self._format_action_details(step['action_input'])
+                    )
+                summary_parts.append("\n")
+
+        return ''.join(summary_parts)
+
+    def _format_action_details(self, action_input: List[Any]) -> List[str]:
+        """Format action input details for summary."""
+        details = []
+        first_item = action_input[0] if action_input else {}
+
+        if isinstance(first_item, dict):
+            # Device names
+            if 'device_name' in first_item:
+                devices = [
+                    item.get('device_name', 'Unknown')
+                    for item in action_input
+                    if isinstance(item, dict)
+                ]
+                details.append(f"   - Target Devices: {', '.join(devices)}\n")
+
+            # Command count
+            if 'commands' in first_item or 'config_commands' in first_item:
+                cmd_key = (
+                    'commands' if 'commands' in first_item 
+                    else 'config_commands'
+                )
+                cmd_count = sum(
+                    len(item.get(cmd_key, []))
+                    for item in action_input
+                    if isinstance(item, dict)
+                )
+                details.append(f"   - Command Count: {cmd_count}\n")
+
+        return details
+
+    def _build_summary_final(self, session_data: Dict[str, Any]) -> str:
+        """Build final section for summary."""
+        return f"""## Final Result
 
 {session_data['final_answer']}
 
@@ -411,32 +638,49 @@ class DocumentationGenerator:
 *This summary is automatically generated by GNS3 Copilot*
 """
 
-        return content
-
-    def generate_index_file(self, sessions: List[Dict[str, Any]], output_path: str) -> None:
+    def generate_index_file(
+        self,
+        sessions: List[Dict[str, Any]],
+        output_path: str
+    ) -> None:
         """
-        Generate an index file listing all available sessions.
+        Generate index file listing all available sessions.
 
         Args:
-            sessions (List[Dict[str, Any]]): List of session data
-            output_path (str): Path to save the index file
+            sessions: List of session data
+            output_path: Path to save the index file
         """
-        content = "# GNS3 Copilot Learning Session Index\n\n"
-        content += "This directory contains all learning session records.\n\n"
-        content += "## Session List\n\n"
-        content += "| Session ID | User Input | Start Time | Steps | Tools | File |\n"
-        content += "|------------|------------|------------|-------|-------|------|\n"
+        parts = [
+            "# GNS3 Copilot Learning Session Index\n\n",
+            "This directory contains all learning session records.\n\n",
+            "## Session List\n\n",
+            "| Session ID | User Input | Start Time | Steps | Tools | File |\n",
+            "|------------|------------|------------|-------|-------|------|\n"
+        ]
 
         for session in sessions:
             session_id = session['session_id']
-            user_input = session['user_input'][:50] + "..." if len(session['user_input']) > 50 else session['user_input']
-            start_time = session['start_time'].split('T')[1][:8]  # Extract time part
+            user_input = (
+                session['user_input'][:50] + "..."
+                if len(session['user_input']) > 50
+                else session['user_input']
+            )
+            start_time = session['start_time'].split('T')[1][:8]
             step_count = session['metadata']['total_steps']
             tools_count = len(session['metadata']['tools_used'])
 
-            content += f"| {session_id} | {user_input} | {start_time} | {step_count} | {tools_count} | [View Details]({session_id}.md) |\n"
+            parts.append(
+                f"| {session_id} | {user_input} | {start_time} | "
+                f"{step_count} | {tools_count} | "
+                f"[View Details]({session_id}.md) |\n"
+            )
 
-        content += "\n---\n*Index file automatically generated by GNS3 Copilot*"
+        parts.extend([
+            "\n---\n",
+            "*Index file automatically generated by GNS3 Copilot*"
+        ])
+
+        content = ''.join(parts)
 
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(content)

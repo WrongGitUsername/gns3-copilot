@@ -9,6 +9,7 @@ import json
 import datetime
 from pathlib import Path
 from typing import Dict, Any, List, Optional
+from .documentation_generator import DocumentationGenerator
 
 
 class LearningDocumentationCallback:
@@ -161,7 +162,9 @@ class LearningDocumentationCallback:
         end_time = datetime.datetime.fromisoformat(self.current_session["end_time"])
         duration = end_time - start_time
         self.current_session["metadata"]["execution_duration"] = str(duration)
-        self.current_session["metadata"]["total_steps"] = len(self.current_session["reaction_steps"])
+        self.current_session["metadata"]["total_steps"] = len(
+            self.current_session["reaction_steps"]
+            )
 
         return True
 
@@ -244,8 +247,6 @@ class LearningDocumentationCallback:
         session_id = session_data["session_id"]
         generated_files = []
 
-        # Import here to avoid circular imports
-        from .documentation_generator import DocumentationGenerator
         doc_gen = DocumentationGenerator()
 
         # Generate only technical analysis
@@ -255,7 +256,10 @@ class LearningDocumentationCallback:
 
         return generated_files
 
-    def emergency_save(self, interruption_reason: str = "Unknown interruption") -> Optional[List[str]]:
+    def emergency_save(
+        self,
+        interruption_reason: str = "Unknown interruption"
+        ) -> Optional[List[str]]:
         """
         Emergency save the current session when execution is interrupted.
 
@@ -278,7 +282,9 @@ class LearningDocumentationCallback:
         end_time = datetime.datetime.fromisoformat(self.current_session["end_time"])
         duration = end_time - start_time
         self.current_session["metadata"]["execution_duration"] = str(duration)
-        self.current_session["metadata"]["total_steps"] = len(self.current_session["reaction_steps"])
+        self.current_session["metadata"]["total_steps"] = len(
+            self.current_session["reaction_steps"]
+            )
 
         # Save the interrupted session
         session_data = self.current_session.copy()
@@ -312,7 +318,9 @@ class LearningDocumentationCallback:
         end_time = datetime.datetime.fromisoformat(self.current_session["end_time"])
         duration = end_time - start_time
         self.current_session["metadata"]["execution_duration"] = str(duration)
-        self.current_session["metadata"]["total_steps"] = len(self.current_session["reaction_steps"])
+        self.current_session["metadata"]["total_steps"] = len(
+            self.current_session["reaction_steps"]
+            )
 
         # Save the failed session
         session_data = self.current_session.copy()

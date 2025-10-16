@@ -36,6 +36,8 @@ class LearningLangChainCallback(BaseCallbackHandler):
         self.learning_callback = learning_callback
         self.session_started = False
         self.current_action = None  # Track current action for error handling
+        self.latest_result = {}  # Store latest execution results including generated files
+        self.files_generated = False  # Track if files have been generated for current session
 
     def on_chain_start(
         self,
@@ -49,6 +51,7 @@ class LearningLangChainCallback(BaseCallbackHandler):
             user_input = inputs["input"]
             self.learning_callback.start_new_session(user_input)
             self.session_started = True
+            self.files_generated = False  # Reset file generation flag for new session
 
     def on_agent_action(
         self,
@@ -114,6 +117,11 @@ class LearningLangChainCallback(BaseCallbackHandler):
         **kwargs: Any
     ) -> None:
         """Called when agent finishes."""
+        # Prevent duplicate file generation
+        if self.files_generated:
+            logger.debug("Files already generated for this session, skipping")
+            return
+
         # Record the final answer
         final_answer = finish.return_values.get("output", "")
         self.learning_callback.record_final_answer(final_answer)
@@ -122,7 +130,11 @@ class LearningLangChainCallback(BaseCallbackHandler):
         session_data = self.learning_callback.finalize_session()
         if session_data:
             generated_files = self.learning_callback.save_session_to_file(session_data)
-            print(f"Learning documentation saved to: {generated_files}")
+            logger.info("Learning documentation saved to: %s", generated_files)
+
+            # Store generated files for later access by main program
+            self.latest_result = {"generated_files": generated_files}
+            self.files_generated = True  # Mark files as generated
 
         # Reset for next session
         self.session_started = False
@@ -134,7 +146,6 @@ class LearningLangChainCallback(BaseCallbackHandler):
         **kwargs: Any
     ) -> None:
         """Called when LLM starts running."""
-        pass
 
     def on_llm_end(
         self,
@@ -142,7 +153,6 @@ class LearningLangChainCallback(BaseCallbackHandler):
         **kwargs: Any
     ) -> None:
         """Called when LLM finishes running."""
-        pass
 
     def on_llm_new_token(
         self,
@@ -150,7 +160,6 @@ class LearningLangChainCallback(BaseCallbackHandler):
         **kwargs: Any
     ) -> None:
         """Called on each new token from LLM."""
-        pass
 
     def on_chain_end(
         self,
@@ -158,7 +167,6 @@ class LearningLangChainCallback(BaseCallbackHandler):
         **kwargs: Any
     ) -> None:
         """Called when chain finishes running."""
-        pass
 
     def on_chain_error(
         self,
@@ -226,9 +234,10 @@ class LearningLangChainCallback(BaseCallbackHandler):
         """Handle ReAct parsing errors specifically."""
         error_msg = str(error)
 
+        _current_session = self.learning_callback.current_session
         # Record error information to the current step
-        if self.learning_callback.current_session and self.learning_callback.current_session["reaction_steps"]:
-            current_step = self.learning_callback.current_session["reaction_steps"][-1]
+        if _current_session and _current_session["reaction_steps"]:
+            current_step = _current_session["reaction_steps"][-1]
             current_step["parsing_error"] = {
                 "error_type": "ReActParsingError",
                 "error_message": error_msg,
@@ -240,8 +249,9 @@ class LearningLangChainCallback(BaseCallbackHandler):
 
     def _record_tool_error(self, error: Exception):
         """Record tool execution errors."""
-        if self.learning_callback.current_session and self.learning_callback.current_session["reaction_steps"]:
-            current_step = self.learning_callback.current_session["reaction_steps"][-1]
+        _current_session = self.learning_callback.current_session
+        if _current_session and _current_session["reaction_steps"]:
+            current_step = _current_session["reaction_steps"][-1]
             current_step["tool_error"] = {
                 "error_type": type(error).__name__,
                 "error_message": str(error),
@@ -285,9 +295,9 @@ class LearningLangChainCallback(BaseCallbackHandler):
         )
 
         if generated_files:
-            print(f"⚠️  Execution interrupted. Partial documentation saved to: {generated_files}")
+            logger.info("Execution interrupted. Partial documentation saved to:%s", generated_files)
         else:
-            print("⚠️  Execution interrupted. No active session to save.")
+            logger.info("Execution interrupted. No active session to save.")
 
         # Reset session state
         self.session_started = False
@@ -303,7 +313,7 @@ class LearningLangChainCallback(BaseCallbackHandler):
         )
 
         if generated_files:
-            print(f"❌ Session failed. Error documentation saved to: {generated_files}")
+            logger.info("Session failed. Error documentation saved to: %s", generated_files)
 
         # Reset session state
         self.session_started = False

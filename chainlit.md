@@ -57,8 +57,8 @@ Your network is protected with:
 
 ## 🔧 Supported Devices
 
-- **Primary Support**: Cisco IOSv (telnet console)
-- **Extensible**: Other network devices via Netmiko
+- **Primary Support**: Cisco IOSv (telnet console) - Currently tested and supported
+- **Note**: Only Cisco IOSv devices have been tested and verified to work
 - **Concurrent Operations**: Multi-device command execution using Nornir framework
 
 ## 📖 Need Help?
@@ -73,6 +73,27 @@ Your network is protected with:
 - **Session Control**: Use the stop button to cancel long-running operations
 - **Support**: Open issues on GitHub for assistance
 
+## 📊 Process Analyzer Integration
+
+The Chainlit interface seamlessly integrates with the Process Analyzer module to provide comprehensive session documentation:
+
+### Automatic Report Generation
+- **Real-time Capture**: Every command execution is automatically documented
+- **Technical Reports**: Detailed analysis reports are shared directly in the chat after each execution
+- **Session History**: Complete record of all interactions maintained in the `process_docs/` directory
+- **Error Documentation**: Automatic capture and analysis of any errors or interruptions
+
+### Report Features
+- **Step-by-Step Documentation**: Complete ReAct execution cycles with timing information
+- **Tool Usage Statistics**: Performance metrics and usage patterns
+- **Error Recovery**: Documentation of interruption handling and recovery actions
+- **Session Metadata**: Timestamps, user input, and execution duration
+
+### Accessing Reports
+- **In Chat**: Technical reports automatically appear as downloadable files after each command
+- **File System**: All reports are saved to `process_docs/` with timestamp-based naming
+- **Historical Analysis**: Complete session history available for review and learning
+
 ## 🎉 Ready to Automate?
 
 Start by typing a network command in the chat below! The AI assistant will guide you through the process and show you exactly what it's doing every step of the way.
@@ -85,7 +106,8 @@ Start by typing a network command in the chat below! The AI assistant will guide
 - **Network Automation**: Nornir framework for concurrent multi-device operations
 - **Device Connectivity**: Netmiko for network device communication
 - **Network Simulation**: GNS3 API integration for topology management
+- **Process Analysis**: Comprehensive session documentation and error handling
 
 ---
 
-*Powered by Chainlit, LangChain, DeepSeek, GNS3 API, and Nornir*
+*Powered by Chainlit, LangChain, DeepSeek, GNS3 API, Nornir, and Process Analyzer*

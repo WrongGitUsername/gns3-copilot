@@ -8,6 +8,7 @@ and manage GNS3 topology operations.
 """
 
 import asyncio
+import os
 import chainlit as cl
 from dotenv import load_dotenv
 from langchain.prompts import PromptTemplate
@@ -53,6 +54,38 @@ custom_prompt = PromptTemplate(
     template=REACT_PROMPT_TEMPLATE,
     input_variables=["input", "agent_scratchpad", "tools", "tool_names"]
 )
+
+
+async def _send_report_file(file_path: str):
+    """
+    Send technical report file to Chainlit chat window.
+    
+    Args:
+        file_path (str): Path to the report file to send
+    """
+    try:
+        with open(file_path, 'rb') as file:
+            file_content = file.read()
+
+        await cl.Message(
+            content=f"**Technical Analysis Report** - {os.path.basename(file_path)}",
+            elements=[
+                cl.File(
+                    name=os.path.basename(file_path),
+                    content=file_content,
+                    mime="text/markdown",
+                    display="inline"
+                )
+            ]
+        ).send()
+        logger.info("Successfully sent report file: %s", file_path)
+
+    except (OSError, IOError) as e:
+        logger.error("Failed to send report file %s: %s", file_path, e)
+        await cl.Message(
+            content=f"Failed to send report file: {os.path.basename(file_path)}. "
+                    "Please check local directory `process_docs/`."
+        ).send()
 
 @cl.on_stop
 async def on_stop():
@@ -122,7 +155,7 @@ async def main(message: cl.Message):
         logger.info("Received user message: %s", user_input)
 
     # Check for exit commands
-    if user_input.lower() in ['quit', 'exit', '退出']:
+    if user_input.lower() in ['quit', 'exit']:
         logger.info("User requested to exit the session")
         await cl.Message(content="Goodbye!").send()
         return
@@ -145,6 +178,9 @@ async def main(message: cl.Message):
             answer_prefix_tokens=["Final", "Answer"]
         )
         callbacks.append(callback_handler)
+
+        # Initialize learning callback handler variable
+        learning_callback_handler = None
 
         # Add learning documentation callback if available
         if learning_cb:
@@ -173,6 +209,18 @@ async def main(message: cl.Message):
         except asyncio.CancelledError:
             logger.info("Agent execution was cancelled")
             # Don't send additional message here since Chainlit already shows "Task manual stopped."
+
+        # Send generated report files after execution (regardless of success/failure)
+        if learning_cb and learning_callback_handler and hasattr(
+            learning_callback_handler, 'latest_result'
+            ):
+            generated_files = learning_callback_handler.latest_result.get('generated_files', [])
+            if generated_files:
+                logger.info("Sending %d report files to chat", len(generated_files))
+                for file_path in generated_files:
+                    await _send_report_file(file_path)
+            else:
+                logger.debug("No report files generated for this session")
 
     except (RuntimeError, ValueError, KeyError) as e:
         # Error handling for common exceptions during agent execution
