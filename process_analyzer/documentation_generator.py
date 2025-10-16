@@ -6,7 +6,13 @@ documentation from captured learning session data.
 """
 
 import json
+import logging
 from typing import Dict, Any, List
+
+try:
+    from .md_to_html_converter import MDToHTMLConverter
+except ImportError:
+    MDToHTMLConverter = None
 
 
 class DocumentationGenerator:
@@ -84,7 +90,7 @@ class DocumentationGenerator:
     def _format_json_block(self, data: Any) -> str:
         """Format JSON data as a Markdown code block."""
         json_str = json.dumps(data, indent=2, ensure_ascii=False)
-        return f"```{json_str}\n```"
+        return f"```\n{json_str}\n```\n"
 
     def _format_step_header(self, step_num: int, step_type: str) -> str:
         """Format step header for Markdown."""
@@ -100,19 +106,40 @@ class DocumentationGenerator:
         self,
         session_data: Dict[str, Any],
         output_path: str
-    ) -> None:
+    ) -> List[str]:
         """
         Generate technical analysis document focusing on tool usage and 
-        inputs/outputs.
+        inputs/outputs, in both MD and HTML formats.
 
         Args:
             session_data: Complete session data
             output_path: Path to save the technical analysis file
+
+        Returns:
+            List[str]: List of generated file paths (MD and HTML)
         """
         content = self._build_technical_analysis_content(session_data)
 
+        # Generate MD file
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(content)
+
+        generated_files = [output_path]
+
+        # Generate HTML file
+        if MDToHTMLConverter is not None:
+            try:
+                converter = MDToHTMLConverter()
+                html_path = output_path.replace('.md', '.html')
+                title = f"GNS3 Copilot Technical Analysis - {session_data['session_id']}"
+                converter.convert_file(output_path, html_path, title)
+                generated_files.append(html_path)
+            except OSError as e:
+                # Log error but don't fail the entire process
+                logger = logging.getLogger(__name__)
+                logger.warning("Failed to generate HTML version: %s", e)
+
+        return generated_files
 
     def generate_summary_report(
         self,

@@ -9,6 +9,7 @@ Observation/Final Answer.
 from .process_callback import LearningDocumentationCallback
 from .langchain_callback import LearningLangChainCallback
 from .documentation_generator import DocumentationGenerator
+from .md_to_html_converter import MDToHTMLConverter
 
 __version__ = "1.0.0"
 __author__ = "GNS3 Copilot Team"
@@ -16,5 +17,6 @@ __author__ = "GNS3 Copilot Team"
 __all__ = [
     "LearningDocumentationCallback",
     "LearningLangChainCallback",
-    "DocumentationGenerator"
+    "DocumentationGenerator",
+    "MDToHTMLConverter"
 ]

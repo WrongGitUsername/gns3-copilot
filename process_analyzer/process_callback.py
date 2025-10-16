@@ -236,23 +236,23 @@ class LearningDocumentationCallback:
 
     def save_session_to_file(self, session_data: Dict[str, Any]) -> List[str]:
         """
-        Save session data to files in various formats.
+        Save session data to files in various formats (MD and HTML).
 
         Args:
             session_data (Dict[str, Any]): Complete session data
 
         Returns:
-            List[str]: List of generated file paths
+            List[str]: List of generated file paths (MD and HTML)
         """
         session_id = session_data["session_id"]
         generated_files = []
 
         doc_gen = DocumentationGenerator()
 
-        # Generate only technical analysis
+        # Generate technical analysis (MD + HTML)
         tech_file = self.output_dir / f"{session_id}_technical.md"
-        doc_gen.generate_technical_analysis(session_data, str(tech_file))
-        generated_files.append(str(tech_file))
+        tech_files = doc_gen.generate_technical_analysis(session_data, str(tech_file))
+        generated_files.extend(tech_files)
 
         return generated_files
 
