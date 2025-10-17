@@ -11,9 +11,13 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
+from tools.logging_config import setup_tool_logger
 
 # Load environment variables
 load_dotenv()
+
+# Set up logger for static server
+logger = setup_tool_logger("static_server")
 
 # Create FastAPI application
 app = FastAPI(
@@ -28,7 +32,9 @@ reports_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "reports"
 # Check if reports directory exists
 if not os.path.exists(reports_dir):
     os.makedirs(reports_dir, exist_ok=True)
-    print(f"Created reports directory: {reports_dir}")
+    logger.info("Created reports directory: %s", reports_dir)
+else:
+    logger.debug("Reports directory exists: %s", reports_dir)
 
 # Mount the reports directory as static files
 app.mount("/reports", StaticFiles(directory=reports_dir, html=True), name="reports")
@@ -59,18 +65,21 @@ if __name__ == "__main__":
     host = os.getenv("FASTAPI_HOST", "0.0.0.0")
     port = int(os.getenv("FASTAPI_PORT", "8001"))
 
-    print("Starting GNS3 Copilot Reports Server...")
-    print(f"Reports directory: {reports_dir}")
-    print(f"Server configuration: {host}:{port}")
-    print("Access URLs:")
-    print(f"  - Root: http://{host}:{port}/")
-    print(f"  - Reports: http://{host}:{port}/reports/")
-    print(f"  - Health: http://{host}:{port}/health")
+    logger.info("Starting GNS3 Copilot Reports Server...")
+    logger.info("Reports directory: %s", reports_dir)
+    logger.info("Server configuration: %s:%s", host, port)
+    logger.info("Access URLs:")
+    logger.info("  - Root: http://%s:%s/", host, port)
+    logger.info("  - Health: http://%s:%s/health", host, port)
 
-    uvicorn.run(
-        app,
-        host=host,
-        port=port,
-        reload=False,
-        log_level="info"
-    )
+    try:
+        uvicorn.run(
+            app,
+            host=host,
+            port=port,
+            reload=False,
+            log_level="info"
+        )
+    except Exception as e:
+        logger.error("Failed to start server: %s", e)
+        raise

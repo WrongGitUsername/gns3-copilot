@@ -128,6 +128,14 @@ LOGGER_CONFIGS = {
     "display_tools_nornir": {
         "console_level": logging.INFO,
         "file_level": logging.DEBUG
+    },
+    "static_server": {
+        "console_level": logging.INFO,
+        "file_level": logging.DEBUG
+    },
+    "services_manager": {
+        "console_level": logging.INFO,
+        "file_level": logging.DEBUG
     }
 }
 

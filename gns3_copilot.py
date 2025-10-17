@@ -174,10 +174,6 @@ async def start():
         # Send welcome message
         app_user = cl.user_session.get("user")
 
-        # Get FastAPI configuration from environment variables
-        fastapi_host = os.getenv("FASTAPI_HOST", "localhost")
-        fastapi_port = os.getenv("FASTAPI_PORT", "8001")
-
         await cl.Message(
             content=f"Hello {app_user.identifier}! "
             "Welcome to GNS3 Network Assistant! How can I help you with "

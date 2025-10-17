@@ -17,10 +17,13 @@ GNS3 Copilot is an intelligent network automation assistant that combines the po
 - **Multi-Tool Support**: Execute display commands, configuration commands, and topology operations
 - **Concurrent Multi-Device Operations**: Execute commands on multiple devices simultaneously using Nornir framework (up to 10 concurrent workers)
 - **Real-time Reasoning**: Watch the AI agent's thought process in real-time using ReAct framework
+- **Process Analysis & Documentation**: Automatic capture and documentation of complete execution workflows
+- **Report Generation**: Creates technical analysis and summary reports for each session
+- **Static Report Server**: FastAPI-based server for browsing generated reports
 - **Safety First**: Built-in safety mechanisms to prevent dangerous operations
 - **Comprehensive Logging**: Detailed logs for debugging and auditing with separate log files for each tool
 - **Dynamic Topology Discovery**: Automatically discovers devices and their console ports from GNS3 projects
-- **Session Management**: Supports stop/cancel operations during long-running tasks
+- **Session Management**: Supports stop/cancel operations during long-running tasks with authentication
 
 ## 🔧 Technology Stack
 
@@ -30,6 +33,8 @@ GNS3 Copilot is an intelligent network automation assistant that combines the po
 - **Network Automation**: Nornir framework for concurrent multi-device operations
 - **Device Connectivity**: Netmiko for network device communication
 - **Network Simulation**: GNS3 API integration for topology management
+- **Report Server**: FastAPI with Uvicorn for static report serving
+- **Documentation**: Markdown and Pygments for report generation
 - **Logging**: Python logging with structured log files for each component
 
 ## 📋 Prerequisites
@@ -40,6 +45,8 @@ Before using GNS3 Copilot, ensure you have:
 - **GNS3 Server** accessible at `http://localhost:3080`
 - **Python 3.8+** installed
 - **DeepSeek API Key** (optional, for enhanced AI capabilities)
+- **OpenAI API Key** (optional, alternative AI model support)
+- **FastAPI/Uvicorn** (included in requirements.txt, for report server)
 - At least one **GNS3 project** with network devices (Preferably use Cisco IOSv devices; only tested with Cisco IOSv image.)
 
 ## 🛠 Installation
@@ -64,13 +71,23 @@ pip install -r requirements.txt
 4. **Set up environment variables** (optional):
 Create a `.env` file in the project root:
 ```env
-DEEPSEEK_API_KEY=your_api_key_here  # If using DeepSeek API
+DEEPSEEK_API_KEY=your_deepseek_api_key_here  # If using DeepSeek API
+OPENAI_API_KEY=your_openai_api_key_here      # If using OpenAI API
+CHAINLIT_HOST=localhost                      # Chainlit server host (default: localhost)
+CHAINLIT_PORT=8000                          # Chainlit server port (default: 8000)
+FASTAPI_HOST=localhost                      # Static report server host
+FASTAPI_PORT=8001                           # Static report server port
+CHAINLIT_AUTH_SECRET=your_secret_key_here   # Chainlit authentication secret
 ```
 
 ## 🎯 Quick Start
 
 1. **Start GNS3 and open your project**
-2. **Run the assistant**:
+2. **Start the static report server** (optional, for report browsing):
+```bash
+python static_server.py
+```
+3. **Run the assistant**:
 ```bash
 chainlit run gns3_copilot.py
 ```
@@ -79,11 +96,13 @@ or
 chainlit run gns3_copilot.py --host 192.168.1.3 --port 8090
 ```
 
-3. **Open your browser** to the URL shown in the terminal (typically `http://localhost:8000`)
-4. **Start interacting** with natural language commands in the chat interface:
+4. **Open your browser** to the URL shown in the terminal (typically `http://localhost:8000`)
+5. **Login** with credentials: `admin` / `admin`
+6. **Start interacting** with natural language commands in the chat interface:
    - Enter commands in the chat input at the bottom
    - View real-time agent reasoning and execution steps
    - See final results displayed in the interface
+   - Access generated reports automatically shared in chat
 
 ## 💬 Example Commands
 
@@ -122,6 +141,10 @@ GNS3 Copilot includes built-in safety mechanisms:
 GNS3 Copilot
 ├── Web Interface (Chainlit)
 ├── AI Agent (LangChain + DeepSeek)
+├── Process Analyzer
+│   ├── Session Management
+│   ├── Report Generation
+│   └── Error Recovery
 ├── Tool System
 │   ├── GNS3TopologyTool - Reads project topology
 │   ├── ExecuteMultipleDeviceCommands - Show commands on multiple devices (Nornir-based)
@@ -131,6 +154,7 @@ GNS3 Copilot
 │   ├── GNS3CreateNodeTool - Node management
 │   ├── GNS3LinkTool - Link management
 │   └── GNS3StartNodeTool - Node control
+├── Static Report Server (FastAPI)
 └── GNS3 API Integration
 ```
 
@@ -139,6 +163,7 @@ GNS3 Copilot
 ```
 gns3-copilot/
 ├── gns3_copilot.py          # Main Chainlit application
+├── static_server.py         # FastAPI static report server
 ├── requirements.txt         # Python dependencies
 ├── LICENSE                  # MIT License
 ├── .env                    # Environment variables (optional)
@@ -146,12 +171,39 @@ gns3-copilot/
 ├── README_ZH.md            # Chinese documentation
 ├── chainlit.md             # Chainlit interface documentation
 ├── log/                    # Application logs
-├── reports/                # Process analyzer documentation output
+├── reports/                # Generated technical reports
 ├── process_analyzer/       # Process analysis module
+│   ├── __init__.py
+│   ├── process_callback.py
+│   ├── langchain_callback.py
+│   ├── documentation_generator.py
+│   └── README.md
 ├── prompts/                # AI prompt templates
 ├── tools/                  # Tool implementations
 └── docs/                   # Additional documentation
 ```
+
+## 📊 Reports & Documentation
+
+### Generated Reports
+GNS3 Copilot automatically generates comprehensive technical reports for each session:
+
+- **Technical Analysis**: Detailed execution process with tool usage statistics and step-by-step breakdown
+- **Summary Reports**: Quick overview of key points, results, and recommendations
+- **Automatic Sharing**: Reports are automatically shared in the chat interface as clickable links
+- **Historical Tracking**: Complete session history maintained for analysis and debugging
+
+### Accessing Reports
+- **In Chat**: Click the report links automatically shared after each session
+- **Web Browser**: Access reports via the static server at `http://localhost:8001/reports/`
+- **File System**: Reports are saved in the `reports/` directory with timestamp-based naming
+
+### Report Server
+Start the static report server for easy browsing:
+```bash
+python static_server.py
+```
+Access at: `http://localhost:8001`
 
 ## 🐛 Troubleshooting
 
@@ -168,6 +220,18 @@ gns3-copilot/
 3. **Command execution timeout**
    - Check device responsiveness
    - Increase timeout settings if needed
+
+4. **Report generation failures**
+   - Check `reports/` directory permissions and disk space
+   - Verify FastAPI server is running if accessing reports via web interface
+
+5. **Authentication issues**
+   - Default credentials: `admin` / `admin`
+   - Check authentication logs in `gns3_copilot.log`
+
+6. **Static server not accessible**
+   - Ensure port 8001 is not blocked by firewall
+   - Check `FASTAPI_HOST` and `FASTAPI_PORT` environment variables
 
 ### Logs
 Check the `log/` directory for detailed operation logs:
