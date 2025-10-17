@@ -9,6 +9,7 @@ and manage GNS3 topology operations.
 
 import asyncio
 import os
+from typing import Optional
 import chainlit as cl
 from dotenv import load_dotenv
 from langchain.prompts import PromptTemplate
@@ -76,7 +77,8 @@ async def _send_report_file(file_path: str):
                     mime="text/markdown",
                     display="inline"
                 )
-            ]
+            ],
+            author="GNS3 Assistant"
         ).send()
         logger.info("Successfully sent report file: %s", file_path)
 
@@ -84,8 +86,27 @@ async def _send_report_file(file_path: str):
         logger.error("Failed to send report file %s: %s", file_path, e)
         await cl.Message(
             content=f"Failed to send report file: {os.path.basename(file_path)}. "
-                    "Please check local directory `process_docs/`."
+                    "Please check local directory `process_docs/`.",
+            author="System"
         ).send()
+
+@cl.password_auth_callback
+async def authen_callback(username: str, password: str) -> Optional[cl.User]:
+    """
+    Authenticate user credentials and return user object.
+    Args:
+        username (str): Username
+        password (str): Password
+    Returns:
+        Optional[cl.User]: User object if authentication succeeds, None otherwise
+    """
+    if (username, password) == ("admin", "admin"):
+        return cl.User(
+            identifier = "admin",
+            metadata = {"role": "admin", "provider": "credentials"}
+        )
+
+    return None
 
 @cl.on_stop
 async def on_stop():
@@ -132,15 +153,18 @@ async def start():
         logger.info("AgentExecutor created and stored in session")
 
         # Send welcome message
+        app_user = cl.user_session.get("user")
         await cl.Message(
-            content="Welcome to GNS3 Network Assistant! How can I help you with "
-                    "network automation tasks?"
-        ).send()
+            content=f"Hello {app_user.identifier}! "
+            "Welcome to GNS3 Network Assistant! How can I help you with "
+            "network automation tasks?",
+            author="GNS3 Assistant"
+            ).send()
         logger.debug("Welcome message sent to user")
 
     except (ImportError, ConnectionError, RuntimeError, ValueError) as e:
         logger.error("Error during session start: %s", str(e), exc_info=True)
-        await cl.Message(content=f"Failed to initialize session: {str(e)}").send()
+        await cl.Message(content=f"Failed to initialize session: {str(e)}", author="System").send()
 
 @cl.on_message
 async def main(message: cl.Message):
@@ -157,7 +181,7 @@ async def main(message: cl.Message):
     # Check for exit commands
     if user_input.lower() in ['quit', 'exit']:
         logger.info("User requested to exit the session")
-        await cl.Message(content="Goodbye!").send()
+        await cl.Message(content="Goodbye!", author="GNS3 Assistant").send()
         return
 
     # Reset stop flag for new message
@@ -198,7 +222,7 @@ async def main(message: cl.Message):
                 # Check if stop was requested
                 if cl.user_session.get("stop_requested", False):
                     logger.info("Agent execution cancelled by user")
-                    await cl.Message(content="Execution stopped by user.").send()
+                    await cl.Message(content="Execution stopped by user.", author="System").send()
                     break
 
                 # Rely on cl.LangchainCallbackHandler for rendering, no manual processing needed
@@ -225,8 +249,8 @@ async def main(message: cl.Message):
     except (RuntimeError, ValueError, KeyError) as e:
         # Error handling for common exceptions during agent execution
         logger.warning("Agent execution error: %s", str(e))
-        await cl.Message(content=f"Error: {str(e)}").send()
+        await cl.Message(content=f"Error: {str(e)}", author="System").send()
     except (AttributeError, TypeError, OSError) as e:
         # Catch-all for other specific unexpected exceptions
         logger.error("Unexpected error during message processing: %s", str(e), exc_info=True)
-        await cl.Message(content=f"Unexpected error: {str(e)}").send()
+        await cl.Message(content=f"Unexpected error: {str(e)}", author="System").send()
