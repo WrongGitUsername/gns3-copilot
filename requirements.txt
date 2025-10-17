@@ -32,6 +32,10 @@ pydantic>=2.0.0
 markdown>=3.4.0
 pygments>=2.15.0
 
+# FastAPI for static file serving
+fastapi>=0.104.0
+uvicorn>=0.24.0
+
 # Development Dependencies (optional)
 # pylint>=2.17.0  # For code linting
 # pytest>=7.4.0   # For testing

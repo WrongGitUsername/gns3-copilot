@@ -65,27 +65,48 @@ async def _send_report_file(file_path: str):
         file_path (str): Path to the report file to send
     """
     try:
-        with open(file_path, 'rb') as file:
-            file_content = file.read()
+        file_name = os.path.basename(file_path)
+        file_extension = os.path.splitext(file_name)[1].lower()
 
-        await cl.Message(
-            content=f"**Technical Analysis Report** - {os.path.basename(file_path)}",
-            elements=[
-                cl.File(
-                    name=os.path.basename(file_path),
-                    content=file_content,
-                    mime="text/markdown",
-                    display="inline"
-                )
-            ],
-        ).send()
-        logger.info("Successfully sent report file: %s", file_path)
+        # Get FastAPI configuration from environment variables
+        fastapi_host = os.getenv("FASTAPI_HOST", "localhost")
+        fastapi_port = os.getenv("FASTAPI_PORT", "8001")
+
+        if file_extension == '.html':
+            # For HTML files, send URL link to FastAPI static service
+            file_url = f"http://{fastapi_host}:{fastapi_port}/reports/{file_name}"
+
+            await cl.Message(
+                content=f"**Report**: [View in Browser]({file_url})",
+            ).send()
+            logger.info("Successfully sent HTML report URL: %s", file_url)
+
+        else:
+            # For non-HTML files (e.g., Markdown), send as file attachment
+            with open(file_path, 'rb') as file:
+                file_content = file.read()
+
+            mime_type = "text/markdown" if file_extension == '.md' else "text/plain"
+
+            await cl.Message(
+                content="**Report**: Download file below:",
+                elements=[
+                    cl.File(
+                        name=file_name,
+                        content=file_content,
+                        mime=mime_type,
+                        display="inline"
+                    )
+                ],
+            ).send()
+            logger.info("Successfully sent report file: %s", file_path)
 
     except (OSError, IOError) as e:
         logger.error("Failed to send report file %s: %s", file_path, e)
         await cl.Message(
-            content=f"Failed to send report file: {os.path.basename(file_path)}. "
-                    "Please check local directory `reports/`.",
+            content="**Error**: Failed to send report file: "
+                    f"{os.path.basename(file_path)}.\n\n"
+                    "Please check local directory `reports/` manually.",
         ).send()
 
 @cl.password_auth_callback
@@ -152,10 +173,15 @@ async def start():
 
         # Send welcome message
         app_user = cl.user_session.get("user")
+
+        # Get FastAPI configuration from environment variables
+        fastapi_host = os.getenv("FASTAPI_HOST", "localhost")
+        fastapi_port = os.getenv("FASTAPI_PORT", "8001")
+
         await cl.Message(
             content=f"Hello {app_user.identifier}! "
             "Welcome to GNS3 Network Assistant! How can I help you with "
-            "network automation tasks?",
+            "network automation tasks?\n\n"
             ).send()
         logger.debug("Welcome message sent to user")
 
