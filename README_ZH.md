@@ -126,7 +126,7 @@ gns3-copilot/
 ├── README_ZH.md            # 本文件（中文文档）
 ├── chainlit.md             # Chainlit界面文档
 ├── log/                    # 应用日志
-├── process_docs/           # 过程分析器文档输出
+├── reports/                # 过程分析器文档输出
 ├── process_analyzer/       # 过程分析模块
 ├── prompts/                # AI提示模板
 ├── tools/                  # 工具实现

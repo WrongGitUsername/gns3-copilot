@@ -24,7 +24,7 @@ class LearningDocumentationCallback:
     - Final Answer: Final response to user
     """
 
-    def __init__(self, output_dir: str = "process_docs"):
+    def __init__(self, output_dir: str = "reports"):
         """
         Initialize the learning documentation callback.
 

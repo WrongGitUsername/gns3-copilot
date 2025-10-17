@@ -76,15 +76,12 @@ class MDToHTMLConverter:
         # Build complete HTML
         return self._build_template(html_body, title)
 
-    def _get_project_root(self) -> str:
-        """Get project root directory."""
-        return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
     def _load_css_file(self, css_filename: str) -> str:
-        """Load CSS content from project assets/css/ directory."""
+        """Load CSS content from local css/ directory."""
         try:
-            project_root = self._get_project_root()
-            css_path = os.path.join(project_root, 'assets', 'css', css_filename)
+            # Get the directory where this script is located
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            css_path = os.path.join(current_dir, 'css', css_filename)
 
             with open(css_path, 'r', encoding='utf-8') as f:
                 return f.read()
@@ -163,11 +160,11 @@ class MDToHTMLConverter:
     def _get_basic_css(self) -> str:
         """Get fallback basic CSS styling when CSS files are not available."""
         # This is only used as fallback when CSS files cannot be loaded
-        # The actual styles are in assets/css/markdown_base.css
-        return """/* Fallback basic styles - loaded from assets/css/markdown_base.css */"""
+        # The actual styles are in css/markdown_base.css
+        return """/* Fallback basic styles - loaded from css/markdown_base.css */"""
 
     def _get_folding_css(self) -> str:
         """Get fallback code block folding CSS styling when CSS files are not available."""
         # This is only used as fallback when CSS files cannot be loaded
-        # The actual styles are in assets/css/markdown_folding.css
-        return """/* Fallback folding styles - loaded from assets/css/markdown_folding.css */"""
+        # The actual styles are in css/markdown_folding.css
+        return """/* Fallback folding styles - loaded from css/markdown_folding.css */"""

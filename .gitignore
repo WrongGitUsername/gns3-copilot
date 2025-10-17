@@ -215,5 +215,5 @@ log/*
 *.jsonl
 *.json
 .chainlit/.langchain.db
-process_docs/*
+reports/*
 .files/*

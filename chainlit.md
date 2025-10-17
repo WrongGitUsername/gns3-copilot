@@ -80,7 +80,7 @@ The Chainlit interface seamlessly integrates with the Process Analyzer module to
 ### Automatic Report Generation
 - **Real-time Capture**: Every command execution is automatically documented
 - **Technical Reports**: Detailed analysis reports are shared directly in the chat after each execution
-- **Session History**: Complete record of all interactions maintained in the `process_docs/` directory
+- **Session History**: Complete record of all interactions maintained in the `reports/` directory
 - **Error Documentation**: Automatic capture and analysis of any errors or interruptions
 
 ### Report Features
@@ -91,7 +91,7 @@ The Chainlit interface seamlessly integrates with the Process Analyzer module to
 
 ### Accessing Reports
 - **In Chat**: Technical reports automatically appear as downloadable files after each command
-- **File System**: All reports are saved to `process_docs/` with timestamp-based naming
+- **File System**: All reports are saved to `reports/` with timestamp-based naming
 - **Historical Analysis**: Complete session history available for review and learning
 
 ## 🎉 Ready to Automate?

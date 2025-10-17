@@ -73,7 +73,7 @@ The process analyzer automatically generates comprehensive reports for each user
 - **Summary Report**: Quick overview of key points, results, and recommendations
 
 ### Report Storage
-- **Location**: All reports are saved to the `../process_docs/` directory
+- **Location**: All reports are saved to the `../reports/` directory
 - **Naming Convention**: `session_YYYYMMDD_HHMMSS_X_technical.md` where X is the session number
 - **Automatic Sharing**: Technical reports are automatically shared in the Chainlit chat interface
 - **Historical Tracking**: Complete session history maintained for analysis and debugging
@@ -81,13 +81,13 @@ The process analyzer automatically generates comprehensive reports for each user
 ### Accessing Reports
 ```bash
 # List all generated reports
-ls ../process_docs/
+ls ../reports/
 
 # View latest report
-ls -t ../process_docs/ | head -1
+ls -t ../reports/ | head -1
 
 # Search for specific sessions
-grep -r "Configure OSPF" ../process_docs/
+grep -r "Configure OSPF" ../reports/
 ```
 
 ## 🛠️ Error Handling
@@ -135,7 +135,7 @@ async def main(message: cl.Message):
 
 1. **Report Generation Failures**
    - **Symptom**: Reports not generated after session completion
-   - **Solution**: Check `../process_docs/` directory permissions and disk space
+   - **Solution**: Check `../reports/` directory permissions and disk space
    - **Log**: Check `../log/gns3_copilot.log` for error details
 
 2. **Session Data Loss**
@@ -144,9 +144,9 @@ async def main(message: cl.Message):
    - **Solution**: Emergency save functionality automatically preserves progress
 
 3. **File Permission Errors**
-   - **Symptom**: Cannot write to process_docs directory
+   - **Symptom**: Cannot write to reports directory
    - **Solution**: Ensure write permissions for the application user
-   - **Command**: `chmod 755 ../process_docs/`
+   - **Command**: `chmod 755 ../reports/`
 
 ### Error Recovery
 
@@ -161,7 +161,7 @@ The process analyzer includes robust error recovery mechanisms:
 
 ### Output Directory Configuration
 ```python
-# Custom output directory (default: ../process_docs/)
+# Custom output directory (default: ../reports/)
 learning_cb = LearningDocumentationCallback(output_dir="/custom/path")
 ```
 

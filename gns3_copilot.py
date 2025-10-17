@@ -85,7 +85,7 @@ async def _send_report_file(file_path: str):
         logger.error("Failed to send report file %s: %s", file_path, e)
         await cl.Message(
             content=f"Failed to send report file: {os.path.basename(file_path)}. "
-                    "Please check local directory `process_docs/`.",
+                    "Please check local directory `reports/`.",
         ).send()
 
 @cl.password_auth_callback
@@ -127,7 +127,7 @@ async def start():
         logger.debug("Stop flag initialized to False")
 
         # Initialize process analyzer callback
-        learning_cb = LearningDocumentationCallback(output_dir="process_docs")
+        learning_cb = LearningDocumentationCallback(output_dir="reports")
         cl.user_session.set("learning_callback", learning_cb)
         logger.debug("Process analyzer callback initialized")
 

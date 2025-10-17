@@ -146,7 +146,7 @@ gns3-copilot/
 ├── README_ZH.md            # Chinese documentation
 ├── chainlit.md             # Chainlit interface documentation
 ├── log/                    # Application logs
-├── process_docs/           # Process analyzer documentation output
+├── reports/                # Process analyzer documentation output
 ├── process_analyzer/       # Process analysis module
 ├── prompts/                # AI prompt templates
 ├── tools/                  # Tool implementations

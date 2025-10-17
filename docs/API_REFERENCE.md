@@ -275,7 +275,7 @@ for device, outcome in result.items():
 from process_analyzer import LearningDocumentationCallback, LearningLangChainCallback
 
 # Initialize callbacks
-learning_cb = LearningDocumentationCallback(output_dir="process_docs")
+learning_cb = LearningDocumentationCallback(output_dir="reports")
 langchain_cb = LearningLangChainCallback(learning_cb)
 
 # Use with LangChain agent
