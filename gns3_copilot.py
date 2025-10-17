@@ -78,7 +78,6 @@ async def _send_report_file(file_path: str):
                     display="inline"
                 )
             ],
-            author="GNS3 Assistant"
         ).send()
         logger.info("Successfully sent report file: %s", file_path)
 
@@ -87,7 +86,6 @@ async def _send_report_file(file_path: str):
         await cl.Message(
             content=f"Failed to send report file: {os.path.basename(file_path)}. "
                     "Please check local directory `process_docs/`.",
-            author="System"
         ).send()
 
 @cl.password_auth_callback
@@ -158,13 +156,12 @@ async def start():
             content=f"Hello {app_user.identifier}! "
             "Welcome to GNS3 Network Assistant! How can I help you with "
             "network automation tasks?",
-            author="GNS3 Assistant"
             ).send()
         logger.debug("Welcome message sent to user")
 
     except (ImportError, ConnectionError, RuntimeError, ValueError) as e:
         logger.error("Error during session start: %s", str(e), exc_info=True)
-        await cl.Message(content=f"Failed to initialize session: {str(e)}", author="System").send()
+        await cl.Message(content=f"Failed to initialize session: {str(e)}").send()
 
 @cl.on_message
 async def main(message: cl.Message):
@@ -181,7 +178,7 @@ async def main(message: cl.Message):
     # Check for exit commands
     if user_input.lower() in ['quit', 'exit']:
         logger.info("User requested to exit the session")
-        await cl.Message(content="Goodbye!", author="GNS3 Assistant").send()
+        await cl.Message(content="Goodbye!").send()
         return
 
     # Reset stop flag for new message
@@ -222,7 +219,7 @@ async def main(message: cl.Message):
                 # Check if stop was requested
                 if cl.user_session.get("stop_requested", False):
                     logger.info("Agent execution cancelled by user")
-                    await cl.Message(content="Execution stopped by user.", author="System").send()
+                    await cl.Message(content="Execution stopped by user.").send()
                     break
 
                 # Rely on cl.LangchainCallbackHandler for rendering, no manual processing needed
@@ -249,8 +246,8 @@ async def main(message: cl.Message):
     except (RuntimeError, ValueError, KeyError) as e:
         # Error handling for common exceptions during agent execution
         logger.warning("Agent execution error: %s", str(e))
-        await cl.Message(content=f"Error: {str(e)}", author="System").send()
+        await cl.Message(content=f"Error: {str(e)}").send()
     except (AttributeError, TypeError, OSError) as e:
         # Catch-all for other specific unexpected exceptions
         logger.error("Unexpected error during message processing: %s", str(e), exc_info=True)
-        await cl.Message(content=f"Unexpected error: {str(e)}", author="System").send()
+        await cl.Message(content=f"Unexpected error: {str(e)}").send()
