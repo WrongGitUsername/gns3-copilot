@@ -12,8 +12,9 @@ import os
 from typing import Optional
 import chainlit as cl
 from dotenv import load_dotenv
-from langchain.prompts import PromptTemplate
-from langchain.agents import create_react_agent, AgentExecutor
+from langchain_core.prompts import PromptTemplate
+from langchain_classic.agents import create_react_agent, AgentExecutor
+from langchain_google_genai import GoogleGenerativeAI
 from langchain_deepseek import ChatDeepSeek
 from tools.display_tools_nornir import ExecuteMultipleDeviceCommands
 from tools.config_tools_nornir import ExecuteMultipleDeviceConfigCommands
@@ -33,9 +34,9 @@ load_dotenv()
 logger = setup_logger("gns3_copilot", log_file="log/gns3_copilot.log")
 
 # Initialize the DeepSeek language model
-llm = ChatDeepSeek(model="deepseek-chat", temperature=0, streaming=True)
-
-# Define the available tools for the agent
+#llm = ChatDeepSeek(model="deepseek-chat", temperature=0, streaming=True)
+llm = GoogleGenerativeAI(model="gemini-2.5-flash")
+# Define # the available tools for the agent
 tools = [
     GNS3TemplateTool(),                # Get GNS3 node templates
     GNS3TopologyTool(),                # Read GNS3 topology information

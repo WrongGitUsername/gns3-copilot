@@ -9,8 +9,8 @@ process of GNS3 Copilot, including proper error handling.
 import datetime
 import logging
 from typing import Any, Dict, List, Optional
-from langchain.callbacks.base import BaseCallbackHandler
-from langchain.schema import AgentAction, AgentFinish, LLMResult
+from langchain_classic.callbacks.base import BaseCallbackHandler
+from langchain_classic.schema import AgentAction, AgentFinish, LLMResult
 from .process_callback import LearningDocumentationCallback
 
 # Set up logger for error handling
