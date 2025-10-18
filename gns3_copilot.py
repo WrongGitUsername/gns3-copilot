@@ -34,8 +34,8 @@ load_dotenv()
 logger = setup_logger("gns3_copilot", log_file="log/gns3_copilot.log")
 
 # Initialize the DeepSeek language model
-#llm = ChatDeepSeek(model="deepseek-chat", temperature=0, streaming=True)
-llm = GoogleGenerativeAI(model="gemini-2.5-flash")
+llm = ChatDeepSeek(model="deepseek-chat", temperature=0, streaming=True)
+#llm = GoogleGenerativeAI(model="gemini-2.5-flash")
 # Define # the available tools for the agent
 tools = [
     GNS3TemplateTool(),                # Get GNS3 node templates
