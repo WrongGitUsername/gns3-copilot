@@ -1,8 +1,10 @@
 # GNS3 Copilot Dependencies
 # Core AI and Automation Framework
-langchain>=0.1.0
+langchain>=1.0.0
+langchain-classic>=1.0.0
 langchain-deepseek>=0.1.0
 langchain-community>=0.0.20
+langchain-google-genai>=1.0.0
 
 # Web Interface (Chainlit for conversational UI)
 chainlit>=1.0.0

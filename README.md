@@ -1,7 +1,9 @@
+> **Note**: This project is currently being migrated to LangChain v1. The migration plan includes updating to the new LangChain agent chat UI architecture for improved performance and maintainability. See the migration guide for details.
+
 # GNS3 Copilot - AI-Powered Network Automation Assistant
 
 ![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
-![LangChain](https://img.shields.io/badge/LangChain-0.1.0+-green.svg)
+![LangChain](https://img.shields.io/badge/LangChain-1.0.0+-green.svg)
 ![Chainlit](https://img.shields.io/badge/Chainlit-1.0.0+-purple.svg)
 ![GNS3](https://img.shields.io/badge/GNS3-2.2+-orange.svg)
 ![Nornir](https://img.shields.io/badge/Nornir-3.3.0+-red.svg)
