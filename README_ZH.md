@@ -1,257 +1,304 @@
-# GNS3 Copilot - AI网络自动化助手
+# GNS3 Copilot
 
-![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
-![LangChain](https://img.shields.io/badge/LangChain-0.1.0+-green.svg)
-![Chainlit](https://img.shields.io/badge/Chainlit-1.0.0+-purple.svg)
-![GNS3](https://img.shields.io/badge/GNS3-2.2+-orange.svg)
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+一个基于AI的网络自动化助手，专为GNS3网络模拟器设计，提供智能化的网络设备管理和自动化操作。
 
-GNS3 Copilot 是一个智能网络自动化助手，结合AI与GNS3网络仿真平台。使用DeepSeek LLM进行自然语言处理，LangChain进行智能体编排，Chainlit提供Web界面，通过对话界面和实时推理显示，使用自然语言命令管理和配置网络设备。
+## 项目简介
 
-## 🚀 核心功能
+GNS3 Copilot 是一个强大的网络自动化工具，集成了多种AI模型和网络自动化框架，能够通过自然语言与用户交互，执行网络设备配置、拓扑管理和故障诊断等任务。
 
-- **自然语言界面**：使用简单英语命令控制网络设备
-- **对话式AI**：基于Chainlit的交互式聊天界面，支持流式响应
-- **GNS3集成**：通过REST API无缝连接现有GNS3项目
-- **多工具支持**：执行显示命令、配置命令和拓扑操作
-- **并发多设备操作**：使用Nornir框架同时执行多设备命令（最多10个并发工作线程）
-- **实时推理**：使用ReAct框架实时观看AI智能体思考过程
-- **过程分析与文档**：自动捕获和记录完整执行工作流程
-- **报告生成**：为每个会话创建技术分析和摘要报告
-- **静态报告服务器**：基于FastAPI的报告浏览服务器
-- **安全机制**：内置安全机制防止危险操作
-- **完整日志**：详细日志记录，每个工具独立日志文件
-- **动态拓扑发现**：自动发现GNS3项目中的设备和控制台端口
-- **会话管理**：支持长时间运行任务的停止/取消操作，带身份验证
+### 核心功能
 
-## 🔧 技术栈
+- 🤖 **AI驱动的对话界面**: 支持自然语言交互，理解网络自动化需求
+- 🔧 **设备配置管理**: 批量配置网络设备，支持多种厂商设备
+- 📊 **拓扑管理**: 自动创建、修改和管理GNS3网络拓扑
+- 🔍 **网络诊断**: 智能网络故障排查和性能监控
+- 🌐 **多LLM支持**: 集成DeepSeek、Google Gemini等多种AI模型
 
-- **AI框架**：LangChain + ReAct智能体模式
-- **语言模型**：DeepSeek Chat LLM
-- **Web界面**：Chainlit对话式UI
-- **网络自动化**：Nornir框架并发多设备操作
-- **设备连接**：Netmiko网络设备通信
-- **网络仿真**：GNS3 API集成拓扑管理
-- **报告服务器**：FastAPI + Uvicorn静态报告服务
-- **文档生成**：Markdown和Pygments报告生成
-- **日志记录**：Python结构化日志
+## 技术架构
 
-## 📋 环境要求
+### 核心组件
 
-- **GNS3** 2.2+ 已安装并运行
-- **GNS3服务器** 可访问：`http://localhost:3080`
-- **Python 3.8+**
-- **DeepSeek API密钥**（可选，用于增强AI功能）
-- **OpenAI API密钥**（可选，替代AI模型支持）
-- **FastAPI/Uvicorn**（包含在requirements.txt中，用于报告服务器）
-- 至少一个**GNS3项目**包含网络设备（推荐使用Cisco IOSv设备）
+- **Agent Framework**: 基于LangChain v1.0构建的智能代理系统
+- **Network Automation**: 使用Nornir和Netmiko进行网络设备自动化
+- **GNS3 Integration**: 自定义GNS3 API客户端，支持拓扑和节点管理
+- **AI Models**: 支持DeepSeek Chat和Google Gemini等大语言模型
 
-## 🛠 快速安装
+### 工具集
 
+| 工具名称 | 功能描述 |
+|---------|---------|
+| `GNS3TopologyTool` | 读取GNS3拓扑信息 |
+| `GNS3CreateNodeTool` | 创建GNS3节点 |
+| `GNS3LinkTool` | 创建节点间连接 |
+| `GNS3StartNodeTool` | 启动GNS3节点 |
+| `GNS3TemplateTool` | 获取节点模板 |
+| `ExecuteMultipleDeviceCommands` | 执行显示命令 |
+| `ExecuteMultipleDeviceConfigCommands` | 执行配置命令 |
+
+## 安装指南
+
+### 环境要求
+
+- Python 3.8+
+- GNS3 Server (运行在 http://localhost:3080)
+- 支持的操作系统: Windows, macOS, Linux
+
+### 安装步骤
+
+1. **克隆项目**
 ```bash
-# 1. 克隆仓库
 git clone https://github.com/yueguobin/gns3-copilot.git
 cd gns3-copilot
-
-# 2. 创建虚拟环境
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# 3. 安装依赖
-pip install -r requirements.txt
-
-# 4. 设置环境变量（可选）
-cat > .env << EOF
-DEEPSEEK_API_KEY=your_deepseek_api_key_here  # 如果使用DeepSeek API
-OPENAI_API_KEY=your_openai_api_key_here      # 如果使用OpenAI API
-CHAINLIT_HOST=localhost                      # Chainlit服务器主机（默认：localhost）
-CHAINLIT_PORT=8000                          # Chainlit服务器端口（默认：8000）
-FASTAPI_HOST=localhost                      # 静态报告服务器主机
-FASTAPI_PORT=8001                           # 静态报告服务器端口
-CHAINLIT_AUTH_SECRET=your_secret_key_here   # Chainlit身份验证密钥
-EOF
 ```
 
-## 🎯 快速开始
+2. **创建虚拟环境**
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
+# 或
+venv\Scripts\activate     # Windows
+```
+
+3. **安装依赖**
+```bash
+pip install -r requirements.txt
+```
+
+4. **配置环境变量**
+创建 `.env` 文件并配置API密钥：
+```env
+DEEPSEEK_API_KEY="your_deepseek_api_key"
+GOOGLE_API_KEY="your_google_api_key"
+OPENAI_API_KEY="your_openai_api_key"  # 可选
+```
+
+5. **启动GNS3 Server**
+确保GNS3 Server运行在默认地址 `http://localhost:3080`
+
+## 使用指南
+
+### 启动方式
+
+#### 方式1: 直接运行Python代码
+
+```python
+from agent.gns3_copilot import agent
+
+# 使用AI代理进行网络自动化
+response = agent.invoke("检查所有路由器的接口状态")
+print(response)
+```
+
+#### 方式2: LangGraph开发服务器
 
 ```bash
-# 1. 启动GNS3并打开项目
-# 2. 启动静态报告服务器（可选，用于报告浏览）
-python static_server.py
+# 启动LangGraph开发服务器
+langgraph dev
 
-# 3. 运行助手
-chainlit run gns3_copilot.py
-
-# 4. 浏览器访问显示的URL（通常是 http://localhost:8000）
-# 5. 使用凭据登录：admin / admin
-# 6. 在聊天界面使用自然语言命令
+# 服务器将在 http://localhost:2024 启动
+# 可以通过Web界面或API与代理交互
 ```
 
-## 💬 命令示例
+#### 方式3: LangGraph隧道模式（远程访问）
 
-### 显示操作
-- `"检查R-1和R-2接口状态"`
-- `"显示R-3和R-4的OSPF状态"`
-- `"显示R-1运行配置"`
+```bash
+# 启动带隧道功能的开发服务器
+langgraph dev --tunnel
 
-### 配置操作
-- `"在R-3上配置环回接口地址3.3.3.31/32"`
-- `"在R-1上启用OSPF"`
-- `"设置R-2的GigabitEthernet0/0接口描述"`
-
-### 拓扑操作
-- `"显示当前拓扑"`
-- `"列出项目中所有设备"`
-- `"启动所有节点"`
-
-### 创建实验
-- `"创建包含六个路由器的拓扑，测试多区域OSPF，配置主机名为设备名"`
-
-## 🛡 安全特性
-
-- **命令验证**：防止执行危险命令
-- **只读模式**：显示和配置操作分离
-- **错误处理**：全面错误报告和恢复
-- **操作日志**：所有操作记录用于审计
-
-**禁止命令**：系统拒绝执行`reload`、`write erase`、`erase startup-config`等破坏性操作。
-
-## 🏗 架构概览
-
-```
-GNS3 Copilot
-├── Web界面 (Chainlit)
-├── AI智能体 (LangChain + DeepSeek)
-├── 过程分析器
-│   ├── 会话管理
-│   ├── 报告生成
-│   └── 错误恢复
-├── 工具系统
-│   ├── GNS3拓扑读取器
-│   ├── 多设备命令执行器 (Nornir)
-│   ├── 多设备配置执行器 (Nornir)
-│   ├── 单设备配置执行器
-│   ├── 节点管理工具
-│   ├── 链路管理工具
-│   └── 节点控制工具
-├── 静态报告服务器 (FastAPI)
-└── GNS3 API集成
+# 生成公网访问URL，支持远程访问
+# 适用于需要从外部网络访问代理的场景
 ```
 
-## 📁 项目结构
+**LangGraph服务器说明：**
+- 默认端口: 2024
+- 配置文件: `langgraph.json`
+- 图表ID: `agent`
+- 支持热重载和实时调试
+- 提供Swagger API文档
+
+### 基本用法
+
+### 功能示例
+
+#### 1. 拓扑管理
+```python
+# 获取当前拓扑信息
+topology = agent.invoke("显示当前网络拓扑")
+
+# 创建新节点
+agent.invoke("创建一个名为R3的路由器节点")
+
+# 连接设备
+agent.invoke("将R3的Gi0/0接口连接到R1的Gi0/1接口")
+```
+
+#### 2. 设备配置
+```python
+# 批量配置接口
+agent.invoke("""
+为所有路由器配置环回接口：
+- R1: Loopback0 IP 1.1.1.1/32
+- R2: Loopback0 IP 2.2.2.2/32
+""")
+
+# 配置路由协议
+agent.invoke("在所有路由器上启用OSPF进程1，并宣告所有接口")
+```
+
+#### 3. 网络诊断
+```python
+# 检查设备状态
+agent.invoke("检查所有设备的运行状态和CPU使用率")
+
+# 网络连通性测试
+agent.invoke("测试从R1到R2的网络连通性")
+
+# 路由表检查
+agent.invoke("显示所有路由器的路由表")
+```
+
+### 支持的命令类型
+
+#### 显示命令 (只读)
+- `show version`
+- `show ip interface brief`
+- `show running-config`
+- `show ip route`
+- `show ospf neighbor`
+- `show interfaces status`
+
+#### 配置命令 (需要谨慎使用)
+- `interface <interface>`
+- `ip address <ip> <mask>`
+- `router ospf <process>`
+- `network <network> area <area>`
+- `description <text>`
+
+## 项目结构
 
 ```
 gns3-copilot/
-├── gns3_copilot.py          # 主Chainlit应用程序
-├── static_server.py         # FastAPI静态报告服务器
-├── requirements.txt         # Python依赖包
-├── LICENSE                  # MIT许可证
-├── .env                    # 环境变量（可选）
-├── README.md               # 英文文档
-├── README_ZH.md            # 本文件（中文文档）
-├── chainlit.md             # Chainlit界面文档
-├── log/                    # 应用日志
-├── reports/                # 生成的技术报告
-├── process_analyzer/       # 过程分析模块
+├── agent/                    # 核心代理模块
+│   └── gns3_copilot.py      # 主代理实现
+├── tools/                    # 工具集
 │   ├── __init__.py
-│   ├── process_callback.py
-│   ├── langchain_callback.py
-│   ├── documentation_generator.py
-│   └── README.md
-├── prompts/                # AI提示模板
-├── tools/                  # 工具实现
-└── docs/                   # 额外文档
+│   ├── config_tools_nornir.py      # 配置工具
+│   ├── display_tools_nornir.py     # 显示工具
+│   ├── gns3_topology_reader.py     # 拓扑读取
+│   ├── gns3_create_node.py         # 节点创建
+│   ├── gns3_create_link.py         # 链接创建
+│   ├── gns3_start_node.py          # 节点启动
+│   ├── gns3_get_node_temp.py       # 模板获取
+│   ├── custom_gns3fy.py           # 自定义GNS3客户端
+│   └── logging_config.py          # 日志配置
+├── prompts/                  # 提示词
+│   ├── __init__.py
+│   └── react_prompt.py       # 系统提示词
+├── log/                      # 日志目录
+├── requirements.txt          # 依赖列表
+├── .env                     # 环境变量
+└── README.md               # 项目文档
 ```
 
-## 📊 报告与文档
+## 配置说明
 
-### 生成报告
-GNS3 Copilot为每个会话自动生成综合技术报告：
+### GNS3 Server配置
 
-- **技术分析**：详细执行过程，包含工具使用统计和逐步分解
-- **摘要报告**：关键要点、结果和建议的快速概览
-- **自动分享**：报告以可点击链接形式在聊天界面自动分享
-- **历史跟踪**：完整会话历史记录，用于分析和调试
+确保GNS3 Server正确配置：
+- 默认端口: 3080
+- 启用HTTP API
+- 配置适当的模拟器镜像
 
-### 访问报告
-- **聊天界面**：点击每次会话后自动分享的报告链接
-- **Web浏览器**：通过静态服务器访问报告 `http://localhost:8001/reports/`
-- **文件系统**：报告保存在`reports/`目录中，使用基于时间戳的命名
+### 日志配置
 
-### 报告服务器
-启动静态报告服务器以便浏览：
-```bash
-python static_server.py
+项目使用统一的日志系统，日志文件保存在 `log/` 目录：
+- `gns3_copilot.log`: 主应用日志
+- `display_tools_nornir.log`: 显示工具日志
+- `config_tools_nornir.log`: 配置工具日志
+
+### AI模型配置
+
+支持多种AI模型，在 `agent/gns3_copilot.py` 中切换：
+
+```python
+# 使用DeepSeek (默认)
+llm = ChatDeepSeek(model="deepseek-chat", temperature=0, streaming=True)
+
+# 使用Google Gemini
+llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
 ```
-访问地址：`http://localhost:8001`
 
-## 🐛 故障排除
+## 安全注意事项
+
+⚠️ **重要安全提示**：
+
+1. **配置命令安全**: 配置工具具有修改设备配置的能力，使用前请确保：
+   - 在测试环境中验证
+   - 备份重要配置
+   - 了解每个命令的作用
+
+2. **API密钥保护**: 
+   - 不要将 `.env` 文件提交到版本控制
+   - 定期轮换API密钥
+   - 使用最小权限原则
+
+3. **网络隔离**: 建议在隔离的测试环境中使用
+
+## 故障排除
 
 ### 常见问题
 
-1. **GNS3服务器连接被拒绝**
-   - 确保GNS3服务器运行在`localhost:3080`
+1. **GNS3连接失败**
+   - 检查GNS3 Server是否运行
+   - 确认端口3080是否可访问
    - 检查防火墙设置
 
-2. **拓扑中找不到设备**
-   - 验证设备名称完全匹配
-   - 确保设备配置了控制台端口
+2. **设备连接问题**
+   - 确认设备控制台端口正确
+   - 检查设备是否已启动
+   - 验证Telnet连接
 
-3. **命令执行超时**
-   - 检查设备响应性
-   - 根据需要增加超时设置
+3. **AI模型调用失败**
+   - 检查API密钥是否正确
+   - 确认网络连接
+   - 验证API配额
 
-4. **报告生成失败**
-   - 检查`reports/`目录权限和磁盘空间
-   - 如果通过Web界面访问报告，验证FastAPI服务器是否运行
+### 调试模式
 
-5. **身份验证问题**
-   - 默认凭据：`admin` / `admin`
-   - 检查`gns3_copilot.log`中的身份验证日志
+启用详细日志：
+```python
+import logging
+logging.basicConfig(level=logging.DEBUG)
+```
 
-6. **静态服务器无法访问**
-   - 确保端口8001未被防火墙阻止
-   - 检查`FASTAPI_HOST`和`FASTAPI_PORT`环境变量
+## 贡献指南
 
-### 日志文件
+欢迎贡献代码！请遵循以下步骤：
 
-检查`log/`目录获取详细操作日志：
-- `gns3_copilot.log` - 主应用日志和会话管理
-- `config_tools_nornir.log` - 多设备配置命令执行（Nornir基础）
-- `display_tools_nornir.log` - 多设备显示命令执行（Nornir基础）
-- `gns3_topology_reader.log` - GNS3拓扑发现和API交互
-- 其他工具专用日志文件
+1. Fork 项目
+2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 开启 Pull Request
 
-## 📚 更多文档
+## 许可证
 
-- **[API参考](docs/API_REFERENCE.md)** - 完整API文档
-- **[贡献指南](docs/CONTRIBUTING.md)** - 开发贡献指南
-- **[过程分析器](process_analyzer/README.md)** - 过程分析模块文档
+本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
 
-## 📄 许可证
+## 联系方式
 
-本项目采用 [MIT许可证](LICENSE) 开源。
+- 项目主页: https://github.com/yueguobin/gns3-copilot
+- 问题反馈: https://github.com/yueguobin/gns3-copilot/issues
 
-## 🙏 致谢
 
-- **GNS3团队** - 优秀的网络仿真平台
-- **LangChain** - 强大的AI智能体框架
-- **DeepSeek** - AI语言模型能力
-- **Chainlit** - 对话式UI框架
-- **Netmiko** - 网络设备通信
-- **Nornir** - 并发多设备自动化
+## 更新日志
+
+### 开发版（2025年10月20日）
+- 更新使用langchain 1.0.0版本
+- 移除自定义回调函数和报告生成功能
+- 移除chainlit UI界面
+- 使用langchain studio
 
 ---
 
-**版本**: 1.0.0 - 稳定版本，完整功能支持
-
-## 🌟 中文支持
-
-本文档为GNS3 Copilot的中文版本，提供：
-
-- 完整的中文安装和使用指南
-- 中文命令示例和说明
-- 中文故障排除指南
-- 本地化的用户体验
-
-如果您更习惯使用中文文档，可以参考本文件。对于技术细节和API参考，建议同时查看英文版本文档以获取最新信息。
+**免责声明**: 本工具仅用于教育和测试目的。在生产环境中使用前，请充分测试并确保符合您的安全策略。

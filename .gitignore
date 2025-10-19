@@ -212,8 +212,4 @@ performance_results/
 benchmarks/
 GNS3_FORUM_POST_RICHTEXT.md
 log/*
-*.jsonl
-*.json
-.chainlit/.langchain.db
-reports/*
-.files/*
+.langgraph_api/*

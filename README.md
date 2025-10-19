@@ -1,268 +1,304 @@
-> **Note**: This project is currently being migrated to LangChain v1. The migration plan includes updating to the new LangChain agent chat UI architecture for improved performance and maintainability. See the migration guide for details.
+# GNS3 Copilot
 
-# GNS3 Copilot - AI-Powered Network Automation Assistant
+An AI-powered network automation assistant designed for GNS3 network simulator, providing intelligent network device management and automated operations.
 
-![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
-![LangChain](https://img.shields.io/badge/LangChain-1.0.0+-green.svg)
-![Chainlit](https://img.shields.io/badge/Chainlit-1.0.0+-purple.svg)
-![GNS3](https://img.shields.io/badge/GNS3-2.2+-orange.svg)
-![Nornir](https://img.shields.io/badge/Nornir-3.3.0+-red.svg)
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+## Project Introduction
 
-GNS3 Copilot is an intelligent network automation assistant that combines the power of AI with GNS3 network simulation platform. It uses DeepSeek LLM for natural language processing, LangChain for agent orchestration, and Chainlit for the web interface. It allows you to manage and configure network devices using natural language commands through a conversational interface with real-time reasoning display.
+GNS3 Copilot is a powerful network automation tool that integrates multiple AI models and network automation frameworks, enabling natural language interaction with users to perform network device configuration, topology management, and fault diagnosis tasks.
 
-## 🚀 Features
+### Core Features
 
-- **Natural Language Interface**: Control network devices using simple English commands
-- **Conversational AI**: Interactive chat-based interface powered by Chainlit with streaming responses
-- **GNS3 Integration**: Seamlessly works with your existing GNS3 projects via REST API
-- **Multi-Tool Support**: Execute display commands, configuration commands, and topology operations
-- **Concurrent Multi-Device Operations**: Execute commands on multiple devices simultaneously using Nornir framework (up to 10 concurrent workers)
-- **Real-time Reasoning**: Watch the AI agent's thought process in real-time using ReAct framework
-- **Process Analysis & Documentation**: Automatic capture and documentation of complete execution workflows
-- **Report Generation**: Creates technical analysis and summary reports for each session
-- **Static Report Server**: FastAPI-based server for browsing generated reports
-- **Safety First**: Built-in safety mechanisms to prevent dangerous operations
-- **Comprehensive Logging**: Detailed logs for debugging and auditing with separate log files for each tool
-- **Dynamic Topology Discovery**: Automatically discovers devices and their console ports from GNS3 projects
-- **Session Management**: Supports stop/cancel operations during long-running tasks with authentication
+- 🤖 **AI-driven Conversational Interface**: Supports natural language interaction to understand network automation requirements
+- 🔧 **Device Configuration Management**: Batch configuration of network devices, supporting multiple vendor devices
+- 📊 **Topology Management**: Automatically create, modify, and manage GNS3 network topologies
+- 🔍 **Network Diagnostics**: Intelligent network troubleshooting and performance monitoring
+- 🌐 **Multi-LLM Support**: Integrates DeepSeek, Google Gemini, and other AI models
 
-## 🔧 Technology Stack
+## Technical Architecture
 
-- **AI Framework**: LangChain with ReAct (Reasoning + Acting) agent pattern
-- **Language Model**: DeepSeek Chat LLM for natural language understanding and generation
-- **Web Interface**: Chainlit for conversational UI with streaming responses
-- **Network Automation**: Nornir framework for concurrent multi-device operations
-- **Device Connectivity**: Netmiko for network device communication
-- **Network Simulation**: GNS3 API integration for topology management
-- **Report Server**: FastAPI with Uvicorn for static report serving
-- **Documentation**: Markdown and Pygments for report generation
-- **Logging**: Python logging with structured log files for each component
+### Core Components
 
-## 📋 Prerequisites
+- **Agent Framework**: Intelligent agent system built on LangChain v1.0
+- **Network Automation**: Network device automation using Nornir and Netmiko
+- **GNS3 Integration**: Custom GNS3 API client supporting topology and node management
+- **AI Models**: Support for large language models like DeepSeek Chat and Google Gemini
 
-Before using GNS3 Copilot, ensure you have:
+### Tool Set
 
-- **GNS3** installed and running (version 2.2 or later)
-- **GNS3 Server** accessible at `http://localhost:3080`
-- **Python 3.8+** installed
-- **DeepSeek API Key** (optional, for enhanced AI capabilities)
-- **OpenAI API Key** (optional, alternative AI model support)
-- **FastAPI/Uvicorn** (included in requirements.txt, for report server)
-- At least one **GNS3 project** with network devices (Preferably use Cisco IOSv devices; only tested with Cisco IOSv image.)
+| Tool Name | Function Description |
+|-----------|---------------------|
+| `GNS3TopologyTool` | Read GNS3 topology information |
+| `GNS3CreateNodeTool` | Create GNS3 nodes |
+| `GNS3LinkTool` | Create connections between nodes |
+| `GNS3StartNodeTool` | Start GNS3 nodes |
+| `GNS3TemplateTool` | Get node templates |
+| `ExecuteMultipleDeviceCommands` | Execute show commands |
+| `ExecuteMultipleDeviceConfigCommands` | Execute configuration commands |
 
-## 🛠 Installation
+## Installation Guide
 
-1. **Clone the repository**:
+### System Requirements
+
+- Python 3.8+
+- GNS3 Server (running on http://localhost:3080)
+- Supported Operating Systems: Windows, macOS, Linux
+
+### Installation Steps
+
+1. **Clone the project**
 ```bash
 git clone https://github.com/yueguobin/gns3-copilot.git
 cd gns3-copilot
 ```
 
-2. **Create a virtual environment** (recommended):
+2. **Create virtual environment**
 ```bash
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate  # Linux/macOS
+# or
+venv\Scripts\activate     # Windows
 ```
 
-3. **Install dependencies**:
+3. **Install dependencies**
 ```bash
 pip install -r requirements.txt
 ```
 
-4. **Set up environment variables** (optional):
-Create a `.env` file in the project root:
+4. **Configure environment variables**
+Create `.env` file and configure API keys:
 ```env
-DEEPSEEK_API_KEY=your_deepseek_api_key_here  # If using DeepSeek API
-OPENAI_API_KEY=your_openai_api_key_here      # If using OpenAI API
-CHAINLIT_HOST=localhost                      # Chainlit server host (default: localhost)
-CHAINLIT_PORT=8000                          # Chainlit server port (default: 8000)
-FASTAPI_HOST=localhost                      # Static report server host
-FASTAPI_PORT=8001                           # Static report server port
-CHAINLIT_AUTH_SECRET=your_secret_key_here   # Chainlit authentication secret
+DEEPSEEK_API_KEY="your_deepseek_api_key"
+GOOGLE_API_KEY="your_google_api_key"
+OPENAI_API_KEY="your_openai_api_key"  # optional
 ```
 
-## 🎯 Quick Start
+5. **Start GNS3 Server**
+Ensure GNS3 Server is running at the default address `http://localhost:3080`
 
-1. **Start GNS3 and open your project**
-2. **Start the static report server** (optional, for report browsing):
+## Usage Guide
+
+### Launch Methods
+
+#### Method 1: Direct Python Code Execution
+
+```python
+from agent.gns3_copilot import agent
+
+# Use AI agent for network automation
+response = agent.invoke("Check the interface status of all routers")
+print(response)
+```
+
+#### Method 2: LangGraph Development Server
+
 ```bash
-python static_server.py
+# Start LangGraph development server
+langgraph dev
+
+# Server will start at http://localhost:2024
+# Interact with the agent via web interface or API
 ```
-3. **Run the assistant**:
+
+#### Method 3: LangGraph Tunnel Mode (Remote Access)
+
 ```bash
-chainlit run gns3_copilot.py
-```
-or
-```bash
-chainlit run gns3_copilot.py --host 192.168.1.3 --port 8090
-```
+# Start development server with tunnel functionality
+langgraph dev --tunnel
 
-4. **Open your browser** to the URL shown in the terminal (typically `http://localhost:8000`)
-5. **Login** with credentials: `admin` / `admin`
-6. **Start interacting** with natural language commands in the chat interface:
-   - Enter commands in the chat input at the bottom
-   - View real-time agent reasoning and execution steps
-   - See final results displayed in the interface
-   - Access generated reports automatically shared in chat
-
-## 💬 Example Commands
-
-### Display Operations
-- `"check R-1 and R-2 interfaces status"` (executes commands on multiple devices concurrently)
-- `"show OSPF status on R-3 and R-4"` (executes commands on multiple devices concurrently)
-- `"display running configuration on R-1"`
-
-### Configuration Operations
-- `"configure a loopback interface on R-3 with address 3.3.3.31/32"`
-- `"enable OSPF on R-1"`
-- `"set interface description on R-2 GigabitEthernet0/0"`
-
-### Topology Operations
-- `"show current topology"`
-- `"list all devices in the project"`
-- `"start all nodes"`
-
-### Create Lab
-- `"Create a topology with six routers. Test OSPF with multiple areas. Configure the hostname as the device name."`
-
-## 🛡 Safety Features
-
-GNS3 Copilot includes built-in safety mechanisms:
-
-- **Command Validation**: Prevents execution of dangerous commands
-- **Read-Only Mode**: Separate tools for display vs configuration operations
-- **Error Handling**: Comprehensive error reporting and recovery
-- **Logging**: All operations are logged for audit purposes
-
-**Forbidden Commands**: The system will refuse to execute commands like `reload`, `write erase`, `erase startup-config`, and other destructive operations.
-
-## 🏗 Architecture
-
-```
-GNS3 Copilot
-├── Web Interface (Chainlit)
-├── AI Agent (LangChain + DeepSeek)
-├── Process Analyzer
-│   ├── Session Management
-│   ├── Report Generation
-│   └── Error Recovery
-├── Tool System
-│   ├── GNS3TopologyTool - Reads project topology
-│   ├── ExecuteMultipleDeviceCommands - Show commands on multiple devices (Nornir-based)
-│   ├── ExecuteMultipleDeviceConfigCommands - Configuration commands on multiple devices (Nornir-based)
-│   ├── ExecuteConfigCommands - Configuration commands (single device)
-│   ├── GNS3TemplateTool - Get node templates
-│   ├── GNS3CreateNodeTool - Node management
-│   ├── GNS3LinkTool - Link management
-│   └── GNS3StartNodeTool - Node control
-├── Static Report Server (FastAPI)
-└── GNS3 API Integration
+# Generate public access URL for remote access
+# Suitable for scenarios requiring external network access to the agent
 ```
 
-## 📁 Project Structure
+**LangGraph Server Notes:**
+- Default port: 2024
+- Configuration file: `langgraph.json`
+- Graph ID: `agent`
+- Supports hot reload and real-time debugging
+- Provides Swagger API documentation
+
+### Basic Usage
+
+### Feature Examples
+
+#### 1. Topology Management
+```python
+# Get current topology information
+topology = agent.invoke("Show current network topology")
+
+# Create new node
+agent.invoke("Create a router node named R3")
+
+# Connect devices
+agent.invoke("Connect R3's Gi0/0 interface to R1's Gi0/1 interface")
+```
+
+#### 2. Device Configuration
+```python
+# Batch configure interfaces
+agent.invoke("""
+Configure loopback interfaces for all routers:
+- R1: Loopback0 IP 1.1.1.1/32
+- R2: Loopback0 IP 2.2.2.2/32
+""")
+
+# Configure routing protocols
+agent.invoke("Enable OSPF process 1 on all routers and advertise all interfaces")
+```
+
+#### 3. Network Diagnostics
+```python
+# Check device status
+agent.invoke("Check the running status and CPU usage of all devices")
+
+# Network connectivity testing
+agent.invoke("Test network connectivity from R1 to R2")
+
+# Routing table check
+agent.invoke("Show routing tables of all routers")
+```
+
+### Supported Command Types
+
+#### Show Commands (Read-only)
+- `show version`
+- `show ip interface brief`
+- `show running-config`
+- `show ip route`
+- `show ospf neighbor`
+- `show interfaces status`
+
+#### Configuration Commands (Use with caution)
+- `interface <interface>`
+- `ip address <ip> <mask>`
+- `router ospf <process>`
+- `network <network> area <area>`
+- `description <text>`
+
+## Project Structure
 
 ```
 gns3-copilot/
-├── gns3_copilot.py          # Main Chainlit application
-├── static_server.py         # FastAPI static report server
-├── requirements.txt         # Python dependencies
-├── LICENSE                  # MIT License
-├── .env                    # Environment variables (optional)
-├── README.md               # This file
-├── README_ZH.md            # Chinese documentation
-├── chainlit.md             # Chainlit interface documentation
-├── log/                    # Application logs
-├── reports/                # Generated technical reports
-├── process_analyzer/       # Process analysis module
+├── agent/                    # Core agent modules
+│   └── gns3_copilot.py      # Main agent implementation
+├── tools/                    # Tool set
 │   ├── __init__.py
-│   ├── process_callback.py
-│   ├── langchain_callback.py
-│   ├── documentation_generator.py
-│   └── README.md
-├── prompts/                # AI prompt templates
-├── tools/                  # Tool implementations
-└── docs/                   # Additional documentation
+│   ├── config_tools_nornir.py      # Configuration tools
+│   ├── display_tools_nornir.py     # Display tools
+│   ├── gns3_topology_reader.py     # Topology reader
+│   ├── gns3_create_node.py         # Node creation
+│   ├── gns3_create_link.py         # Link creation
+│   ├── gns3_start_node.py          # Node startup
+│   ├── gns3_get_node_temp.py       # Template retrieval
+│   ├── custom_gns3fy.py           # Custom GNS3 client
+│   └── logging_config.py          # Logging configuration
+├── prompts/                  # Prompts
+│   ├── __init__.py
+│   └── react_prompt.py       # System prompts
+├── log/                      # Log directory
+├── requirements.txt          # Dependencies list
+├── .env                     # Environment variables
+└── README.md               # Project documentation
 ```
 
-## 📊 Reports & Documentation
+## Configuration Guide
 
-### Generated Reports
-GNS3 Copilot automatically generates comprehensive technical reports for each session:
+### GNS3 Server Configuration
 
-- **Technical Analysis**: Detailed execution process with tool usage statistics and step-by-step breakdown
-- **Summary Reports**: Quick overview of key points, results, and recommendations
-- **Automatic Sharing**: Reports are automatically shared in the chat interface as clickable links
-- **Historical Tracking**: Complete session history maintained for analysis and debugging
+Ensure GNS3 Server is properly configured:
+- Default port: 3080
+- Enable HTTP API
+- Configure appropriate emulator images
 
-### Accessing Reports
-- **In Chat**: Click the report links automatically shared after each session
-- **Web Browser**: Access reports via the static server at `http://localhost:8001/reports/`
-- **File System**: Reports are saved in the `reports/` directory with timestamp-based naming
+### Logging Configuration
 
-### Report Server
-Start the static report server for easy browsing:
-```bash
-python static_server.py
+The project uses a unified logging system, with log files saved in the `log/` directory:
+- `gns3_copilot.log`: Main application log
+- `display_tools_nornir.log`: Display tools log
+- `config_tools_nornir.log`: Configuration tools log
+
+### AI Model Configuration
+
+Supports multiple AI models, switch in `agent/gns3_copilot.py`:
+
+```python
+# Use DeepSeek (default)
+llm = ChatDeepSeek(model="deepseek-chat", temperature=0, streaming=True)
+
+# Use Google Gemini
+llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
 ```
-Access at: `http://localhost:8001`
 
-## 🐛 Troubleshooting
+## Security Considerations
+
+⚠️ **Important Security Notes**:
+
+1. **Configuration Command Security**: Configuration tools can modify device configurations. Before use, ensure:
+   - Verify in test environment
+   - Backup important configurations
+   - Understand the purpose of each command
+
+2. **API Key Protection**: 
+   - Do not commit `.env` file to version control
+   - Rotate API keys regularly
+   - Follow principle of least privilege
+
+3. **Network Isolation**: Recommended to use in isolated test environment
+
+## Troubleshooting
 
 ### Common Issues
 
-1. **Connection refused to GNS3 server**
-   - Ensure GNS3 server is running on `localhost:3080`
+1. **GNS3 Connection Failure**
+   - Check if GNS3 Server is running
+   - Confirm port 3080 is accessible
    - Check firewall settings
 
-2. **Device not found in topology**
-   - Verify device names match exactly
-   - Ensure devices have console ports configured
+2. **Device Connection Issues**
+   - Confirm device console ports are correct
+   - Check if devices are started
+   - Verify Telnet connection
 
-3. **Command execution timeout**
-   - Check device responsiveness
-   - Increase timeout settings if needed
+3. **AI Model Call Failure**
+   - Check if API keys are correct
+   - Confirm network connection
+   - Verify API quota
 
-4. **Report generation failures**
-   - Check `reports/` directory permissions and disk space
-   - Verify FastAPI server is running if accessing reports via web interface
+### Debug Mode
 
-5. **Authentication issues**
-   - Default credentials: `admin` / `admin`
-   - Check authentication logs in `gns3_copilot.log`
+Enable detailed logging:
+```python
+import logging
+logging.basicConfig(level=logging.DEBUG)
+```
 
-6. **Static server not accessible**
-   - Ensure port 8001 is not blocked by firewall
-   - Check `FASTAPI_HOST` and `FASTAPI_PORT` environment variables
+## Contributing Guide
 
-### Logs
-Check the `log/` directory for detailed operation logs:
-- `gns3_copilot.log` - Main application logs and session management
-- `config_tools_nornir.log` - Multi-device configuration command executions (Nornir-based)
-- `display_tools_nornir.log` - Multi-device display command executions (Nornir-based)
-- `gns3_topology_reader.log` - GNS3 topology discovery and API interactions
-- Other tool-specific log files
+Contributions are welcome! Please follow these steps:
 
-## 📚 Additional Documentation
+1. Fork the project
+2. Create feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-- **[API Reference](docs/API_REFERENCE.md)** - Detailed API documentation for all tools and modules
-- **[Contributing Guide](docs/CONTRIBUTING.md)** - Development contribution guidelines
-- **[Process Analyzer](process_analyzer/README.md)** - Process analyzer module documentation
-- **[README_ZH.md](README_ZH.md)** - Chinese documentation
+## License
 
-## 📄 License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-This project is open source and available under the [MIT License](LICENSE).
+## Contact
 
-## 🙏 Acknowledgments
+- Project Homepage: https://github.com/yueguobin/gns3-copilot
+- Issue Tracker: https://github.com/yueguobin/gns3-copilot/issues
 
-- **GNS3 Team** for the excellent network simulation platform
-- **LangChain** for the powerful AI agent framework
-- **DeepSeek** for the AI language model capabilities
-- **Chainlit** for the conversational UI framework
-- **Netmiko** for network device communication
-- **Nornir** for concurrent multi-device automation
+
+## Changelog
+
+### Development Version (October 20, 2025)
+- Updated to use langchain 1.0.0 version
+- Removed custom callback functions and report generation features
+- Removed chainlit UI interface
+- Using langchain studio
 
 ---
 
-**Version**: 1.0.0 - Stable release with full feature support
+**Disclaimer**: This tool is intended for educational and testing purposes only. Before using in production environments, please test thoroughly and ensure compliance with your security policies.

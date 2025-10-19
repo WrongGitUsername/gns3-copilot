@@ -1,20 +1,16 @@
 # GNS3 Copilot Dependencies
 # Core AI and Automation Framework
 langchain>=1.0.0
-langchain-classic>=1.0.0
-langchain-deepseek>=0.1.0
-langchain-community>=0.0.20
+langchain-deepseek>=1.0.0
 langchain-google-genai>=1.0.0
-
-# Web Interface (Chainlit for conversational UI)
-chainlit>=1.0.0
+langchain-core>=1.0.0
 
 # Network Automation
 netmiko>=4.1.2
 nornir>=3.3.0
 nornir-netmiko>=0.2.0
 nornir-utils>=0.2.0
-nornir-salt>=0.22.0
+nornir_salt>=0.22.5
 
 # Environment Management
 python-dotenv>=1.0.0
@@ -24,22 +20,3 @@ requests>=2.31.0
 
 # Data Validation
 pydantic>=2.0.0
-
-# File and Data Processing (for process analyzer)
-# (Standard library dependencies - no external packages needed)
-# json, logging, pprint, time, math, os, functools, urllib.parse
-# pathlib, datetime, re, sys, traceback, typing
-
-# Markdown to HTML Conversion
-markdown>=3.4.0
-pygments>=2.15.0
-
-# FastAPI for static file serving
-fastapi>=0.104.0
-uvicorn>=0.24.0
-
-# Development Dependencies (optional)
-# pylint>=2.17.0  # For code linting
-# pytest>=7.4.0   # For testing
-# black>=23.0.0   # For code formatting
-# mypy>=1.0.0     # For type checking
