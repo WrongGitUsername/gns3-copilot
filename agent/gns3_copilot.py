@@ -9,7 +9,6 @@ and manage GNS3 topology operations.
 
 from dotenv import load_dotenv
 from langchain.agents import create_agent
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_deepseek import ChatDeepSeek
 from tools.display_tools_nornir import ExecuteMultipleDeviceCommands
 from tools.config_tools_nornir import ExecuteMultipleDeviceConfigCommands
@@ -28,7 +27,6 @@ logger = setup_logger("gns3_copilot", log_file="log/gns3_copilot.log")
 
 # Initialize the DeepSeek language model
 llm = ChatDeepSeek(model="deepseek-chat", temperature=0, streaming=True)
-#llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
 
 # Define the available tools for the agent
 tools = [
