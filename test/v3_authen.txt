@@ -1,0 +1,16 @@
+curl -X POST 
+http://192.168.88.98/v3/access/users/authenticate 
+-d '{"username":"admin","password":"admin"}' 
+-H "Content-Type:application/json"
+
+{
+"access_token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTc2MTE0MDc2OX0.LHKoRq8loF2BbnMgFVc5SI047J0yBIAmZGtE7t-qsU4",
+"token_type":"bearer"
+}
+
+curl -X POST 
+http://192.168.88.98/v3/access/users/authenticate 
+-d '{"username":"admin","password":"admina"}' 
+-H "Content-Type:application/json"
+
+{"message":"Authentication was unsuccessful."}
