@@ -145,7 +145,7 @@ class Gns3Connector:
                 self.access_token = auth_result["access_token"]
                 # Update session with new token
                 self.session.headers["Authorization"] = f"Bearer {self.access_token}"
-                print(f"Successfully authenticated to v3 API, token obtained")
+                #print(f"Successfully authenticated to v3 API, token obtained")
             else:
                 raise HTTPError(f"v3 API authentication failed: {response.status_code} - {response.text}")
         except Exception as e:
