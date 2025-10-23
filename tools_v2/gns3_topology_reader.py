@@ -2,13 +2,8 @@
 This module provides a LangChain BaseTool to retrieve the topology of the currently open GNS3 project.
 """
 import logging
-from langchain_core.tools import BaseTool
-try:
-    # For external imports (from test directory, etc.)
-    from tools.custom_gns3fy import Gns3Connector, Project
-except ImportError:
-    # For internal imports (within tools package)
-    from .custom_gns3fy import Gns3Connector, Project
+from langchain.tools import BaseTool
+from .custom_gns3fy import Gns3Connector, Project
 from .logging_config import setup_tool_logger
 
 # Configure logging
