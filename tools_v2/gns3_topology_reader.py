@@ -2,12 +2,17 @@
 This module provides a LangChain BaseTool to retrieve the topology of the currently open GNS3 project.
 """
 import logging
+import os
+from dotenv import load_dotenv
 from langchain.tools import BaseTool
 from .custom_gns3fy import Gns3Connector, Project
 from .logging_config import setup_tool_logger
 
 # Configure logging
 logger = setup_tool_logger("gns3_topology_reader")
+
+# load environment variables
+load_dotenv()
 
 # Define LangChain tool class
 class GNS3TopologyTool(BaseTool):
@@ -70,7 +75,7 @@ class GNS3TopologyTool(BaseTool):
         """
 
         try:
-            server = Gns3Connector(url="http://localhost:3080/")
+            server = Gns3Connector(url=os.getenv("GNS3_SERVER_URL"))
             projects = server.projects_summary(is_print=False)
 
             # Check if any projects exist

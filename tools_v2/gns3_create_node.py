@@ -1,5 +1,7 @@
 import json
 import logging
+import os
+from dotenv import load_dotenv
 from pprint import pprint
 from langchain.tools import BaseTool
 from .custom_gns3fy import Gns3Connector, Node, Project
@@ -7,6 +9,9 @@ from .logging_config import setup_tool_logger
 
 # Configure logging
 logger = setup_tool_logger("gns3_create_node_tool")
+
+# Load environment variables
+load_dotenv()
 
 class GNS3CreateNodeTool(BaseTool):
     """
@@ -120,8 +125,8 @@ class GNS3CreateNodeTool(BaseTool):
                     return {"error": f"Node {i+1} missing or invalid template_id, x, or y."}
 
             # Initialize Gns3Connector
-            logger.info("Connecting to GNS3 server at http://localhost:3080...")
-            gns3_server = Gns3Connector(url="http://localhost:3080")
+            logger.info("Connecting to GNS3 server at %s...", os.getenv("GNS3_SERVER_URL"))
+            gns3_server = Gns3Connector(url=os.getenv("GNS3_SERVER_URL"))
 
             # Create nodes
             logger.info("Creating %d nodes in project %s...", len(nodes), project_id)

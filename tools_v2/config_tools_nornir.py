@@ -3,6 +3,8 @@ This module provides a tool to execute configuration commands on multiple device
 """
 import json
 import logging
+import os
+from dotenv import load_dotenv
 from typing import List, Dict, Any
 from nornir import InitNornir
 from nornir.core.task import Task, Result
@@ -15,14 +17,17 @@ from .logging_config import setup_tool_logger
 # config log
 logger = setup_tool_logger("config_tools_nornir")
 
+# Load environment variables
+load_dotenv()
+
 # Nornir configuration groups
 groups_data = {
     "cisco_IOSv_telnet": {
         "platform": "cisco_ios",
-        "hostname": "127.0.0.1",
+        "hostname": os.getenv("GNS3_SERVER_HOST"),
         "timeout": 120,
-        "username": "",
-        "password": "",
+        "username": os.getenv("GNS3_SERVER_USERNAME"),
+        "password": os.getenv("GNS3_SERVER_PASSWORD"),
         "connection_options": {
             "netmiko": {
                 "extras": {

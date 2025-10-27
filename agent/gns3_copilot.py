@@ -26,7 +26,14 @@ load_dotenv()
 logger = setup_logger("gns3_copilot", log_file="log/gns3_copilot.log")
 
 # Initialize the DeepSeek language model
-llm = ChatDeepSeek(model="deepseek-chat", temperature=0, streaming=True)
+llm = ChatDeepSeek(
+    model="deepseek-chat",
+    temperature=0,
+    streaming=True,
+    timeout=60,
+    max_retries=3,
+    request_timeout=30
+)
 
 # Define the available tools for the agent
 tools = [

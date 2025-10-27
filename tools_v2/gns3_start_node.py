@@ -1,12 +1,17 @@
 import json
 import logging
 import time
+import os
+from dotenv import load_dotenv
 from langchain.tools import BaseTool
 from .custom_gns3fy import Gns3Connector, Node
 from .logging_config import setup_tool_logger
 
 # Configure logging
 logger = setup_tool_logger("gns3_start_node_tool")
+
+# Load environment variables
+load_dotenv()
 
 def show_progress_bar(duration=120, interval=1, node_count=1):
     """
@@ -84,8 +89,8 @@ class GNS3StartNodeTool(BaseTool):
                 return {"error": "node_ids must be a list."}
 
             # Initialize Gns3Connector
-            logger.info("Connecting to GNS3 server at http://localhost:3080...")
-            gns3_server = Gns3Connector(url="http://localhost:3080")
+            logger.info("Connecting to GNS3 server at %s...", os.getenv("GNS3_SERVER_URL"))
+            gns3_server = Gns3Connector(url=os.getenv("GNS3_SERVER_URL"))
 
             # First loop: Send start commands for all nodes
             logger.info("Sending start commands for %d nodes in project %s...", len(node_ids), project_id)
