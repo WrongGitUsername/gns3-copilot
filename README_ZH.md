@@ -9,7 +9,7 @@ GNS3 Copilot 是一个强大的网络自动化工具，集成了多种AI模型�
 ### 核心功能
 
 - 🤖 **AI驱动的对话界面**: 支持自然语言交互，理解网络自动化需求
-- 🔧 **设备配置管理**: 批量配置网络设备，支持多种厂商设备
+- 🔧 **设备配置管理**: 批量配置网络设备，支持多种厂商设备（目前仅测试了Cisco IOSv镜像）
 - 📊 **拓扑管理**: 自动创建、修改和管理GNS3网络拓扑
 - 🔍 **网络诊断**: 智能网络故障排查和性能监控
 - 🌐 **多LLM支持**: 集成DeepSeek、Google Gemini等多种AI模型
@@ -18,9 +18,9 @@ GNS3 Copilot 是一个强大的网络自动化工具，集成了多种AI模型�
 
 ### 核心组件
 
-- **Agent Framework**: 基于LangChain v1.0构建的智能代理系统
-- **Network Automation**: 使用Nornir和Netmiko进行网络设备自动化
-- **GNS3 Integration**: 自定义GNS3 API客户端，支持拓扑和节点管理
+- **Agent Framework**: 基于LangChain v1.0.2和LangGraph构建的智能代理系统
+- **Network Automation**: 使用Nornir v3.5.0和Netmiko v4.6.0进行网络设备自动化
+- **GNS3 Integration**: 自定义GNS3 API客户端，支持拓扑和节点管理，具备JWT认证功能
 - **AI Models**: 支持DeepSeek Chat和Google Gemini等大语言模型
 
 ### 工具集
@@ -68,8 +68,6 @@ pip install -r requirements.txt
 创建 `.env` 文件并配置API密钥：
 ```env
 DEEPSEEK_API_KEY="your_deepseek_api_key"
-GOOGLE_API_KEY="your_google_api_key"
-OPENAI_API_KEY="your_openai_api_key"  # 可选
 ```
 
 5. **启动GNS3 Server**
@@ -180,7 +178,7 @@ agent.invoke("显示所有路由器的路由表")
 gns3-copilot/
 ├── agent/                    # 核心代理模块
 │   └── gns3_copilot.py      # 主代理实现
-├── tools/                    # 工具集
+├── tools_v2/                 # 工具集 (v2)
 │   ├── __init__.py
 │   ├── config_tools_nornir.py      # 配置工具
 │   ├── display_tools_nornir.py     # 显示工具
@@ -194,11 +192,41 @@ gns3-copilot/
 ├── prompts/                  # 提示词
 │   ├── __init__.py
 │   └── react_prompt.py       # 系统提示词
+├── test/                     # 测试文件
 ├── log/                      # 日志目录
 ├── requirements.txt          # 依赖列表
+├── langgraph.json           # LangGraph配置
 ├── .env                     # 环境变量
 └── README.md               # 项目文档
 ```
+
+## 依赖说明
+
+### 核心依赖
+
+- **AI框架**: 
+  - `langchain>=1.0.2` - 核心LangChain框架
+  - `langchain-core>=1.0.1` - LangChain核心组件
+  - `langchain-deepseek>=1.0.0` - DeepSeek集成
+  - `langchain-google-genai>=3.0.0` - Google Gemini集成
+  - `langgraph>=1.0.0` - LangGraph代理工作流
+  - `langgraph-cli>=0.4.4` - LangGraph CLI工具
+
+- **网络自动化**:
+  - `netmiko>=4.6.0` - 网络设备自动化
+  - `nornir>=3.5.0` - 网络自动化框架
+  - `nornir-netmiko>=1.0.1` - Nornir-Netmiko集成
+  - `nornir-utils>=0.2.0` - Nornir工具
+  - `nornir_salt>=0.22.5` - Nornir Salt集成
+
+- **HTTP和认证**:
+  - `requests>=2.32.5` - HTTP请求
+  - `urllib3>=2.5.0` - HTTP库，支持SSL
+  - `PyJWT>=2.10.1` - JWT认证，用于GNS3 API v3
+
+- **数据和环境**:
+  - `pydantic>=2.12.3` - 数据验证
+  - `python-dotenv>=1.2.1` - 环境变量管理
 
 ## 配置说明
 
@@ -208,6 +236,7 @@ gns3-copilot/
 - 默认端口: 3080
 - 启用HTTP API
 - 配置适当的模拟器镜像
+- GNS3 SERVER API v3（JWT认证）API(测试中)
 
 ### 日志配置
 
@@ -223,9 +252,6 @@ gns3-copilot/
 ```python
 # 使用DeepSeek (默认)
 llm = ChatDeepSeek(model="deepseek-chat", temperature=0, streaming=True)
-
-# 使用Google Gemini
-llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
 ```
 
 ## 安全注意事项
@@ -263,6 +289,10 @@ llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
    - 确认网络连接
    - 验证API配额
 
+4. **认证问题**
+   - 对于GNS3 v3，确保JWT令牌正确配置(测试中)
+   - 检查环境变量中的API凭据
+
 ### 调试模式
 
 启用详细日志：
@@ -290,14 +320,20 @@ logging.basicConfig(level=logging.DEBUG)
 - 项目主页: https://github.com/yueguobin/gns3-copilot
 - 问题反馈: https://github.com/yueguobin/gns3-copilot/issues
 
-
 ## 更新日志
 
-### 开发版（2025年10月20日）
+### 版本 1.0.2 (2025年10月27日)
+- 更新所有依赖到最新稳定版本
+- 添加PyJWT和urllib3以支持GNS3 v3 API
+- 添加langgraph-cli以支持LangGraph服务器功能
+- 更新项目结构使用tools_v2目录
+- 增强对GNS3 v2和v3的认证支持
+
+### 版本 1.0.0 (2025年10月20日)
 - 更新使用langchain 1.0.0版本
 - 移除自定义回调函数和报告生成功能
 - 移除chainlit UI界面
-- 使用langchain studio
+- 使用langgraph studio
 
 ---
 

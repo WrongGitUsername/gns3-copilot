@@ -1,22 +1,27 @@
 # GNS3 Copilot Dependencies
 # Core AI and Automation Framework
-langchain>=1.0.0
+langchain>=1.0.2
 langchain-deepseek>=1.0.0
-langchain-google-genai>=1.0.0
-langchain-core>=1.0.0
+langchain-core>=1.0.1
+langgraph>=1.0.0
+langgraph-cli>=0.4.4
 
 # Network Automation
-netmiko>=4.1.2
-nornir>=3.3.0
-nornir-netmiko>=0.2.0
+netmiko>=4.6.0
+nornir>=3.5.0
+nornir-netmiko>=1.0.1
 nornir-utils>=0.2.0
 nornir_salt>=0.22.5
 
 # Environment Management
-python-dotenv>=1.0.0
+python-dotenv>=1.2.1
 
 # HTTP Requests (for GNS3 API)
-requests>=2.31.0
+requests>=2.32.5
+urllib3>=2.5.0
 
 # Data Validation
-pydantic>=2.0.0
+pydantic>=2.12.3
+
+# Authentication
+PyJWT>=2.10.1
