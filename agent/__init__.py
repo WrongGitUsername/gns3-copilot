@@ -12,7 +12,20 @@ from .gns3_copilot import (
     SYSTEM_PROMPT
 )
 
-__version__ = "1.0.0"
+# Dynamic version management
+try:
+    from importlib.metadata import version
+    __version__ = version("gns3-copilot")
+except ImportError:
+    # Fallback for Python < 3.8
+    try:
+        import pkg_resources
+        __version__ = pkg_resources.get_distribution("gns3-copilot").version
+    except Exception:
+        __version__ = "unknown"
+except Exception:
+    __version__ = "unknown"
+
 __author__ = "GNS3 Copilot Team"
 __description__ = "AI-powered network automation assistant for GNS3"
 

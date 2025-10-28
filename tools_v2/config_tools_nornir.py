@@ -2,17 +2,15 @@
 This module provides a tool to execute configuration commands on multiple devices in a GNS3 topology using Nornir.
 """
 import json
-import logging
 import os
 from dotenv import load_dotenv
 from typing import List, Dict, Any
 from nornir import InitNornir
 from nornir.core.task import Task, Result
 from nornir_netmiko.tasks import netmiko_send_config
-from nornir_utils.plugins.functions import print_result
 from langchain.tools import BaseTool
 from .gns3_topology_reader import GNS3TopologyTool
-from .logging_config import setup_tool_logger
+from log_config import setup_tool_logger
 
 # config log
 logger = setup_tool_logger("config_tools_nornir")

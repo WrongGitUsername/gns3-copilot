@@ -1,11 +1,10 @@
 import json
-import logging
 import time
 import os
 from dotenv import load_dotenv
 from langchain.tools import BaseTool
-from .custom_gns3fy import Gns3Connector, Node
-from .logging_config import setup_tool_logger
+from gns3_client import Gns3Connector, Node
+from log_config import setup_tool_logger
 
 # Configure logging
 logger = setup_tool_logger("gns3_start_node_tool")

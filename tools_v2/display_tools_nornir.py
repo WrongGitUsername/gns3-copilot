@@ -11,7 +11,7 @@ from nornir.core.task import Task, Result
 from nornir_netmiko.tasks import netmiko_send_command
 from langchain.tools import BaseTool
 from .gns3_topology_reader import GNS3TopologyTool
-from .logging_config import setup_tool_logger
+from log_config import setup_tool_logger
 
 # config log
 logger = setup_tool_logger("display_tools_nornir")
