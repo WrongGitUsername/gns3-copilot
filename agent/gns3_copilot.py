@@ -17,6 +17,7 @@ from tools_v2 import GNS3LinkTool
 from tools_v2 import GNS3StartNodeTool
 from tools_v2 import ExecuteMultipleDeviceConfigCommands
 from tools_v2 import ExecuteMultipleDeviceCommands
+from tools_v2 import VPCSCommands
 from log_config import setup_logger
 from prompts.react_prompt import SYSTEM_PROMPT
 
@@ -44,6 +45,7 @@ tools = [
     GNS3StartNodeTool(),               # Start GNS3 nodes
     ExecuteMultipleDeviceCommands(),   # Execute show/display commands on multiple devices
     ExecuteMultipleDeviceConfigCommands(),  # Execute configuration commands on multiple devices
+    VPCSCommands(),                    # Execute VPCS commands on multiple devices(not thread)
 ]
 
 # Log application startup

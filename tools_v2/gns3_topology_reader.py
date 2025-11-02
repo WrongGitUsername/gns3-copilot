@@ -116,3 +116,5 @@ if __name__ == "__main__":
     tool = GNS3TopologyTool()
     result = tool._run()
     pprint(result)
+
+    pprint(result['nodes']['PC1'])

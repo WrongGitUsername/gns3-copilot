@@ -5,12 +5,14 @@ This package provides various tools for interacting with GNS3 network simulator,
 - Device configuration command execution
 - Display command execution
 - Multiple device command execution using Nornir
+- VPCS device configuration using Netmiko
 - GNS3 topology reading
 - Node and link management
 
 Main modules:
 - config_tools_nornir: Multiple device configuration command execution tool using Nornir
 - display_tools_nornir: Multiple device command execution tool using Nornir
+- vpcs_tools_nornir: VPCS device configuration tool using Netmiko (sequential execution)
 - gns3_topology_reader: GNS3 topology reading tool
 - gns3_create_node: GNS3 node creation tool
 - gns3_create_link: GNS3 link creation tool
@@ -24,6 +26,7 @@ Author: GNS3 Copilot Team
 # Import main tool classes
 from .config_tools_nornir import ExecuteMultipleDeviceConfigCommands
 from .display_tools_nornir import ExecuteMultipleDeviceCommands
+from .vpcs_tools_netmiko import VPCSCommands
 from .gns3_topology_reader import GNS3TopologyTool
 from .gns3_create_node import GNS3CreateNodeTool
 from .gns3_create_link import GNS3LinkTool
@@ -50,6 +53,7 @@ __author__ = "GNS3 Copilot Team"
 __all__ = [
     "ExecuteMultipleDeviceConfigCommands",
     "ExecuteMultipleDeviceCommands",
+    "VPCSCommands",
     "GNS3TopologyTool",
     "GNS3CreateNodeTool",
     "GNS3LinkTool",
