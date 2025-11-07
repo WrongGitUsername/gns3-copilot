@@ -10,7 +10,7 @@ from nornir import InitNornir
 from nornir.core.task import Task, Result
 from nornir_netmiko.tasks import netmiko_send_command
 from langchain.tools import BaseTool
-from .gns3_topology_reader import GNS3TopologyTool
+from public_model import get_device_ports_from_topology
 from log_config import setup_tool_logger
 
 # config log
@@ -126,28 +126,11 @@ class ExecuteMultipleDeviceCommands(BaseTool):
                     results[cmd] = f"Error executing command '{cmd}': {str(e)}"
             return Result(host=task.host, result=results)
 
-        # Get topology information
-        topo = GNS3TopologyTool()
-        topology = topo._run()
+        # Extract device names list
+        device_names = [device_config["device_name"] for device_config in device_commands_list]
 
-        # Dynamically build hosts_data from topology
-        hosts_data = {}
-        for device_cmd in device_commands_list:
-            device_name = device_cmd["device_name"]
-
-            # Check if device exists in topology
-            if not topology or device_name not in topology.get("nodes", {}):
-                continue
-
-            node_info = topology["nodes"][device_name]
-            if "console_port" not in node_info:
-                continue
-
-            # Add device to hosts_data
-            hosts_data[device_name] = {
-                "port": node_info["console_port"],
-                "groups": ["cisco_IOSv_telnet"]
-            }
+        # Use the new public function to get device port information
+        hosts_data = get_device_ports_from_topology(device_names)
 
         # Dynamically initialize Nornir
         try:
@@ -252,7 +235,7 @@ if __name__ == "__main__":
             "commands": ["show version", "show ip interface brief"]
         },
         {
-            "device_name": "CiscoIOSv-3",
+            "device_name": "CiscoIOSv-1",
             "commands": ["show version", "show ip interface brief"]
         }
     ]

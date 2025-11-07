@@ -10,6 +10,7 @@ Main classes:
 - Project: GNS3 Project management
 - Node: GNS3 Node management  
 - Link: GNS3 Link management
+- GNS3TopologyTool: GNS3 topology reading tool
 """
 
 from .custom_gns3fy import (
@@ -21,6 +22,7 @@ from .custom_gns3fy import (
     CONSOLE_TYPES,
     LINK_TYPES,
 )
+from .gns3_topology_reader import GNS3TopologyTool
 
 # Dynamic version management
 try:
@@ -46,4 +48,5 @@ __all__ = [
     "NODE_TYPES",
     "CONSOLE_TYPES", 
     "LINK_TYPES",
+    "GNS3TopologyTool",
 ]

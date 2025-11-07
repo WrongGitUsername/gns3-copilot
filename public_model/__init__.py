@@ -1,0 +1,35 @@
+"""
+GNS3 Copilot Public Model Package
+
+This package provides reusable public models and utilities for GNS3 network automation tasks.
+It contains common functionality that can be shared across different tools and modules.
+
+Main modules:
+- get_gns3_device_port: Device port information retrieval from GNS3 topology
+
+Author: GNS3 Copilot Team
+"""
+
+# Import main utility functions
+from .get_gns3_device_port import get_device_ports_from_topology
+
+# Dynamic version management
+try:
+    from importlib.metadata import version
+    __version__ = version("gns3-copilot")
+except ImportError:
+    # Fallback for Python < 3.8
+    try:
+        import pkg_resources
+        __version__ = pkg_resources.get_distribution("gns3-copilot").version
+    except Exception:
+        __version__ = "unknown"
+except Exception:
+    __version__ = "unknown"
+
+__author__ = "GNS3 Copilot Team"
+
+# Export main utility functions
+__all__ = [
+    "get_device_ports_from_topology",
+]

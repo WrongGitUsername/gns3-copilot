@@ -58,6 +58,7 @@ dependencies = [
     "urllib3>=2.5.0",
     "pydantic>=2.12.3",
     "PyJWT>=2.10.1",
+    "telnetlib3>=2.0.8",
 ]
 
 [project.optional-dependencies]
@@ -76,13 +77,15 @@ Documentation = "https://github.com/yueguobin/gns3-copilot/blob/main/README.md"
 "Bug Reports" = "https://github.com/yueguobin/gns3-copilot/issues"
 
 [tool.setuptools]
-packages = ["agent", "tools_v2", "prompts", "gns3_client", "log_config"]
+packages = ["agent", "tools_v2", "prompts", "gns3_client", "log_config", "public_model"]
 include-package-data = true
 
 [tool.setuptools.package-data]
 "*" = ["*.json", "*.yaml", "*.yml", "*.txt"]
 "prompts" = ["*.py"]
 "tools_v2" = ["*.py"]
+"public_model" = ["*.py"]
+"gns3_client" = ["*.py"]
 
 [tool.black]
 line-length = 88
@@ -120,7 +123,7 @@ python_functions = [
 ]
 
 [tool.coverage.run]
-source = ["agent", "tools_v2", "prompts"]
+source = ["agent", "tools_v2", "prompts", "public_model", "gns3_client"]
 omit = [
     "*/tests/*",
     "*/test/*",

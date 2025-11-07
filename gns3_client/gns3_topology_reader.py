@@ -1,5 +1,6 @@
 """
-This module provides a LangChain BaseTool to retrieve the topology of the currently open GNS3 project.
+This module provides a LangChain BaseTool to retrieve the topology of the
+ currently open GNS3 project.
 """
 import os
 from dotenv import load_dotenv
@@ -15,6 +16,7 @@ load_dotenv()
 
 # Define LangChain tool class
 class GNS3TopologyTool(BaseTool):
+    """LangChain tool for retrieving GNS3 project topology information."""
     name: str = "gns3_topology_reader"
     description: str = """
     Retrieves the topology of the currently open GNS3 project.
@@ -56,7 +58,9 @@ class GNS3TopologyTool(BaseTool):
     },
     "links": [('R-1', 'Gi0/0', 'R-2', 'Gi0/0')]
     }
-    **Node**: Requires a running GNS3 server at the specified URL and an open project.Use the ports field(e.g., name: "Gi0/0") to provide input for the create_gns3_link tool.
+    **Node**: 
+    Requires a running GNS3 server at the specified URL and an open project.
+    Use the ports field(e.g., name: "Gi0/0") to provide input for the create_gns3_link tool.
     """
 
     def _run(self, tool_input=None, run_manager=None) -> dict:
@@ -107,7 +111,7 @@ class GNS3TopologyTool(BaseTool):
             return topology
 
         except Exception as e:
-            logger.error(f"Error retrieving GNS3 topology: {str(e)}")
+            logger.error("Error retrieving GNS3 topology: %s", str(e))
             return {"error": f"Failed to retrieve topology: {str(e)}"}
 
 if __name__ == "__main__":

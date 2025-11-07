@@ -9,7 +9,7 @@ from nornir import InitNornir
 from nornir.core.task import Task, Result
 from nornir_netmiko.tasks import netmiko_send_config
 from langchain.tools import BaseTool
-from .gns3_topology_reader import GNS3TopologyTool
+from public_model import get_device_ports_from_topology
 from log_config import setup_tool_logger
 
 # config log
@@ -132,29 +132,12 @@ class ExecuteMultipleDeviceConfigCommands(BaseTool):
             except Exception as e:
                 return Result(host=task.host, result=f"Error executing configuration commands: {str(e)}", failed=True)
 
-        # Get topology information
-        topo = GNS3TopologyTool()
-        topology = topo._run()
-        
-        # Dynamically build hosts_data from topology
-        hosts_data = {}
-        for device_config in device_configs_list:
-            device_name = device_config["device_name"]
-            
-            # Check if device exists in topology
-            if not topology or device_name not in topology.get("nodes", {}):
-                continue
-                
-            node_info = topology["nodes"][device_name]
-            if "console_port" not in node_info:
-                continue
-                
-            # Add device to hosts_data
-            hosts_data[device_name] = {
-                "port": node_info["console_port"],
-                "groups": ["cisco_IOSv_telnet"]
-            }
-        
+        # Extract device names list
+        device_names = [device_config["device_name"] for device_config in device_configs_list]
+
+        # Use the new public function to get device port information
+        hosts_data = get_device_ports_from_topology(device_names)
+
         # Dynamically initialize Nornir
         try:
             dynamic_nr = InitNornir(
@@ -253,7 +236,7 @@ if __name__ == "__main__":
     # Example usage
     device_configs = [
         {
-            "device_name": "R-1",
+            "device_name": "CiscoIOSvL2-1",
             "config_commands": [
                 "interface Loopback101",
                 "description Test interface by config tool",
@@ -261,7 +244,7 @@ if __name__ == "__main__":
             ]
         },
         {
-            "device_name": "R-2",
+            "device_name": "CiscoIOSvL2-2",
             "config_commands": [
                 "interface Loopback102",
                 "description Test interface by config tool",
