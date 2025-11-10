@@ -1,10 +1,11 @@
 """
-This module provides a tool to execute configuration commands on multiple devices in a GNS3 topology using Nornir.
+This module provides a tool to execute configuration commands on multiple devices
+ in a GNS3 topology using Nornir.
 """
 import json
 import os
-from dotenv import load_dotenv
 from typing import List, Dict, Any
+from dotenv import load_dotenv
 from nornir import InitNornir
 from nornir.core.task import Task, Result
 from nornir_netmiko.tasks import netmiko_send_config
@@ -45,10 +46,12 @@ defaults = {
 class ExecuteMultipleDeviceConfigCommands(BaseTool):
     """
     A tool to execute configuration commands on multiple devices in a GNS3 topology using Nornir.
-    This class uses Nornir to manage connections and execute configuration commands on multiple devices concurrently.
+    This class uses Nornir to manage connections and execute configuration commands
+     on multiple devices concurrently.
 
     IMPORTANT SAFETY NOTE:
-    This tool is intended for configuration changes only. Use extreme caution when executing configuration commands.
+    This tool is intended for configuration changes only. Use extreme caution when
+     executing configuration commands.
     """
 
     name: str = "execute_multiple_device_config_commands"
@@ -94,12 +97,101 @@ class ExecuteMultipleDeviceConfigCommands(BaseTool):
         Executes configuration commands on multiple devices in the current GNS3 topology.
 
         Args:
-            tool_input (str): A JSON string containing a list of device configuration commands to execute.
+            tool_input (str): A JSON string containing a list of device
+             configuration commands to execute.
 
         Returns:
-            List[Dict[str, Any]]: A list of dictionaries containing device names and configuration results.
+            List[Dict[str, Any]]: A list of dictionaries containing device names and
+             configuration results.
         """
+        # Validate input
+        device_configs_list = self._validate_tool_input(tool_input)
+        if (isinstance(device_configs_list, list)
+            and len(device_configs_list) > 0
+            and "error"
+            in device_configs_list[0]
+            ):
+            return device_configs_list
 
+        # Create a mapping of device names to their configuration commands
+        device_configs_map = self._configs_map(device_configs_list)
+
+        # Prepare device hosts data
+        try:
+            hosts_data = self._prepare_device_hosts_data(device_configs_list)
+        except ValueError as e:
+            logger.error("Failed to prepare device hosts data: %s", e)
+            return [{"error": str(e)}]
+
+        # Initialize Nornir
+        try:
+            dynamic_nr = self._initialize_nornir(hosts_data)
+        except ValueError as e:
+            logger.error("Failed to initialize Nornir: %s", e)
+            return [{"error": str(e)}]
+
+        results = []
+
+        # Execute all devices concurrently in a single run
+        try:
+            task_result = dynamic_nr.run(
+                task=self._run_all_device_configs_with_single_retry,
+                device_configs_map=device_configs_map
+            )
+
+            # Process results for all devices
+            results = self._process_task_results(device_configs_list, hosts_data, task_result)
+
+        except Exception as e:
+            # Overall execution failed
+            logger.error("Error executing configurations on all devices: %s", e)
+            return [{"error": f"Execution error: {str(e)}"}]
+
+        logger.info(
+            "Multiple device configuration execution completed. Results: %s",
+            json.dumps(results, indent=2, ensure_ascii=False)
+        )
+
+        return results
+
+    def _run_all_device_configs_with_single_retry(
+        self,
+        task: Task,
+        device_configs_map: Dict[str, List[str]]
+        ) -> Result:
+        """Execute configuration commands with single retry mechanism."""
+        device_name = task.host.name
+        config_commands = device_configs_map.get(device_name, [])
+
+        if not config_commands:
+            return Result(host=task.host, result="No configuration commands to execute")
+
+        try:
+            _result = task.run(
+                task=netmiko_send_config,
+                config_commands=config_commands
+            )
+            return Result(host=task.host, result=_result.result)
+
+        except Exception as e:
+        # Handle prompt detection issues with Cisco IOSv L2 images where the '#' prompt character
+        # may be delayed, causing Netmiko prompt detection failures. Implements retry logic.
+            if "netmiko_send_config (failed)" in str(e):
+                _result = task.run(
+                    task=netmiko_send_config,
+                    config_commands=config_commands
+                )
+                return Result(host=task.host, result=_result.result)
+
+            logger.error("Configuration failed for device %s: %s", device_name, e)
+            return Result(
+                host=task.host,
+                result=f"Configuration failed (Unhandled Exception): {str(e)}",
+                failed=True
+            )
+
+    def _validate_tool_input(self, tool_input):
+        """Validate and parse the JSON input for device configuration commands."""
         try:
             device_configs_list = json.loads(tool_input)
             if not isinstance(device_configs_list, list):
@@ -108,39 +200,42 @@ class ExecuteMultipleDeviceConfigCommands(BaseTool):
             logger.error("Invalid JSON input: %s", e)
             return [{"error": f"Invalid JSON input: {e}"}]
 
-        # Create a mapping of device names to their configuration commands
+        return device_configs_list
+
+    def _configs_map(self, device_config_list):
+        """Create a mapping of device names to their configuration commands."""
         device_configs_map = {}
-        for device_config in device_configs_list:
+        for device_config in device_config_list:
             device_name = device_config["device_name"]
             config_commands = device_config["config_commands"]
             device_configs_map[device_name] = config_commands
 
-        # Task to execute configuration commands for all devices concurrently
-        def run_all_device_configs(task: Task) -> Result:
-            """Execute configuration commands for a device based on device_configs_map"""
-            device_name = task.host.name
-            config_commands = device_configs_map.get(device_name, [])
-            
-            try:
-                # Use netmiko_send_config for configuration commands
-                # This method automatically handles entering and exiting configuration mode
-                result = task.run(
-                    task=netmiko_send_config,
-                    config_commands=config_commands
-                )
-                return Result(host=task.host, result=result.result)
-            except Exception as e:
-                return Result(host=task.host, result=f"Error executing configuration commands: {str(e)}", failed=True)
+        return device_configs_map
 
+    def _prepare_device_hosts_data(self, device_config_list):
+        """Prepare device hosts data from topology information."""
         # Extract device names list
-        device_names = [device_config["device_name"] for device_config in device_configs_list]
+        device_names = [device_config["device_name"] for device_config in device_config_list]
 
-        # Use the new public function to get device port information
+        # Get device port information
         hosts_data = get_device_ports_from_topology(device_names)
 
-        # Dynamically initialize Nornir
+        if not hosts_data:
+            raise ValueError(
+                "Failed to get device information from topology or no valid devices found"
+                )
+
+        # Check for missing devices
+        missing_devices = set(device_names) - set(hosts_data.keys())
+        if missing_devices:
+            logger.warning("Some devices not found in topology: %s", missing_devices)
+
+        return hosts_data
+
+    def _initialize_nornir(self, hosts_data):
+        """Initialize Nornir with the provided hosts data."""
         try:
-            dynamic_nr = InitNornir(
+            return InitNornir(
                 inventory={
                     "plugin": "DictInventory",
                     "options": {
@@ -156,104 +251,90 @@ class ExecuteMultipleDeviceConfigCommands(BaseTool):
                     },
                 },
                 logging={
-                    "enabled": False # Disable Nornir's automatic logging
+                    "enabled": False
                 },
             )
         except Exception as e:
             logger.error("Failed to initialize Nornir: %s", e)
-            return [{"error": f"Failed to initialize Nornir: {e}"}]
-        
+            raise ValueError(f"Failed to initialize Nornir: {e}") from e
+
+    def _process_task_results(self, device_configs_list, hosts_data, task_result):
+        """Process the task results and format them for return."""
         results = []
-        
-        # Execute all devices concurrently in a single run
-        try:
-            task_result = dynamic_nr.run(
-                task=run_all_device_configs
-            )
-            
-            # Process results for all devices
-            for device_config in device_configs_list:
-                device_name = device_config["device_name"]
-                config_commands = device_config["config_commands"]
-                
-                # Check if device is in dynamically built hosts_data
-                if device_name not in hosts_data:
-                    # Device not found in topology or missing console_port
-                    device_result = {
-                        "device_name": device_name,
-                        "status": "failed",
-                        "error": f"Device '{device_name}' not found in topology or missing console_port"
-                    }
-                    results.append(device_result)
-                    continue
-                
-                # Check if device has results
-                if device_name not in task_result:
-                    # Device not found in task results
-                    device_result = {
-                        "device_name": device_name,
-                        "status": "failed",
-                        "error": f"Device '{device_name}' not found in task results"
-                    }
-                    results.append(device_result)
-                    continue
-                
-                # Process task results
-                multi_result = task_result[device_name]
-                device_result = {"device_name": device_name}
-                
-                if multi_result[0].failed:
-                    # Task execution failed
-                    device_result["status"] = "failed"
-                    device_result["error"] = f"Configuration execution failed: {multi_result[0].exception}"
-                    device_result["output"] = multi_result[0].result
-                else:
-                    # Task execution successful
-                    device_result["status"] = "success"
-                    device_result["output"] = multi_result[0].result
-                    device_result["config_commands"] = config_commands
-                
-                results.append(device_result)
-                
-        except Exception as e:
-            # Overall execution failed
-            logger.error("Error executing configuration commands on all devices: %s", e)
-            for device_config in device_configs_list:
-                device_name = device_config["device_name"]
+
+        for device_config in device_configs_list:
+            device_name = device_config["device_name"]
+            config_commands = device_config["config_commands"]
+
+            # Check if device is in topology
+            if device_name not in hosts_data:
                 device_result = {
                     "device_name": device_name,
                     "status": "failed",
-                    "error": f"Execution error: {str(e)}"
+                    "error": (
+                        f"Device '{device_name}' not found in topology or missing console_port"
+                        )
                 }
                 results.append(device_result)
-        
-        logger.info("Multiple device configuration execution completed. Results: %s", 
-                   json.dumps(results, indent=2, ensure_ascii=False))
-        
+                continue
+
+            # Check if device has execution results
+            if device_name not in task_result:
+                device_result = {
+                    "device_name": device_name,
+                    "status": "failed", 
+                    "error": (
+                        f"Device '{device_name}' not found in task results"
+                        )
+                }
+                results.append(device_result)
+                continue
+
+            # Process execution results
+            multi_result = task_result[device_name]
+            device_result = {"device_name": device_name}
+
+            if multi_result[0].failed:
+                # Execution failed
+                device_result["status"] = "failed"
+                device_result["error"] = (
+                    f"Configuration execution failed: {multi_result[0].result}"
+                    )
+                device_result["output"] = multi_result[0].result
+            else:
+                # Execution successful
+                device_result["status"] = "success"
+                device_result["output"] = multi_result[0].result
+                device_result["config_commands"] = config_commands
+
+            results.append(device_result)
+
         return results
 
 if __name__ == "__main__":
     # Example usage
-    device_configs = [
-        {
-            "device_name": "CiscoIOSvL2-1",
-            "config_commands": [
-                "interface Loopback101",
-                "description Test interface by config tool",
-                "ip address 101.101.101.101 255.255.255.255"
+    # example tool_intpu
+    input = json.dumps([
+                {
+                    "device_name": "CiscoIOSv-1",
+                    "config_commands": [
+                        "interface Loopback1110",
+                        "ip address 201.201.201.201 255.255.255.255",
+                        "description CONFIG_BY_TOOL"
+                    ]
+                },
+                {
+                    "device_name": "CiscoIOSvL2-1", 
+                    "config_commands": [
+                        "interface Loopback1110",
+                        "ip address 202.202.202.202 255.255.255.255",
+                        "description CONFIG_BY_TOOL"
+                    ]
+                }
             ]
-        },
-        {
-            "device_name": "CiscoIOSvL2-2",
-            "config_commands": [
-                "interface Loopback102",
-                "description Test interface by config tool",
-                "ip address 102.102.102.102 255.255.255.255"
-            ]
-        }
-    ]
-    
+    )
+
     exe_config = ExecuteMultipleDeviceConfigCommands()
-    result = exe_config._run(tool_input=json.dumps(device_configs))
+    result = exe_config._run(tool_input=input)
     print("Configuration execution results:")
     print(json.dumps(result, indent=2, ensure_ascii=False))
