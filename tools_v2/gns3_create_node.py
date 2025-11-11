@@ -82,18 +82,6 @@ class GNS3CreateNodeTool(BaseTool):
         }
     Returns a dictionary with creation results for all nodes, including success/failure status.
     If the operation fails during input validation, returns a dictionary with an error message.
-    
-    About X/Y:
-    X-Axis (Horizontal)
-        Direction: Standard horizontal orientation
-        Positive Values: Move to the right
-        Negative Values: Move to the left
-        Origin: Typically at the top-left corner of the workspace (0, 0)
-    Y-Axis (Vertical) INVERTED
-        Direction: Inverted compared to traditional coordinate systems
-        Negative Values: Move UPWARD (toward the top of the screen)
-        Positive Values: Move DOWNWARD (toward the bottom of the screen)
-        Origin: Typically at the top-left corner of the workspace (0, 0)
     """
 
     def _run(self, tool_input: str, run_manager=None) -> dict:
