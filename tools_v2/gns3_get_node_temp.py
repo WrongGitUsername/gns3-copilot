@@ -1,8 +1,7 @@
 import json
-import logging
 import os
-from dotenv import load_dotenv
 from pprint import pprint
+from dotenv import load_dotenv
 from langchain.tools import BaseTool
 from gns3_client import Gns3Connector
 from log_config import setup_tool_logger
@@ -68,7 +67,7 @@ class GNS3TemplateTool(BaseTool):
 
             # Retrieve all available templates
             templates = gns3_server.get_templates()
-            
+
             # Extract name, template_id, and template_type
             template_info = [
                 {
@@ -80,8 +79,10 @@ class GNS3TemplateTool(BaseTool):
             ]
 
             # Log the retrieved templates
-            logger.debug("Retrieved templates: %s", json.dumps(template_info, indent=2, ensure_ascii=False))
-            
+            logger.debug(
+                "Retrieved templates: %s", json.dumps(template_info, indent=2, ensure_ascii=False)
+                )
+
             # Return JSON-formatted result
             return {"templates": template_info}
 

@@ -314,9 +314,10 @@ class ExecuteMultipleDeviceConfigCommands(BaseTool):
 if __name__ == "__main__":
     # Example usage
     # example tool_intpu
-    input = json.dumps([
+    input = json.dumps(
+        [
                 {
-                    "device_name": "CiscoIOSv-1",
+                    "device_name": "R-1",
                     "config_commands": [
                         "interface Loopback1110",
                         "ip address 201.201.201.201 255.255.255.255",
@@ -324,7 +325,23 @@ if __name__ == "__main__":
                     ]
                 },
                 {
-                    "device_name": "CiscoIOSvL2-1", 
+                    "device_name": "R-2", 
+                    "config_commands": [
+                        "interface Loopback1110",
+                        "ip address 202.202.202.202 255.255.255.255",
+                        "description CONFIG_BY_TOOL"
+                    ]
+                },
+                {
+                    "device_name": "SW-2", 
+                    "config_commands": [
+                        "interface Loopback1110",
+                        "ip address 202.202.202.202 255.255.255.255",
+                        "description CONFIG_BY_TOOL"
+                    ]
+                },
+                {
+                    "device_name": "SW-1", 
                     "config_commands": [
                         "interface Loopback1110",
                         "ip address 202.202.202.202 255.255.255.255",
@@ -335,6 +352,18 @@ if __name__ == "__main__":
     )
 
     exe_config = ExecuteMultipleDeviceConfigCommands()
-    result = exe_config._run(tool_input=input)
-    print("Configuration execution results:")
-    print(json.dumps(result, indent=2, ensure_ascii=False))
+
+    failed_count = 0
+
+    for i in range(0,5):
+        results = exe_config._run(tool_input=input)
+        for result in results:
+            for result in results:
+                if result.get("status") == "failed":
+                    failed_count += 1
+
+    print(f"Failed Count: {failed_count}")
+
+    #print("Execution results:")
+    #print(json.dumps(result, indent=2, ensure_ascii=False))
+

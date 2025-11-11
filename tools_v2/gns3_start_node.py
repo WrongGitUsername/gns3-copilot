@@ -1,6 +1,7 @@
 import json
 import time
 import os
+from pprint import pprint
 from dotenv import load_dotenv
 from langchain.tools import BaseTool
 from gns3_client import Gns3Connector, Node
@@ -92,7 +93,9 @@ class GNS3StartNodeTool(BaseTool):
             gns3_server = Gns3Connector(url=os.getenv("GNS3_SERVER_URL"))
 
             # First loop: Send start commands for all nodes
-            logger.info("Sending start commands for %d nodes in project %s...", len(node_ids), project_id)
+            logger.info(
+                "Sending start commands for %d nodes in project %s...", len(node_ids), project_id
+                )
             for node_id in node_ids:
                 try:
                     node = Node(project_id=project_id, node_id=node_id, connector=gns3_server)
@@ -164,8 +167,7 @@ class GNS3StartNodeTool(BaseTool):
             return {"error": f"Failed to start nodes: {str(e)}"}
 
 if __name__ == "__main__":
-    from pprint import pprint
-    
+
     # Test with single node
     print("=== Testing single node startup ===")
     test_input_single = json.dumps({
@@ -175,7 +177,7 @@ if __name__ == "__main__":
     tool = GNS3StartNodeTool()
     result_single = tool._run(test_input_single)
     pprint(result_single)
-    
+
     # Test with multiple nodes
     print("\n=== Testing multiple nodes startup ===")
     test_input_multiple = json.dumps({

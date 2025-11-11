@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from typing import List, Dict, Any
 from nornir import InitNornir
 from nornir.core.task import Task, Result
-from nornir_netmiko.tasks import netmiko_send_command
+from nornir_netmiko.tasks import netmiko_multiline
 from langchain.tools import BaseTool
 from public_model import get_device_ports_from_topology
 from log_config import setup_tool_logger
@@ -93,48 +93,140 @@ class ExecuteMultipleDeviceCommands(BaseTool):
             command outputs.
         """
 
+        # Validate input
+        device_configs_list = self._validate_tool_input(tool_input)
+        if (isinstance(device_configs_list, list)
+            and len(device_configs_list) > 0
+            and "error"
+            in device_configs_list[0]
+            ):
+            return device_configs_list
+
+        # Create a mapping of device names to their display commands
+        device_configs_map = self._configs_map(device_configs_list)
+
+        # Prepare device hosts data
         try:
-            device_commands_list = json.loads(tool_input)
-            if not isinstance(device_commands_list, list):
-                return [{"error": "Input must be a JSON array of device command objects"}]
+            hosts_data = self._prepare_device_hosts_data(device_configs_list)
+        except ValueError as e:
+            logger.error("Failed to prepare device hosts data: %s", e)
+            return [{"error": str(e)}]
+
+        # Initialize Nornir
+        try:
+            dynamic_nr = self._initialize_nornir(hosts_data)
+        except ValueError as e:
+            logger.error("Failed to initialize Nornir: %s", e)
+            return [{"error": str(e)}]
+
+        results = []
+
+        # Execute all devices concurrently in a single run
+        try:
+            task_result = dynamic_nr.run(
+                task=self._run_all_device_configs_with_single_retry,
+                device_configs_map=device_configs_map
+            )
+
+            # Process results for all devices
+            results = self._process_task_results(device_configs_list, hosts_data, task_result)
+
+        except Exception as e:
+            # Overall execution failed
+            logger.error("Error executing display on all devices: %s", e)
+            return [{"error": f"Execution error: {str(e)}"}]
+
+        logger.info(
+            "Multiple device display execution completed. Results: %s",
+            json.dumps(results, indent=2, ensure_ascii=False)
+        )
+
+        return results
+
+    def _run_all_device_configs_with_single_retry(
+        self,
+        task: Task,
+        device_configs_map: Dict[str, List[str]]
+        ) -> Result:
+        """Execute display commands with single retry mechanism."""
+        device_name = task.host.name
+        config_commands = device_configs_map.get(device_name, [])
+
+        if not config_commands:
+            return Result(host=task.host, result="No display commands to execute")
+
+        try:
+            _result = task.run(
+                task=netmiko_multiline,
+                commands=config_commands,
+                enable=True
+            )
+            return Result(host=task.host, result=_result.result)
+
+        except Exception as e:
+        # Handle prompt detection issues with Cisco IOSv L2 images where the '#' prompt character
+        # may be delayed, causing Netmiko prompt detection failures. Implements retry logic.
+            if "netmiko_multiline (failed)" in str(e):
+                _result = task.run(
+                    task=netmiko_multiline,
+                    commands=config_commands,
+                    enable=True
+                )
+                return Result(host=task.host, result=_result.result)
+
+            logger.error("display failed for device %s: %s", device_name, e)
+            return Result(
+                host=task.host,
+                result=f"display failed (Unhandled Exception): {str(e)}",
+                failed=True
+            )
+
+    def _validate_tool_input(self, tool_input):
+        """Validate and parse the JSON input for device display commands."""
+        try:
+            device_configs_list = json.loads(tool_input)
+            if not isinstance(device_configs_list, list):
+                return [{"error": "Input must be a JSON array of device display objects"}]
         except json.JSONDecodeError as e:
             logger.error("Invalid JSON input: %s", e)
             return [{"error": f"Invalid JSON input: {e}"}]
 
-        # Create a mapping of device names to their commands
-        device_commands_map = {}
-        for device_cmd in device_commands_list:
-            device_name = device_cmd["device_name"]
-            commands = device_cmd["commands"]
-            device_commands_map[device_name] = commands
+        return device_configs_list
 
-        # Task to execute commands for all devices concurrently
-        def run_all_device_commands(task: Task) -> Result:
-            """Execute commands for a device based on device_commands_map"""
-            device_name = task.host.name
-            commands = device_commands_map.get(device_name, [])
-            results = {}
+    def _configs_map(self, device_config_list):
+        """Create a mapping of device names to their display commands."""
+        device_configs_map = {}
+        for device_config in device_config_list:
+            device_name = device_config["device_name"]
+            config_commands = device_config["commands"]
+            device_configs_map[device_name] = config_commands
 
-            for cmd in commands:
-                try:
-                    result = task.run(
-                        task=netmiko_send_command,
-                        command_string=cmd
-                    )
-                    results[cmd] = result.result
-                except Exception as e:
-                    results[cmd] = f"Error executing command '{cmd}': {str(e)}"
-            return Result(host=task.host, result=results)
+        return device_configs_map
 
+    def _prepare_device_hosts_data(self, device_config_list):
+        """Prepare device hosts data from topology information."""
         # Extract device names list
-        device_names = [device_config["device_name"] for device_config in device_commands_list]
+        device_names = [device_config["device_name"] for device_config in device_config_list]
 
-        # Use the new public function to get device port information
+        # Get device port information
         hosts_data = get_device_ports_from_topology(device_names)
 
-        # Dynamically initialize Nornir
+        if not hosts_data:
+            raise ValueError(
+                "Failed to get device information from topology or no valid devices found"
+                )
+
+        # Check for missing devices
+        missing_devices = set(device_names) - set(hosts_data.keys())
+        if missing_devices:
+            logger.warning("Some devices not found in topology: %s", missing_devices)
+
+        return hosts_data
+
+    def _initialize_nornir(self, hosts_data):
+        """Initialize Nornir with the provided hosts data."""
         try:
-            dynamic_nr = InitNornir(
+            return InitNornir(
                 inventory={
                     "plugin": "DictInventory",
                     "options": {
@@ -150,97 +242,102 @@ class ExecuteMultipleDeviceCommands(BaseTool):
                     },
                 },
                 logging={
-                    "enabled": False # Disable Nornir's automatic logging
+                    "enabled": False
                 },
             )
         except Exception as e:
             logger.error("Failed to initialize Nornir: %s", e)
-            return [{"error": f"Failed to initialize Nornir: {e}"}]
+            raise ValueError(f"Failed to initialize Nornir: {e}") from e
 
+    def _process_task_results(self, device_configs_list, hosts_data, task_result):
+        """Process the task results and format them for return."""
         results = []
 
-        # Execute all devices concurrently in a single run
-        try:
-            task_result = dynamic_nr.run(
-                task=run_all_device_commands
-            )
+        for device_config in device_configs_list:
+            device_name = device_config["device_name"]
+            config_commands = device_config["commands"]
 
-            # Process results for all devices
-            for device_cmd in device_commands_list:
-                device_name = device_cmd["device_name"]
-                commands = device_cmd["commands"]
-
-                # Check if device is in dynamically built hosts_data
-                if device_name not in hosts_data:
-                    # Device not found in topology or missing console_port
-                    device_result = {"device_name": device_name}
-                    for cmd in commands:
-                        device_result[cmd] = (
-                            f"Device '{device_name}' not found in topology or missing console_port"
-                            )
-                    results.append(device_result)
-                    continue
-
-                # Check if device has results
-                if device_name not in task_result:
-                    # Device not found in task results
-                    device_result = {"device_name": device_name}
-                    for cmd in commands:
-                        device_result[cmd] = f"Device '{device_name}' not found in task results"
-                    results.append(device_result)
-                    continue
-
-                # Process task results
-                multi_result = task_result[device_name]
-                device_result = {"device_name": device_name}
-
-                if multi_result[0].failed:
-                    # Task execution failed
-                    for cmd in commands:
-                        device_result[cmd] = f"Task execution failed: {multi_result[0].exception}"
-                else:
-                    # Task execution successful
-                    command_results = multi_result[0].result
-                    for cmd in commands:
-                        if cmd in command_results:
-                            device_result[cmd] = command_results[cmd]
-                        else:
-                            device_result[cmd] = f"Command '{cmd}' not executed or no result"
-
+            # Check if device is in topology
+            if device_name not in hosts_data:
+                device_result = {
+                    "device_name": device_name,
+                    "status": "failed",
+                    "error": (
+                        f"Device '{device_name}' not found in topology or missing console_port"
+                        )
+                }
                 results.append(device_result)
+                continue
 
-        except Exception as e:
-            # Overall execution failed
-            logger.error("Error executing commands on all devices: %s", e)
-            for device_cmd in device_commands_list:
-                device_name = device_cmd["device_name"]
-                commands = device_cmd["commands"]
-                device_result = {"device_name": device_name}
-                for cmd in commands:
-                    device_result[cmd] = f"Execution error: {str(e)}"
+            # Check if device has execution results
+            if device_name not in task_result:
+                device_result = {
+                    "device_name": device_name,
+                    "status": "failed", 
+                    "error": (
+                        f"Device '{device_name}' not found in task results"
+                        )
+                }
                 results.append(device_result)
+                continue
 
-        logger.info(
-            "Multiple device command execution completed. Results: %s",
-            json.dumps(results, indent=2, ensure_ascii=False)
-            )
+            # Process execution results
+            multi_result = task_result[device_name]
+            device_result = {"device_name": device_name}
+
+            if multi_result[0].failed:
+                # Execution failed
+                device_result["status"] = "failed"
+                device_result["error"] = (
+                    f"Configuration execution failed: {multi_result[0].result}"
+                    )
+                device_result["output"] = multi_result[0].result
+            else:
+                # Execution successful
+                device_result["status"] = "success"
+                device_result["output"] = multi_result[0].result
+                device_result["config_commands"] = config_commands
+
+            results.append(device_result)
 
         return results
 
+
 if __name__ == "__main__":
     # Example usage
-    device_commands = [
-        {
-            "device_name": "CiscoIOSv-2",
-            "commands": ["show version", "show ip interface brief"]
-        },
-        {
-            "device_name": "CiscoIOSv-1",
-            "commands": ["show version", "show ip interface brief"]
-        }
-    ]
+    device_commands = json.dumps(
+        [
+            {
+                "device_name": "R-2",
+                "commands": ["show version", "show ip interface brief"]
+            },
+            {
+                "device_name": "R-1",
+                "commands": ["show version", "show ip interface brief"]
+            },
+            {
+                "device_name": "SW-1",
+                "commands": ["show version", "show ip interface brief"]
+            },
+            {
+                "device_name": "SW-2",
+                "commands": ["show version", "show ip interface brief"]
+            }
+        ]
+    )
 
     exe_cmd = ExecuteMultipleDeviceCommands()
-    result = exe_cmd._run(tool_input=json.dumps(device_commands))
-    print("Execution results:")
-    print(json.dumps(result, indent=2, ensure_ascii=False))
+
+    failed_count = 0
+
+    for i in range(0,5):
+        results = exe_cmd._run(tool_input=device_commands)
+        for result in results:
+            for result in results:
+                if result.get("status") == "failed":
+                    failed_count += 1
+
+    print(f"Failed Count: {failed_count}")
+
+    #print("Execution results:")
+    #print(json.dumps(result, indent=2, ensure_ascii=False))
