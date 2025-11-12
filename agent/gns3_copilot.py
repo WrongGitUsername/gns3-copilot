@@ -145,7 +145,13 @@ with open("agent_workflow.png", "wb") as f:
 print("Agent workflwo write to agent_workflow.png")
 
 # Invoke
-messages = [HumanMessage(content="what can you help me?")]
+messages = [
+    HumanMessage(
+        content=(
+            "create a topology, use six router, create full-mesh link, but don't start it."
+        )
+    )
+]
 messages = agent.invoke({"messages": messages})
 for m in messages["messages"]:
     m.pretty_print()
