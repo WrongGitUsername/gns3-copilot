@@ -60,7 +60,7 @@ tools = [
 ]
 # Augment the LLM with tools
 tools_by_name = {tool.name: tool for tool in tools}
-model_with_tools = assist_model.bind_tools(tools)
+model_with_tools = base_model.bind_tools(tools)
 
 # Log application startup
 logger.info("GNS3 Copilot application starting up")
@@ -135,10 +135,17 @@ agent_builder.add_edge("tool_node", "llm_call")
 agent = agent_builder.compile()
 
 # Show the agent
-#display(Image(agent.get_graph(xray=True).draw_mermaid_png()))
+display(Image(agent.get_graph(xray=True).draw_mermaid_png()))
+
+# save workflow to file
+png_data = agent.get_graph(xray=True).draw_mermaid_png()
+with open("agent_workflow.png", "wb") as f:
+    f.write(png_data)
+
+print("Agent workflwo write to agent_workflow.png")
 
 # Invoke
-#messages = [HumanMessage(content="help me create a ospf topology,but don't start it.")]
-#messages = agent.invoke({"messages": messages})
-#for m in messages["messages"]:
-#    m.pretty_print()
+messages = [HumanMessage(content="what can you help me?")]
+messages = agent.invoke({"messages": messages})
+for m in messages["messages"]:
+    m.pretty_print()
