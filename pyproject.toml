@@ -46,6 +46,7 @@ dependencies = [
     "langchain>=1.0.2",
     "langchain-deepseek>=1.0.0",
     "langchain-core>=1.0.1",
+    "langchain-google-genai>=1.0.0",
     "langgraph>=1.0.0",
     "langgraph-cli>=0.4.4",
     "netmiko>=4.6.0",
@@ -58,6 +59,8 @@ dependencies = [
     "urllib3>=2.5.0",
     "pydantic>=2.12.3",
     "PyJWT>=2.10.1",
+    "IPython>=8.0.0",
+    "typing-extensions>=4.0.0",
     "telnetlib3>=2.0.8",
 ]
 

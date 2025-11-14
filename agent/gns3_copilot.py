@@ -148,7 +148,8 @@ print("Agent workflwo write to agent_workflow.png")
 messages = [
     HumanMessage(
         content=(
-            "create a topology, use six router, create full-mesh link, but don't start it."
+            "tell me current topology of my GNS3 project, "
+            "start all nodes, and ayalize the topology device configuration and protocol status"
         )
     )
 ]
