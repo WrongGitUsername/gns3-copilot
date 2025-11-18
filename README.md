@@ -1,29 +1,29 @@
 # GNS3 Copilot
 
-An AI-powered network automation assistant designed for GNS3 network simulator, providing intelligent network device management and automated operations.
+An AI-powered network automation assistant designed specifically for GNS3 network simulator, providing intelligent network device management and automated operations.
 
-## Project Introduction
+## Project Overview
 
-GNS3 Copilot is a powerful network automation tool that integrates multiple AI models and network automation frameworks, enabling natural language interaction with users to perform network device configuration, topology management, and fault diagnosis tasks.
+GNS3 Copilot is a powerful network automation tool that integrates multiple AI models and network automation frameworks. It can interact with users through natural language and perform tasks such as network device configuration, topology management, and fault diagnosis.
 
 ### Core Features
 
-- 🤖 **AI-driven Conversational Interface**: Supports natural language interaction to understand network automation requirements
-- 🔧 **Device Configuration Management**: Batch configuration of network devices, supporting multiple vendor devices (Currently only Cisco IOSv images have been tested)
+- 🤖 **AI-Powered Chat Interface**: Supports natural language interaction, understands network automation requirements
+- 🔧 **Device Configuration Management**: Batch configuration of network devices, supports multiple vendor devices (currently tested with Cisco IOSv image only)
 - 📊 **Topology Management**: Automatically create, modify, and manage GNS3 network topologies
 - 🔍 **Network Diagnostics**: Intelligent network troubleshooting and performance monitoring
-- 🌐 **LLM Support**: Integrates DeepSeek AI models for natural language processing
+- 🌐 **LLM Support**: Integrated DeepSeek AI model for natural language processing
 
 ## Technical Architecture
 
 ### Core Components
 
-- **Agent Framework**: Intelligent agent system built on LangChain v1.0.2 and LangGraph
+- **Agent Framework**: Intelligent agent system built on LangChain v1.0.7 and LangGraph
 - **Network Automation**: Network device automation using Nornir v3.5.0 and Netmiko v4.6.0
-- **GNS3 Integration**: Custom GNS3 API client supporting topology and node management
-- **AI Models**: Support for DeepSeek Chat large language model
+- **GNS3 Integration**: Custom GNS3 API client supporting topology and node management with JWT authentication capability
+- **AI Models**: Supports DeepSeek Chat large language model
 
-### Tool Set
+### Toolset
 
 | Tool Name | Function Description |
 |-----------|---------------------|
@@ -32,16 +32,17 @@ GNS3 Copilot is a powerful network automation tool that integrates multiple AI m
 | `GNS3LinkTool` | Create connections between nodes |
 | `GNS3StartNodeTool` | Start GNS3 nodes |
 | `GNS3TemplateTool` | Get node templates |
-| `ExecuteMultipleDeviceCommands` | Execute show commands |
+| `ExecuteMultipleDeviceCommands` | Execute display commands |
 | `ExecuteMultipleDeviceConfigCommands` | Execute configuration commands |
+| `VPCSMultiCommands` | Execute VPCS commands on multiple devices |
 
 ## Installation Guide
 
-### System Requirements
+### Environment Requirements
 
 - Python 3.8+
 - GNS3 Server (running on http://localhost:3080)
-- Supported Operating Systems: Windows, macOS, Linux
+- Supported operating systems: Windows, macOS, Linux
 
 ### Installation Steps
 
@@ -65,12 +66,12 @@ pip install -r requirements.txt
 ```
 
 4. **Configure environment variables**
-Copy the environment template and configure your settings:
+Copy the environment variable template and configure your settings:
 ```bash
 cp env.example .env
 ```
 
-Edit the `.env` file with your configuration:
+Edit the `.env` file and configure your settings:
 ```env
 # API Keys for LLM providers
 DEEPSEEK_API_KEY="your_deepseek_api_key_here"
@@ -90,7 +91,7 @@ Ensure GNS3 Server is running at the default address `http://localhost:3080`
 
 ## Usage Guide
 
-### Launch Methods
+### Startup Methods
 
 #### Method 1: Direct Python Code Execution
 
@@ -98,7 +99,7 @@ Ensure GNS3 Server is running at the default address `http://localhost:3080`
 from agent.gns3_copilot import agent
 
 # Use AI agent for network automation
-response = agent.invoke("Check the interface status of all routers")
+response = agent.invoke("Check interface status of all routers")
 print(response)
 ```
 
@@ -109,16 +110,26 @@ print(response)
 langgraph dev
 
 # Server will start at http://localhost:2024
-# Interact with the agent via web interface or API
+# Interact with the agent through web interface or API
 ```
 
-#### Method 3: LangGraph Tunnel Mode (Remote Access)
+#### Method 3: Streamlit Web UI
+
+```bash
+# Start Streamlit web interface
+streamlit run agent/gns3_copilot.py
+
+# Web interface will open at http://localhost:8501
+# Provides an intuitive graphical interface for interacting with the AI agent
+```
+
+#### Method 4: LangGraph Tunnel Mode (Remote Access)
 
 ```bash
 # Start development server with tunnel functionality
 langgraph dev --tunnel
 
-# Generate public access URL for remote access
+# Generate public access URL supporting remote access
 # Suitable for scenarios requiring external network access to the agent
 ```
 
@@ -147,21 +158,21 @@ agent.invoke("Connect R3's Gi0/0 interface to R1's Gi0/1 interface")
 
 #### 2. Device Configuration
 ```python
-# Batch configure interfaces
+# Batch interface configuration
 agent.invoke("""
 Configure loopback interfaces for all routers:
 - R1: Loopback0 IP 1.1.1.1/32
 - R2: Loopback0 IP 2.2.2.2/32
 """)
 
-# Configure routing protocols
+# Configure routing protocol
 agent.invoke("Enable OSPF process 1 on all routers and advertise all interfaces")
 ```
 
 #### 3. Network Diagnostics
 ```python
 # Check device status
-agent.invoke("Check the running status and CPU usage of all devices")
+agent.invoke("Check operational status and CPU usage of all devices")
 
 # Network connectivity testing
 agent.invoke("Test network connectivity from R1 to R2")
@@ -172,7 +183,7 @@ agent.invoke("Show routing tables of all routers")
 
 ### Supported Command Types
 
-#### Show Commands (Read-only)
+#### Display Commands (Read-only)
 - `show version`
 - `show ip interface brief`
 - `show running-config`
@@ -187,46 +198,56 @@ agent.invoke("Show routing tables of all routers")
 - `network <network> area <area>`
 - `description <text>`
 
-
-
-## Configuration Guide
+## Configuration Instructions
 
 ### GNS3 Server Configuration
 
 Ensure GNS3 Server is properly configured:
 - Default port: 3080
 - Enable HTTP API
-- Configure appropriate emulator images
+- Configure appropriate simulator images
+- GNS3 SERVER API v3 (JWT authentication) API (under testing)
 
-### Logging Configuration
+### Log Configuration
 
-The project uses a unified logging system, with log files saved in the `log/` directory:
+The project uses a unified logging system, log files are saved in the `log/` directory:
 - `gns3_copilot.log`: Main application log
 - `display_tools_nornir.log`: Display tools log
 - `config_tools_nornir.log`: Configuration tools log
 
 ### AI Model Configuration
 
-Supports multiple AI models, switch in `agent/gns3_copilot.py`:
+Supports multiple AI models, configured in `agent/gns3_copilot.py`:
 
 ```python
-# Use DeepSeek (default)
-llm = ChatDeepSeek(model="deepseek-chat", temperature=0, streaming=True)
+# Primary model (DeepSeek)
+base_model = init_chat_model(
+    model="deepseek-chat",
+    temperature=0
+)
+
+# Assistant model (Google Gemini)
+assist_model = init_chat_model(
+    model="google_genai:gemini-2.5-flash",
+    temperature=0
+)
 ```
+
+**Note**: The system uses DeepSeek as the primary LLM for natural language processing and Google Gemini as an auxiliary model for enhanced assistance.
 
 ## Security Considerations
 
 ⚠️ **Important Security Notes**:
 
-1. **Configuration Command Security**: Configuration tools can modify device configurations. Before use, ensure:
+1. **Configuration Command Security**: Configuration tools have the ability to modify device configurations, ensure before use:
    - Verify in test environment
    - Backup important configurations
-   - Understand the purpose of each command
+   - Understand the function of each command
 
-2. **API Key Protection**: 
+2. **API Key Protection**:
    - Do not commit `.env` file to version control
-   - Rotate API keys regularly
-   - Follow principle of least privilege
+   - Regularly rotate API keys
+   - Use principle of least privilege
 
 3. **Network Isolation**: Recommended to use in isolated test environment
 
@@ -238,20 +259,19 @@ llm = ChatDeepSeek(model="deepseek-chat", temperature=0, streaming=True)
    - Check if GNS3 Server is running
    - Confirm port 3080 is accessible
    - Check firewall settings
-   - Verify API version compatibility
 
 2. **Device Connection Issues**
    - Confirm device console ports are correct
    - Check if devices are started
-   - Verify Telnet connection
+   - Verify Telnet connections
 
-3. **AI Model Call Failure**
+3. **AI Model Call Failures**
    - Check if API keys are correct
-   - Confirm network connection
-   - Verify API quota
+   - Confirm network connectivity
+   - Verify API quotas
 
 4. **Authentication Issues**
-   - For GNS3 v3, ensure JWT token is properly configured(test)
+   - For GNS3 v3, ensure JWT tokens are properly configured (under testing)
    - Check API credentials in environment variables
 
 ### Debug Mode
@@ -262,26 +282,25 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 ```
 
-## Contributing Guide
+## Contribution Guidelines
 
-Contributions are welcome! Please follow these steps:
+Welcome to contribute code! Please follow these steps:
 
 1. Fork the project
 2. Create feature branch (`git checkout -b feature/AmazingFeature`)
 3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+5. Open Pull Request
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project uses MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Contact
 
 - Project Homepage: https://github.com/yueguobin/gns3-copilot
-- Issue Tracker: https://github.com/yueguobin/gns3-copilot/issues
-
+- Issue Reporting: https://github.com/yueguobin/gns3-copilot/issues
 
 ---
 
-**Disclaimer**: This tool is intended for educational and testing purposes only. Before using in production environments, please test thoroughly and ensure compliance with your security policies.
+**Disclaimer**: This tool is for educational and testing purposes only. Before using in production environment, please thoroughly test and ensure it complies with your security policies.

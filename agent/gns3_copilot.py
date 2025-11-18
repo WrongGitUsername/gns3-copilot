@@ -14,11 +14,11 @@ The assistant integrates with various tools to provide a complete network automa
 solution for GNS3 environments.
 """
 import operator
+import streamlit as st
 from typing import Literal
 from typing_extensions import TypedDict, Annotated
-from IPython.display import Image, display
 from dotenv import load_dotenv
-from langchain.messages import AnyMessage, SystemMessage, ToolMessage, HumanMessage
+from langchain.messages import AnyMessage, SystemMessage, ToolMessage, HumanMessage, AIMessage
 from langchain.chat_models import init_chat_model
 from langgraph.graph import StateGraph, START, END
 from gns3_client import GNS3TopologyTool
@@ -134,25 +134,48 @@ agent_builder.add_edge("tool_node", "llm_call")
 # Compile the agent
 agent = agent_builder.compile()
 
-# Show the agent
-display(Image(agent.get_graph(xray=True).draw_mermaid_png()))
+# Streamlit UI
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+if "thread_id" not in st.session_state:
+    # A simple way to manage state for the agent run across Streamlit reruns
+    st.session_state.thread_id = {"configurable": {"thread_id": "1"}}
 
-# save workflow to file
-png_data = agent.get_graph(xray=True).draw_mermaid_png()
-with open("agent_workflow.png", "wb") as f:
-    f.write(png_data)
+st.title("GNS3 Copilot Agent UI")
 
-print("Agent workflwo write to agent_workflow.png")
+for message in st.session_state.messages:
+    with st.chat_message(message.type):
+        st.markdown(message.content)
+        # Optional: Display tool call details if any (only for AIMessages)
+        if isinstance(message, AIMessage) and hasattr(message, 'tool_calls') and message.tool_calls:
+            st.caption(f"🛠️ Called Tool: {message.tool_calls[0]['name']}")
 
-# Invoke
-messages = [
-    HumanMessage(
-        content=(
-            "tell me current topology of my GNS3 project, "
-            "start all nodes, and ayalize the topology device configuration and protocol status"
-        )
-    )
-]
-messages = agent.invoke({"messages": messages})
-for m in messages["messages"]:
-    m.pretty_print()
+
+if prompt := st.chat_input("How can I help with your GNS3 lab?"):
+    # Add human message to session state and display in UI
+    st.session_state.messages.append(HumanMessage(content=prompt))
+    with st.chat_message("human"):
+        st.markdown(prompt)
+
+    with st.chat_message("ai"):
+        # Create a placeholder for the streamed response
+        placeholder = st.empty()
+        full_response = ""
+
+        # Stream events from the agent
+        for chunk in agent.stream(
+            {"messages": [HumanMessage(content=prompt)]},
+            st.session_state.thread_id,
+            stream_mode="values" # Use "values" for easier concatenation of content
+        ):
+            # Only display AI content
+            if "messages" in chunk:
+                last_message = chunk["messages"][-1]
+                if isinstance(last_message, AIMessage):
+                    full_response += last_message.content
+                    placeholder.markdown(full_response + "▌") # Add a blinking cursor effect
+
+        placeholder.markdown(full_response) # Final display without cursor
+        st.session_state.messages.append(AIMessage(content=full_response))
+        # Note: Tool messages from the agent are automatically handled by the graph logic and appended to state implicitly by the checkpointer in a real app.
+        # For simple streaming display, we only show the final AI response here.

@@ -1,1 +1,1 @@
-# Prompt 重点：强调严格遵循planner_agent给出的单一步骤指令，并详细记录所有工具调用和输出。
+# Prompt focus: Emphasize strict adherence to single-step instructions from planner_agent and detailed logging of all tool calls and outputs.

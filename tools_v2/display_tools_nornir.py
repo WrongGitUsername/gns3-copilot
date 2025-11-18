@@ -330,7 +330,7 @@ if __name__ == "__main__":
 
     failed_count = 0
 
-    for i in range(0,5):
+    for i in range(0, 1):
         results = exe_cmd._run(tool_input=device_commands)
         for result in results:
             for result in results:

@@ -1,8 +1,8 @@
 # GNS3 Copilot Dependencies
 # Core AI and Automation Framework
-langchain>=1.0.2
-langchain-deepseek>=1.0.0
-langchain-core>=1.0.1
+langchain>=1.0.7
+langchain-deepseek>=1.0.1
+langchain-core>=1.0.5
 langchain-google-genai>=1.0.0
 langgraph>=1.0.0
 langgraph-cli>=0.4.4
@@ -22,7 +22,7 @@ requests>=2.32.5
 urllib3>=2.5.0
 
 # Data Validation
-pydantic>=2.12.3
+pydantic>=2.12.4
 
 # Authentication
 PyJWT>=2.10.1
@@ -35,3 +35,14 @@ typing-extensions>=4.0.0
 
 # Telnet Client
 telnetlib3>=2.0.8
+
+# Web UI
+streamlit>=1.28.0
+
+# Additional dependencies found in codebase
+# Note: gns3fy is not needed as we use custom gns3_client package
+# Note: dotenv is already included via python-dotenv
+# Note: functools, dataclasses, typing are built-in modules
+# Note: math, time, pprint are built-in modules
+# Note: log_config is a local package
+# Note: public_model is a local package

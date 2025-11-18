@@ -94,47 +94,47 @@ def configure_package_logging(level=logging.INFO):
 # Predefined logging configurations
 LOGGER_CONFIGS = {
     "device_config": {
-        "console_level": logging.INFO,
+        "console_level": logging.ERROR,
         "file_level": logging.DEBUG
     },
     "display_tools": {
-        "console_level": logging.INFO,
+        "console_level": logging.ERROR,
         "file_level": logging.DEBUG
     },
     "gns3_topology": {
-        "console_level": logging.INFO,
+        "console_level": logging.ERROR,
         "file_level": logging.DEBUG
     },
     "gns3_create_node": {
-        "console_level": logging.INFO,
+        "console_level": logging.ERROR,
         "file_level": logging.DEBUG
     },
     "gns3_create_link": {
-        "console_level": logging.INFO,
+        "console_level": logging.ERROR,
         "file_level": logging.DEBUG
     },
     "gns3_start_node": {
-        "console_level": logging.INFO,
+        "console_level": logging.ERROR,
         "file_level": logging.DEBUG
     },
     "gns3_template": {
-        "console_level": logging.INFO,
+        "console_level": logging.ERROR,
         "file_level": logging.DEBUG
     },
     "config_tools_nornir": {
-        "console_level": logging.INFO,
+        "console_level": logging.ERROR,
         "file_level": logging.DEBUG
     },
     "display_tools_nornir": {
-        "console_level": logging.INFO,
+        "console_level": logging.ERROR,
         "file_level": logging.DEBUG
     },
     "static_server": {
-        "console_level": logging.INFO,
+        "console_level": logging.ERROR,
         "file_level": logging.DEBUG
     },
     "services_manager": {
-        "console_level": logging.INFO,
+        "console_level": logging.ERROR,
         "file_level": logging.DEBUG
     }
 }

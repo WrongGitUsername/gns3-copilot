@@ -18,7 +18,7 @@ GNS3 Copilot 是一个强大的网络自动化工具，集成了多种AI模型�
 
 ### 核心组件
 
-- **Agent Framework**: 基于LangChain v1.0.2和LangGraph构建的智能代理系统
+- **Agent Framework**: 基于LangChain v1.0.7和LangGraph构建的智能代理系统
 - **Network Automation**: 使用Nornir v3.5.0和Netmiko v4.6.0进行网络设备自动化
 - **GNS3 Integration**: 自定义GNS3 API客户端，支持拓扑和节点管理，具备JWT认证功能
 - **AI Models**: 支持DeepSeek Chat大语言模型
@@ -34,6 +34,7 @@ GNS3 Copilot 是一个强大的网络自动化工具，集成了多种AI模型�
 | `GNS3TemplateTool` | 获取节点模板 |
 | `ExecuteMultipleDeviceCommands` | 执行显示命令 |
 | `ExecuteMultipleDeviceConfigCommands` | 执行配置命令 |
+| `VPCSMultiCommands` | 在多个设备上执行VPCS命令 |
 
 ## 安装指南
 
@@ -112,7 +113,17 @@ langgraph dev
 # 可以通过Web界面或API与代理交互
 ```
 
-#### 方式3: LangGraph隧道模式（远程访问）
+#### 方式3: Streamlit Web UI
+
+```bash
+# 启动Streamlit Web界面
+streamlit run agent/gns3_copilot.py
+
+# Web界面将在 http://localhost:8501 打开
+# 提供直观的图形界面与AI代理交互
+```
+
+#### 方式4: LangGraph隧道模式（远程访问）
 
 ```bash
 # 启动带隧道功能的开发服务器
@@ -208,12 +219,23 @@ agent.invoke("显示所有路由器的路由表")
 
 ### AI模型配置
 
-支持多种AI模型，在 `agent/gns3_copilot.py` 中切换：
+支持多种AI模型，在 `agent/gns3_copilot.py` 中配置：
 
 ```python
-# 使用DeepSeek (默认)
-llm = ChatDeepSeek(model="deepseek-chat", temperature=0, streaming=True)
+# 主要模型 (DeepSeek)
+base_model = init_chat_model(
+    model="deepseek-chat",
+    temperature=0
+)
+
+# 辅助模型 (Google Gemini)
+assist_model = init_chat_model(
+    model="google_genai:gemini-2.5-flash",
+    temperature=0
+)
 ```
+
+**说明**: 系统使用DeepSeek作为主要LLM进行自然语言处理，Google Gemini作为辅助模型提供增强功能。
 
 ## 安全注意事项
 
