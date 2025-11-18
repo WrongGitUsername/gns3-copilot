@@ -63,6 +63,7 @@ venv\Scripts\activate     # Windows
 3. **Install dependencies**
 ```bash
 pip install -r requirements.txt
+pip install .
 ```
 
 4. **Configure environment variables**
@@ -93,17 +94,7 @@ Ensure GNS3 Server is running at the default address `http://localhost:3080`
 
 ### Startup Methods
 
-#### Method 1: Direct Python Code Execution
-
-```python
-from agent.gns3_copilot import agent
-
-# Use AI agent for network automation
-response = agent.invoke("Check interface status of all routers")
-print(response)
-```
-
-#### Method 2: LangGraph Development Server
+#### Method 1: LangGraph Development Server
 
 ```bash
 # Start LangGraph development server
@@ -113,7 +104,7 @@ langgraph dev
 # Interact with the agent through web interface or API
 ```
 
-#### Method 3: Streamlit Web UI
+#### Method 2: Streamlit Web UI
 
 ```bash
 # Start Streamlit web interface
@@ -123,7 +114,7 @@ streamlit run agent/gns3_copilot.py
 # Provides an intuitive graphical interface for interacting with the AI agent
 ```
 
-#### Method 4: LangGraph Tunnel Mode (Remote Access)
+#### Method 3: LangGraph Tunnel Mode (Remote Access)
 
 ```bash
 # Start development server with tunnel functionality
@@ -140,63 +131,6 @@ langgraph dev --tunnel
 - Supports hot reload and real-time debugging
 - Provides Swagger API documentation
 
-### Basic Usage
-
-### Feature Examples
-
-#### 1. Topology Management
-```python
-# Get current topology information
-topology = agent.invoke("Show current network topology")
-
-# Create new node
-agent.invoke("Create a router node named R3")
-
-# Connect devices
-agent.invoke("Connect R3's Gi0/0 interface to R1's Gi0/1 interface")
-```
-
-#### 2. Device Configuration
-```python
-# Batch interface configuration
-agent.invoke("""
-Configure loopback interfaces for all routers:
-- R1: Loopback0 IP 1.1.1.1/32
-- R2: Loopback0 IP 2.2.2.2/32
-""")
-
-# Configure routing protocol
-agent.invoke("Enable OSPF process 1 on all routers and advertise all interfaces")
-```
-
-#### 3. Network Diagnostics
-```python
-# Check device status
-agent.invoke("Check operational status and CPU usage of all devices")
-
-# Network connectivity testing
-agent.invoke("Test network connectivity from R1 to R2")
-
-# Routing table check
-agent.invoke("Show routing tables of all routers")
-```
-
-### Supported Command Types
-
-#### Display Commands (Read-only)
-- `show version`
-- `show ip interface brief`
-- `show running-config`
-- `show ip route`
-- `show ospf neighbor`
-- `show interfaces status`
-
-#### Configuration Commands (Use with caution)
-- `interface <interface>`
-- `ip address <ip> <mask>`
-- `router ospf <process>`
-- `network <network> area <area>`
-- `description <text>`
 
 ## Configuration Instructions
 

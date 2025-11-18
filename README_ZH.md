@@ -63,6 +63,7 @@ venv\Scripts\activate     # Windows
 3. **安装依赖**
 ```bash
 pip install -r requirements.txt
+pip install .
 ```
 
 4. **配置环境变量**
@@ -93,17 +94,7 @@ API_VERSION="2"
 
 ### 启动方式
 
-#### 方式1: 直接运行Python代码
-
-```python
-from agent.gns3_copilot import agent
-
-# 使用AI代理进行网络自动化
-response = agent.invoke("检查所有路由器的接口状态")
-print(response)
-```
-
-#### 方式2: LangGraph开发服务器
+#### 方式1: LangGraph开发服务器
 
 ```bash
 # 启动LangGraph开发服务器
@@ -113,7 +104,7 @@ langgraph dev
 # 可以通过Web界面或API与代理交互
 ```
 
-#### 方式3: Streamlit Web UI
+#### 方式2: Streamlit Web UI
 
 ```bash
 # 启动Streamlit Web界面
@@ -123,7 +114,7 @@ streamlit run agent/gns3_copilot.py
 # 提供直观的图形界面与AI代理交互
 ```
 
-#### 方式4: LangGraph隧道模式（远程访问）
+#### 方式3: LangGraph隧道模式（远程访问）
 
 ```bash
 # 启动带隧道功能的开发服务器
@@ -140,66 +131,6 @@ langgraph dev --tunnel
 - 支持热重载和实时调试
 - 提供Swagger API文档
 
-### 基本用法
-
-### 功能示例
-
-#### 1. 拓扑管理
-```python
-# 获取当前拓扑信息
-topology = agent.invoke("显示当前网络拓扑")
-
-# 创建新节点
-agent.invoke("创建一个名为R3的路由器节点")
-
-# 连接设备
-agent.invoke("将R3的Gi0/0接口连接到R1的Gi0/1接口")
-```
-
-#### 2. 设备配置
-```python
-# 批量配置接口
-agent.invoke("""
-为所有路由器配置环回接口：
-- R1: Loopback0 IP 1.1.1.1/32
-- R2: Loopback0 IP 2.2.2.2/32
-""")
-
-# 配置路由协议
-agent.invoke("在所有路由器上启用OSPF进程1，并宣告所有接口")
-```
-
-#### 3. 网络诊断
-```python
-# 检查设备状态
-agent.invoke("检查所有设备的运行状态和CPU使用率")
-
-# 网络连通性测试
-agent.invoke("测试从R1到R2的网络连通性")
-
-# 路由表检查
-agent.invoke("显示所有路由器的路由表")
-```
-
-### 支持的命令类型
-
-#### 显示命令 (只读)
-- `show version`
-- `show ip interface brief`
-- `show running-config`
-- `show ip route`
-- `show ospf neighbor`
-- `show interfaces status`
-
-#### 配置命令 (需要谨慎使用)
-- `interface <interface>`
-- `ip address <ip> <mask>`
-- `router ospf <process>`
-- `network <network> area <area>`
-- `description <text>`
-
-
-
 ## 配置说明
 
 ### GNS3 Server配置
@@ -214,8 +145,8 @@ agent.invoke("显示所有路由器的路由表")
 
 项目使用统一的日志系统，日志文件保存在 `log/` 目录：
 - `gns3_copilot.log`: 主应用日志
-- `display_tools_nornir.log`: 显示工具日志
-- `config_tools_nornir.log`: 配置工具日志
+- `display_tools_nornir.log`: 查看类命令工具日志
+- `config_tools_nornir.log`: 配置类命令工具日志
 
 ### AI模型配置
 

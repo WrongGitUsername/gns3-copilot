@@ -6,6 +6,7 @@ langchain-core>=1.0.5
 langchain-google-genai>=1.0.0
 langgraph>=1.0.0
 langgraph-cli>=0.4.4
+langgraph-cli[inmem]>=0.4.4
 
 # Network Automation
 netmiko>=4.6.0

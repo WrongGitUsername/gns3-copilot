@@ -49,6 +49,7 @@ dependencies = [
     "langchain-google-genai>=1.0.0",
     "langgraph>=1.0.0",
     "langgraph-cli>=0.4.4",
+    "langgraph-cli[inmem]>=0.4.4",
     "netmiko>=4.6.0",
     "nornir>=3.5.0",
     "nornir-netmiko>=1.0.1",
