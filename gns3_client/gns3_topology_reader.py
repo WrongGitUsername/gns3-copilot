@@ -3,6 +3,7 @@ This module provides a LangChain BaseTool to retrieve the topology of the
  currently open GNS3 project.
 """
 import os
+import copy
 from dotenv import load_dotenv
 from langchain.tools import BaseTool
 from gns3_client import Gns3Connector, Project
@@ -47,8 +48,8 @@ class GNS3TopologyTool(BaseTool):
         "node_id": "e5ca32a8-9f5d-45b0-82aa-ccfbf1d1a070",
         "name": "R-1",
         "ports": [
-            {"name": "Gi0/0", "adapter_number": 0, "port_number": 0, "link_type": "ethernet", ...},
-            {"name": "Gi0/1", "adapter_number": 1, "port_number": 0, "link_type": "ethernet", ...}
+            {'name': 'Ge 0/0', 'short_name': 'Ge 0/0'},
+            {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}
         ],
         "console_port": 5000,
         "type": "qemu",
@@ -56,7 +57,7 @@ class GNS3TopologyTool(BaseTool):
         },
         "R-2": {...}
     },
-    "links": [('R-1', 'Gi0/0', 'R-2', 'Gi0/0')]
+    "links": [('R-1', 'Ge 0/0', 'R-2', 'Ge 0/0'), ...]
     }
     **Node**: 
     Requires a running GNS3 server at the specified URL and an open project.
@@ -104,7 +105,7 @@ class GNS3TopologyTool(BaseTool):
                 "project_id": project.project_id,
                 "name": project.name,
                 "status": project.status,
-                "nodes": project.nodes_inventory(),
+                "nodes": self._clean_nodes_ports(copy.deepcopy(project.nodes_inventory())),
                 "links": project.links_summary(is_print=False)
             }
             logger.debug("Topology retrieved: %s", topology)
@@ -113,6 +114,19 @@ class GNS3TopologyTool(BaseTool):
         except Exception as e:
             logger.error("Error retrieving GNS3 topology: %s", str(e))
             return {"error": f"Failed to retrieve topology: {str(e)}"}
+        
+    def _clean_nodes_ports(self, data: dict) -> dict:
+        """
+        Clean and simplify the nodes data structure.
+        Simplify each node's ports list to only keep name and short_name fields.
+        """
+        for node in data.values():                     # Iterate through R-1, R-2, R-3, R-4
+            if "ports" in node and isinstance(node["ports"], list):
+                node["ports"] = [
+                    {"name": port["name"], "short_name": port["short_name"]}
+                    for port in node["ports"]
+                ]
+        return data
 
 if __name__ == "__main__":
     from pprint import pprint
@@ -120,5 +134,3 @@ if __name__ == "__main__":
     tool = GNS3TopologyTool()
     result = tool._run()
     pprint(result)
-
-    pprint(result['nodes']['PC1'])

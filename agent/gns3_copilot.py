@@ -13,8 +13,10 @@ The assistant provides comprehensive GNS3 topology management capabilities inclu
 The assistant integrates with various tools to provide a complete network automation
 solution for GNS3 environments.
 """
+import json
 import operator
 import streamlit as st
+from pprint import pprint
 from typing import Literal
 from typing_extensions import TypedDict, Annotated
 from dotenv import load_dotenv
@@ -134,48 +136,124 @@ agent_builder.add_edge("tool_node", "llm_call")
 # Compile the agent
 agent = agent_builder.compile()
 
-# Streamlit UI
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-if "thread_id" not in st.session_state:
-    # A simple way to manage state for the agent run across Streamlit reruns
-    st.session_state.thread_id = {"configurable": {"thread_id": "1"}}
+#messages = [
+#    HumanMessage(
+#        content=(
+#            "Hello, GNS3 Copilot!,"
+#            "create a topology use four cisco routers."
+#            "create link to full mesh."
+#            "don't start it."
+#            )
+#        )
+#    ]
+#
+#messages = agent.stream({"messages": messages},stream_mode="updates")
+#for chunk in messages:
+#    for node_name, update in chunk.items():
+#        if "messages" in update:
+#            for msg in update["messages"]:
+#                if isinstance(msg, AIMessage):
+#                    print("AIMessage:", msg.content)
+#                    if msg.tool_calls:
+#                        for tool in msg.tool_calls:
+#                            print(f"tool_name: {tool['name']},"
+#                                   f"{tool['args']},"
+#                                   f"tool_calls_id={tool['id']}"
+#                                   )
+#                elif isinstance(msg, ToolMessage):
+#                    pprint(msg.content)
 
-st.title("GNS3 Copilot Agent UI")
+            
+# spinner_html
+SPINNER_HTML = """
+<div style="text-align: left; margin: 20px 0;">
+  <span style="
+    display: inline-block;
+    width: 20px; height: 20px;
+    border: 3px solid #f0f0f0;
+    border-top: 3px solid #1e88e5;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  "></span>
+</div>
+<style>
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
+"""    
 
-for message in st.session_state.messages:
-    with st.chat_message(message.type):
-        st.markdown(message.content)
-        # Optional: Display tool call details if any (only for AIMessages)
-        if isinstance(message, AIMessage) and hasattr(message, 'tool_calls') and message.tool_calls:
-            st.caption(f"🛠️ Called Tool: {message.tool_calls[0]['name']}")
+# streamlit UI
+st.set_page_config(page_title="GNS3 Copilot Debug", layout="wide")
+st.title("GNS3 Copilot")
 
+user_input = st.text_area(
+    "Enter your requirements (supports multiple lines)",
+    height=150,
+    placeholder="For example:\nHello, GNS3 Copilot! Please create a topology with 5 routers, fully interconnected, but do not start them."
+)
+if st.button("Run Agent", type="primary"):
+    if not user_input.strip():
+        st.warning("Please enter content")
+        st.stop()
 
-if prompt := st.chat_input("How can I help with your GNS3 lab?"):
-    # Add human message to session state and display in UI
-    st.session_state.messages.append(HumanMessage(content=prompt))
-    with st.chat_message("human"):
-        st.markdown(prompt)
+    # Two side-by-side columns: left shows final answer in real-time, right shows logs identical to your console
+    col1, col2 = st.columns([1, 1])
 
-    with st.chat_message("ai"):
-        # Create a placeholder for the streamed response
-        placeholder = st.empty()
-        full_response = ""
+    with col1:
+        st.subheader("Agent Final Output")
+        answer_placeholder = st.empty()
+        full_answer = ""
 
-        # Stream events from the agent
-        for chunk in agent.stream(
-            {"messages": [HumanMessage(content=prompt)]},
-            st.session_state.thread_id,
-            stream_mode="values" # Use "values" for easier concatenation of content
-        ):
-            # Only display AI content
-            if "messages" in chunk:
-                last_message = chunk["messages"][-1]
-                if isinstance(last_message, AIMessage):
-                    full_response += last_message.content
-                    placeholder.markdown(full_response + "▌") # Add a blinking cursor effect
+    with col2:
+        st.subheader("Real-time Streaming Logs")
+        log_placeholder = st.empty()
 
-        placeholder.markdown(full_response) # Final display without cursor
-        st.session_state.messages.append(AIMessage(content=full_response))
-        # Note: Tool messages from the agent are automatically handled by the graph logic and appended to state implicitly by the checkpointer in a real app.
-        # For simple streaming display, we only show the final AI response here.
+    full_answer = ""
+
+    # Start streaming execution
+    stream = agent.stream(
+        {"messages": [HumanMessage(content=user_input)]},
+        stream_mode="updates"
+    )
+
+    log_text = ""
+
+    for chunk in stream:
+        for node_name, update in chunk.items():
+            if "messages" not in update:
+                continue
+            for msg in update["messages"]:
+                if isinstance(msg, AIMessage):
+                    # Append model output text in real-time
+                    if msg.content:
+                        full_answer += msg.content
+                        answer_placeholder.markdown(
+                                full_answer + "\n\n" + SPINNER_HTML,
+                                unsafe_allow_html=True
+                            )                    
+                    
+                    log_text += f"AIMessage: {msg.content}\n"
+                    if msg.tool_calls:
+                        for tool in msg.tool_calls:
+                            log_text += f"tool_name: {tool['name']}, {tool['args']}, tool_calls_id={tool['id']}\n"
+                    log_text += "\n"
+
+                elif isinstance(msg, ToolMessage):
+                    
+                    
+                    log_text += "ToolMessage:\n"
+                    if isinstance(msg.content, str):
+                        log_text += msg.content + "\n\n"
+                    else:
+                        log_text += str(msg.content) + "\n\n"
+
+                # Refresh log area in real-time
+                log_placeholder.code(log_text)
+
+    # Final output
+    answer_placeholder.markdown(full_answer.strip() or "All operations completed via tools")
+        
+    st.balloons()  # Small easter egg: release balloons when execution completes
+    st.success("Execution completed!")

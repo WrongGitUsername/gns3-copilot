@@ -49,6 +49,9 @@ def setup_logger(name, log_file=None, console_level=logging.INFO, file_level=log
         console_handler.setFormatter(formatter)
         logger.addHandler(console_handler)
 
+    # Prevent propagation to root logger to avoid duplicate logging
+    logger.propagate = False
+
     return logger
 
 
@@ -136,6 +139,10 @@ LOGGER_CONFIGS = {
     "services_manager": {
         "console_level": logging.ERROR,
         "file_level": logging.DEBUG
+    },
+    "vpcs_multi_commands": {
+        "console_level": logging.ERROR,
+        "file_level": logging.DEBUG
     }
 }
 
@@ -159,6 +166,6 @@ def setup_tool_logger(tool_name, config_name=None):
     return setup_logger(
         name=tool_name,
         log_file=f"log/{tool_name}.log",
-        console_level=config.get("console_level", logging.INFO),
+        console_level=config.get("console_level", logging.ERROR),
         file_level=config.get("file_level", logging.DEBUG)
     )

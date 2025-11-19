@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 from dotenv import load_dotenv
 from pprint import pprint
@@ -8,7 +7,7 @@ from gns3_client import Gns3Connector, Node, Project
 from log_config import setup_tool_logger
 
 # Configure logging
-logger = setup_tool_logger("gns3_create_node_tool")
+logger = setup_tool_logger("gns3_create_node")
 
 # Load environment variables
 load_dotenv()

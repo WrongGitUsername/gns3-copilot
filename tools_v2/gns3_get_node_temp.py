@@ -7,7 +7,7 @@ from gns3_client import Gns3Connector
 from log_config import setup_tool_logger
 
 # Configure logging
-logger = setup_tool_logger("gns3_template_tool")
+logger = setup_tool_logger("gns3_get_node_temp")
 
 # Load environment variables
 load_dotenv()

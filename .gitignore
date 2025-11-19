@@ -213,3 +213,4 @@ benchmarks/
 GNS3_FORUM_POST_RICHTEXT.md
 log/*
 .langgraph_api/*
+agent/checkpoints.sqlite
