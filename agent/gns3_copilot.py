@@ -13,10 +13,8 @@ The assistant provides comprehensive GNS3 topology management capabilities inclu
 The assistant integrates with various tools to provide a complete network automation
 solution for GNS3 environments.
 """
-import json
 import operator
 import streamlit as st
-from pprint import pprint
 from typing import Literal
 from typing_extensions import TypedDict, Annotated
 from dotenv import load_dotenv
