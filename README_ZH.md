@@ -108,7 +108,7 @@ langgraph dev
 
 ```bash
 # 启动Streamlit Web界面
-streamlit run agent/gns3_copilot.py
+streamlit run UI/app.py
 
 # Web界面将在 http://localhost:8501 打开
 # 提供直观的图形界面与AI代理交互
