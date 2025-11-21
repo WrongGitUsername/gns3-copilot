@@ -214,3 +214,6 @@ GNS3_FORUM_POST_RICHTEXT.md
 log/*
 .langgraph_api/*
 agent/checkpoints.sqlite
+*.db
+gns3_checkpoint.db-shm
+gns3_checkpoint.db-wal

@@ -6,12 +6,14 @@ It contains common functionality that can be shared across different tools and m
 
 Main modules:
 - get_gns3_device_port: Device port information retrieval from GNS3 topology
+- parse_tool_content: Tool execution result parsing and formatting utilities
 
 Author: GNS3 Copilot Team
 """
 
 # Import main utility functions
 from .get_gns3_device_port import get_device_ports_from_topology
+from .parse_tool_content import parse_tool_content, format_tool_response
 
 # Dynamic version management
 try:
@@ -32,4 +34,6 @@ __author__ = "GNS3 Copilot Team"
 # Export main utility functions
 __all__ = [
     "get_device_ports_from_topology",
+    "parse_tool_content",
+    "format_tool_response",
 ]
