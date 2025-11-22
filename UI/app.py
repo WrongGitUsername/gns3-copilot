@@ -1,46 +1,17 @@
 import json
-import ast
 import uuid
 import streamlit as st
 from langchain.messages import ToolMessage, HumanMessage, AIMessage
 from agent import agent
 from public_model import format_tool_response
         
-# spinner_html
-SPINNER_HTML = """
-<div style="text-align: left; margin: 20px 0;">
-  <span style="
-    display: inline-block;
-    width: 20px; height: 20px;
-    border: 3px solid #f0f0f0;
-    border-top: 3px solid #1e88e5;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  "></span>
-</div>
-<style>
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-</style>
-"""    
 
 # streamlit UI
 st.set_page_config(page_title="GNS3 Copilot", layout="wide")
 st.title("GNS3 Copilot")
 
-# Initialize chat history
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-# Display chat messages from history on app rerun
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
 # Unique thread ID for each session
-config = {"configurable": {"thread_id": str(uuid.uuid4())}}
+config = {"configurable": {"thread_id": str(uuid.uuid4()), "max_iterations": 100}}
 
 # siderbar info
 with st.sidebar:
@@ -67,69 +38,106 @@ if prompt := st.chat_input("What is up?"):
     # Display user message in chat message container
     with st.chat_message("user"):
         st.markdown(prompt)
-    # Add user message to chat history
-    st.session_state.messages.append({"role": "user", "content": prompt})
     
     # Display assistant response in chat message container
     with st.chat_message("assistant"):
-        message_placeholder = st.empty()
-        full_response = ""
+
+        current_text_chunk = ""
+        active_text_placeholder = st.empty() 
         
-        # 使用st.spinner显示加载动画
-        with st.spinner('GNS3 Copilot is working...'):
-            
-            # Initialize messages
-            human = [
-                HumanMessage(
-                    content=prompt
-                )
-            ]
-
-            # Stream the agent response
-            for chunk in agent.stream(
-                {"messages": human},
-                config=config,
-                stream_mode="updates"
-                ):
-            
-                for node_name, update in chunk.items():
-                    if "messages" in update:
-                        for msg in update["messages"]:
-                            if isinstance(msg, AIMessage):
-                                full_response += (
-                                    "---\n\n"
-                                    f"{msg.content}"
-                                    )
-                                message_placeholder.markdown(full_response, unsafe_allow_html=True)
+        # 核心聚合状态：只存储当前正在流式传输的工具信息
+        # 结构: {'id': str, 'name': str, 'args_string': str} 或 None
+        current_tool_state = None
+        
+        # 历史容器：用于按顺序累积显示所有工具调用和响应，解决 UI 错乱问题
+        tool_history_container = st.container()
+        
+        # Stream the agent response
+        for chunk in agent.stream(
+            {"messages": [HumanMessage(content=prompt)]},
+            config=config,
+            stream_mode="messages"
+            ):
+        
+            for msg in chunk:
+                #with open('log.txt', "a", encoding='utf-8') as f:
+                #    f.write(f"{msg}\n\n")
+                                       
+                if isinstance(msg, AIMessage):
+                    
+                    # 检查 content 是否为列表，并安全地提取第一个文本元素，适配gemini
+                    if isinstance(msg.content, list) and msg.content and 'text' in msg.content[0]:
+                        actual_text = msg.content[0]['text']
+                        # 现在 actual_text 才是您需要的干净文本
+                        current_text_chunk += actual_text
+                        active_text_placeholder.markdown(current_text_chunk, unsafe_allow_html=True)
+                        
+                    elif isinstance(msg.content, str):                                                    
+                        current_text_chunk += str(msg.content)
+                        active_text_placeholder.markdown(current_text_chunk, unsafe_allow_html=True)
+                    
+                    # 从tool_calls中获取元数据（ID和name）
+                    if msg.tool_calls:
+                        for tool in msg.tool_calls:
+                            tool_id = tool.get('id')
+                            if tool_id: # 只有当 ID 非空时，才认为是一个新的工具调用开始
+                                # 初始化当前工具状态（这是唯一获取 ID 的时机）
+                                # 注意： 只能一次调用一个工具
+                                current_tool_state = {
+                                    "id": tool_id, 
+                                    "name": tool.get('name', 'UNKNOWN_TOOL'),
+                                    "args_string": "" ,
+                                }   
                                 
-                                if msg.tool_calls:
-                                    for tool in msg.tool_calls:
-                                        args_pretty = format_tool_response(tool.get('args').get('tool_input'))
-                                        full_response += (
-                                            f"\n\n **Tool Used:** {tool.get('name')}\n\n"                                            
-                                            "<details>\n"
-                                            "<summary>Tool Call Details</summary>\n\n"
-                                            f"```json\n\n"
-                                            f"{args_pretty}\n\n"
-                                            "```\n\n"
-                                            "</details>\n\n"
-                                            )
-                                        message_placeholder.markdown(full_response, unsafe_allow_html=True)
+                    # 从tool_call_chunk拼接参数字符串
+                    if hasattr(msg, 'tool_call_chunks') and msg.tool_call_chunks:
+                        if current_tool_state:
+                            tool_data = current_tool_state
                             
-                            elif isinstance(msg, ToolMessage):
-                                content_pretty = format_tool_response(msg.content)
-                                full_response += (
-                                    f"\n\n **Tool Response:** \n\n"
-                                    "<details>\n"
-                                    "<summary>Tool Response Details</summary>\n\n"
-                                    "```json\n\n"
-                                    f"{content_pretty}\n\n"
-                                    "```\n\n"
-                                    "</details>\n\n"
-                                )
-                                message_placeholder.markdown(full_response, unsafe_allow_html=True)
-
-            # Finalize the assistant message
-            #message_placeholder.markdown(full_response)
-    
-    st.session_state.messages.append({"role": "assistant", "content": full_response})
+                            for chunk_update in msg.tool_call_chunks:
+                                args_chunk = chunk_update.get('args', '')
+                                    
+                                    # 核心：字符串拼接
+                                if isinstance(args_chunk, str):
+                                    tool_data['args_string'] += args_chunk
+                                                                
+                elif isinstance(msg, ToolMessage):
+                    # 检查 ToolMessage 的 ID 是否匹配当前状态
+                    if current_tool_state and current_tool_state['id'] == msg.tool_call_id:
+                        tool_data = current_tool_state
+                        # 解析完整的参数字符串
+                        parsed_args = {}
+                        try:
+                            parsed_args = json.loads(tool_data['args_string'])
+                        except json.JSONDecodeError:
+                            parsed_args = {"error": "JSON parse failed after stream complete."}
+                        
+                        # 将parsed_args中的tool_input的值序列为json数组，以便在st.json时展开。
+                        command_list = json.loads(parsed_args['tool_input'])
+                        parsed_args['tool_input'] = command_list
+                        
+                        # 构建符合您要求的最终显示结构
+                        display_tool_call = {
+                            "name": tool_data['name'],
+                            "id": tool_data['id'],
+                            # 注入 tool_input 结构
+                            "args": parsed_args, 
+                            "type": tool_data.get('type', 'tool_call') # 保持完整性
+                        }
+                        
+                        # 更新 Call Expander，显示最终参数 (折叠起来)
+                        with st.expander(
+                            f"**Tool Call Complete:** `{tool_data['name']}`", expanded=False
+                        ):
+                            # 使用最终的完整结构
+                            st.json(display_tool_call)
+                            
+                    # 完成后清除状态，准备接收下一个工具调用
+                    current_tool_state = None
+                            
+                    content_pretty = format_tool_response(msg.content)
+                                          
+                    with st.expander("**Tool Response**"):
+                        st.json(json.loads(content_pretty), expanded=False)
+                    
+                    active_text_placeholder = st.empty()
