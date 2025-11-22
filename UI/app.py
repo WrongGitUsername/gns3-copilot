@@ -45,11 +45,11 @@ if prompt := st.chat_input("What is up?"):
         current_text_chunk = ""
         active_text_placeholder = st.empty() 
         
-        # 核心聚合状态：只存储当前正在流式传输的工具信息
-        # 结构: {'id': str, 'name': str, 'args_string': str} 或 None
+        # Core aggregation state: only stores currently streaming tool information
+        # Structure: {'id': str, 'name': str, 'args_string': str} or None
         current_tool_state = None
         
-        # 历史容器：用于按顺序累积显示所有工具调用和响应，解决 UI 错乱问题
+        # History container: used to sequentially accumulate and display all tool calls and responses, solving UI disorder issues
         tool_history_container = st.container()
         
         # Stream the agent response
@@ -65,10 +65,10 @@ if prompt := st.chat_input("What is up?"):
                                        
                 if isinstance(msg, AIMessage):
                     
-                    # 检查 content 是否为列表，并安全地提取第一个文本元素，适配gemini
+                    # Check if content is a list and safely extract the first text element, adapted for gemini
                     if isinstance(msg.content, list) and msg.content and 'text' in msg.content[0]:
                         actual_text = msg.content[0]['text']
-                        # 现在 actual_text 才是您需要的干净文本
+                        # Now actual_text is the clean text you need
                         current_text_chunk += actual_text
                         active_text_placeholder.markdown(current_text_chunk, unsafe_allow_html=True)
                         
@@ -76,20 +76,20 @@ if prompt := st.chat_input("What is up?"):
                         current_text_chunk += str(msg.content)
                         active_text_placeholder.markdown(current_text_chunk, unsafe_allow_html=True)
                     
-                    # 从tool_calls中获取元数据（ID和name）
+                    # Get metadata (ID and name) from tool_calls
                     if msg.tool_calls:
                         for tool in msg.tool_calls:
                             tool_id = tool.get('id')
-                            if tool_id: # 只有当 ID 非空时，才认为是一个新的工具调用开始
-                                # 初始化当前工具状态（这是唯一获取 ID 的时机）
-                                # 注意： 只能一次调用一个工具
+                            if tool_id: # Only when ID is not empty, consider it as the start of a new tool call
+                                # Initialize current tool state (this is the only time to get ID)
+                                # Note: only one tool can be called at a time
                                 current_tool_state = {
                                     "id": tool_id, 
                                     "name": tool.get('name', 'UNKNOWN_TOOL'),
                                     "args_string": "" ,
                                 }   
                                 
-                    # 从tool_call_chunk拼接参数字符串
+                    # Concatenate parameter strings from tool_call_chunk
                     if hasattr(msg, 'tool_call_chunks') and msg.tool_call_chunks:
                         if current_tool_state:
                             tool_data = current_tool_state
@@ -97,42 +97,42 @@ if prompt := st.chat_input("What is up?"):
                             for chunk_update in msg.tool_call_chunks:
                                 args_chunk = chunk_update.get('args', '')
                                     
-                                    # 核心：字符串拼接
+                                    # Core: string concatenation
                                 if isinstance(args_chunk, str):
                                     tool_data['args_string'] += args_chunk
                                                                 
                 elif isinstance(msg, ToolMessage):
-                    # 检查 ToolMessage 的 ID 是否匹配当前状态
+                    # Check if ToolMessage's ID matches current state
                     if current_tool_state and current_tool_state['id'] == msg.tool_call_id:
                         tool_data = current_tool_state
-                        # 解析完整的参数字符串
+                        # Parse complete parameter string
                         parsed_args = {}
                         try:
                             parsed_args = json.loads(tool_data['args_string'])
                         except json.JSONDecodeError:
                             parsed_args = {"error": "JSON parse failed after stream complete."}
                         
-                        # 将parsed_args中的tool_input的值序列为json数组，以便在st.json时展开。
+                        # Serialize the tool_input value in parsed_args to a JSON array for expansion when using st.json
                         command_list = json.loads(parsed_args['tool_input'])
                         parsed_args['tool_input'] = command_list
                         
-                        # 构建符合您要求的最终显示结构
+                        # Build the final display structure that meets your requirements
                         display_tool_call = {
                             "name": tool_data['name'],
                             "id": tool_data['id'],
-                            # 注入 tool_input 结构
+                            # Inject tool_input structure
                             "args": parsed_args, 
-                            "type": tool_data.get('type', 'tool_call') # 保持完整性
+                            "type": tool_data.get('type', 'tool_call') # Maintain completeness
                         }
                         
-                        # 更新 Call Expander，显示最终参数 (折叠起来)
+                        # Update Call Expander, display final parameters (collapsed)
                         with st.expander(
                             f"**Tool Call Complete:** `{tool_data['name']}`", expanded=False
                         ):
-                            # 使用最终的完整结构
+                            # Use the final complete structure
                             st.json(display_tool_call)
                             
-                    # 完成后清除状态，准备接收下一个工具调用
+                    # Clear state after completion, ready to receive next tool call
                     current_tool_state = None
                             
                     content_pretty = format_tool_response(msg.content)
