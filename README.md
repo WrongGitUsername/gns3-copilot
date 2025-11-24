@@ -108,7 +108,7 @@ langgraph dev
 
 ```bash
 # Start Streamlit web interface
-streamlit run UI/app.py
+streamlit run app.py
 
 # Web interface will open at http://localhost:8501
 # Provides an intuitive graphical interface for interacting with the AI agent

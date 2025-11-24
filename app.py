@@ -3,8 +3,14 @@ import uuid
 import streamlit as st
 from langchain.messages import ToolMessage, HumanMessage, AIMessage
 from agent import agent
-from public_model import format_tool_response
-        
+from public_model import (
+    format_tool_response,
+    get_metadata_db_conn, 
+    get_all_threads_metadata, 
+    create_new_thread_metadata, 
+    update_thread_name    
+    )
+
 
 # streamlit UI
 st.set_page_config(page_title="GNS3 Copilot", layout="wide")
@@ -40,17 +46,13 @@ if prompt := st.chat_input("What is up?"):
         st.markdown(prompt)
     
     # Display assistant response in chat message container
-    with st.chat_message("assistant"):
-
-        current_text_chunk = ""
-        active_text_placeholder = st.empty() 
+    with st.chat_message("assistant"):        
         
+        active_text_placeholder = st.empty()    
+        current_text_chunk = ""
         # Core aggregation state: only stores currently streaming tool information
         # Structure: {'id': str, 'name': str, 'args_string': str} or None
         current_tool_state = None
-        
-        # History container: used to sequentially accumulate and display all tool calls and responses, solving UI disorder issues
-        tool_history_container = st.container()
         
         # Stream the agent response
         for chunk in agent.stream(
@@ -58,7 +60,7 @@ if prompt := st.chat_input("What is up?"):
             config=config,
             stream_mode="messages"
             ):
-        
+
             for msg in chunk:
                 #with open('log.txt', "a", encoding='utf-8') as f:
                 #    f.write(f"{msg}\n\n")
@@ -75,7 +77,7 @@ if prompt := st.chat_input("What is up?"):
                     elif isinstance(msg.content, str):                                                    
                         current_text_chunk += str(msg.content)
                         active_text_placeholder.markdown(current_text_chunk, unsafe_allow_html=True)
-                    
+                                        
                     # Get metadata (ID and name) from tool_calls
                     if msg.tool_calls:
                         for tool in msg.tool_calls:
@@ -87,8 +89,8 @@ if prompt := st.chat_input("What is up?"):
                                     "id": tool_id, 
                                     "name": tool.get('name', 'UNKNOWN_TOOL'),
                                     "args_string": "" ,
-                                }   
-                                
+                                }
+                                                                 
                     # Concatenate parameter strings from tool_call_chunk
                     if hasattr(msg, 'tool_call_chunks') and msg.tool_call_chunks:
                         if current_tool_state:
@@ -100,10 +102,9 @@ if prompt := st.chat_input("What is up?"):
                                     # Core: string concatenation
                                 if isinstance(args_chunk, str):
                                     tool_data['args_string'] += args_chunk
-                                                                
-                elif isinstance(msg, ToolMessage):
-                    # Check if ToolMessage's ID matches current state
-                    if current_tool_state and current_tool_state['id'] == msg.tool_call_id:
+                    
+                    # 判断tool_calls_chunks输出完成，展示tool_calls的st.expander()
+                    if msg.response_metadata.get('finish_reason') == 'tool_calls':
                         tool_data = current_tool_state
                         # Parse complete parameter string
                         parsed_args = {}
@@ -113,8 +114,11 @@ if prompt := st.chat_input("What is up?"):
                             parsed_args = {"error": "JSON parse failed after stream complete."}
                         
                         # Serialize the tool_input value in parsed_args to a JSON array for expansion when using st.json
-                        command_list = json.loads(parsed_args['tool_input'])
-                        parsed_args['tool_input'] = command_list
+                        try:
+                            command_list = json.loads(parsed_args['tool_input'])
+                            parsed_args['tool_input'] = command_list
+                        except (json.JSONDecodeError, KeyError):
+                            pass
                         
                         # Build the final display structure that meets your requirements
                         display_tool_call = {
@@ -127,17 +131,19 @@ if prompt := st.chat_input("What is up?"):
                         
                         # Update Call Expander, display final parameters (collapsed)
                         with st.expander(
-                            f"**Tool Call Complete:** `{tool_data['name']}`", expanded=False
+                            f"**Tool Call:** {tool_data['name']} `call_id: {tool_data['id']}`", expanded=False
                         ):
                             # Use the final complete structure
-                            st.json(display_tool_call)
-                            
+                            st.json(display_tool_call, expanded=True)
+                        
+                elif isinstance(msg, ToolMessage):
                     # Clear state after completion, ready to receive next tool call
                     current_tool_state = None
-                            
+                    
                     content_pretty = format_tool_response(msg.content)
                                           
-                    with st.expander("**Tool Response**"):
-                        st.json(json.loads(content_pretty), expanded=False)
+                    with st.expander(f"**Tool Response** `call_id: {msg.tool_call_id}`", expanded=False):
+                        st.json(json.loads(content_pretty), expanded=2)
                     
                     active_text_placeholder = st.empty()
+                    current_text_chunk = ""
