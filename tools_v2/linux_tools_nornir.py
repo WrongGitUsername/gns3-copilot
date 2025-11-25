@@ -75,6 +75,8 @@ class LinuxTelnetBatchTool(BaseTool):
         ]
     Returns a list of dictionaries, each containing the device name and command outputs.
 
+    If you need to start the server/client for testing, execute the command one device at a time, do not execute them simultaneously.
+    
     **Do NOT use this tool for any Danger configuration commands.**
     """
 

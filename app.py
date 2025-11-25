@@ -3,6 +3,7 @@ import uuid
 import streamlit as st
 from langchain.messages import ToolMessage, HumanMessage, AIMessage
 from agent import agent
+from log_config import setup_logger
 from public_model import (
     format_tool_response,
     get_metadata_db_conn, 
@@ -11,6 +12,7 @@ from public_model import (
     update_thread_name    
     )
 
+logger = setup_logger("app")
 
 # streamlit UI
 st.set_page_config(page_title="GNS3 Copilot", layout="wide")
@@ -104,7 +106,9 @@ if prompt := st.chat_input("What is up?"):
                                     tool_data['args_string'] += args_chunk
                     
                     # 判断tool_calls_chunks输出完成，展示tool_calls的st.expander()
-                    if msg.response_metadata.get('finish_reason') == 'tool_calls':
+                    if msg.response_metadata.get('finish_reason') == 'tool_calls' or (
+                        msg.response_metadata.get('finish_reason') == 'STOP' and current_tool_state is not None):
+                        
                         tool_data = current_tool_state
                         # Parse complete parameter string
                         parsed_args = {}
@@ -117,7 +121,7 @@ if prompt := st.chat_input("What is up?"):
                         try:
                             command_list = json.loads(parsed_args['tool_input'])
                             parsed_args['tool_input'] = command_list
-                        except (json.JSONDecodeError, KeyError):
+                        except (json.JSONDecodeError, KeyError, TypeError):
                             pass
                         
                         # Build the final display structure that meets your requirements

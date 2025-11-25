@@ -147,6 +147,10 @@ LOGGER_CONFIGS = {
     "linux_tools_nornir": {
         "console_level": logging.ERROR,
         "file_level": logging.DEBUG
+    },
+    "app": {
+        "console_level": logging.ERROR,
+        "file_level": logging.DEBUG
     }
 }
 

@@ -83,7 +83,7 @@ class GNS3CreateNodeTool(BaseTool):
     If the operation fails during input validation, returns a dictionary with an error message.
     """
 
-    def _run(self, tool_input: str, run_manager=None) -> dict:
+    def _run(self, tool_input: str, **kwargs) -> dict:
         """
         Creates multiple nodes in a GNS3 project using the provided templates and coordinates.
 
