@@ -35,6 +35,7 @@ GNS3 Copilot 是一个强大的网络自动化工具，集成了多种AI模型�
 | `ExecuteMultipleDeviceCommands` | 执行显示命令 |
 | `ExecuteMultipleDeviceConfigCommands` | 执行配置命令 |
 | `VPCSMultiCommands` | 在多个设备上执行VPCS命令 |
+| `LinuxTelnetBatchTool` | 在多个设备上执行linux命令 |
 
 ## 安装指南
 

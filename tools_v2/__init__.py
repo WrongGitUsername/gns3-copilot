@@ -16,6 +16,7 @@ Main modules:
 - gns3_create_link: GNS3 link creation tool
 - gns3_start_node: GNS3 node startup tool
 - gns3_get_node_temp: GNS3 template retrieval tool
+- linux_tools_nornir: Linux Telnet batch command execution tool using Nornir
 
 Note: GNS3TopologyTool is now available from gns3_client package
 
@@ -30,7 +31,7 @@ from .gns3_create_node import GNS3CreateNodeTool
 from .gns3_create_link import GNS3LinkTool
 from .gns3_start_node import GNS3StartNodeTool
 from .gns3_get_node_temp import GNS3TemplateTool
-
+from .linux_tools_nornir import LinuxTelnetBatchCommands
 
 # Dynamic version management
 try:
@@ -57,6 +58,7 @@ __all__ = [
     "GNS3LinkTool",
     "GNS3StartNodeTool",
     "GNS3TemplateTool",
+    "LinuxTelnetBatchCommands"
 ]
 
 # Package initialization message
