@@ -30,7 +30,7 @@ from tools_v2 import GNS3StartNodeTool
 from tools_v2 import ExecuteMultipleDeviceConfigCommands
 from tools_v2 import ExecuteMultipleDeviceCommands
 from tools_v2 import VPCSMultiCommands
-from tools_v2 import LinuxTelnetBatchCommands
+from tools_v2 import LinuxTelnetBatchTool
 from log_config import setup_logger
 from prompts.react_prompt import SYSTEM_PROMPT
 
@@ -59,7 +59,7 @@ tools = [
     ExecuteMultipleDeviceCommands(),   # Execute show/display commands on multiple devices
     ExecuteMultipleDeviceConfigCommands(),  # Execute configuration commands on multiple devices
     VPCSMultiCommands(),                    # Execute VPCS commands on multiple devices
-    LinuxTelnetBatchCommands()              # Execute Linux commands via Telnet on multiple devices
+    LinuxTelnetBatchTool()              # Execute Linux commands via Telnet on multiple devices
 ]
 # Augment the LLM with tools
 tools_by_name = {tool.name: tool for tool in tools}

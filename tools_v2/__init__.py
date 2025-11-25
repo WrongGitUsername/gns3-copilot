@@ -31,7 +31,7 @@ from .gns3_create_node import GNS3CreateNodeTool
 from .gns3_create_link import GNS3LinkTool
 from .gns3_start_node import GNS3StartNodeTool
 from .gns3_get_node_temp import GNS3TemplateTool
-from .linux_tools_nornir import LinuxTelnetBatchCommands
+from .linux_tools_nornir import LinuxTelnetBatchTool
 
 # Dynamic version management
 try:
@@ -58,7 +58,7 @@ __all__ = [
     "GNS3LinkTool",
     "GNS3StartNodeTool",
     "GNS3TemplateTool",
-    "LinuxTelnetBatchCommands"
+    "LinuxTelnetBatchTool"
 ]
 
 # Package initialization message
