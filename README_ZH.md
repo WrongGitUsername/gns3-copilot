@@ -95,15 +95,6 @@ API_VERSION="2"
 
 ### 启动方式
 
-#### 方式1: LangGraph开发服务器
-
-```bash
-# 启动LangGraph开发服务器
-langgraph dev
-
-# 服务器将在 http://localhost:2024 启动
-# 可以通过Web界面或API与代理交互
-```
 
 #### 方式2: Streamlit Web UI
 
@@ -115,22 +106,6 @@ streamlit run app.py
 # 提供直观的图形界面与AI代理交互
 ```
 
-#### 方式3: LangGraph隧道模式（远程访问）
-
-```bash
-# 启动带隧道功能的开发服务器
-langgraph dev --tunnel
-
-# 生成公网访问URL，支持远程访问
-# 适用于需要从外部网络访问代理的场景
-```
-
-**LangGraph服务器说明：**
-- 默认端口: 2024
-- 配置文件: `langgraph.json`
-- 图表ID: `agent`
-- 支持热重载和实时调试
-- 提供Swagger API文档
 
 ## 配置说明
 

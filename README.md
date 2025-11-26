@@ -95,17 +95,7 @@ Ensure GNS3 Server is running at the default address `http://localhost:3080`
 
 ### Startup Methods
 
-#### Method 1: LangGraph Development Server
-
-```bash
-# Start LangGraph development server
-langgraph dev
-
-# Server will start at http://localhost:2024
-# Interact with the agent through web interface or API
-```
-
-#### Method 2: Streamlit Web UI
+#### Streamlit Web UI
 
 ```bash
 # Start Streamlit web interface
@@ -114,24 +104,6 @@ streamlit run app.py
 # Web interface will open at http://localhost:8501
 # Provides an intuitive graphical interface for interacting with the AI agent
 ```
-
-#### Method 3: LangGraph Tunnel Mode (Remote Access)
-
-```bash
-# Start development server with tunnel functionality
-langgraph dev --tunnel
-
-# Generate public access URL supporting remote access
-# Suitable for scenarios requiring external network access to the agent
-```
-
-**LangGraph Server Notes:**
-- Default port: 2024
-- Configuration file: `langgraph.json`
-- Graph ID: `agent`
-- Supports hot reload and real-time debugging
-- Provides Swagger API documentation
-
 
 ## Configuration Instructions
 

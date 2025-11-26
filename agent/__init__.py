@@ -4,7 +4,7 @@ GNS3 Copilot Agent Package
 This package contains the main GNS3 Copilot agent implementation for network automation tasks.
 """
 
-from .gns3_copilot import agent
+from .gns3_copilot import agent, langgraph_checkpointer
 
 # Dynamic version management
 try:
@@ -25,4 +25,5 @@ __description__ = "AI-powered network automation assistant for GNS3"
 
 __all__ = [
     "agent",
+    "langgraph_checkpointer",
 ]

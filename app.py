@@ -6,20 +6,23 @@ from agent import agent
 from log_config import setup_logger
 from public_model import (
     format_tool_response,
-    get_metadata_db_conn, 
-    get_all_threads_metadata, 
-    create_new_thread_metadata, 
-    update_thread_name    
     )
 
 logger = setup_logger("app")
 
+# Initialize session state for thread ID
+if "thread_id" not in st.session_state:
+    # 如果 session_state 中没有 thread_id，则创建并保存一个新的
+    st.session_state["thread_id"] = str(uuid.uuid4())
+
+current_thread_id = st.session_state["thread_id"]
+
+# Unique thread ID for each session
+config = {"configurable": {"thread_id": current_thread_id, "max_iterations": 100}}
+
 # streamlit UI
 st.set_page_config(page_title="GNS3 Copilot", layout="wide")
 st.title("GNS3 Copilot")
-
-# Unique thread ID for each session
-config = {"configurable": {"thread_id": str(uuid.uuid4()), "max_iterations": 100}}
 
 # siderbar info
 with st.sidebar:

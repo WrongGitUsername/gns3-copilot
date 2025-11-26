@@ -15,6 +15,7 @@ solution for GNS3 environments.
 """
 import sqlite3
 import operator
+import streamlit as st
 from typing import Literal
 from typing_extensions import TypedDict, Annotated
 from dotenv import load_dotenv
@@ -135,8 +136,30 @@ agent_builder.add_conditional_edges(
 agent_builder.add_edge("tool_node", "llm_call")
 
 # Add checkpointing
-conn = sqlite3.connect("gns3_checkpoint.db", check_same_thread=False)
-memory = SqliteSaver(conn=conn)
+LANGGRAPH_DB_PATH = "gns3_langgraph.db"
+
+@st.cache_resource
+def get_langgraph_checkpointer():
+    """缓存 LangGraph Checkpointer 实例 (SqliteSaver)。"""
+    # 使用您的特定数据库路径
+    conn = sqlite3.connect(LANGGRAPH_DB_PATH, check_same_thread=False)
+    # Checkpointer 实例就是您代码中的 'memory'
+    checkpointer = SqliteSaver(conn=conn)
+    return checkpointer
 
 # Compile the agent
-agent = agent_builder.compile(checkpointer=memory)
+@st.cache_resource
+def get_agent(_agent_builder, _checkpointer):
+    """
+    缓存编译后的 LangGraph Agent 实例。
+    Agent 的生命周期和检查点绑定。
+    """
+    # 编译 Agent，并传入缓存的 checkpointer
+    agent = _agent_builder.compile(checkpointer=_checkpointer)
+    return agent
+
+langgraph_checkpointer = get_langgraph_checkpointer()
+agent = get_agent(
+    _agent_builder = agent_builder,
+    _checkpointer=langgraph_checkpointer
+    )
