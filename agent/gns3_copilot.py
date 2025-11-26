@@ -140,10 +140,16 @@ LANGGRAPH_DB_PATH = "gns3_langgraph.db"
 
 @st.cache_resource
 def get_langgraph_checkpointer():
-    """缓存 LangGraph Checkpointer 实例 (SqliteSaver)。"""
-    # 使用您的特定数据库路径
+    """
+    Caches the LangGraph Checkpointer instance (SqliteSaver).
+    This resource manages the persistent storage for the agent's state.
+    """
+    # Use your specific database path
+    # NOTE: check_same_thread=False is crucial for SQLite used in multi-threaded environments like Streamlit.
     conn = sqlite3.connect(LANGGRAPH_DB_PATH, check_same_thread=False)
-    # Checkpointer 实例就是您代码中的 'memory'
+    
+    # Initialize the SqliteSaver checkpointer
+    # If SqliteSaver is not available, you might need to manually handle the database setup.
     checkpointer = SqliteSaver(conn=conn)
     return checkpointer
 
@@ -151,15 +157,17 @@ def get_langgraph_checkpointer():
 @st.cache_resource
 def get_agent(_agent_builder, _checkpointer):
     """
-    缓存编译后的 LangGraph Agent 实例。
-    Agent 的生命周期和检查点绑定。
+    Caches the compiled LangGraph Agent instance.
+    The agent's lifecycle is tied to the cached checkpointer resource.
     """
-    # 编译 Agent，并传入缓存的 checkpointer
+    # Compile the Agent, passing in the cached checkpointer
     agent = _agent_builder.compile(checkpointer=_checkpointer)
     return agent
 
+# Retrieve the cached checkpointer instance
 langgraph_checkpointer = get_langgraph_checkpointer()
+# Retrieve the cached agent instance
 agent = get_agent(
-    _agent_builder = agent_builder,
+    _agent_builder = agent_builder, # Assuming 'agent_builder' is defined
     _checkpointer=langgraph_checkpointer
     )

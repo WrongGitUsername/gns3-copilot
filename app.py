@@ -12,7 +12,7 @@ logger = setup_logger("app")
 
 # Initialize session state for thread ID
 if "thread_id" not in st.session_state:
-    # 如果 session_state 中没有 thread_id，则创建并保存一个新的
+    # If thread_id is not in session_state, create and save a new one
     st.session_state["thread_id"] = str(uuid.uuid4())
 
 current_thread_id = st.session_state["thread_id"]
@@ -108,7 +108,7 @@ if prompt := st.chat_input("What is up?"):
                                 if isinstance(args_chunk, str):
                                     tool_data['args_string'] += args_chunk
                     
-                    # 判断tool_calls_chunks输出完成，展示tool_calls的st.expander()
+                    # Determine if the tool_calls_chunks output is complete and display the st.expander() for tool_calls
                     if msg.response_metadata.get('finish_reason') == 'tool_calls' or (
                         msg.response_metadata.get('finish_reason') == 'STOP' and current_tool_state is not None):
                         
