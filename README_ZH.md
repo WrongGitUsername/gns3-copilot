@@ -15,7 +15,7 @@ GNS3 Copilot 是一个强大的网络自动化工具，集成了多种AI模型�
 - 🌐 **LLM支持**: 集成DeepSeek AI模型进行自然语言处理
 
 
-<img src="assets/demo.gif" alt="GNS3 Copilot 功能演示" width="600"/>
+<img src="assets/demo.gif" alt="GNS3 Copilot 功能演示" width="1280"/>
 
 
 ## 技术架构
