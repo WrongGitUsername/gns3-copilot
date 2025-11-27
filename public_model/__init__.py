@@ -19,6 +19,7 @@ from .db_manager import (
     create_new_thread,
     update_thread_name,
     delete_thread,
+    get_metadata_connection,
 ) 
 
 # Dynamic version management
@@ -46,4 +47,5 @@ __all__ = [
     "create_new_thread",
     "update_thread_name",
     "delete_thread",
+    "get_metadata_connection",
 ]

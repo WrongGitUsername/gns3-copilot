@@ -151,22 +151,6 @@ cython_debug/
 *.config
 !rag_config.ini.example
 
-# Device configurations (可能包含敏感信息)
-device_configs/
-!device_configs/.gitkeep
-
-# Vector store files (通常很大且可重新生成)
-vector_store/
-!vector_store/.gitkeep
-
-# Analysis reports (可能包含敏感网络信息)
-analysis_reports/
-!analysis_reports/.gitkeep
-
-# Knowledge base files (如果包含敏感信息)
-# knowledge_base/
-# !knowledge_base/.gitkeep
-
 # Log files
 *.log
 logs/
@@ -194,26 +178,10 @@ Thumbs.db
 secrets.json
 credentials.json
 
-# Backup files
-*.bak
-*.backup
-*~
 
-# Cache directories
-.cache/
-cache/
-
-# Test coverage
-.coverage
-htmlcov/
-
-# Performance test results
-performance_results/
-benchmarks/
-GNS3_FORUM_POST_RICHTEXT.md
 log/*
-.langgraph_api/*
-agent/checkpoints.sqlite
 *.db
 *.db-shm
 *.db-wal
+*.sqlite
+test/session_metadata.sqlite
