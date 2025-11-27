@@ -21,30 +21,48 @@ config = {"configurable": {"thread_id": current_thread_id, "max_iterations": 100
 
 # streamlit UI
 st.set_page_config(page_title="GNS3 Copilot", layout="wide")
-st.title("GNS3 Copilot")
 
 # StateSnapshot state exapmle test/langgraph_checkpoint.json file
 # Display previous messages from state history
 if st.session_state.get("state_history") is not None:
     # StateSnapshot values dictionary
     values_dict = st.session_state["state_history"].values
+    message_to_render = values_dict.get("messages", [])
+    
+    # Track current open assistant message block
+    current_assistant_block =None
+    
     # StateSnapshot values messages list
-    for message_list in values_dict.get("messages", []):
+    for message_object in message_to_render:
         # Handle different message types
-        if isinstance(message_list, HumanMessage):
+        if isinstance(message_object, HumanMessage):
+            # Close any open assistant chat message block before starting a new user message
+            if current_assistant_block is not None:
+                current_assistant_block.__exit__(None, None, None)
+                current_assistant_block = None
+            # UserMessage    
             with st.chat_message("user"):
-                st.markdown(message_list.content)
-        # Handle AIMessage with tool_calls        
-        elif isinstance(message_list, AIMessage):
-            with st.chat_message("assistant"):
+                st.markdown(message_object.content)
+        
+#       with st.chat_message("assistant"):
+        elif isinstance(message_object, (AIMessage, ToolMessage)):
+            # Open a new assistant chat message block if none is open
+            if current_assistant_block is None:
+                current_assistant_block = st.chat_message("assistant")
+                current_assistant_block.__enter__()
+                
+            # Handle AIMessage with tool_calls        
+            if isinstance(message_object, AIMessage):
                 # AIMessage content
-                if isinstance(message_list.content, list) and message_list.content and 'text' in message_list.content[0]:
-                    st.markdown(message_list.content[0]['text'])
-                elif isinstance(message_list.content, str):
-                    st.markdown(message_list.content)
+                # Check if content is a list and safely extract the first text element, adapted for gemini
+                if isinstance(message_object.content, list) and message_object.content and 'text' in message_object.content[0]:
+                    st.markdown(message_object.content[0]['text'])
+                # Plain string content
+                elif isinstance(message_object.content, str):
+                    st.markdown(message_object.content)
                 # AIMessage tool_calls
-                if isinstance(message_list.tool_calls, list) and message_list.tool_calls:
-                    for tool in message_list.tool_calls:
+                if isinstance(message_object.tool_calls, list) and message_object.tool_calls:
+                    for tool in message_object.tool_calls:
                         tool_id = tool.get('id', 'UNKNOWN_ID')
                         tool_name = tool.get('name', 'UNKNOWN_TOOL')
                         tool_args = tool.get('args', {})
@@ -56,15 +74,20 @@ if st.session_state.get("state_history") is not None:
                                 "args": tool_args,
                                 "type": "tool_call"
                             }, expanded=True)
-        # Handle ToolMessage                    
-        elif isinstance(message_list, ToolMessage):
-            with st.chat_message("assistant"):
-                content_pretty = format_tool_response(message_list.content)
-                with st.expander(f"**Tool Response** `call_id: {message_list.tool_call_id}`", expanded=False):
-                    st.json(json.loads(content_pretty), expanded=2)
+            # Handle ToolMessage
+            if isinstance(message_object, ToolMessage):
+                content_pretty = format_tool_response(message_object.content)
+                with st.expander(f"**Tool Response** `call_id: {message_object.tool_call_id}`", expanded=False):
+                        st.json(json.loads(content_pretty), expanded=2)
+                        
+    # Close any remaining open assistant chat message block                    
+    if current_assistant_block is not None:
+        current_assistant_block.__exit__(None, None, None)
+
 
 # siderbar info
 with st.sidebar:
+    st.title("_GNS3 Copilot_ :sunglasses:")
     st.title("About")
     st.markdown(
         """
