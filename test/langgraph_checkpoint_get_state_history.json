@@ -1,0 +1,1905 @@
+[
+    StateSnapshot(
+        values={
+            "messages": [
+                HumanMessage(
+                    content="hello", additional_kwargs={}, response_metadata={}
+                ),
+                AIMessage(
+                    content="Hello! I'm your network automation assistant. I can help you with various network tasks including:\n\n- Checking network device status (interfaces, routing, OSPF, etc.)\n- Configuring network devices\n- Managing GNS3 topology\n- Performing network diagnostics and troubleshooting\n\nWhat would you like me to help you with today? For example, I can:\n- Show you the current network topology\n- Check device configurations and status\n- Configure interfaces or routing protocols\n- Troubleshoot connectivity issues\n\nPlease let me know what specific task you'd like to accomplish!",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "stop",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--572381b2-d406-416b-a8f6-73a7be42ad2f",
+                    usage_metadata={
+                        "input_tokens": 3293,
+                        "output_tokens": 114,
+                        "total_tokens": 3407,
+                        "input_token_details": {"cache_read": 3264},
+                        "output_token_details": {},
+                    },
+                ),
+                HumanMessage(
+                    content="tell me current topology",
+                    additional_kwargs={},
+                    response_metadata={},
+                ),
+                AIMessage(
+                    content="I'll check the current GNS3 topology for you.",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "tool_calls",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--2457f741-a10f-441a-aa37-f512f50d65f5",
+                    tool_calls=[
+                        {
+                            "name": "gns3_topology_reader",
+                            "args": {"tool_input": None},
+                            "id": "call_00_eCtJ9obRBNLWMsHenN1U6LYF",
+                            "type": "tool_call",
+                        }
+                    ],
+                    usage_metadata={
+                        "input_tokens": 3415,
+                        "output_tokens": 30,
+                        "total_tokens": 3445,
+                        "input_token_details": {"cache_read": 3392},
+                        "output_token_details": {},
+                    },
+                ),
+                ToolMessage(
+                    content="{'project_id': 'f2f7ed27-7aa3-4b11-a64c-da947a2c7210', 'name': 'network_ai', 'status': 'opened', 'nodes': {'R-1': {'server': '127.0.0.1', 'name': 'R-1', 'node_id': 'dae0b5be-03aa-492d-939c-72f2bbe1d74a', 'console_port': 5012, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -630, 'y': -180}, 'R-2': {'server': '127.0.0.1', 'name': 'R-2', 'node_id': '770c835c-83ae-42ce-a2b9-9a88fb4d2145', 'console_port': 5014, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -405, 'y': -180}, 'R-3': {'server': '127.0.0.1', 'name': 'R-3', 'node_id': '5f875fef-f795-4f06-96b2-9c34a66a296d', 'console_port': 5016, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -105, 'y': -255}, 'R-4': {'server': '127.0.0.1', 'name': 'R-4', 'node_id': 'ceb2e0f0-5c7e-48b2-b289-8db2ed92e5a7', 'console_port': 5018, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -105, 'y': -105}, 'R-5': {'server': '127.0.0.1', 'name': 'R-5', 'node_id': '18dd23f5-fd10-49a8-8b1c-a0f741356a12', 'console_port': 5020, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': 195, 'y': -180}, 'R-6': {'server': '127.0.0.1', 'name': 'R-6', 'node_id': '320b1ee0-fc0e-47ac-a818-a9280a925bb6', 'console_port': 5022, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': 420, 'y': -180}}, 'links': [('R-1', 'Ge 0/0', 'R-2', 'Ge 0/0'), ('R-2', 'Ge 0/3', 'R-3', 'Ge 0/2'), ('R-2', 'Ge 0/4', 'R-4', 'Ge 0/2'), ('R-3', 'Ge 0/5', 'R-5', 'Ge 0/3'), ('R-4', 'Ge 0/5', 'R-5', 'Ge 0/4'), ('R-5', 'Ge 0/0', 'R-6', 'Ge 0/0'), ('R-3', 'Ge 0/0', 'R-4', 'Ge 0/0')]}",
+                    id="b0197ce9-ab59-4dba-857e-27a6c2c2771b",
+                    tool_call_id="call_00_eCtJ9obRBNLWMsHenN1U6LYF",
+                ),
+                AIMessage(
+                    content="Here's the current GNS3 topology:\n\n## Current Network Topology\n\n**Project Name:** network_ai  \n**Project ID:** f2f7ed27-7aa3-4b11-a64c-da947a2c7210  \n**Status:** opened\n\n### Devices:\n- **R-1** (Router) - Console Port: 5012\n- **R-2** (Router) - Console Port: 5014  \n- **R-3** (Router) - Console Port: 5016\n- **R-4** (Router) - Console Port: 5018\n- **R-5** (Router) - Console Port: 5020\n- **R-6** (Router) - Console Port: 5022\n\n### Network Connections:\n1. **R-1** ↔ **R-2** (Ge 0/0 ↔ Ge 0/0)\n2. **R-2** ↔ **R-3** (Ge 0/3 ↔ Ge 0/2)\n3. **R-2** ↔ **R-4** (Ge 0/4 ↔ Ge 0/2)\n4. **R-3** ↔ **R-5** (Ge 0/5 ↔ Ge 0/3)\n5. **R-4** ↔ **R-5** (Ge 0/5 ↔ Ge 0/4)\n6. **R-5** ↔ **R-6** (Ge 0/0 ↔ Ge 0/0)\n7. **R-3** ↔ **R-4** (Ge 0/0 ↔ Ge 0/0)\n\n### Topology Layout:\n- **Left side:** R-1, R-2\n- **Center:** R-3, R-4  \n- **Right side:** R-5, R-6\n\nThis appears to be a 6-router network with a mesh-like topology where R-2 acts as a central hub connecting to R-1, R-3, and R-4, while R-5 connects R-3, R-4, and R-6.\n\nWould you like me to check the current device configurations or perform any specific network operations?",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "stop",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--65b1b02a-9252-45ad-ba97-b88a6e352bc6",
+                    usage_metadata={
+                        "input_tokens": 6345,
+                        "output_tokens": 464,
+                        "total_tokens": 6809,
+                        "input_token_details": {"cache_read": 3392},
+                        "output_token_details": {},
+                    },
+                ),
+                HumanMessage(
+                    content="ping r-1 to r-6",
+                    additional_kwargs={},
+                    response_metadata={},
+                ),
+                AIMessage(
+                    content="I'll help you test connectivity from R-1 to R-6. First, let me check the current interface configurations to understand the IP addressing, then perform the ping test.",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "tool_calls",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--52866886-5aac-4450-8784-0e0fc0e4ed22",
+                    tool_calls=[
+                        {
+                            "name": "execute_multiple_device_commands",
+                            "args": {
+                                "tool_input": '[\n    {\n        "device_name": "R-1",\n        "commands": ["show ip interface brief", "show ip route"]\n    },\n    {\n        "device_name": "R-6", \n        "commands": ["show ip interface brief", "show ip route"]\n    }\n]'
+                            },
+                            "id": "call_00_3O2QInPsNI3rV9vyEHJmj6em",
+                            "type": "tool_call",
+                        }
+                    ],
+                    usage_metadata={
+                        "input_tokens": 6821,
+                        "output_tokens": 131,
+                        "total_tokens": 6952,
+                        "input_token_details": {"cache_read": 6784},
+                        "output_token_details": {},
+                    },
+                ),
+                ToolMessage(
+                    content=[
+                        {
+                            "device_name": "R-1",
+                            "status": "success",
+                            "output": "show ip interface brief\nInterface                  IP-Address      OK? Method Status                Protocol\nGigabitEthernet0/0         12.1.1.1        YES NVRAM  up                    up      \nGigabitEthernet0/1         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/2         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/3         unassigned      YES NVRAM  administratively down down    \n\nGigabitEthernet0/4         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/5         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/6         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/7         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/8         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/9         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/10        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/11        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/12        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/13        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/14        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/15        unassigned      YES NVRAM  administratively down down    \nLoopback0                  1.1.1.1         YES NVRAM  up                    up      \nR1#\nR1#show ip route\nCodes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP\n       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area \n       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2\n       E1 - OSPF external type 1, E2 - OSPF external type 2\n       i - IS-IS, su - IS-IS summary, L1 - IS-IS level-1, L2 - IS-IS level-2\n       ia - IS-IS inter area, * - candidate default, U - per-user static route\n       o - ODR, P - periodic downloaded static route, H - NHRP, l - LISP\n       a - application route\n       + - replicated route, % - next hop override, p - overrides from PfR\n\nGateway of last resort is not set\n\n      1.0.0.0/32 is subnetted, 1 subnets\nC        1.1.1.1 is directly connected, Loopback0\n      2.0.0.0/32 is subnetted, 1 subnets\nO IA     2.2.2.2 [110/2] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      3.0.0.0/32 is subnetted, 1 subnets\nO IA     3.3.3.3 [110/3] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      4.0.0.0/32 is subnetted, 1 subnets\nO IA     4.4.4.4 [110/3] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      5.0.0.0/32 is subnetted, 1 subnets\nO IA     5.5.5.5 [110/4] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      6.0.0.0/32 is subnetted, 1 subnets\nO IA     6.6.6.6 [110/5] via 12.1.1.2, 04:11:31, GigabitEthernet0/0\n      12.0.0.0/8 is variably subnetted, 2 subnets, 2 masks\nC        12.1.1.0/24 is directly connected, GigabitEthernet0/0\nL        12.1.1.1/32 is directly connected, GigabitEthernet0/0\n      23.0.0.0/24 is subnetted, 1 subnets\nO IA     23.1.1.0 [110/2] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      24.0.0.0/24 is subnetted, 1 subnets\nO IA     24.1.1.0 [110/2] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      35.0.0.0/24 is subnetted, 1 subnets\nO IA     35.1.1.0 [110/4] via 12.1.1.2, 04:10:58, GigabitEthernet0/0\n      45.0.0.0/24 is subnetted, 1 subnets\nO IA     45.1.1.0 [110/3] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      56.0.0.0/24 is subnetted, 1 subnets\nO IA     56.1.1.0 [110/4] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\nR1#\nR1",
+                            "config_commands": [
+                                "show ip interface brief",
+                                "show ip route",
+                            ],
+                        },
+                        {
+                            "device_name": "R-6",
+                            "status": "success",
+                            "output": "show ip interface brief\nInterface                  IP-Address      OK? Method Status                Protocol\nGigabitEthernet0/0         56.1.1.6        YES NVRAM  up                    up      \nGigabitEthernet0/1         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/2         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/3         unassigned      YES NVRAM  administratively down down    \n\nGigabitEthernet0/4         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/5         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/6         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/7         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/8         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/9         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/10        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/11        unassigned      YES NVRAM  administratively down down    \n\nGigabitEthernet0/12        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/13        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/14        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/15        unassigned      YES NVRAM  administratively down down    \nLoopback0                  6.6.6.6         YES NVRAM  up                    up      \nR6#\nR6#show ip route\nCodes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP\n       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area \n       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2\n       E1 - OSPF external type 1, E2 - OSPF external type 2\n       i - IS-IS, su - IS-IS summary, L1 - IS-IS level-1, L2 - IS-IS level-2\n       ia - IS-IS inter area, * - candidate default, U - per-user static route\n       o - ODR, P - periodic downloaded static route, H - NHRP, l - LISP\n       a - application route\n       + - replicated route, % - next hop override, p - overrides from PfR\n\nGateway of last resort is not set\n\n      1.0.0.0/32 is subnetted, 1 subnets\nO IA     1.1.1.1 [110/5] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      2.0.0.0/32 is subnetted, 1 subnets\nO IA     2.2.2.2 [110/4] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      3.0.0.0/32 is subnetted, 1 subnets\nO IA     3.3.3.3 [110/5] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      4.0.0.0/32 is subnetted, 1 subnets\nO IA     4.4.4.4 [110/3] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      5.0.0.0/32 is subnetted, 1 subnets\nO IA     5.5.5.5 [110/2] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      6.0.0.0/32 is subnetted, 1 subnets\nC        6.6.6.6 is directly connected, Loopback0\n      12.0.0.0/24 is subnetted, 1 subnets\nO IA     12.1.1.0 [110/4] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      23.0.0.0/24 is subnetted, 1 subnets\nO IA     23.1.1.0 [110/4] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      24.0.0.0/24 is subnetted, 1 subnets\nO IA     24.1.1.0 [110/3] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      35.0.0.0/24 is subnetted, 1 subnets\nO IA     35.1.1.0 [110/2] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      45.0.0.0/24 is subnetted, 1 subnets\nO IA     45.1.1.0 [110/2] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      56.0.0.0/8 is variably subnetted, 2 subnets, 2 masks\nC        56.1.1.0/24 is directly connected, GigabitEthernet0/0\nL        56.1.1.6/32 is directly connected, GigabitEthernet0/0\nR6#\nR6",
+                            "config_commands": [
+                                "show ip interface brief",
+                                "show ip route",
+                            ],
+                        },
+                    ],
+                    id="dd2ad15c-9e55-460c-be86-7c71ff12382a",
+                    tool_call_id="call_00_3O2QInPsNI3rV9vyEHJmj6em",
+                ),
+                AIMessage(
+                    content="Great! I can see that both routers have OSPF routing configured and can reach each other. Now let me perform the ping test from R-1 to R-6's loopback address (6.6.6.6):",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "tool_calls",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--ddbd353d-48cb-45d8-a56d-3cb8c230b319",
+                    tool_calls=[
+                        {
+                            "name": "execute_multiple_device_commands",
+                            "args": {
+                                "tool_input": '[\n    {\n        "device_name": "R-1",\n        "commands": ["ping 6.6.6.6"]\n    }\n]'
+                            },
+                            "id": "call_00_u0e3OhJcbu1pCssV5gb4AwzJ",
+                            "type": "tool_call",
+                        }
+                    ],
+                    usage_metadata={
+                        "input_tokens": 9909,
+                        "output_tokens": 105,
+                        "total_tokens": 10014,
+                        "input_token_details": {"cache_read": 6912},
+                        "output_token_details": {},
+                    },
+                ),
+                ToolMessage(
+                    content=[
+                        {
+                            "device_name": "R-1",
+                            "status": "success",
+                            "output": "ping 6.6.6.6\nType escape sequence to abort.\nSending 5, 100-byte ICMP Echos to 6.6.6.6, timeout is 2 seconds:\n!!!!!\nSuccess rate is 100 percent (5/5), round-trip min/avg/max = 3/3/4 ms\nR1#",
+                            "config_commands": ["ping 6.6.6.6"],
+                        }
+                    ],
+                    id="7cf73d73-5ce9-42e8-a597-2f06ada3ac42",
+                    tool_call_id="call_00_u0e3OhJcbu1pCssV5gb4AwzJ",
+                ),
+                AIMessage(
+                    content="Perfect! The ping test from R-1 to R-6 was successful.\n\n## Ping Test Results: R-1 → R-6\n\n**✅ SUCCESSFUL CONNECTIVITY**\n\n- **Source:** R-1 (1.1.1.1)\n- **Destination:** R-6 Loopback (6.6.6.6)\n- **Result:** 5 out of 5 packets successful (100% success rate)\n- **Round-trip time:** min/avg/max = 3/3/4 ms\n\n### Network Path Analysis:\nFrom the routing tables, I can see the path:\n- **R-1** → **R-2** → **R-5** → **R-6**\n- OSPF cost: 5 hops (as shown in R-1's routing table: `O IA 6.6.6.6 [110/5] via 12.1.1.2`)\n\n### Key Observations:\n1. **OSPF Routing:** The network is running OSPF with inter-area routing\n2. **Full Connectivity:** All routers have routes to each other's loopback addresses\n3. **Optimal Path:** The routing protocol has selected the most efficient path\n4. **Low Latency:** Excellent performance with 3-4ms round-trip times\n\nThe network is functioning perfectly with end-to-end connectivity between R-1 and R-6!",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "stop",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--7a901222-e0e5-40c2-9337-bc922112e7fb",
+                    usage_metadata={
+                        "input_tokens": 10136,
+                        "output_tokens": 297,
+                        "total_tokens": 10433,
+                        "input_token_details": {"cache_read": 9984},
+                        "output_token_details": {},
+                    },
+                ),
+            ],
+            "llm_calls": 6,
+        },
+        next=(),
+        config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c9-a5f4-612e-800d-5c72c86456de",
+            }
+        },
+        metadata={"source": "loop", "step": 13, "parents": {}, "max_iterations": 100},
+        created_at="2025-11-27T06:45:03.584860+00:00",
+        parent_config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c9-1901-6015-800c-446b7cb520b2",
+            }
+        },
+        tasks=(),
+        interrupts=(),
+    ),
+    StateSnapshot(
+        values={
+            "messages": [
+                HumanMessage(
+                    content="hello", additional_kwargs={}, response_metadata={}
+                ),
+                AIMessage(
+                    content="Hello! I'm your network automation assistant. I can help you with various network tasks including:\n\n- Checking network device status (interfaces, routing, OSPF, etc.)\n- Configuring network devices\n- Managing GNS3 topology\n- Performing network diagnostics and troubleshooting\n\nWhat would you like me to help you with today? For example, I can:\n- Show you the current network topology\n- Check device configurations and status\n- Configure interfaces or routing protocols\n- Troubleshoot connectivity issues\n\nPlease let me know what specific task you'd like to accomplish!",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "stop",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--572381b2-d406-416b-a8f6-73a7be42ad2f",
+                    usage_metadata={
+                        "input_tokens": 3293,
+                        "output_tokens": 114,
+                        "total_tokens": 3407,
+                        "input_token_details": {"cache_read": 3264},
+                        "output_token_details": {},
+                    },
+                ),
+                HumanMessage(
+                    content="tell me current topology",
+                    additional_kwargs={},
+                    response_metadata={},
+                ),
+                AIMessage(
+                    content="I'll check the current GNS3 topology for you.",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "tool_calls",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--2457f741-a10f-441a-aa37-f512f50d65f5",
+                    tool_calls=[
+                        {
+                            "name": "gns3_topology_reader",
+                            "args": {"tool_input": None},
+                            "id": "call_00_eCtJ9obRBNLWMsHenN1U6LYF",
+                            "type": "tool_call",
+                        }
+                    ],
+                    usage_metadata={
+                        "input_tokens": 3415,
+                        "output_tokens": 30,
+                        "total_tokens": 3445,
+                        "input_token_details": {"cache_read": 3392},
+                        "output_token_details": {},
+                    },
+                ),
+                ToolMessage(
+                    content="{'project_id': 'f2f7ed27-7aa3-4b11-a64c-da947a2c7210', 'name': 'network_ai', 'status': 'opened', 'nodes': {'R-1': {'server': '127.0.0.1', 'name': 'R-1', 'node_id': 'dae0b5be-03aa-492d-939c-72f2bbe1d74a', 'console_port': 5012, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -630, 'y': -180}, 'R-2': {'server': '127.0.0.1', 'name': 'R-2', 'node_id': '770c835c-83ae-42ce-a2b9-9a88fb4d2145', 'console_port': 5014, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -405, 'y': -180}, 'R-3': {'server': '127.0.0.1', 'name': 'R-3', 'node_id': '5f875fef-f795-4f06-96b2-9c34a66a296d', 'console_port': 5016, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -105, 'y': -255}, 'R-4': {'server': '127.0.0.1', 'name': 'R-4', 'node_id': 'ceb2e0f0-5c7e-48b2-b289-8db2ed92e5a7', 'console_port': 5018, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -105, 'y': -105}, 'R-5': {'server': '127.0.0.1', 'name': 'R-5', 'node_id': '18dd23f5-fd10-49a8-8b1c-a0f741356a12', 'console_port': 5020, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': 195, 'y': -180}, 'R-6': {'server': '127.0.0.1', 'name': 'R-6', 'node_id': '320b1ee0-fc0e-47ac-a818-a9280a925bb6', 'console_port': 5022, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': 420, 'y': -180}}, 'links': [('R-1', 'Ge 0/0', 'R-2', 'Ge 0/0'), ('R-2', 'Ge 0/3', 'R-3', 'Ge 0/2'), ('R-2', 'Ge 0/4', 'R-4', 'Ge 0/2'), ('R-3', 'Ge 0/5', 'R-5', 'Ge 0/3'), ('R-4', 'Ge 0/5', 'R-5', 'Ge 0/4'), ('R-5', 'Ge 0/0', 'R-6', 'Ge 0/0'), ('R-3', 'Ge 0/0', 'R-4', 'Ge 0/0')]}",
+                    id="b0197ce9-ab59-4dba-857e-27a6c2c2771b",
+                    tool_call_id="call_00_eCtJ9obRBNLWMsHenN1U6LYF",
+                ),
+                AIMessage(
+                    content="Here's the current GNS3 topology:\n\n## Current Network Topology\n\n**Project Name:** network_ai  \n**Project ID:** f2f7ed27-7aa3-4b11-a64c-da947a2c7210  \n**Status:** opened\n\n### Devices:\n- **R-1** (Router) - Console Port: 5012\n- **R-2** (Router) - Console Port: 5014  \n- **R-3** (Router) - Console Port: 5016\n- **R-4** (Router) - Console Port: 5018\n- **R-5** (Router) - Console Port: 5020\n- **R-6** (Router) - Console Port: 5022\n\n### Network Connections:\n1. **R-1** ↔ **R-2** (Ge 0/0 ↔ Ge 0/0)\n2. **R-2** ↔ **R-3** (Ge 0/3 ↔ Ge 0/2)\n3. **R-2** ↔ **R-4** (Ge 0/4 ↔ Ge 0/2)\n4. **R-3** ↔ **R-5** (Ge 0/5 ↔ Ge 0/3)\n5. **R-4** ↔ **R-5** (Ge 0/5 ↔ Ge 0/4)\n6. **R-5** ↔ **R-6** (Ge 0/0 ↔ Ge 0/0)\n7. **R-3** ↔ **R-4** (Ge 0/0 ↔ Ge 0/0)\n\n### Topology Layout:\n- **Left side:** R-1, R-2\n- **Center:** R-3, R-4  \n- **Right side:** R-5, R-6\n\nThis appears to be a 6-router network with a mesh-like topology where R-2 acts as a central hub connecting to R-1, R-3, and R-4, while R-5 connects R-3, R-4, and R-6.\n\nWould you like me to check the current device configurations or perform any specific network operations?",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "stop",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--65b1b02a-9252-45ad-ba97-b88a6e352bc6",
+                    usage_metadata={
+                        "input_tokens": 6345,
+                        "output_tokens": 464,
+                        "total_tokens": 6809,
+                        "input_token_details": {"cache_read": 3392},
+                        "output_token_details": {},
+                    },
+                ),
+                HumanMessage(
+                    content="ping r-1 to r-6",
+                    additional_kwargs={},
+                    response_metadata={},
+                ),
+                AIMessage(
+                    content="I'll help you test connectivity from R-1 to R-6. First, let me check the current interface configurations to understand the IP addressing, then perform the ping test.",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "tool_calls",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--52866886-5aac-4450-8784-0e0fc0e4ed22",
+                    tool_calls=[
+                        {
+                            "name": "execute_multiple_device_commands",
+                            "args": {
+                                "tool_input": '[\n    {\n        "device_name": "R-1",\n        "commands": ["show ip interface brief", "show ip route"]\n    },\n    {\n        "device_name": "R-6", \n        "commands": ["show ip interface brief", "show ip route"]\n    }\n]'
+                            },
+                            "id": "call_00_3O2QInPsNI3rV9vyEHJmj6em",
+                            "type": "tool_call",
+                        }
+                    ],
+                    usage_metadata={
+                        "input_tokens": 6821,
+                        "output_tokens": 131,
+                        "total_tokens": 6952,
+                        "input_token_details": {"cache_read": 6784},
+                        "output_token_details": {},
+                    },
+                ),
+                ToolMessage(
+                    content=[
+                        {
+                            "device_name": "R-1",
+                            "status": "success",
+                            "output": "show ip interface brief\nInterface                  IP-Address      OK? Method Status                Protocol\nGigabitEthernet0/0         12.1.1.1        YES NVRAM  up                    up      \nGigabitEthernet0/1         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/2         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/3         unassigned      YES NVRAM  administratively down down    \n\nGigabitEthernet0/4         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/5         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/6         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/7         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/8         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/9         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/10        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/11        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/12        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/13        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/14        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/15        unassigned      YES NVRAM  administratively down down    \nLoopback0                  1.1.1.1         YES NVRAM  up                    up      \nR1#\nR1#show ip route\nCodes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP\n       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area \n       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2\n       E1 - OSPF external type 1, E2 - OSPF external type 2\n       i - IS-IS, su - IS-IS summary, L1 - IS-IS level-1, L2 - IS-IS level-2\n       ia - IS-IS inter area, * - candidate default, U - per-user static route\n       o - ODR, P - periodic downloaded static route, H - NHRP, l - LISP\n       a - application route\n       + - replicated route, % - next hop override, p - overrides from PfR\n\nGateway of last resort is not set\n\n      1.0.0.0/32 is subnetted, 1 subnets\nC        1.1.1.1 is directly connected, Loopback0\n      2.0.0.0/32 is subnetted, 1 subnets\nO IA     2.2.2.2 [110/2] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      3.0.0.0/32 is subnetted, 1 subnets\nO IA     3.3.3.3 [110/3] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      4.0.0.0/32 is subnetted, 1 subnets\nO IA     4.4.4.4 [110/3] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      5.0.0.0/32 is subnetted, 1 subnets\nO IA     5.5.5.5 [110/4] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      6.0.0.0/32 is subnetted, 1 subnets\nO IA     6.6.6.6 [110/5] via 12.1.1.2, 04:11:31, GigabitEthernet0/0\n      12.0.0.0/8 is variably subnetted, 2 subnets, 2 masks\nC        12.1.1.0/24 is directly connected, GigabitEthernet0/0\nL        12.1.1.1/32 is directly connected, GigabitEthernet0/0\n      23.0.0.0/24 is subnetted, 1 subnets\nO IA     23.1.1.0 [110/2] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      24.0.0.0/24 is subnetted, 1 subnets\nO IA     24.1.1.0 [110/2] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      35.0.0.0/24 is subnetted, 1 subnets\nO IA     35.1.1.0 [110/4] via 12.1.1.2, 04:10:58, GigabitEthernet0/0\n      45.0.0.0/24 is subnetted, 1 subnets\nO IA     45.1.1.0 [110/3] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      56.0.0.0/24 is subnetted, 1 subnets\nO IA     56.1.1.0 [110/4] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\nR1#\nR1",
+                            "config_commands": [
+                                "show ip interface brief",
+                                "show ip route",
+                            ],
+                        },
+                        {
+                            "device_name": "R-6",
+                            "status": "success",
+                            "output": "show ip interface brief\nInterface                  IP-Address      OK? Method Status                Protocol\nGigabitEthernet0/0         56.1.1.6        YES NVRAM  up                    up      \nGigabitEthernet0/1         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/2         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/3         unassigned      YES NVRAM  administratively down down    \n\nGigabitEthernet0/4         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/5         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/6         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/7         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/8         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/9         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/10        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/11        unassigned      YES NVRAM  administratively down down    \n\nGigabitEthernet0/12        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/13        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/14        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/15        unassigned      YES NVRAM  administratively down down    \nLoopback0                  6.6.6.6         YES NVRAM  up                    up      \nR6#\nR6#show ip route\nCodes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP\n       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area \n       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2\n       E1 - OSPF external type 1, E2 - OSPF external type 2\n       i - IS-IS, su - IS-IS summary, L1 - IS-IS level-1, L2 - IS-IS level-2\n       ia - IS-IS inter area, * - candidate default, U - per-user static route\n       o - ODR, P - periodic downloaded static route, H - NHRP, l - LISP\n       a - application route\n       + - replicated route, % - next hop override, p - overrides from PfR\n\nGateway of last resort is not set\n\n      1.0.0.0/32 is subnetted, 1 subnets\nO IA     1.1.1.1 [110/5] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      2.0.0.0/32 is subnetted, 1 subnets\nO IA     2.2.2.2 [110/4] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      3.0.0.0/32 is subnetted, 1 subnets\nO IA     3.3.3.3 [110/5] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      4.0.0.0/32 is subnetted, 1 subnets\nO IA     4.4.4.4 [110/3] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      5.0.0.0/32 is subnetted, 1 subnets\nO IA     5.5.5.5 [110/2] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      6.0.0.0/32 is subnetted, 1 subnets\nC        6.6.6.6 is directly connected, Loopback0\n      12.0.0.0/24 is subnetted, 1 subnets\nO IA     12.1.1.0 [110/4] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      23.0.0.0/24 is subnetted, 1 subnets\nO IA     23.1.1.0 [110/4] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      24.0.0.0/24 is subnetted, 1 subnets\nO IA     24.1.1.0 [110/3] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      35.0.0.0/24 is subnetted, 1 subnets\nO IA     35.1.1.0 [110/2] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      45.0.0.0/24 is subnetted, 1 subnets\nO IA     45.1.1.0 [110/2] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      56.0.0.0/8 is variably subnetted, 2 subnets, 2 masks\nC        56.1.1.0/24 is directly connected, GigabitEthernet0/0\nL        56.1.1.6/32 is directly connected, GigabitEthernet0/0\nR6#\nR6",
+                            "config_commands": [
+                                "show ip interface brief",
+                                "show ip route",
+                            ],
+                        },
+                    ],
+                    id="dd2ad15c-9e55-460c-be86-7c71ff12382a",
+                    tool_call_id="call_00_3O2QInPsNI3rV9vyEHJmj6em",
+                ),
+                AIMessage(
+                    content="Great! I can see that both routers have OSPF routing configured and can reach each other. Now let me perform the ping test from R-1 to R-6's loopback address (6.6.6.6):",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "tool_calls",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--ddbd353d-48cb-45d8-a56d-3cb8c230b319",
+                    tool_calls=[
+                        {
+                            "name": "execute_multiple_device_commands",
+                            "args": {
+                                "tool_input": '[\n    {\n        "device_name": "R-1",\n        "commands": ["ping 6.6.6.6"]\n    }\n]'
+                            },
+                            "id": "call_00_u0e3OhJcbu1pCssV5gb4AwzJ",
+                            "type": "tool_call",
+                        }
+                    ],
+                    usage_metadata={
+                        "input_tokens": 9909,
+                        "output_tokens": 105,
+                        "total_tokens": 10014,
+                        "input_token_details": {"cache_read": 6912},
+                        "output_token_details": {},
+                    },
+                ),
+                ToolMessage(
+                    content=[
+                        {
+                            "device_name": "R-1",
+                            "status": "success",
+                            "output": "ping 6.6.6.6\nType escape sequence to abort.\nSending 5, 100-byte ICMP Echos to 6.6.6.6, timeout is 2 seconds:\n!!!!!\nSuccess rate is 100 percent (5/5), round-trip min/avg/max = 3/3/4 ms\nR1#",
+                            "config_commands": ["ping 6.6.6.6"],
+                        }
+                    ],
+                    id="7cf73d73-5ce9-42e8-a597-2f06ada3ac42",
+                    tool_call_id="call_00_u0e3OhJcbu1pCssV5gb4AwzJ",
+                ),
+            ],
+            "llm_calls": 5,
+        },
+        next=("llm_call",),
+        config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c9-1901-6015-800c-446b7cb520b2",
+            }
+        },
+        metadata={"source": "loop", "step": 12, "parents": {}, "max_iterations": 100},
+        created_at="2025-11-27T06:44:48.805240+00:00",
+        parent_config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c9-054a-65d1-800b-9f3aa41d6f25",
+            }
+        },
+        tasks=(
+            PregelTask(
+                id="dfd5607c-b68e-8c38-e080-672c1a24c3c2",
+                name="llm_call",
+                path=("__pregel_pull", "llm_call"),
+                error=None,
+                interrupts=(),
+                state=None,
+                result={
+                    "messages": [
+                        AIMessage(
+                            content="Perfect! The ping test from R-1 to R-6 was successful.\n\n## Ping Test Results: R-1 → R-6\n\n**✅ SUCCESSFUL CONNECTIVITY**\n\n- **Source:** R-1 (1.1.1.1)\n- **Destination:** R-6 Loopback (6.6.6.6)\n- **Result:** 5 out of 5 packets successful (100% success rate)\n- **Round-trip time:** min/avg/max = 3/3/4 ms\n\n### Network Path Analysis:\nFrom the routing tables, I can see the path:\n- **R-1** → **R-2** → **R-5** → **R-6**\n- OSPF cost: 5 hops (as shown in R-1's routing table: `O IA 6.6.6.6 [110/5] via 12.1.1.2`)\n\n### Key Observations:\n1. **OSPF Routing:** The network is running OSPF with inter-area routing\n2. **Full Connectivity:** All routers have routes to each other's loopback addresses\n3. **Optimal Path:** The routing protocol has selected the most efficient path\n4. **Low Latency:** Excellent performance with 3-4ms round-trip times\n\nThe network is functioning perfectly with end-to-end connectivity between R-1 and R-6!",
+                            additional_kwargs={},
+                            response_metadata={
+                                "finish_reason": "stop",
+                                "model_name": "deepseek-chat",
+                                "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                                "model_provider": "deepseek",
+                            },
+                            id="lc_run--7a901222-e0e5-40c2-9337-bc922112e7fb",
+                            usage_metadata={
+                                "input_tokens": 10136,
+                                "output_tokens": 297,
+                                "total_tokens": 10433,
+                                "input_token_details": {"cache_read": 9984},
+                                "output_token_details": {},
+                            },
+                        )
+                    ],
+                    "llm_calls": 6,
+                },
+            ),
+        ),
+        interrupts=(),
+    ),
+    StateSnapshot(
+        values={
+            "messages": [
+                HumanMessage(
+                    content="hello", additional_kwargs={}, response_metadata={}
+                ),
+                AIMessage(
+                    content="Hello! I'm your network automation assistant. I can help you with various network tasks including:\n\n- Checking network device status (interfaces, routing, OSPF, etc.)\n- Configuring network devices\n- Managing GNS3 topology\n- Performing network diagnostics and troubleshooting\n\nWhat would you like me to help you with today? For example, I can:\n- Show you the current network topology\n- Check device configurations and status\n- Configure interfaces or routing protocols\n- Troubleshoot connectivity issues\n\nPlease let me know what specific task you'd like to accomplish!",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "stop",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--572381b2-d406-416b-a8f6-73a7be42ad2f",
+                    usage_metadata={
+                        "input_tokens": 3293,
+                        "output_tokens": 114,
+                        "total_tokens": 3407,
+                        "input_token_details": {"cache_read": 3264},
+                        "output_token_details": {},
+                    },
+                ),
+                HumanMessage(
+                    content="tell me current topology",
+                    additional_kwargs={},
+                    response_metadata={},
+                ),
+                AIMessage(
+                    content="I'll check the current GNS3 topology for you.",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "tool_calls",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--2457f741-a10f-441a-aa37-f512f50d65f5",
+                    tool_calls=[
+                        {
+                            "name": "gns3_topology_reader",
+                            "args": {"tool_input": None},
+                            "id": "call_00_eCtJ9obRBNLWMsHenN1U6LYF",
+                            "type": "tool_call",
+                        }
+                    ],
+                    usage_metadata={
+                        "input_tokens": 3415,
+                        "output_tokens": 30,
+                        "total_tokens": 3445,
+                        "input_token_details": {"cache_read": 3392},
+                        "output_token_details": {},
+                    },
+                ),
+                ToolMessage(
+                    content="{'project_id': 'f2f7ed27-7aa3-4b11-a64c-da947a2c7210', 'name': 'network_ai', 'status': 'opened', 'nodes': {'R-1': {'server': '127.0.0.1', 'name': 'R-1', 'node_id': 'dae0b5be-03aa-492d-939c-72f2bbe1d74a', 'console_port': 5012, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -630, 'y': -180}, 'R-2': {'server': '127.0.0.1', 'name': 'R-2', 'node_id': '770c835c-83ae-42ce-a2b9-9a88fb4d2145', 'console_port': 5014, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -405, 'y': -180}, 'R-3': {'server': '127.0.0.1', 'name': 'R-3', 'node_id': '5f875fef-f795-4f06-96b2-9c34a66a296d', 'console_port': 5016, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -105, 'y': -255}, 'R-4': {'server': '127.0.0.1', 'name': 'R-4', 'node_id': 'ceb2e0f0-5c7e-48b2-b289-8db2ed92e5a7', 'console_port': 5018, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -105, 'y': -105}, 'R-5': {'server': '127.0.0.1', 'name': 'R-5', 'node_id': '18dd23f5-fd10-49a8-8b1c-a0f741356a12', 'console_port': 5020, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': 195, 'y': -180}, 'R-6': {'server': '127.0.0.1', 'name': 'R-6', 'node_id': '320b1ee0-fc0e-47ac-a818-a9280a925bb6', 'console_port': 5022, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': 420, 'y': -180}}, 'links': [('R-1', 'Ge 0/0', 'R-2', 'Ge 0/0'), ('R-2', 'Ge 0/3', 'R-3', 'Ge 0/2'), ('R-2', 'Ge 0/4', 'R-4', 'Ge 0/2'), ('R-3', 'Ge 0/5', 'R-5', 'Ge 0/3'), ('R-4', 'Ge 0/5', 'R-5', 'Ge 0/4'), ('R-5', 'Ge 0/0', 'R-6', 'Ge 0/0'), ('R-3', 'Ge 0/0', 'R-4', 'Ge 0/0')]}",
+                    id="b0197ce9-ab59-4dba-857e-27a6c2c2771b",
+                    tool_call_id="call_00_eCtJ9obRBNLWMsHenN1U6LYF",
+                ),
+                AIMessage(
+                    content="Here's the current GNS3 topology:\n\n## Current Network Topology\n\n**Project Name:** network_ai  \n**Project ID:** f2f7ed27-7aa3-4b11-a64c-da947a2c7210  \n**Status:** opened\n\n### Devices:\n- **R-1** (Router) - Console Port: 5012\n- **R-2** (Router) - Console Port: 5014  \n- **R-3** (Router) - Console Port: 5016\n- **R-4** (Router) - Console Port: 5018\n- **R-5** (Router) - Console Port: 5020\n- **R-6** (Router) - Console Port: 5022\n\n### Network Connections:\n1. **R-1** ↔ **R-2** (Ge 0/0 ↔ Ge 0/0)\n2. **R-2** ↔ **R-3** (Ge 0/3 ↔ Ge 0/2)\n3. **R-2** ↔ **R-4** (Ge 0/4 ↔ Ge 0/2)\n4. **R-3** ↔ **R-5** (Ge 0/5 ↔ Ge 0/3)\n5. **R-4** ↔ **R-5** (Ge 0/5 ↔ Ge 0/4)\n6. **R-5** ↔ **R-6** (Ge 0/0 ↔ Ge 0/0)\n7. **R-3** ↔ **R-4** (Ge 0/0 ↔ Ge 0/0)\n\n### Topology Layout:\n- **Left side:** R-1, R-2\n- **Center:** R-3, R-4  \n- **Right side:** R-5, R-6\n\nThis appears to be a 6-router network with a mesh-like topology where R-2 acts as a central hub connecting to R-1, R-3, and R-4, while R-5 connects R-3, R-4, and R-6.\n\nWould you like me to check the current device configurations or perform any specific network operations?",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "stop",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--65b1b02a-9252-45ad-ba97-b88a6e352bc6",
+                    usage_metadata={
+                        "input_tokens": 6345,
+                        "output_tokens": 464,
+                        "total_tokens": 6809,
+                        "input_token_details": {"cache_read": 3392},
+                        "output_token_details": {},
+                    },
+                ),
+                HumanMessage(
+                    content="ping r-1 to r-6",
+                    additional_kwargs={},
+                    response_metadata={},
+                ),
+                AIMessage(
+                    content="I'll help you test connectivity from R-1 to R-6. First, let me check the current interface configurations to understand the IP addressing, then perform the ping test.",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "tool_calls",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--52866886-5aac-4450-8784-0e0fc0e4ed22",
+                    tool_calls=[
+                        {
+                            "name": "execute_multiple_device_commands",
+                            "args": {
+                                "tool_input": '[\n    {\n        "device_name": "R-1",\n        "commands": ["show ip interface brief", "show ip route"]\n    },\n    {\n        "device_name": "R-6", \n        "commands": ["show ip interface brief", "show ip route"]\n    }\n]'
+                            },
+                            "id": "call_00_3O2QInPsNI3rV9vyEHJmj6em",
+                            "type": "tool_call",
+                        }
+                    ],
+                    usage_metadata={
+                        "input_tokens": 6821,
+                        "output_tokens": 131,
+                        "total_tokens": 6952,
+                        "input_token_details": {"cache_read": 6784},
+                        "output_token_details": {},
+                    },
+                ),
+                ToolMessage(
+                    content=[
+                        {
+                            "device_name": "R-1",
+                            "status": "success",
+                            "output": "show ip interface brief\nInterface                  IP-Address      OK? Method Status                Protocol\nGigabitEthernet0/0         12.1.1.1        YES NVRAM  up                    up      \nGigabitEthernet0/1         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/2         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/3         unassigned      YES NVRAM  administratively down down    \n\nGigabitEthernet0/4         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/5         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/6         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/7         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/8         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/9         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/10        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/11        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/12        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/13        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/14        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/15        unassigned      YES NVRAM  administratively down down    \nLoopback0                  1.1.1.1         YES NVRAM  up                    up      \nR1#\nR1#show ip route\nCodes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP\n       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area \n       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2\n       E1 - OSPF external type 1, E2 - OSPF external type 2\n       i - IS-IS, su - IS-IS summary, L1 - IS-IS level-1, L2 - IS-IS level-2\n       ia - IS-IS inter area, * - candidate default, U - per-user static route\n       o - ODR, P - periodic downloaded static route, H - NHRP, l - LISP\n       a - application route\n       + - replicated route, % - next hop override, p - overrides from PfR\n\nGateway of last resort is not set\n\n      1.0.0.0/32 is subnetted, 1 subnets\nC        1.1.1.1 is directly connected, Loopback0\n      2.0.0.0/32 is subnetted, 1 subnets\nO IA     2.2.2.2 [110/2] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      3.0.0.0/32 is subnetted, 1 subnets\nO IA     3.3.3.3 [110/3] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      4.0.0.0/32 is subnetted, 1 subnets\nO IA     4.4.4.4 [110/3] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      5.0.0.0/32 is subnetted, 1 subnets\nO IA     5.5.5.5 [110/4] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      6.0.0.0/32 is subnetted, 1 subnets\nO IA     6.6.6.6 [110/5] via 12.1.1.2, 04:11:31, GigabitEthernet0/0\n      12.0.0.0/8 is variably subnetted, 2 subnets, 2 masks\nC        12.1.1.0/24 is directly connected, GigabitEthernet0/0\nL        12.1.1.1/32 is directly connected, GigabitEthernet0/0\n      23.0.0.0/24 is subnetted, 1 subnets\nO IA     23.1.1.0 [110/2] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      24.0.0.0/24 is subnetted, 1 subnets\nO IA     24.1.1.0 [110/2] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      35.0.0.0/24 is subnetted, 1 subnets\nO IA     35.1.1.0 [110/4] via 12.1.1.2, 04:10:58, GigabitEthernet0/0\n      45.0.0.0/24 is subnetted, 1 subnets\nO IA     45.1.1.0 [110/3] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      56.0.0.0/24 is subnetted, 1 subnets\nO IA     56.1.1.0 [110/4] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\nR1#\nR1",
+                            "config_commands": [
+                                "show ip interface brief",
+                                "show ip route",
+                            ],
+                        },
+                        {
+                            "device_name": "R-6",
+                            "status": "success",
+                            "output": "show ip interface brief\nInterface                  IP-Address      OK? Method Status                Protocol\nGigabitEthernet0/0         56.1.1.6        YES NVRAM  up                    up      \nGigabitEthernet0/1         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/2         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/3         unassigned      YES NVRAM  administratively down down    \n\nGigabitEthernet0/4         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/5         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/6         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/7         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/8         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/9         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/10        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/11        unassigned      YES NVRAM  administratively down down    \n\nGigabitEthernet0/12        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/13        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/14        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/15        unassigned      YES NVRAM  administratively down down    \nLoopback0                  6.6.6.6         YES NVRAM  up                    up      \nR6#\nR6#show ip route\nCodes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP\n       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area \n       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2\n       E1 - OSPF external type 1, E2 - OSPF external type 2\n       i - IS-IS, su - IS-IS summary, L1 - IS-IS level-1, L2 - IS-IS level-2\n       ia - IS-IS inter area, * - candidate default, U - per-user static route\n       o - ODR, P - periodic downloaded static route, H - NHRP, l - LISP\n       a - application route\n       + - replicated route, % - next hop override, p - overrides from PfR\n\nGateway of last resort is not set\n\n      1.0.0.0/32 is subnetted, 1 subnets\nO IA     1.1.1.1 [110/5] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      2.0.0.0/32 is subnetted, 1 subnets\nO IA     2.2.2.2 [110/4] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      3.0.0.0/32 is subnetted, 1 subnets\nO IA     3.3.3.3 [110/5] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      4.0.0.0/32 is subnetted, 1 subnets\nO IA     4.4.4.4 [110/3] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      5.0.0.0/32 is subnetted, 1 subnets\nO IA     5.5.5.5 [110/2] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      6.0.0.0/32 is subnetted, 1 subnets\nC        6.6.6.6 is directly connected, Loopback0\n      12.0.0.0/24 is subnetted, 1 subnets\nO IA     12.1.1.0 [110/4] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      23.0.0.0/24 is subnetted, 1 subnets\nO IA     23.1.1.0 [110/4] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      24.0.0.0/24 is subnetted, 1 subnets\nO IA     24.1.1.0 [110/3] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      35.0.0.0/24 is subnetted, 1 subnets\nO IA     35.1.1.0 [110/2] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      45.0.0.0/24 is subnetted, 1 subnets\nO IA     45.1.1.0 [110/2] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      56.0.0.0/8 is variably subnetted, 2 subnets, 2 masks\nC        56.1.1.0/24 is directly connected, GigabitEthernet0/0\nL        56.1.1.6/32 is directly connected, GigabitEthernet0/0\nR6#\nR6",
+                            "config_commands": [
+                                "show ip interface brief",
+                                "show ip route",
+                            ],
+                        },
+                    ],
+                    id="dd2ad15c-9e55-460c-be86-7c71ff12382a",
+                    tool_call_id="call_00_3O2QInPsNI3rV9vyEHJmj6em",
+                ),
+                AIMessage(
+                    content="Great! I can see that both routers have OSPF routing configured and can reach each other. Now let me perform the ping test from R-1 to R-6's loopback address (6.6.6.6):",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "tool_calls",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--ddbd353d-48cb-45d8-a56d-3cb8c230b319",
+                    tool_calls=[
+                        {
+                            "name": "execute_multiple_device_commands",
+                            "args": {
+                                "tool_input": '[\n    {\n        "device_name": "R-1",\n        "commands": ["ping 6.6.6.6"]\n    }\n]'
+                            },
+                            "id": "call_00_u0e3OhJcbu1pCssV5gb4AwzJ",
+                            "type": "tool_call",
+                        }
+                    ],
+                    usage_metadata={
+                        "input_tokens": 9909,
+                        "output_tokens": 105,
+                        "total_tokens": 10014,
+                        "input_token_details": {"cache_read": 6912},
+                        "output_token_details": {},
+                    },
+                ),
+            ],
+            "llm_calls": 5,
+        },
+        next=("tool_node",),
+        config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c9-054a-65d1-800b-9f3aa41d6f25",
+            }
+        },
+        metadata={"source": "loop", "step": 11, "parents": {}, "max_iterations": 100},
+        created_at="2025-11-27T06:44:46.738140+00:00",
+        parent_config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c8-bfdf-6426-800a-55c66b950881",
+            }
+        },
+        tasks=(
+            PregelTask(
+                id="6e7bdfa6-a93a-32ad-d18e-fd7d9efaa4fd",
+                name="tool_node",
+                path=("__pregel_pull", "tool_node"),
+                error=None,
+                interrupts=(),
+                state=None,
+                result={
+                    "messages": [
+                        ToolMessage(
+                            content=[
+                                {
+                                    "device_name": "R-1",
+                                    "status": "success",
+                                    "output": "ping 6.6.6.6\nType escape sequence to abort.\nSending 5, 100-byte ICMP Echos to 6.6.6.6, timeout is 2 seconds:\n!!!!!\nSuccess rate is 100 percent (5/5), round-trip min/avg/max = 3/3/4 ms\nR1#",
+                                    "config_commands": ["ping 6.6.6.6"],
+                                }
+                            ],
+                            id="7cf73d73-5ce9-42e8-a597-2f06ada3ac42",
+                            tool_call_id="call_00_u0e3OhJcbu1pCssV5gb4AwzJ",
+                        )
+                    ]
+                },
+            ),
+        ),
+        interrupts=(),
+    ),
+    StateSnapshot(
+        values={
+            "messages": [
+                HumanMessage(
+                    content="hello", additional_kwargs={}, response_metadata={}
+                ),
+                AIMessage(
+                    content="Hello! I'm your network automation assistant. I can help you with various network tasks including:\n\n- Checking network device status (interfaces, routing, OSPF, etc.)\n- Configuring network devices\n- Managing GNS3 topology\n- Performing network diagnostics and troubleshooting\n\nWhat would you like me to help you with today? For example, I can:\n- Show you the current network topology\n- Check device configurations and status\n- Configure interfaces or routing protocols\n- Troubleshoot connectivity issues\n\nPlease let me know what specific task you'd like to accomplish!",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "stop",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--572381b2-d406-416b-a8f6-73a7be42ad2f",
+                    usage_metadata={
+                        "input_tokens": 3293,
+                        "output_tokens": 114,
+                        "total_tokens": 3407,
+                        "input_token_details": {"cache_read": 3264},
+                        "output_token_details": {},
+                    },
+                ),
+                HumanMessage(
+                    content="tell me current topology",
+                    additional_kwargs={},
+                    response_metadata={},
+                ),
+                AIMessage(
+                    content="I'll check the current GNS3 topology for you.",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "tool_calls",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--2457f741-a10f-441a-aa37-f512f50d65f5",
+                    tool_calls=[
+                        {
+                            "name": "gns3_topology_reader",
+                            "args": {"tool_input": None},
+                            "id": "call_00_eCtJ9obRBNLWMsHenN1U6LYF",
+                            "type": "tool_call",
+                        }
+                    ],
+                    usage_metadata={
+                        "input_tokens": 3415,
+                        "output_tokens": 30,
+                        "total_tokens": 3445,
+                        "input_token_details": {"cache_read": 3392},
+                        "output_token_details": {},
+                    },
+                ),
+                ToolMessage(
+                    content="{'project_id': 'f2f7ed27-7aa3-4b11-a64c-da947a2c7210', 'name': 'network_ai', 'status': 'opened', 'nodes': {'R-1': {'server': '127.0.0.1', 'name': 'R-1', 'node_id': 'dae0b5be-03aa-492d-939c-72f2bbe1d74a', 'console_port': 5012, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -630, 'y': -180}, 'R-2': {'server': '127.0.0.1', 'name': 'R-2', 'node_id': '770c835c-83ae-42ce-a2b9-9a88fb4d2145', 'console_port': 5014, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -405, 'y': -180}, 'R-3': {'server': '127.0.0.1', 'name': 'R-3', 'node_id': '5f875fef-f795-4f06-96b2-9c34a66a296d', 'console_port': 5016, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -105, 'y': -255}, 'R-4': {'server': '127.0.0.1', 'name': 'R-4', 'node_id': 'ceb2e0f0-5c7e-48b2-b289-8db2ed92e5a7', 'console_port': 5018, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -105, 'y': -105}, 'R-5': {'server': '127.0.0.1', 'name': 'R-5', 'node_id': '18dd23f5-fd10-49a8-8b1c-a0f741356a12', 'console_port': 5020, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': 195, 'y': -180}, 'R-6': {'server': '127.0.0.1', 'name': 'R-6', 'node_id': '320b1ee0-fc0e-47ac-a818-a9280a925bb6', 'console_port': 5022, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': 420, 'y': -180}}, 'links': [('R-1', 'Ge 0/0', 'R-2', 'Ge 0/0'), ('R-2', 'Ge 0/3', 'R-3', 'Ge 0/2'), ('R-2', 'Ge 0/4', 'R-4', 'Ge 0/2'), ('R-3', 'Ge 0/5', 'R-5', 'Ge 0/3'), ('R-4', 'Ge 0/5', 'R-5', 'Ge 0/4'), ('R-5', 'Ge 0/0', 'R-6', 'Ge 0/0'), ('R-3', 'Ge 0/0', 'R-4', 'Ge 0/0')]}",
+                    id="b0197ce9-ab59-4dba-857e-27a6c2c2771b",
+                    tool_call_id="call_00_eCtJ9obRBNLWMsHenN1U6LYF",
+                ),
+                AIMessage(
+                    content="Here's the current GNS3 topology:\n\n## Current Network Topology\n\n**Project Name:** network_ai  \n**Project ID:** f2f7ed27-7aa3-4b11-a64c-da947a2c7210  \n**Status:** opened\n\n### Devices:\n- **R-1** (Router) - Console Port: 5012\n- **R-2** (Router) - Console Port: 5014  \n- **R-3** (Router) - Console Port: 5016\n- **R-4** (Router) - Console Port: 5018\n- **R-5** (Router) - Console Port: 5020\n- **R-6** (Router) - Console Port: 5022\n\n### Network Connections:\n1. **R-1** ↔ **R-2** (Ge 0/0 ↔ Ge 0/0)\n2. **R-2** ↔ **R-3** (Ge 0/3 ↔ Ge 0/2)\n3. **R-2** ↔ **R-4** (Ge 0/4 ↔ Ge 0/2)\n4. **R-3** ↔ **R-5** (Ge 0/5 ↔ Ge 0/3)\n5. **R-4** ↔ **R-5** (Ge 0/5 ↔ Ge 0/4)\n6. **R-5** ↔ **R-6** (Ge 0/0 ↔ Ge 0/0)\n7. **R-3** ↔ **R-4** (Ge 0/0 ↔ Ge 0/0)\n\n### Topology Layout:\n- **Left side:** R-1, R-2\n- **Center:** R-3, R-4  \n- **Right side:** R-5, R-6\n\nThis appears to be a 6-router network with a mesh-like topology where R-2 acts as a central hub connecting to R-1, R-3, and R-4, while R-5 connects R-3, R-4, and R-6.\n\nWould you like me to check the current device configurations or perform any specific network operations?",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "stop",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--65b1b02a-9252-45ad-ba97-b88a6e352bc6",
+                    usage_metadata={
+                        "input_tokens": 6345,
+                        "output_tokens": 464,
+                        "total_tokens": 6809,
+                        "input_token_details": {"cache_read": 3392},
+                        "output_token_details": {},
+                    },
+                ),
+                HumanMessage(
+                    content="ping r-1 to r-6",
+                    additional_kwargs={},
+                    response_metadata={},
+                ),
+                AIMessage(
+                    content="I'll help you test connectivity from R-1 to R-6. First, let me check the current interface configurations to understand the IP addressing, then perform the ping test.",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "tool_calls",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--52866886-5aac-4450-8784-0e0fc0e4ed22",
+                    tool_calls=[
+                        {
+                            "name": "execute_multiple_device_commands",
+                            "args": {
+                                "tool_input": '[\n    {\n        "device_name": "R-1",\n        "commands": ["show ip interface brief", "show ip route"]\n    },\n    {\n        "device_name": "R-6", \n        "commands": ["show ip interface brief", "show ip route"]\n    }\n]'
+                            },
+                            "id": "call_00_3O2QInPsNI3rV9vyEHJmj6em",
+                            "type": "tool_call",
+                        }
+                    ],
+                    usage_metadata={
+                        "input_tokens": 6821,
+                        "output_tokens": 131,
+                        "total_tokens": 6952,
+                        "input_token_details": {"cache_read": 6784},
+                        "output_token_details": {},
+                    },
+                ),
+                ToolMessage(
+                    content=[
+                        {
+                            "device_name": "R-1",
+                            "status": "success",
+                            "output": "show ip interface brief\nInterface                  IP-Address      OK? Method Status                Protocol\nGigabitEthernet0/0         12.1.1.1        YES NVRAM  up                    up      \nGigabitEthernet0/1         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/2         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/3         unassigned      YES NVRAM  administratively down down    \n\nGigabitEthernet0/4         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/5         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/6         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/7         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/8         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/9         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/10        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/11        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/12        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/13        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/14        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/15        unassigned      YES NVRAM  administratively down down    \nLoopback0                  1.1.1.1         YES NVRAM  up                    up      \nR1#\nR1#show ip route\nCodes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP\n       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area \n       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2\n       E1 - OSPF external type 1, E2 - OSPF external type 2\n       i - IS-IS, su - IS-IS summary, L1 - IS-IS level-1, L2 - IS-IS level-2\n       ia - IS-IS inter area, * - candidate default, U - per-user static route\n       o - ODR, P - periodic downloaded static route, H - NHRP, l - LISP\n       a - application route\n       + - replicated route, % - next hop override, p - overrides from PfR\n\nGateway of last resort is not set\n\n      1.0.0.0/32 is subnetted, 1 subnets\nC        1.1.1.1 is directly connected, Loopback0\n      2.0.0.0/32 is subnetted, 1 subnets\nO IA     2.2.2.2 [110/2] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      3.0.0.0/32 is subnetted, 1 subnets\nO IA     3.3.3.3 [110/3] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      4.0.0.0/32 is subnetted, 1 subnets\nO IA     4.4.4.4 [110/3] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      5.0.0.0/32 is subnetted, 1 subnets\nO IA     5.5.5.5 [110/4] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      6.0.0.0/32 is subnetted, 1 subnets\nO IA     6.6.6.6 [110/5] via 12.1.1.2, 04:11:31, GigabitEthernet0/0\n      12.0.0.0/8 is variably subnetted, 2 subnets, 2 masks\nC        12.1.1.0/24 is directly connected, GigabitEthernet0/0\nL        12.1.1.1/32 is directly connected, GigabitEthernet0/0\n      23.0.0.0/24 is subnetted, 1 subnets\nO IA     23.1.1.0 [110/2] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      24.0.0.0/24 is subnetted, 1 subnets\nO IA     24.1.1.0 [110/2] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      35.0.0.0/24 is subnetted, 1 subnets\nO IA     35.1.1.0 [110/4] via 12.1.1.2, 04:10:58, GigabitEthernet0/0\n      45.0.0.0/24 is subnetted, 1 subnets\nO IA     45.1.1.0 [110/3] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      56.0.0.0/24 is subnetted, 1 subnets\nO IA     56.1.1.0 [110/4] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\nR1#\nR1",
+                            "config_commands": [
+                                "show ip interface brief",
+                                "show ip route",
+                            ],
+                        },
+                        {
+                            "device_name": "R-6",
+                            "status": "success",
+                            "output": "show ip interface brief\nInterface                  IP-Address      OK? Method Status                Protocol\nGigabitEthernet0/0         56.1.1.6        YES NVRAM  up                    up      \nGigabitEthernet0/1         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/2         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/3         unassigned      YES NVRAM  administratively down down    \n\nGigabitEthernet0/4         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/5         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/6         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/7         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/8         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/9         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/10        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/11        unassigned      YES NVRAM  administratively down down    \n\nGigabitEthernet0/12        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/13        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/14        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/15        unassigned      YES NVRAM  administratively down down    \nLoopback0                  6.6.6.6         YES NVRAM  up                    up      \nR6#\nR6#show ip route\nCodes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP\n       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area \n       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2\n       E1 - OSPF external type 1, E2 - OSPF external type 2\n       i - IS-IS, su - IS-IS summary, L1 - IS-IS level-1, L2 - IS-IS level-2\n       ia - IS-IS inter area, * - candidate default, U - per-user static route\n       o - ODR, P - periodic downloaded static route, H - NHRP, l - LISP\n       a - application route\n       + - replicated route, % - next hop override, p - overrides from PfR\n\nGateway of last resort is not set\n\n      1.0.0.0/32 is subnetted, 1 subnets\nO IA     1.1.1.1 [110/5] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      2.0.0.0/32 is subnetted, 1 subnets\nO IA     2.2.2.2 [110/4] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      3.0.0.0/32 is subnetted, 1 subnets\nO IA     3.3.3.3 [110/5] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      4.0.0.0/32 is subnetted, 1 subnets\nO IA     4.4.4.4 [110/3] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      5.0.0.0/32 is subnetted, 1 subnets\nO IA     5.5.5.5 [110/2] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      6.0.0.0/32 is subnetted, 1 subnets\nC        6.6.6.6 is directly connected, Loopback0\n      12.0.0.0/24 is subnetted, 1 subnets\nO IA     12.1.1.0 [110/4] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      23.0.0.0/24 is subnetted, 1 subnets\nO IA     23.1.1.0 [110/4] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      24.0.0.0/24 is subnetted, 1 subnets\nO IA     24.1.1.0 [110/3] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      35.0.0.0/24 is subnetted, 1 subnets\nO IA     35.1.1.0 [110/2] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      45.0.0.0/24 is subnetted, 1 subnets\nO IA     45.1.1.0 [110/2] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      56.0.0.0/8 is variably subnetted, 2 subnets, 2 masks\nC        56.1.1.0/24 is directly connected, GigabitEthernet0/0\nL        56.1.1.6/32 is directly connected, GigabitEthernet0/0\nR6#\nR6",
+                            "config_commands": [
+                                "show ip interface brief",
+                                "show ip route",
+                            ],
+                        },
+                    ],
+                    id="dd2ad15c-9e55-460c-be86-7c71ff12382a",
+                    tool_call_id="call_00_3O2QInPsNI3rV9vyEHJmj6em",
+                ),
+            ],
+            "llm_calls": 4,
+        },
+        next=("llm_call",),
+        config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c8-bfdf-6426-800a-55c66b950881",
+            }
+        },
+        metadata={"source": "loop", "step": 10, "parents": {}, "max_iterations": 100},
+        created_at="2025-11-27T06:44:39.459096+00:00",
+        parent_config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c8-5812-604a-8009-b591c90267c1",
+            }
+        },
+        tasks=(
+            PregelTask(
+                id="09b1a15a-1529-cf8a-bbb9-856309a49497",
+                name="llm_call",
+                path=("__pregel_pull", "llm_call"),
+                error=None,
+                interrupts=(),
+                state=None,
+                result={
+                    "messages": [
+                        AIMessage(
+                            content="Great! I can see that both routers have OSPF routing configured and can reach each other. Now let me perform the ping test from R-1 to R-6's loopback address (6.6.6.6):",
+                            additional_kwargs={},
+                            response_metadata={
+                                "finish_reason": "tool_calls",
+                                "model_name": "deepseek-chat",
+                                "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                                "model_provider": "deepseek",
+                            },
+                            id="lc_run--ddbd353d-48cb-45d8-a56d-3cb8c230b319",
+                            tool_calls=[
+                                {
+                                    "name": "execute_multiple_device_commands",
+                                    "args": {
+                                        "tool_input": '[\n    {\n        "device_name": "R-1",\n        "commands": ["ping 6.6.6.6"]\n    }\n]'
+                                    },
+                                    "id": "call_00_u0e3OhJcbu1pCssV5gb4AwzJ",
+                                    "type": "tool_call",
+                                }
+                            ],
+                            usage_metadata={
+                                "input_tokens": 9909,
+                                "output_tokens": 105,
+                                "total_tokens": 10014,
+                                "input_token_details": {"cache_read": 6912},
+                                "output_token_details": {},
+                            },
+                        )
+                    ],
+                    "llm_calls": 5,
+                },
+            ),
+        ),
+        interrupts=(),
+    ),
+    StateSnapshot(
+        values={
+            "messages": [
+                HumanMessage(
+                    content="hello", additional_kwargs={}, response_metadata={}
+                ),
+                AIMessage(
+                    content="Hello! I'm your network automation assistant. I can help you with various network tasks including:\n\n- Checking network device status (interfaces, routing, OSPF, etc.)\n- Configuring network devices\n- Managing GNS3 topology\n- Performing network diagnostics and troubleshooting\n\nWhat would you like me to help you with today? For example, I can:\n- Show you the current network topology\n- Check device configurations and status\n- Configure interfaces or routing protocols\n- Troubleshoot connectivity issues\n\nPlease let me know what specific task you'd like to accomplish!",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "stop",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--572381b2-d406-416b-a8f6-73a7be42ad2f",
+                    usage_metadata={
+                        "input_tokens": 3293,
+                        "output_tokens": 114,
+                        "total_tokens": 3407,
+                        "input_token_details": {"cache_read": 3264},
+                        "output_token_details": {},
+                    },
+                ),
+                HumanMessage(
+                    content="tell me current topology",
+                    additional_kwargs={},
+                    response_metadata={},
+                ),
+                AIMessage(
+                    content="I'll check the current GNS3 topology for you.",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "tool_calls",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--2457f741-a10f-441a-aa37-f512f50d65f5",
+                    tool_calls=[
+                        {
+                            "name": "gns3_topology_reader",
+                            "args": {"tool_input": None},
+                            "id": "call_00_eCtJ9obRBNLWMsHenN1U6LYF",
+                            "type": "tool_call",
+                        }
+                    ],
+                    usage_metadata={
+                        "input_tokens": 3415,
+                        "output_tokens": 30,
+                        "total_tokens": 3445,
+                        "input_token_details": {"cache_read": 3392},
+                        "output_token_details": {},
+                    },
+                ),
+                ToolMessage(
+                    content="{'project_id': 'f2f7ed27-7aa3-4b11-a64c-da947a2c7210', 'name': 'network_ai', 'status': 'opened', 'nodes': {'R-1': {'server': '127.0.0.1', 'name': 'R-1', 'node_id': 'dae0b5be-03aa-492d-939c-72f2bbe1d74a', 'console_port': 5012, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -630, 'y': -180}, 'R-2': {'server': '127.0.0.1', 'name': 'R-2', 'node_id': '770c835c-83ae-42ce-a2b9-9a88fb4d2145', 'console_port': 5014, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -405, 'y': -180}, 'R-3': {'server': '127.0.0.1', 'name': 'R-3', 'node_id': '5f875fef-f795-4f06-96b2-9c34a66a296d', 'console_port': 5016, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -105, 'y': -255}, 'R-4': {'server': '127.0.0.1', 'name': 'R-4', 'node_id': 'ceb2e0f0-5c7e-48b2-b289-8db2ed92e5a7', 'console_port': 5018, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -105, 'y': -105}, 'R-5': {'server': '127.0.0.1', 'name': 'R-5', 'node_id': '18dd23f5-fd10-49a8-8b1c-a0f741356a12', 'console_port': 5020, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': 195, 'y': -180}, 'R-6': {'server': '127.0.0.1', 'name': 'R-6', 'node_id': '320b1ee0-fc0e-47ac-a818-a9280a925bb6', 'console_port': 5022, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': 420, 'y': -180}}, 'links': [('R-1', 'Ge 0/0', 'R-2', 'Ge 0/0'), ('R-2', 'Ge 0/3', 'R-3', 'Ge 0/2'), ('R-2', 'Ge 0/4', 'R-4', 'Ge 0/2'), ('R-3', 'Ge 0/5', 'R-5', 'Ge 0/3'), ('R-4', 'Ge 0/5', 'R-5', 'Ge 0/4'), ('R-5', 'Ge 0/0', 'R-6', 'Ge 0/0'), ('R-3', 'Ge 0/0', 'R-4', 'Ge 0/0')]}",
+                    id="b0197ce9-ab59-4dba-857e-27a6c2c2771b",
+                    tool_call_id="call_00_eCtJ9obRBNLWMsHenN1U6LYF",
+                ),
+                AIMessage(
+                    content="Here's the current GNS3 topology:\n\n## Current Network Topology\n\n**Project Name:** network_ai  \n**Project ID:** f2f7ed27-7aa3-4b11-a64c-da947a2c7210  \n**Status:** opened\n\n### Devices:\n- **R-1** (Router) - Console Port: 5012\n- **R-2** (Router) - Console Port: 5014  \n- **R-3** (Router) - Console Port: 5016\n- **R-4** (Router) - Console Port: 5018\n- **R-5** (Router) - Console Port: 5020\n- **R-6** (Router) - Console Port: 5022\n\n### Network Connections:\n1. **R-1** ↔ **R-2** (Ge 0/0 ↔ Ge 0/0)\n2. **R-2** ↔ **R-3** (Ge 0/3 ↔ Ge 0/2)\n3. **R-2** ↔ **R-4** (Ge 0/4 ↔ Ge 0/2)\n4. **R-3** ↔ **R-5** (Ge 0/5 ↔ Ge 0/3)\n5. **R-4** ↔ **R-5** (Ge 0/5 ↔ Ge 0/4)\n6. **R-5** ↔ **R-6** (Ge 0/0 ↔ Ge 0/0)\n7. **R-3** ↔ **R-4** (Ge 0/0 ↔ Ge 0/0)\n\n### Topology Layout:\n- **Left side:** R-1, R-2\n- **Center:** R-3, R-4  \n- **Right side:** R-5, R-6\n\nThis appears to be a 6-router network with a mesh-like topology where R-2 acts as a central hub connecting to R-1, R-3, and R-4, while R-5 connects R-3, R-4, and R-6.\n\nWould you like me to check the current device configurations or perform any specific network operations?",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "stop",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--65b1b02a-9252-45ad-ba97-b88a6e352bc6",
+                    usage_metadata={
+                        "input_tokens": 6345,
+                        "output_tokens": 464,
+                        "total_tokens": 6809,
+                        "input_token_details": {"cache_read": 3392},
+                        "output_token_details": {},
+                    },
+                ),
+                HumanMessage(
+                    content="ping r-1 to r-6",
+                    additional_kwargs={},
+                    response_metadata={},
+                ),
+                AIMessage(
+                    content="I'll help you test connectivity from R-1 to R-6. First, let me check the current interface configurations to understand the IP addressing, then perform the ping test.",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "tool_calls",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--52866886-5aac-4450-8784-0e0fc0e4ed22",
+                    tool_calls=[
+                        {
+                            "name": "execute_multiple_device_commands",
+                            "args": {
+                                "tool_input": '[\n    {\n        "device_name": "R-1",\n        "commands": ["show ip interface brief", "show ip route"]\n    },\n    {\n        "device_name": "R-6", \n        "commands": ["show ip interface brief", "show ip route"]\n    }\n]'
+                            },
+                            "id": "call_00_3O2QInPsNI3rV9vyEHJmj6em",
+                            "type": "tool_call",
+                        }
+                    ],
+                    usage_metadata={
+                        "input_tokens": 6821,
+                        "output_tokens": 131,
+                        "total_tokens": 6952,
+                        "input_token_details": {"cache_read": 6784},
+                        "output_token_details": {},
+                    },
+                ),
+            ],
+            "llm_calls": 4,
+        },
+        next=("tool_node",),
+        config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c8-5812-604a-8009-b591c90267c1",
+            }
+        },
+        metadata={"source": "loop", "step": 9, "parents": {}, "max_iterations": 100},
+        created_at="2025-11-27T06:44:28.574695+00:00",
+        parent_config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c8-102f-65be-8008-028151b7a9ca",
+            }
+        },
+        tasks=(
+            PregelTask(
+                id="bdb08887-24c0-d49b-c2d0-2897207ef822",
+                name="tool_node",
+                path=("__pregel_pull", "tool_node"),
+                error=None,
+                interrupts=(),
+                state=None,
+                result={
+                    "messages": [
+                        ToolMessage(
+                            content=[
+                                {
+                                    "device_name": "R-1",
+                                    "status": "success",
+                                    "output": "show ip interface brief\nInterface                  IP-Address      OK? Method Status                Protocol\nGigabitEthernet0/0         12.1.1.1        YES NVRAM  up                    up      \nGigabitEthernet0/1         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/2         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/3         unassigned      YES NVRAM  administratively down down    \n\nGigabitEthernet0/4         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/5         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/6         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/7         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/8         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/9         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/10        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/11        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/12        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/13        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/14        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/15        unassigned      YES NVRAM  administratively down down    \nLoopback0                  1.1.1.1         YES NVRAM  up                    up      \nR1#\nR1#show ip route\nCodes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP\n       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area \n       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2\n       E1 - OSPF external type 1, E2 - OSPF external type 2\n       i - IS-IS, su - IS-IS summary, L1 - IS-IS level-1, L2 - IS-IS level-2\n       ia - IS-IS inter area, * - candidate default, U - per-user static route\n       o - ODR, P - periodic downloaded static route, H - NHRP, l - LISP\n       a - application route\n       + - replicated route, % - next hop override, p - overrides from PfR\n\nGateway of last resort is not set\n\n      1.0.0.0/32 is subnetted, 1 subnets\nC        1.1.1.1 is directly connected, Loopback0\n      2.0.0.0/32 is subnetted, 1 subnets\nO IA     2.2.2.2 [110/2] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      3.0.0.0/32 is subnetted, 1 subnets\nO IA     3.3.3.3 [110/3] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      4.0.0.0/32 is subnetted, 1 subnets\nO IA     4.4.4.4 [110/3] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      5.0.0.0/32 is subnetted, 1 subnets\nO IA     5.5.5.5 [110/4] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      6.0.0.0/32 is subnetted, 1 subnets\nO IA     6.6.6.6 [110/5] via 12.1.1.2, 04:11:31, GigabitEthernet0/0\n      12.0.0.0/8 is variably subnetted, 2 subnets, 2 masks\nC        12.1.1.0/24 is directly connected, GigabitEthernet0/0\nL        12.1.1.1/32 is directly connected, GigabitEthernet0/0\n      23.0.0.0/24 is subnetted, 1 subnets\nO IA     23.1.1.0 [110/2] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      24.0.0.0/24 is subnetted, 1 subnets\nO IA     24.1.1.0 [110/2] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      35.0.0.0/24 is subnetted, 1 subnets\nO IA     35.1.1.0 [110/4] via 12.1.1.2, 04:10:58, GigabitEthernet0/0\n      45.0.0.0/24 is subnetted, 1 subnets\nO IA     45.1.1.0 [110/3] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\n      56.0.0.0/24 is subnetted, 1 subnets\nO IA     56.1.1.0 [110/4] via 12.1.1.2, 04:11:32, GigabitEthernet0/0\nR1#\nR1",
+                                    "config_commands": [
+                                        "show ip interface brief",
+                                        "show ip route",
+                                    ],
+                                },
+                                {
+                                    "device_name": "R-6",
+                                    "status": "success",
+                                    "output": "show ip interface brief\nInterface                  IP-Address      OK? Method Status                Protocol\nGigabitEthernet0/0         56.1.1.6        YES NVRAM  up                    up      \nGigabitEthernet0/1         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/2         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/3         unassigned      YES NVRAM  administratively down down    \n\nGigabitEthernet0/4         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/5         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/6         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/7         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/8         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/9         unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/10        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/11        unassigned      YES NVRAM  administratively down down    \n\nGigabitEthernet0/12        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/13        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/14        unassigned      YES NVRAM  administratively down down    \nGigabitEthernet0/15        unassigned      YES NVRAM  administratively down down    \nLoopback0                  6.6.6.6         YES NVRAM  up                    up      \nR6#\nR6#show ip route\nCodes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP\n       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area \n       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2\n       E1 - OSPF external type 1, E2 - OSPF external type 2\n       i - IS-IS, su - IS-IS summary, L1 - IS-IS level-1, L2 - IS-IS level-2\n       ia - IS-IS inter area, * - candidate default, U - per-user static route\n       o - ODR, P - periodic downloaded static route, H - NHRP, l - LISP\n       a - application route\n       + - replicated route, % - next hop override, p - overrides from PfR\n\nGateway of last resort is not set\n\n      1.0.0.0/32 is subnetted, 1 subnets\nO IA     1.1.1.1 [110/5] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      2.0.0.0/32 is subnetted, 1 subnets\nO IA     2.2.2.2 [110/4] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      3.0.0.0/32 is subnetted, 1 subnets\nO IA     3.3.3.3 [110/5] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      4.0.0.0/32 is subnetted, 1 subnets\nO IA     4.4.4.4 [110/3] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      5.0.0.0/32 is subnetted, 1 subnets\nO IA     5.5.5.5 [110/2] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      6.0.0.0/32 is subnetted, 1 subnets\nC        6.6.6.6 is directly connected, Loopback0\n      12.0.0.0/24 is subnetted, 1 subnets\nO IA     12.1.1.0 [110/4] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      23.0.0.0/24 is subnetted, 1 subnets\nO IA     23.1.1.0 [110/4] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      24.0.0.0/24 is subnetted, 1 subnets\nO IA     24.1.1.0 [110/3] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      35.0.0.0/24 is subnetted, 1 subnets\nO IA     35.1.1.0 [110/2] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      45.0.0.0/24 is subnetted, 1 subnets\nO IA     45.1.1.0 [110/2] via 56.1.1.5, 04:11:28, GigabitEthernet0/0\n      56.0.0.0/8 is variably subnetted, 2 subnets, 2 masks\nC        56.1.1.0/24 is directly connected, GigabitEthernet0/0\nL        56.1.1.6/32 is directly connected, GigabitEthernet0/0\nR6#\nR6",
+                                    "config_commands": [
+                                        "show ip interface brief",
+                                        "show ip route",
+                                    ],
+                                },
+                            ],
+                            id="dd2ad15c-9e55-460c-be86-7c71ff12382a",
+                            tool_call_id="call_00_3O2QInPsNI3rV9vyEHJmj6em",
+                        )
+                    ]
+                },
+            ),
+        ),
+        interrupts=(),
+    ),
+    StateSnapshot(
+        values={
+            "messages": [
+                HumanMessage(
+                    content="hello", additional_kwargs={}, response_metadata={}
+                ),
+                AIMessage(
+                    content="Hello! I'm your network automation assistant. I can help you with various network tasks including:\n\n- Checking network device status (interfaces, routing, OSPF, etc.)\n- Configuring network devices\n- Managing GNS3 topology\n- Performing network diagnostics and troubleshooting\n\nWhat would you like me to help you with today? For example, I can:\n- Show you the current network topology\n- Check device configurations and status\n- Configure interfaces or routing protocols\n- Troubleshoot connectivity issues\n\nPlease let me know what specific task you'd like to accomplish!",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "stop",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--572381b2-d406-416b-a8f6-73a7be42ad2f",
+                    usage_metadata={
+                        "input_tokens": 3293,
+                        "output_tokens": 114,
+                        "total_tokens": 3407,
+                        "input_token_details": {"cache_read": 3264},
+                        "output_token_details": {},
+                    },
+                ),
+                HumanMessage(
+                    content="tell me current topology",
+                    additional_kwargs={},
+                    response_metadata={},
+                ),
+                AIMessage(
+                    content="I'll check the current GNS3 topology for you.",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "tool_calls",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--2457f741-a10f-441a-aa37-f512f50d65f5",
+                    tool_calls=[
+                        {
+                            "name": "gns3_topology_reader",
+                            "args": {"tool_input": None},
+                            "id": "call_00_eCtJ9obRBNLWMsHenN1U6LYF",
+                            "type": "tool_call",
+                        }
+                    ],
+                    usage_metadata={
+                        "input_tokens": 3415,
+                        "output_tokens": 30,
+                        "total_tokens": 3445,
+                        "input_token_details": {"cache_read": 3392},
+                        "output_token_details": {},
+                    },
+                ),
+                ToolMessage(
+                    content="{'project_id': 'f2f7ed27-7aa3-4b11-a64c-da947a2c7210', 'name': 'network_ai', 'status': 'opened', 'nodes': {'R-1': {'server': '127.0.0.1', 'name': 'R-1', 'node_id': 'dae0b5be-03aa-492d-939c-72f2bbe1d74a', 'console_port': 5012, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -630, 'y': -180}, 'R-2': {'server': '127.0.0.1', 'name': 'R-2', 'node_id': '770c835c-83ae-42ce-a2b9-9a88fb4d2145', 'console_port': 5014, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -405, 'y': -180}, 'R-3': {'server': '127.0.0.1', 'name': 'R-3', 'node_id': '5f875fef-f795-4f06-96b2-9c34a66a296d', 'console_port': 5016, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -105, 'y': -255}, 'R-4': {'server': '127.0.0.1', 'name': 'R-4', 'node_id': 'ceb2e0f0-5c7e-48b2-b289-8db2ed92e5a7', 'console_port': 5018, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -105, 'y': -105}, 'R-5': {'server': '127.0.0.1', 'name': 'R-5', 'node_id': '18dd23f5-fd10-49a8-8b1c-a0f741356a12', 'console_port': 5020, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': 195, 'y': -180}, 'R-6': {'server': '127.0.0.1', 'name': 'R-6', 'node_id': '320b1ee0-fc0e-47ac-a818-a9280a925bb6', 'console_port': 5022, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': 420, 'y': -180}}, 'links': [('R-1', 'Ge 0/0', 'R-2', 'Ge 0/0'), ('R-2', 'Ge 0/3', 'R-3', 'Ge 0/2'), ('R-2', 'Ge 0/4', 'R-4', 'Ge 0/2'), ('R-3', 'Ge 0/5', 'R-5', 'Ge 0/3'), ('R-4', 'Ge 0/5', 'R-5', 'Ge 0/4'), ('R-5', 'Ge 0/0', 'R-6', 'Ge 0/0'), ('R-3', 'Ge 0/0', 'R-4', 'Ge 0/0')]}",
+                    id="b0197ce9-ab59-4dba-857e-27a6c2c2771b",
+                    tool_call_id="call_00_eCtJ9obRBNLWMsHenN1U6LYF",
+                ),
+                AIMessage(
+                    content="Here's the current GNS3 topology:\n\n## Current Network Topology\n\n**Project Name:** network_ai  \n**Project ID:** f2f7ed27-7aa3-4b11-a64c-da947a2c7210  \n**Status:** opened\n\n### Devices:\n- **R-1** (Router) - Console Port: 5012\n- **R-2** (Router) - Console Port: 5014  \n- **R-3** (Router) - Console Port: 5016\n- **R-4** (Router) - Console Port: 5018\n- **R-5** (Router) - Console Port: 5020\n- **R-6** (Router) - Console Port: 5022\n\n### Network Connections:\n1. **R-1** ↔ **R-2** (Ge 0/0 ↔ Ge 0/0)\n2. **R-2** ↔ **R-3** (Ge 0/3 ↔ Ge 0/2)\n3. **R-2** ↔ **R-4** (Ge 0/4 ↔ Ge 0/2)\n4. **R-3** ↔ **R-5** (Ge 0/5 ↔ Ge 0/3)\n5. **R-4** ↔ **R-5** (Ge 0/5 ↔ Ge 0/4)\n6. **R-5** ↔ **R-6** (Ge 0/0 ↔ Ge 0/0)\n7. **R-3** ↔ **R-4** (Ge 0/0 ↔ Ge 0/0)\n\n### Topology Layout:\n- **Left side:** R-1, R-2\n- **Center:** R-3, R-4  \n- **Right side:** R-5, R-6\n\nThis appears to be a 6-router network with a mesh-like topology where R-2 acts as a central hub connecting to R-1, R-3, and R-4, while R-5 connects R-3, R-4, and R-6.\n\nWould you like me to check the current device configurations or perform any specific network operations?",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "stop",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--65b1b02a-9252-45ad-ba97-b88a6e352bc6",
+                    usage_metadata={
+                        "input_tokens": 6345,
+                        "output_tokens": 464,
+                        "total_tokens": 6809,
+                        "input_token_details": {"cache_read": 3392},
+                        "output_token_details": {},
+                    },
+                ),
+                HumanMessage(
+                    content="ping r-1 to r-6",
+                    additional_kwargs={},
+                    response_metadata={},
+                ),
+            ],
+            "llm_calls": 3,
+        },
+        next=("llm_call",),
+        config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c8-102f-65be-8008-028151b7a9ca",
+            }
+        },
+        metadata={"source": "loop", "step": 8, "parents": {}, "max_iterations": 100},
+        created_at="2025-11-27T06:44:21.036967+00:00",
+        parent_config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c8-1028-6faa-8007-d93a5e7a02b4",
+            }
+        },
+        tasks=(
+            PregelTask(
+                id="0518d942-9287-9508-13cd-0d8c0f46fe11",
+                name="llm_call",
+                path=("__pregel_pull", "llm_call"),
+                error=None,
+                interrupts=(),
+                state=None,
+                result={
+                    "messages": [
+                        AIMessage(
+                            content="I'll help you test connectivity from R-1 to R-6. First, let me check the current interface configurations to understand the IP addressing, then perform the ping test.",
+                            additional_kwargs={},
+                            response_metadata={
+                                "finish_reason": "tool_calls",
+                                "model_name": "deepseek-chat",
+                                "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                                "model_provider": "deepseek",
+                            },
+                            id="lc_run--52866886-5aac-4450-8784-0e0fc0e4ed22",
+                            tool_calls=[
+                                {
+                                    "name": "execute_multiple_device_commands",
+                                    "args": {
+                                        "tool_input": '[\n    {\n        "device_name": "R-1",\n        "commands": ["show ip interface brief", "show ip route"]\n    },\n    {\n        "device_name": "R-6", \n        "commands": ["show ip interface brief", "show ip route"]\n    }\n]'
+                                    },
+                                    "id": "call_00_3O2QInPsNI3rV9vyEHJmj6em",
+                                    "type": "tool_call",
+                                }
+                            ],
+                            usage_metadata={
+                                "input_tokens": 6821,
+                                "output_tokens": 131,
+                                "total_tokens": 6952,
+                                "input_token_details": {"cache_read": 6784},
+                                "output_token_details": {},
+                            },
+                        )
+                    ],
+                    "llm_calls": 4,
+                },
+            ),
+        ),
+        interrupts=(),
+    ),
+    StateSnapshot(
+        values={
+            "messages": [
+                HumanMessage(
+                    content="hello", additional_kwargs={}, response_metadata={}
+                ),
+                AIMessage(
+                    content="Hello! I'm your network automation assistant. I can help you with various network tasks including:\n\n- Checking network device status (interfaces, routing, OSPF, etc.)\n- Configuring network devices\n- Managing GNS3 topology\n- Performing network diagnostics and troubleshooting\n\nWhat would you like me to help you with today? For example, I can:\n- Show you the current network topology\n- Check device configurations and status\n- Configure interfaces or routing protocols\n- Troubleshoot connectivity issues\n\nPlease let me know what specific task you'd like to accomplish!",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "stop",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--572381b2-d406-416b-a8f6-73a7be42ad2f",
+                    usage_metadata={
+                        "input_tokens": 3293,
+                        "output_tokens": 114,
+                        "total_tokens": 3407,
+                        "input_token_details": {"cache_read": 3264},
+                        "output_token_details": {},
+                    },
+                ),
+                HumanMessage(
+                    content="tell me current topology",
+                    additional_kwargs={},
+                    response_metadata={},
+                ),
+                AIMessage(
+                    content="I'll check the current GNS3 topology for you.",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "tool_calls",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--2457f741-a10f-441a-aa37-f512f50d65f5",
+                    tool_calls=[
+                        {
+                            "name": "gns3_topology_reader",
+                            "args": {"tool_input": None},
+                            "id": "call_00_eCtJ9obRBNLWMsHenN1U6LYF",
+                            "type": "tool_call",
+                        }
+                    ],
+                    usage_metadata={
+                        "input_tokens": 3415,
+                        "output_tokens": 30,
+                        "total_tokens": 3445,
+                        "input_token_details": {"cache_read": 3392},
+                        "output_token_details": {},
+                    },
+                ),
+                ToolMessage(
+                    content="{'project_id': 'f2f7ed27-7aa3-4b11-a64c-da947a2c7210', 'name': 'network_ai', 'status': 'opened', 'nodes': {'R-1': {'server': '127.0.0.1', 'name': 'R-1', 'node_id': 'dae0b5be-03aa-492d-939c-72f2bbe1d74a', 'console_port': 5012, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -630, 'y': -180}, 'R-2': {'server': '127.0.0.1', 'name': 'R-2', 'node_id': '770c835c-83ae-42ce-a2b9-9a88fb4d2145', 'console_port': 5014, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -405, 'y': -180}, 'R-3': {'server': '127.0.0.1', 'name': 'R-3', 'node_id': '5f875fef-f795-4f06-96b2-9c34a66a296d', 'console_port': 5016, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -105, 'y': -255}, 'R-4': {'server': '127.0.0.1', 'name': 'R-4', 'node_id': 'ceb2e0f0-5c7e-48b2-b289-8db2ed92e5a7', 'console_port': 5018, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -105, 'y': -105}, 'R-5': {'server': '127.0.0.1', 'name': 'R-5', 'node_id': '18dd23f5-fd10-49a8-8b1c-a0f741356a12', 'console_port': 5020, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': 195, 'y': -180}, 'R-6': {'server': '127.0.0.1', 'name': 'R-6', 'node_id': '320b1ee0-fc0e-47ac-a818-a9280a925bb6', 'console_port': 5022, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': 420, 'y': -180}}, 'links': [('R-1', 'Ge 0/0', 'R-2', 'Ge 0/0'), ('R-2', 'Ge 0/3', 'R-3', 'Ge 0/2'), ('R-2', 'Ge 0/4', 'R-4', 'Ge 0/2'), ('R-3', 'Ge 0/5', 'R-5', 'Ge 0/3'), ('R-4', 'Ge 0/5', 'R-5', 'Ge 0/4'), ('R-5', 'Ge 0/0', 'R-6', 'Ge 0/0'), ('R-3', 'Ge 0/0', 'R-4', 'Ge 0/0')]}",
+                    id="b0197ce9-ab59-4dba-857e-27a6c2c2771b",
+                    tool_call_id="call_00_eCtJ9obRBNLWMsHenN1U6LYF",
+                ),
+                AIMessage(
+                    content="Here's the current GNS3 topology:\n\n## Current Network Topology\n\n**Project Name:** network_ai  \n**Project ID:** f2f7ed27-7aa3-4b11-a64c-da947a2c7210  \n**Status:** opened\n\n### Devices:\n- **R-1** (Router) - Console Port: 5012\n- **R-2** (Router) - Console Port: 5014  \n- **R-3** (Router) - Console Port: 5016\n- **R-4** (Router) - Console Port: 5018\n- **R-5** (Router) - Console Port: 5020\n- **R-6** (Router) - Console Port: 5022\n\n### Network Connections:\n1. **R-1** ↔ **R-2** (Ge 0/0 ↔ Ge 0/0)\n2. **R-2** ↔ **R-3** (Ge 0/3 ↔ Ge 0/2)\n3. **R-2** ↔ **R-4** (Ge 0/4 ↔ Ge 0/2)\n4. **R-3** ↔ **R-5** (Ge 0/5 ↔ Ge 0/3)\n5. **R-4** ↔ **R-5** (Ge 0/5 ↔ Ge 0/4)\n6. **R-5** ↔ **R-6** (Ge 0/0 ↔ Ge 0/0)\n7. **R-3** ↔ **R-4** (Ge 0/0 ↔ Ge 0/0)\n\n### Topology Layout:\n- **Left side:** R-1, R-2\n- **Center:** R-3, R-4  \n- **Right side:** R-5, R-6\n\nThis appears to be a 6-router network with a mesh-like topology where R-2 acts as a central hub connecting to R-1, R-3, and R-4, while R-5 connects R-3, R-4, and R-6.\n\nWould you like me to check the current device configurations or perform any specific network operations?",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "stop",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--65b1b02a-9252-45ad-ba97-b88a6e352bc6",
+                    usage_metadata={
+                        "input_tokens": 6345,
+                        "output_tokens": 464,
+                        "total_tokens": 6809,
+                        "input_token_details": {"cache_read": 3392},
+                        "output_token_details": {},
+                    },
+                ),
+            ],
+            "llm_calls": 3,
+        },
+        next=("__start__",),
+        config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c8-1028-6faa-8007-d93a5e7a02b4",
+            }
+        },
+        metadata={"source": "input", "step": 7, "parents": {}, "max_iterations": 100},
+        created_at="2025-11-27T06:44:21.034353+00:00",
+        parent_config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c7-e2b5-6b6f-8006-ebe31a2802a2",
+            }
+        },
+        tasks=(
+            PregelTask(
+                id="8b9cfd6d-10ee-efed-49d3-85c6b41c55a6",
+                name="__start__",
+                path=("__pregel_pull", "__start__"),
+                error=None,
+                interrupts=(),
+                state=None,
+                result={
+                    "messages": [
+                        HumanMessage(
+                            content="ping r-1 to r-6",
+                            additional_kwargs={},
+                            response_metadata={},
+                        )
+                    ]
+                },
+            ),
+        ),
+        interrupts=(),
+    ),
+    StateSnapshot(
+        values={
+            "messages": [
+                HumanMessage(
+                    content="hello", additional_kwargs={}, response_metadata={}
+                ),
+                AIMessage(
+                    content="Hello! I'm your network automation assistant. I can help you with various network tasks including:\n\n- Checking network device status (interfaces, routing, OSPF, etc.)\n- Configuring network devices\n- Managing GNS3 topology\n- Performing network diagnostics and troubleshooting\n\nWhat would you like me to help you with today? For example, I can:\n- Show you the current network topology\n- Check device configurations and status\n- Configure interfaces or routing protocols\n- Troubleshoot connectivity issues\n\nPlease let me know what specific task you'd like to accomplish!",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "stop",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--572381b2-d406-416b-a8f6-73a7be42ad2f",
+                    usage_metadata={
+                        "input_tokens": 3293,
+                        "output_tokens": 114,
+                        "total_tokens": 3407,
+                        "input_token_details": {"cache_read": 3264},
+                        "output_token_details": {},
+                    },
+                ),
+                HumanMessage(
+                    content="tell me current topology",
+                    additional_kwargs={},
+                    response_metadata={},
+                ),
+                AIMessage(
+                    content="I'll check the current GNS3 topology for you.",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "tool_calls",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--2457f741-a10f-441a-aa37-f512f50d65f5",
+                    tool_calls=[
+                        {
+                            "name": "gns3_topology_reader",
+                            "args": {"tool_input": None},
+                            "id": "call_00_eCtJ9obRBNLWMsHenN1U6LYF",
+                            "type": "tool_call",
+                        }
+                    ],
+                    usage_metadata={
+                        "input_tokens": 3415,
+                        "output_tokens": 30,
+                        "total_tokens": 3445,
+                        "input_token_details": {"cache_read": 3392},
+                        "output_token_details": {},
+                    },
+                ),
+                ToolMessage(
+                    content="{'project_id': 'f2f7ed27-7aa3-4b11-a64c-da947a2c7210', 'name': 'network_ai', 'status': 'opened', 'nodes': {'R-1': {'server': '127.0.0.1', 'name': 'R-1', 'node_id': 'dae0b5be-03aa-492d-939c-72f2bbe1d74a', 'console_port': 5012, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -630, 'y': -180}, 'R-2': {'server': '127.0.0.1', 'name': 'R-2', 'node_id': '770c835c-83ae-42ce-a2b9-9a88fb4d2145', 'console_port': 5014, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -405, 'y': -180}, 'R-3': {'server': '127.0.0.1', 'name': 'R-3', 'node_id': '5f875fef-f795-4f06-96b2-9c34a66a296d', 'console_port': 5016, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -105, 'y': -255}, 'R-4': {'server': '127.0.0.1', 'name': 'R-4', 'node_id': 'ceb2e0f0-5c7e-48b2-b289-8db2ed92e5a7', 'console_port': 5018, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -105, 'y': -105}, 'R-5': {'server': '127.0.0.1', 'name': 'R-5', 'node_id': '18dd23f5-fd10-49a8-8b1c-a0f741356a12', 'console_port': 5020, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': 195, 'y': -180}, 'R-6': {'server': '127.0.0.1', 'name': 'R-6', 'node_id': '320b1ee0-fc0e-47ac-a818-a9280a925bb6', 'console_port': 5022, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': 420, 'y': -180}}, 'links': [('R-1', 'Ge 0/0', 'R-2', 'Ge 0/0'), ('R-2', 'Ge 0/3', 'R-3', 'Ge 0/2'), ('R-2', 'Ge 0/4', 'R-4', 'Ge 0/2'), ('R-3', 'Ge 0/5', 'R-5', 'Ge 0/3'), ('R-4', 'Ge 0/5', 'R-5', 'Ge 0/4'), ('R-5', 'Ge 0/0', 'R-6', 'Ge 0/0'), ('R-3', 'Ge 0/0', 'R-4', 'Ge 0/0')]}",
+                    id="b0197ce9-ab59-4dba-857e-27a6c2c2771b",
+                    tool_call_id="call_00_eCtJ9obRBNLWMsHenN1U6LYF",
+                ),
+                AIMessage(
+                    content="Here's the current GNS3 topology:\n\n## Current Network Topology\n\n**Project Name:** network_ai  \n**Project ID:** f2f7ed27-7aa3-4b11-a64c-da947a2c7210  \n**Status:** opened\n\n### Devices:\n- **R-1** (Router) - Console Port: 5012\n- **R-2** (Router) - Console Port: 5014  \n- **R-3** (Router) - Console Port: 5016\n- **R-4** (Router) - Console Port: 5018\n- **R-5** (Router) - Console Port: 5020\n- **R-6** (Router) - Console Port: 5022\n\n### Network Connections:\n1. **R-1** ↔ **R-2** (Ge 0/0 ↔ Ge 0/0)\n2. **R-2** ↔ **R-3** (Ge 0/3 ↔ Ge 0/2)\n3. **R-2** ↔ **R-4** (Ge 0/4 ↔ Ge 0/2)\n4. **R-3** ↔ **R-5** (Ge 0/5 ↔ Ge 0/3)\n5. **R-4** ↔ **R-5** (Ge 0/5 ↔ Ge 0/4)\n6. **R-5** ↔ **R-6** (Ge 0/0 ↔ Ge 0/0)\n7. **R-3** ↔ **R-4** (Ge 0/0 ↔ Ge 0/0)\n\n### Topology Layout:\n- **Left side:** R-1, R-2\n- **Center:** R-3, R-4  \n- **Right side:** R-5, R-6\n\nThis appears to be a 6-router network with a mesh-like topology where R-2 acts as a central hub connecting to R-1, R-3, and R-4, while R-5 connects R-3, R-4, and R-6.\n\nWould you like me to check the current device configurations or perform any specific network operations?",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "stop",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--65b1b02a-9252-45ad-ba97-b88a6e352bc6",
+                    usage_metadata={
+                        "input_tokens": 6345,
+                        "output_tokens": 464,
+                        "total_tokens": 6809,
+                        "input_token_details": {"cache_read": 3392},
+                        "output_token_details": {},
+                    },
+                ),
+            ],
+            "llm_calls": 3,
+        },
+        next=(),
+        config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c7-e2b5-6b6f-8006-ebe31a2802a2",
+            }
+        },
+        metadata={"source": "loop", "step": 6, "parents": {}, "max_iterations": 100},
+        created_at="2025-11-27T06:44:16.268556+00:00",
+        parent_config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c7-03a2-641b-8005-e65af8dcedc5",
+            }
+        },
+        tasks=(),
+        interrupts=(),
+    ),
+    StateSnapshot(
+        values={
+            "messages": [
+                HumanMessage(
+                    content="hello", additional_kwargs={}, response_metadata={}
+                ),
+                AIMessage(
+                    content="Hello! I'm your network automation assistant. I can help you with various network tasks including:\n\n- Checking network device status (interfaces, routing, OSPF, etc.)\n- Configuring network devices\n- Managing GNS3 topology\n- Performing network diagnostics and troubleshooting\n\nWhat would you like me to help you with today? For example, I can:\n- Show you the current network topology\n- Check device configurations and status\n- Configure interfaces or routing protocols\n- Troubleshoot connectivity issues\n\nPlease let me know what specific task you'd like to accomplish!",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "stop",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--572381b2-d406-416b-a8f6-73a7be42ad2f",
+                    usage_metadata={
+                        "input_tokens": 3293,
+                        "output_tokens": 114,
+                        "total_tokens": 3407,
+                        "input_token_details": {"cache_read": 3264},
+                        "output_token_details": {},
+                    },
+                ),
+                HumanMessage(
+                    content="tell me current topology",
+                    additional_kwargs={},
+                    response_metadata={},
+                ),
+                AIMessage(
+                    content="I'll check the current GNS3 topology for you.",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "tool_calls",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--2457f741-a10f-441a-aa37-f512f50d65f5",
+                    tool_calls=[
+                        {
+                            "name": "gns3_topology_reader",
+                            "args": {"tool_input": None},
+                            "id": "call_00_eCtJ9obRBNLWMsHenN1U6LYF",
+                            "type": "tool_call",
+                        }
+                    ],
+                    usage_metadata={
+                        "input_tokens": 3415,
+                        "output_tokens": 30,
+                        "total_tokens": 3445,
+                        "input_token_details": {"cache_read": 3392},
+                        "output_token_details": {},
+                    },
+                ),
+                ToolMessage(
+                    content="{'project_id': 'f2f7ed27-7aa3-4b11-a64c-da947a2c7210', 'name': 'network_ai', 'status': 'opened', 'nodes': {'R-1': {'server': '127.0.0.1', 'name': 'R-1', 'node_id': 'dae0b5be-03aa-492d-939c-72f2bbe1d74a', 'console_port': 5012, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -630, 'y': -180}, 'R-2': {'server': '127.0.0.1', 'name': 'R-2', 'node_id': '770c835c-83ae-42ce-a2b9-9a88fb4d2145', 'console_port': 5014, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -405, 'y': -180}, 'R-3': {'server': '127.0.0.1', 'name': 'R-3', 'node_id': '5f875fef-f795-4f06-96b2-9c34a66a296d', 'console_port': 5016, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -105, 'y': -255}, 'R-4': {'server': '127.0.0.1', 'name': 'R-4', 'node_id': 'ceb2e0f0-5c7e-48b2-b289-8db2ed92e5a7', 'console_port': 5018, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -105, 'y': -105}, 'R-5': {'server': '127.0.0.1', 'name': 'R-5', 'node_id': '18dd23f5-fd10-49a8-8b1c-a0f741356a12', 'console_port': 5020, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': 195, 'y': -180}, 'R-6': {'server': '127.0.0.1', 'name': 'R-6', 'node_id': '320b1ee0-fc0e-47ac-a818-a9280a925bb6', 'console_port': 5022, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': 420, 'y': -180}}, 'links': [('R-1', 'Ge 0/0', 'R-2', 'Ge 0/0'), ('R-2', 'Ge 0/3', 'R-3', 'Ge 0/2'), ('R-2', 'Ge 0/4', 'R-4', 'Ge 0/2'), ('R-3', 'Ge 0/5', 'R-5', 'Ge 0/3'), ('R-4', 'Ge 0/5', 'R-5', 'Ge 0/4'), ('R-5', 'Ge 0/0', 'R-6', 'Ge 0/0'), ('R-3', 'Ge 0/0', 'R-4', 'Ge 0/0')]}",
+                    id="b0197ce9-ab59-4dba-857e-27a6c2c2771b",
+                    tool_call_id="call_00_eCtJ9obRBNLWMsHenN1U6LYF",
+                ),
+            ],
+            "llm_calls": 2,
+        },
+        next=("llm_call",),
+        config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c7-03a2-641b-8005-e65af8dcedc5",
+            }
+        },
+        metadata={"source": "loop", "step": 5, "parents": {}, "max_iterations": 100},
+        created_at="2025-11-27T06:43:52.877350+00:00",
+        parent_config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c7-033a-6b40-8004-5f0fb40177ab",
+            }
+        },
+        tasks=(
+            PregelTask(
+                id="2649b1fb-33b9-39e8-84e6-d55ea8aa72dd",
+                name="llm_call",
+                path=("__pregel_pull", "llm_call"),
+                error=None,
+                interrupts=(),
+                state=None,
+                result={
+                    "messages": [
+                        AIMessage(
+                            content="Here's the current GNS3 topology:\n\n## Current Network Topology\n\n**Project Name:** network_ai  \n**Project ID:** f2f7ed27-7aa3-4b11-a64c-da947a2c7210  \n**Status:** opened\n\n### Devices:\n- **R-1** (Router) - Console Port: 5012\n- **R-2** (Router) - Console Port: 5014  \n- **R-3** (Router) - Console Port: 5016\n- **R-4** (Router) - Console Port: 5018\n- **R-5** (Router) - Console Port: 5020\n- **R-6** (Router) - Console Port: 5022\n\n### Network Connections:\n1. **R-1** ↔ **R-2** (Ge 0/0 ↔ Ge 0/0)\n2. **R-2** ↔ **R-3** (Ge 0/3 ↔ Ge 0/2)\n3. **R-2** ↔ **R-4** (Ge 0/4 ↔ Ge 0/2)\n4. **R-3** ↔ **R-5** (Ge 0/5 ↔ Ge 0/3)\n5. **R-4** ↔ **R-5** (Ge 0/5 ↔ Ge 0/4)\n6. **R-5** ↔ **R-6** (Ge 0/0 ↔ Ge 0/0)\n7. **R-3** ↔ **R-4** (Ge 0/0 ↔ Ge 0/0)\n\n### Topology Layout:\n- **Left side:** R-1, R-2\n- **Center:** R-3, R-4  \n- **Right side:** R-5, R-6\n\nThis appears to be a 6-router network with a mesh-like topology where R-2 acts as a central hub connecting to R-1, R-3, and R-4, while R-5 connects R-3, R-4, and R-6.\n\nWould you like me to check the current device configurations or perform any specific network operations?",
+                            additional_kwargs={},
+                            response_metadata={
+                                "finish_reason": "stop",
+                                "model_name": "deepseek-chat",
+                                "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                                "model_provider": "deepseek",
+                            },
+                            id="lc_run--65b1b02a-9252-45ad-ba97-b88a6e352bc6",
+                            usage_metadata={
+                                "input_tokens": 6345,
+                                "output_tokens": 464,
+                                "total_tokens": 6809,
+                                "input_token_details": {"cache_read": 3392},
+                                "output_token_details": {},
+                            },
+                        )
+                    ],
+                    "llm_calls": 3,
+                },
+            ),
+        ),
+        interrupts=(),
+    ),
+    StateSnapshot(
+        values={
+            "messages": [
+                HumanMessage(
+                    content="hello", additional_kwargs={}, response_metadata={}
+                ),
+                AIMessage(
+                    content="Hello! I'm your network automation assistant. I can help you with various network tasks including:\n\n- Checking network device status (interfaces, routing, OSPF, etc.)\n- Configuring network devices\n- Managing GNS3 topology\n- Performing network diagnostics and troubleshooting\n\nWhat would you like me to help you with today? For example, I can:\n- Show you the current network topology\n- Check device configurations and status\n- Configure interfaces or routing protocols\n- Troubleshoot connectivity issues\n\nPlease let me know what specific task you'd like to accomplish!",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "stop",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--572381b2-d406-416b-a8f6-73a7be42ad2f",
+                    usage_metadata={
+                        "input_tokens": 3293,
+                        "output_tokens": 114,
+                        "total_tokens": 3407,
+                        "input_token_details": {"cache_read": 3264},
+                        "output_token_details": {},
+                    },
+                ),
+                HumanMessage(
+                    content="tell me current topology",
+                    additional_kwargs={},
+                    response_metadata={},
+                ),
+                AIMessage(
+                    content="I'll check the current GNS3 topology for you.",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "tool_calls",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--2457f741-a10f-441a-aa37-f512f50d65f5",
+                    tool_calls=[
+                        {
+                            "name": "gns3_topology_reader",
+                            "args": {"tool_input": None},
+                            "id": "call_00_eCtJ9obRBNLWMsHenN1U6LYF",
+                            "type": "tool_call",
+                        }
+                    ],
+                    usage_metadata={
+                        "input_tokens": 3415,
+                        "output_tokens": 30,
+                        "total_tokens": 3445,
+                        "input_token_details": {"cache_read": 3392},
+                        "output_token_details": {},
+                    },
+                ),
+            ],
+            "llm_calls": 2,
+        },
+        next=("tool_node",),
+        config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c7-033a-6b40-8004-5f0fb40177ab",
+            }
+        },
+        metadata={"source": "loop", "step": 4, "parents": {}, "max_iterations": 100},
+        created_at="2025-11-27T06:43:52.834916+00:00",
+        parent_config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c6-e676-6d72-8003-206e447bb3df",
+            }
+        },
+        tasks=(
+            PregelTask(
+                id="75f59fd1-6315-75e8-bb6f-dba4f66f2b3b",
+                name="tool_node",
+                path=("__pregel_pull", "tool_node"),
+                error=None,
+                interrupts=(),
+                state=None,
+                result={
+                    "messages": [
+                        ToolMessage(
+                            content="{'project_id': 'f2f7ed27-7aa3-4b11-a64c-da947a2c7210', 'name': 'network_ai', 'status': 'opened', 'nodes': {'R-1': {'server': '127.0.0.1', 'name': 'R-1', 'node_id': 'dae0b5be-03aa-492d-939c-72f2bbe1d74a', 'console_port': 5012, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -630, 'y': -180}, 'R-2': {'server': '127.0.0.1', 'name': 'R-2', 'node_id': '770c835c-83ae-42ce-a2b9-9a88fb4d2145', 'console_port': 5014, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -405, 'y': -180}, 'R-3': {'server': '127.0.0.1', 'name': 'R-3', 'node_id': '5f875fef-f795-4f06-96b2-9c34a66a296d', 'console_port': 5016, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -105, 'y': -255}, 'R-4': {'server': '127.0.0.1', 'name': 'R-4', 'node_id': 'ceb2e0f0-5c7e-48b2-b289-8db2ed92e5a7', 'console_port': 5018, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': -105, 'y': -105}, 'R-5': {'server': '127.0.0.1', 'name': 'R-5', 'node_id': '18dd23f5-fd10-49a8-8b1c-a0f741356a12', 'console_port': 5020, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': 195, 'y': -180}, 'R-6': {'server': '127.0.0.1', 'name': 'R-6', 'node_id': '320b1ee0-fc0e-47ac-a818-a9280a925bb6', 'console_port': 5022, 'console_type': 'telnet', 'type': 'qemu', 'ports': [{'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}], 'x': 420, 'y': -180}}, 'links': [('R-1', 'Ge 0/0', 'R-2', 'Ge 0/0'), ('R-2', 'Ge 0/3', 'R-3', 'Ge 0/2'), ('R-2', 'Ge 0/4', 'R-4', 'Ge 0/2'), ('R-3', 'Ge 0/5', 'R-5', 'Ge 0/3'), ('R-4', 'Ge 0/5', 'R-5', 'Ge 0/4'), ('R-5', 'Ge 0/0', 'R-6', 'Ge 0/0'), ('R-3', 'Ge 0/0', 'R-4', 'Ge 0/0')]}",
+                            id="b0197ce9-ab59-4dba-857e-27a6c2c2771b",
+                            tool_call_id="call_00_eCtJ9obRBNLWMsHenN1U6LYF",
+                        )
+                    ]
+                },
+            ),
+        ),
+        interrupts=(),
+    ),
+    StateSnapshot(
+        values={
+            "messages": [
+                HumanMessage(
+                    content="hello", additional_kwargs={}, response_metadata={}
+                ),
+                AIMessage(
+                    content="Hello! I'm your network automation assistant. I can help you with various network tasks including:\n\n- Checking network device status (interfaces, routing, OSPF, etc.)\n- Configuring network devices\n- Managing GNS3 topology\n- Performing network diagnostics and troubleshooting\n\nWhat would you like me to help you with today? For example, I can:\n- Show you the current network topology\n- Check device configurations and status\n- Configure interfaces or routing protocols\n- Troubleshoot connectivity issues\n\nPlease let me know what specific task you'd like to accomplish!",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "stop",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--572381b2-d406-416b-a8f6-73a7be42ad2f",
+                    usage_metadata={
+                        "input_tokens": 3293,
+                        "output_tokens": 114,
+                        "total_tokens": 3407,
+                        "input_token_details": {"cache_read": 3264},
+                        "output_token_details": {},
+                    },
+                ),
+                HumanMessage(
+                    content="tell me current topology",
+                    additional_kwargs={},
+                    response_metadata={},
+                ),
+            ],
+            "llm_calls": 1,
+        },
+        next=("llm_call",),
+        config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c6-e676-6d72-8003-206e447bb3df",
+            }
+        },
+        metadata={"source": "loop", "step": 3, "parents": {}, "max_iterations": 100},
+        created_at="2025-11-27T06:43:49.818681+00:00",
+        parent_config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c6-e670-6c6e-8002-7c0f5ac14d26",
+            }
+        },
+        tasks=(
+            PregelTask(
+                id="ee17bf11-63ec-7ef4-befb-ff10018b82f9",
+                name="llm_call",
+                path=("__pregel_pull", "llm_call"),
+                error=None,
+                interrupts=(),
+                state=None,
+                result={
+                    "messages": [
+                        AIMessage(
+                            content="I'll check the current GNS3 topology for you.",
+                            additional_kwargs={},
+                            response_metadata={
+                                "finish_reason": "tool_calls",
+                                "model_name": "deepseek-chat",
+                                "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                                "model_provider": "deepseek",
+                            },
+                            id="lc_run--2457f741-a10f-441a-aa37-f512f50d65f5",
+                            tool_calls=[
+                                {
+                                    "name": "gns3_topology_reader",
+                                    "args": {"tool_input": None},
+                                    "id": "call_00_eCtJ9obRBNLWMsHenN1U6LYF",
+                                    "type": "tool_call",
+                                }
+                            ],
+                            usage_metadata={
+                                "input_tokens": 3415,
+                                "output_tokens": 30,
+                                "total_tokens": 3445,
+                                "input_token_details": {"cache_read": 3392},
+                                "output_token_details": {},
+                            },
+                        )
+                    ],
+                    "llm_calls": 2,
+                },
+            ),
+        ),
+        interrupts=(),
+    ),
+    StateSnapshot(
+        values={
+            "messages": [
+                HumanMessage(
+                    content="hello", additional_kwargs={}, response_metadata={}
+                ),
+                AIMessage(
+                    content="Hello! I'm your network automation assistant. I can help you with various network tasks including:\n\n- Checking network device status (interfaces, routing, OSPF, etc.)\n- Configuring network devices\n- Managing GNS3 topology\n- Performing network diagnostics and troubleshooting\n\nWhat would you like me to help you with today? For example, I can:\n- Show you the current network topology\n- Check device configurations and status\n- Configure interfaces or routing protocols\n- Troubleshoot connectivity issues\n\nPlease let me know what specific task you'd like to accomplish!",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "stop",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--572381b2-d406-416b-a8f6-73a7be42ad2f",
+                    usage_metadata={
+                        "input_tokens": 3293,
+                        "output_tokens": 114,
+                        "total_tokens": 3407,
+                        "input_token_details": {"cache_read": 3264},
+                        "output_token_details": {},
+                    },
+                ),
+            ],
+            "llm_calls": 1,
+        },
+        next=("__start__",),
+        config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c6-e670-6c6e-8002-7c0f5ac14d26",
+            }
+        },
+        metadata={"source": "input", "step": 2, "parents": {}, "max_iterations": 100},
+        created_at="2025-11-27T06:43:49.816185+00:00",
+        parent_config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c6-bb4c-6838-8001-d74c63e23486",
+            }
+        },
+        tasks=(
+            PregelTask(
+                id="19ef0db4-889d-0e17-6fbf-3d9ad26e627e",
+                name="__start__",
+                path=("__pregel_pull", "__start__"),
+                error=None,
+                interrupts=(),
+                state=None,
+                result={
+                    "messages": [
+                        HumanMessage(
+                            content="tell me current topology",
+                            additional_kwargs={},
+                            response_metadata={},
+                        )
+                    ]
+                },
+            ),
+        ),
+        interrupts=(),
+    ),
+    StateSnapshot(
+        values={
+            "messages": [
+                HumanMessage(
+                    content="hello", additional_kwargs={}, response_metadata={}
+                ),
+                AIMessage(
+                    content="Hello! I'm your network automation assistant. I can help you with various network tasks including:\n\n- Checking network device status (interfaces, routing, OSPF, etc.)\n- Configuring network devices\n- Managing GNS3 topology\n- Performing network diagnostics and troubleshooting\n\nWhat would you like me to help you with today? For example, I can:\n- Show you the current network topology\n- Check device configurations and status\n- Configure interfaces or routing protocols\n- Troubleshoot connectivity issues\n\nPlease let me know what specific task you'd like to accomplish!",
+                    additional_kwargs={},
+                    response_metadata={
+                        "finish_reason": "stop",
+                        "model_name": "deepseek-chat",
+                        "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                        "model_provider": "deepseek",
+                    },
+                    id="lc_run--572381b2-d406-416b-a8f6-73a7be42ad2f",
+                    usage_metadata={
+                        "input_tokens": 3293,
+                        "output_tokens": 114,
+                        "total_tokens": 3407,
+                        "input_token_details": {"cache_read": 3264},
+                        "output_token_details": {},
+                    },
+                ),
+            ],
+            "llm_calls": 1,
+        },
+        next=(),
+        config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c6-bb4c-6838-8001-d74c63e23486",
+            }
+        },
+        metadata={"source": "loop", "step": 1, "parents": {}, "max_iterations": 100},
+        created_at="2025-11-27T06:43:45.292460+00:00",
+        parent_config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c6-78b7-607e-8000-e1c5f207051d",
+            }
+        },
+        tasks=(),
+        interrupts=(),
+    ),
+    StateSnapshot(
+        values={
+            "messages": [
+                HumanMessage(
+                    content="hello", additional_kwargs={}, response_metadata={}
+                )
+            ]
+        },
+        next=("llm_call",),
+        config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c6-78b7-607e-8000-e1c5f207051d",
+            }
+        },
+        metadata={"source": "loop", "step": 0, "parents": {}, "max_iterations": 100},
+        created_at="2025-11-27T06:43:38.310644+00:00",
+        parent_config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c6-78b1-6723-bfff-ee94697d78b7",
+            }
+        },
+        tasks=(
+            PregelTask(
+                id="f3e9ff85-175e-539c-0cf4-02e0343ecc77",
+                name="llm_call",
+                path=("__pregel_pull", "llm_call"),
+                error=None,
+                interrupts=(),
+                state=None,
+                result={
+                    "messages": [
+                        AIMessage(
+                            content="Hello! I'm your network automation assistant. I can help you with various network tasks including:\n\n- Checking network device status (interfaces, routing, OSPF, etc.)\n- Configuring network devices\n- Managing GNS3 topology\n- Performing network diagnostics and troubleshooting\n\nWhat would you like me to help you with today? For example, I can:\n- Show you the current network topology\n- Check device configurations and status\n- Configure interfaces or routing protocols\n- Troubleshoot connectivity issues\n\nPlease let me know what specific task you'd like to accomplish!",
+                            additional_kwargs={},
+                            response_metadata={
+                                "finish_reason": "stop",
+                                "model_name": "deepseek-chat",
+                                "system_fingerprint": "fp_ffc7281d48_prod0820_fp8_kvcache",
+                                "model_provider": "deepseek",
+                            },
+                            id="lc_run--572381b2-d406-416b-a8f6-73a7be42ad2f",
+                            usage_metadata={
+                                "input_tokens": 3293,
+                                "output_tokens": 114,
+                                "total_tokens": 3407,
+                                "input_token_details": {"cache_read": 3264},
+                                "output_token_details": {},
+                            },
+                        )
+                    ],
+                    "llm_calls": 1,
+                },
+            ),
+        ),
+        interrupts=(),
+    ),
+    StateSnapshot(
+        values={"messages": []},
+        next=("__start__",),
+        config={
+            "configurable": {
+                "thread_id": "09d4a8ca-a94a-4c44-afa2-f0f10c0e4110",
+                "checkpoint_ns": "",
+                "checkpoint_id": "1f0cb5c6-78b1-6723-bfff-ee94697d78b7",
+            }
+        },
+        metadata={"source": "input", "step": -1, "parents": {}, "max_iterations": 100},
+        created_at="2025-11-27T06:43:38.308363+00:00",
+        parent_config=None,
+        tasks=(
+            PregelTask(
+                id="dac4ee2b-7a5a-d7a1-3393-f46cea0e778f",
+                name="__start__",
+                path=("__pregel_pull", "__start__"),
+                error=None,
+                interrupts=(),
+                state=None,
+                result={
+                    "messages": [
+                        HumanMessage(
+                            content="hello", additional_kwargs={}, response_metadata={}
+                        )
+                    ]
+                },
+            ),
+        ),
+        interrupts=(),
+    ),
+]

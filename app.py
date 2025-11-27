@@ -16,13 +16,52 @@ if "thread_id" not in st.session_state:
     st.session_state["thread_id"] = str(uuid.uuid4())
 
 current_thread_id = st.session_state["thread_id"]
-
 # Unique thread ID for each session
 config = {"configurable": {"thread_id": current_thread_id, "max_iterations": 100}}
 
 # streamlit UI
 st.set_page_config(page_title="GNS3 Copilot", layout="wide")
 st.title("GNS3 Copilot")
+
+# StateSnapshot state exapmle test/langgraph_checkpoint.json file
+# Display previous messages from state history
+if st.session_state.get("state_history") is not None:
+    # StateSnapshot values dictionary
+    values_dict = st.session_state["state_history"].values
+    # StateSnapshot values messages list
+    for message_list in values_dict.get("messages", []):
+        # Handle different message types
+        if isinstance(message_list, HumanMessage):
+            with st.chat_message("user"):
+                st.markdown(message_list.content)
+        # Handle AIMessage with tool_calls        
+        elif isinstance(message_list, AIMessage):
+            with st.chat_message("assistant"):
+                # AIMessage content
+                if isinstance(message_list.content, list) and message_list.content and 'text' in message_list.content[0]:
+                    st.markdown(message_list.content[0]['text'])
+                elif isinstance(message_list.content, str):
+                    st.markdown(message_list.content)
+                # AIMessage tool_calls
+                if isinstance(message_list.tool_calls, list) and message_list.tool_calls:
+                    for tool in message_list.tool_calls:
+                        tool_id = tool.get('id', 'UNKNOWN_ID')
+                        tool_name = tool.get('name', 'UNKNOWN_TOOL')
+                        tool_args = tool.get('args', {})
+                        # Display tool call details
+                        with st.expander(f"**Tool Call:** {tool_name} `call_id: {tool_id}`", expanded=False):
+                            st.json({
+                                "name": tool_name,
+                                "id": tool_id,
+                                "args": tool_args,
+                                "type": "tool_call"
+                            }, expanded=True)
+        # Handle ToolMessage                    
+        elif isinstance(message_list, ToolMessage):
+            with st.chat_message("assistant"):
+                content_pretty = format_tool_response(message_list.content)
+                with st.expander(f"**Tool Response** `call_id: {message_list.tool_call_id}`", expanded=False):
+                    st.json(json.loads(content_pretty), expanded=2)
 
 # siderbar info
 with st.sidebar:
@@ -154,3 +193,16 @@ if prompt := st.chat_input("What is up?"):
                     
                     active_text_placeholder = st.empty()
                     current_text_chunk = ""
+
+    # After the interaction, update the session state with the latest StateSnapshot
+    state_history = agent.get_state(config)
+
+    # Avoid updating if state_history is empty
+    if not state_history[0]:
+        pass
+    else:
+        # Update session state
+        st.session_state["state_history"] = state_history
+        #print(state_history)
+        #with open('state_history.txt', "a", encoding='utf-8') as f:
+        #    f.write(f"{state_history}\n\n")
