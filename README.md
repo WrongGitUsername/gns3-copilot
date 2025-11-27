@@ -14,6 +14,10 @@ GNS3 Copilot is a powerful network automation tool that integrates multiple AI m
 - 🔍 **Network Diagnostics**: Intelligent network troubleshooting and performance monitoring
 - 🌐 **LLM Support**: Integrated DeepSeek AI model for natural language processing
 
+### example
+
+![demo](demo.gif)
+
 ## Technical Architecture
 
 ### Core Components
