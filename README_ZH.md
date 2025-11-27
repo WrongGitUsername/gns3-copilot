@@ -14,9 +14,9 @@ GNS3 Copilot 是一个强大的网络自动化工具，集成了多种AI模型�
 - 🔍 **网络诊断**: 智能网络故障排查和性能监控
 - 🌐 **LLM支持**: 集成DeepSeek AI模型进行自然语言处理
 
-### 演示
 
-![demo](demo.gif)
+<img src="assets/demo.gif" alt="GNS3 Copilot 功能演示" width="600"/>
+
 
 ## 技术架构
 
