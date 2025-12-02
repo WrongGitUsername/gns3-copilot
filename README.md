@@ -80,6 +80,7 @@ Edit the `.env` file and configure your settings:
 ```env
 # API Keys for LLM providers
 DEEPSEEK_API_KEY="your_deepseek_api_key_here"
+GOOGLE_API_KEY ="your_google_api_key_here"
 
 # GNS3 Server Configuration
 GNS3_SERVER_HOST="127.0.0.1"
