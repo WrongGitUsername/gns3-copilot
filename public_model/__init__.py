@@ -14,13 +14,6 @@ Author: GNS3 Copilot Team
 # Import main utility functions
 from .get_gns3_device_port import get_device_ports_from_topology
 from .parse_tool_content import parse_tool_content, format_tool_response
-from .db_manager import (
-    get_all_threads,
-    create_new_thread,
-    update_thread_name,
-    delete_thread,
-    get_metadata_connection,
-) 
 
 # Dynamic version management
 try:
@@ -43,9 +36,4 @@ __all__ = [
     "get_device_ports_from_topology",
     "parse_tool_content",
     "format_tool_response",
-    "get_all_threads",
-    "create_new_thread",
-    "update_thread_name",
-    "delete_thread",
-    "get_metadata_connection",
 ]

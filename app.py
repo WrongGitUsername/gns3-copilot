@@ -29,7 +29,7 @@ import json
 import uuid
 import streamlit as st
 from langchain.messages import ToolMessage, HumanMessage, AIMessage
-from agent import agent
+from agent import agent, langgraph_checkpointer
 from log_config import setup_logger
 from public_model import (
     format_tool_response,
@@ -71,7 +71,6 @@ if st.session_state.get("state_history") is not None:
             with st.chat_message("user"):
                 st.markdown(message_object.content)
 
-#       with st.chat_message("assistant"):
         elif isinstance(message_object, (AIMessage, ToolMessage)):
             # Open a new assistant chat message block if none is open
             if current_assistant_block is None:
@@ -124,9 +123,16 @@ if st.session_state.get("state_history") is not None:
     if current_assistant_block is not None:
         current_assistant_block.__exit__(None, None, None)
 
-
 # siderbar info
 with st.sidebar:
+    st.selectbox(
+        "Current Session", 
+        options=[
+            (langgraph_checkpointer.get(config) or {}).get(
+                    "channel_values", {}).get(
+                        "conversation_title", "New Session")
+            ]
+    )
     st.title("_GNS3 Copilot_ :sunglasses:")
     st.title("About")
     st.markdown(
@@ -166,7 +172,9 @@ if prompt := st.chat_input("What is up?"):
 
         # Stream the agent response
         for chunk in agent.stream(
-            {"messages": [HumanMessage(content=prompt)]},
+            {
+                "messages": [HumanMessage(content=prompt)],
+             },
             config=config,
             stream_mode="messages"
             ):
@@ -258,7 +266,7 @@ if prompt := st.chat_input("What is up?"):
                             expanded=False
                         ):
                             # Use the final complete structure
-                            st.json(display_tool_call, expanded=True)
+                            st.json(display_tool_call, expanded=False)
 
                 elif isinstance(msg, ToolMessage):
                     # Clear state after completion, ready to receive next tool call
@@ -270,7 +278,7 @@ if prompt := st.chat_input("What is up?"):
                         f"**Tool Response** `call_id: {msg.tool_call_id}`",
                         expanded=False
                     ):
-                        st.json(json.loads(content_pretty), expanded=2)
+                        st.json(json.loads(content_pretty), expanded=False)
 
                     active_text_placeholder = st.empty()
                     current_text_chunk = ""

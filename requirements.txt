@@ -1,6 +1,6 @@
 # GNS3 Copilot Dependencies
 # Core AI and Automation Framework
-langchain>=1.0.7
+langchain>=1.1.0
 langchain-deepseek>=1.0.1
 langchain-core>=1.0.5
 langchain-google-genai>=1.0.0
@@ -23,7 +23,7 @@ requests>=2.32.5
 urllib3>=2.5.0
 
 # Data Validation
-pydantic>=2.12.4
+pydantic>=2.5.0
 
 # Authentication
 PyJWT>=2.10.1
@@ -38,7 +38,7 @@ typing-extensions>=4.0.0
 telnetlib3>=2.0.8
 
 # Web UI
-streamlit>=1.28.0
+streamlit>=1.32.0
 
 # Additional dependencies found in codebase
 # Note: gns3fy is not needed as we use custom gns3_client package
@@ -47,3 +47,4 @@ streamlit>=1.28.0
 # Note: math, time, pprint are built-in modules
 # Note: log_config is a local package
 # Note: public_model is a local package
+# Note: importlib.metadata and pkg_resources are built-in/setuptools dependencies

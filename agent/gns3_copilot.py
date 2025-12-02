@@ -34,6 +34,7 @@ from tools_v2 import VPCSMultiCommands
 from tools_v2 import LinuxTelnetBatchTool
 from log_config import setup_logger
 from prompts.react_prompt import SYSTEM_PROMPT
+from prompts.title_prompt import TITLE_PROMPT
 
 load_dotenv()
 
@@ -47,9 +48,10 @@ base_model = init_chat_model(
 
 assist_model = init_chat_model(
     model="google_genai:gemini-2.5-flash",
-    temperature=0
+    temperature=0.7
 )
 
+title_model = base_model
 # Define the available tools for the agent
 tools = [
     GNS3TemplateTool(),                # Get GNS3 node templates
@@ -74,7 +76,8 @@ logger.debug("Available tools: %s", [tool.__class__.__name__ for tool in tools])
 class MessagesState(TypedDict):
     messages: Annotated[list[AnyMessage], operator.add]
     llm_calls: int
-
+    conversation_title: str | None # Optional conversation title
+    
 # Define model node
 def llm_call(state: dict):
     """LLM decides whether to call a tool or not"""
@@ -92,6 +95,53 @@ def llm_call(state: dict):
         ],
         "llm_calls": state.get('llm_calls', 0) + 1
     }
+    
+# Define generate title node
+def generate_title(state: MessagesState) -> dict:
+    """
+    Generate a conversation title using a lightweight assistant LLM (title_model).
+    This node is only executed when no title has been set yet (first round only).
+    """
+    
+    # Only generate a title if it hasn't been set yet
+    if state.get("conversation_title") in [None, "New Session"]:
+        messages = state["messages"]
+        
+        # Build the prompt for title generation
+        title_prompt_messages = [
+            SystemMessage(content=TITLE_PROMPT),
+            messages[0],       # User's first message
+            messages[-1]       # Assistant's final response in this turn
+        ]
+        logger.debug(f"summary_messages for title generation: {title_prompt_messages}")
+        
+        # Call the title generation model (currently using the same base_model / DeepSeek)
+        try:
+            response = assist_model.invoke(title_prompt_messages)
+            raw_content = response.content
+            logger.debug(f"Raw title output from model: 【{raw_content}】")
+            
+            new_title = raw_content.strip()
+            
+            # Safety: truncate long titles and avoid line breaks
+            if len(new_title) > 40:  # Increased limit for better Chinese support
+                new_title = new_title[:38] + "..."
+            
+            # Remove unwanted characters
+            new_title = new_title.replace("\n", " ").replace('"', '').replace("'", "")
+            
+            if not new_title:
+                new_title = "GNS3 Session"
+
+            logger.info(f"Generated new title: {new_title}")
+            return {"conversation_title": new_title}
+            
+        except Exception as e:
+            logger.error(f"Title generation failed: {e}")
+            return {"conversation_title": "Untitled Session"}
+    
+    # Title already exists → no update needed
+    return {}
 
 # Define tool node
 def tool_node(state: dict):
@@ -104,18 +154,31 @@ def tool_node(state: dict):
         result.append(ToolMessage(content=observation, tool_call_id=tool_call["id"]))
     return {"messages": result}
 
-# Define end logic
-def should_continue(state: MessagesState) -> Literal["tool_node", END]:
-    """Decide if we should continue the loop or stop based upon whether the LLM made a tool call"""
+# Routing logic after the LLM node
+def should_continue(state: MessagesState) -> Literal["tool_node", "title_generator_node", END]:
+    """
+    Determine the next step after the LLM has produced a response.
+    
+    - If the LLM requested any tool calls → route to tool_node
+    - If this is the first complete turn (llm_calls == 1) and no title exists → generate a title
+    - Otherwise → conversation is complete, go to END
+    """
+    last_message = state["messages"][-1]
+    llm_calls = state.get("llm_calls", 0)
+    current_title = state.get("conversation_title")
 
-    messages = state["messages"]
-    last_message = messages[-1]
-
-    # If the LLM makes a tool call, then perform an action
+    # Case 1: LLM requested one or more tool executions
     if last_message.tool_calls:
+        logger.debug(f"LLM requested {len(last_message.tool_calls)} tool call(s) → routing to 'tool_node'")
         return "tool_node"
-
-    # Otherwise, we stop (reply to the user)
+    
+    # Case 2: First full interaction completed and title not yet generated
+    if llm_calls == 1 and current_title in [None, "New Session"]:
+        logger.info("First turn finished, no title yet → routing to 'title_generator_node'")
+        return "title_generator_node"
+    
+    # Case 3: Normal completion (multi-turn conversation or title already exists)
+    logger.debug(f"Conversation turn complete (llm_calls={llm_calls}) → routing to END")
     return END
 
 # Build and compile the agent
@@ -124,6 +187,7 @@ agent_builder = StateGraph(MessagesState)
 
 # Add nodes
 agent_builder.add_node("llm_call", llm_call)
+agent_builder.add_node("title_generator_node", generate_title)
 agent_builder.add_node("tool_node", tool_node)
 
 # Add edges to connect nodes
@@ -131,43 +195,43 @@ agent_builder.add_edge(START, "llm_call")
 agent_builder.add_conditional_edges(
     "llm_call",
     should_continue,
-    ["tool_node", END]
+    {
+        "tool_node": "tool_node",
+        "title_generator_node": "title_generator_node",
+        END: END
+    }
 )
+
 agent_builder.add_edge("tool_node", "llm_call")
+agent_builder.add_edge("title_generator_node", END)
 
 # Add checkpointing
 LANGGRAPH_DB_PATH = "gns3_langgraph.db"
 
-@st.cache_resource
-def get_langgraph_checkpointer():
+@st.cache_resource(show_spinner="Initializing conversation persistence...")
+def get_checkpointer() -> SqliteSaver:
     """
-    Caches the LangGraph Checkpointer instance (SqliteSaver).
-    This resource manages the persistent storage for the agent's state.
-    """
-    # Use your specific database path
-    # NOTE: check_same_thread=False is crucial for SQLite used in multi-threaded environments like Streamlit.
-    conn = sqlite3.connect(LANGGRAPH_DB_PATH, check_same_thread=False)
+    Create and cache a single SqliteSaver instance for the entire app lifetime.
     
-    # Initialize the SqliteSaver checkpointer
-    # If SqliteSaver is not available, you might need to manually handle the database setup.
-    checkpointer = SqliteSaver(conn=conn)
-    return checkpointer
+    Important notes:
+    - `check_same_thread=False` is required because Streamlit runs in a multi-threaded environment.
+    - The returned checkpointer is automatically shared across all user sessions.
+    """
+    conn = sqlite3.connect(LANGGRAPH_DB_PATH, check_same_thread=False)
+    # SqliteSaver will create the necessary tables on first use
+    return SqliteSaver(conn)
 
 # Compile the agent
-@st.cache_resource
-def get_agent(_agent_builder, _checkpointer):
+@st.cache_resource(show_spinner="Compiling LangGraph agent...")
+def get_agent():
     """
-    Caches the compiled LangGraph Agent instance.
-    The agent's lifecycle is tied to the cached checkpointer resource.
+    Compile and cache the LangGraph agent.
+    
+    The agent builder (`agent_builder`) and checkpointer are defined earlier in the file.
+    By not passing them as parameters we avoid Streamlit cache invalidation issues
+    when the objects are recreated (even if they are logically identical).
     """
-    # Compile the Agent, passing in the cached checkpointer
-    agent = _agent_builder.compile(checkpointer=_checkpointer)
-    return agent
+    return agent_builder.compile(checkpointer=get_checkpointer())
 
-# Retrieve the cached checkpointer instance
-langgraph_checkpointer = get_langgraph_checkpointer()
-# Retrieve the cached agent instance
-agent = get_agent(
-    _agent_builder = agent_builder, # Assuming 'agent_builder' is defined
-    _checkpointer=langgraph_checkpointer
-    )
+langgraph_checkpointer = get_checkpointer()   # Cached SqliteSaver instance
+agent = get_agent()                 # Cached compiled LangGraph agent (with persistence)
