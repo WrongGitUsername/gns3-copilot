@@ -24,14 +24,16 @@ from langchain.chat_models import init_chat_model
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.sqlite import SqliteSaver
 from gns3_client import GNS3TopologyTool
-from tools_v2 import GNS3TemplateTool
-from tools_v2 import GNS3CreateNodeTool
-from tools_v2 import GNS3LinkTool
-from tools_v2 import GNS3StartNodeTool
-from tools_v2 import ExecuteMultipleDeviceConfigCommands
-from tools_v2 import ExecuteMultipleDeviceCommands
-from tools_v2 import VPCSMultiCommands
-from tools_v2 import LinuxTelnetBatchTool
+from tools_v2 import (
+    GNS3TemplateTool,
+    GNS3CreateNodeTool,
+    GNS3LinkTool,
+    GNS3StartNodeTool,
+    ExecuteMultipleDeviceCommands,
+    ExecuteMultipleDeviceConfigCommands,
+    VPCSMultiCommands,
+    LinuxTelnetBatchTool
+    )
 from log_config import setup_logger
 from prompts.react_prompt import SYSTEM_PROMPT
 from prompts.title_prompt import TITLE_PROMPT
@@ -46,12 +48,16 @@ base_model = init_chat_model(
     temperature=0
 )
 
-assist_model = init_chat_model(
-    model="google_genai:gemini-2.5-flash",
-    temperature=0.7
+title_mode = init_chat_model(
+    model="deepseek-chat",
+    temperature=1
 )
 
-title_model = base_model
+assist_model = init_chat_model(
+    model="google_genai:gemini-2.5-flash",
+    temperature=1
+)
+
 # Define the available tools for the agent
 tools = [
     GNS3TemplateTool(),                # Get GNS3 node templates
@@ -117,7 +123,8 @@ def generate_title(state: MessagesState) -> dict:
         
         # Call the title generation model (currently using the same base_model / DeepSeek)
         try:
-            response = assist_model.invoke(title_prompt_messages)
+            response = title_mode.invoke(title_prompt_messages)
+            logger.debug(f"generate_title: {response}")
             raw_content = response.content
             logger.debug(f"Raw title output from model: 【{raw_content}】")
             

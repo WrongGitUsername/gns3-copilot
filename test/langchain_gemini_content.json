@@ -1,0 +1,28 @@
+content=[
+    {
+        'type': 'text',
+        'text': 'I can help with that, but I need the IP address of R-6. Could you please provide it?', 
+        'extras': {
+            'signature': 'CiQB0e2Kb3+D6WbLATWvJ6GZxjIm8FNsBS3oih2Bbu5qZLVmBAoKVAHR7YpvFLcBoM6ZKdIJYU3cisbGNv4/G/42n877JHqK0H/gugExbRIC4YgXoDpFXcs554JgHaHj5GUetSGsHemrPMe5oBluRjeicP7sUI0AO35MYQrzAQHR7YpvGfWMgCx94wxhl4q4pjk/Dt8MftUX+Vf80qsnv3otTZKrKlKg5nibBzpJNawEUm0O0frEEOrWyqC3okkAFRrnjWTJWVB99tdJIalfBf/rNPiukGGaaJqEnOq+vdrTYdWanD37M92L/4ThK69XjrxEuRifBmEK/8G/ACRv52zZHKTv6LNq848CNP57CZ8A67wDzgb/JSBrEESg5O3G2NR8L7qIVcCt5pZY50gA67tQ1jJ+U9ArMVPvW3dEHv/2ZshvaY+x4xPqH0cgV/BBq6UpuBCB0OGwCNVCS7yiWjFJc81dpK2IIU7ek6T6rLNG2wrgAQHR7YpvHi+EifO0hDrbYAO0yYTcVm8En/ok7veC8TPQHWPRUdvZ96emKgS8iyl14oXYPgUQ28Zpv/KJUqIvLxkla75AsGy/APgIIidw5/plSwtVDzjc1r+3ClZpqMsZ5dDslvP2KP8bPT+ctscsCLvbMthMYOMMks7GAmtNY0tiT5KRujykTLGUirNIt7O1tka71XK+9pIwtO/CAHmkUXBHO+C/98nqwmK55Jgvd2hdZk5sKXzBOKO6v/LQdmIAnT8VYaNI6qbqo4f1yaZnKjWxVID6pco7WeqYEXol06TuCl4B0e2KbyfuMNiPJOyDbPRX10+P1dMhXA/6Vcp91D7F9TATfiK3sWokarr6qF21yR0SsvzWGl1VpbVT6xQCY0essuOOOSYYnAE1cpBOZ96JPW4f/GYqyb86r4hj3QVB'
+        }
+    }
+] 
+additional_kwargs={} 
+response_metadata={
+    'finish_reason': 'STOP', 
+    'model_name': 'gemini-2.5-flash', 
+    'safety_ratings': [], 
+    'model_provider': 'google_genai'
+} 
+id='lc_run--2163c63a-9adc-4cf9-8663-db5bd1abc428' 
+usage_metadata={
+    'input_tokens': 2768, 
+    'output_tokens': 159, 
+    'total_tokens': 2927, 
+    'input_token_details': {
+        'cache_read': 0
+    },
+    'output_token_details': {
+        'reasoning': 136
+    }
+}

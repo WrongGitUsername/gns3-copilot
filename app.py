@@ -29,7 +29,7 @@ import json
 import uuid
 import streamlit as st
 from langchain.messages import ToolMessage, HumanMessage, AIMessage
-from agent import agent, langgraph_checkpointer
+from agent import agent
 from log_config import setup_logger
 from public_model import (
     format_tool_response,
@@ -125,14 +125,6 @@ if st.session_state.get("state_history") is not None:
 
 # siderbar info
 with st.sidebar:
-    st.selectbox(
-        "Current Session", 
-        options=[
-            (langgraph_checkpointer.get(config) or {}).get(
-                    "channel_values", {}).get(
-                        "conversation_title", "New Session")
-            ]
-    )
     st.title("_GNS3 Copilot_ :sunglasses:")
     st.title("About")
     st.markdown(
