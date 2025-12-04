@@ -13,6 +13,7 @@ The assistant provides comprehensive GNS3 topology management capabilities inclu
 The assistant integrates with various tools to provide a complete network automation
 solution for GNS3 environments.
 """
+import os
 import sqlite3
 import operator
 import streamlit as st
@@ -48,15 +49,26 @@ base_model = init_chat_model(
     temperature=0
 )
 
+# use OpenRouter
+#base_model = init_chat_model(
+#    model_provider="openai",
+#    base_url = "https://openrouter.ai/api/v1",
+#    temperature = 0,
+#    api_key = os.getenv("OPENROUTER_API_KEY"),
+    #model="openai/gpt-4o-mini",
+    #model="google/gemini-2.5-flash", # It ignores the observations after the tool is executed.
+#    model="x-ai/grok-4-fast",
+#)
+
 title_mode = init_chat_model(
     model="deepseek-chat",
     temperature=1
 )
 
-assist_model = init_chat_model(
-    model="google_genai:gemini-2.5-flash",
-    temperature=1
-)
+#assist_model = init_chat_model(
+#    model="google_genai:gemini-2.5-flash",
+#    temperature=1
+#)
 
 # Define the available tools for the agent
 tools = [

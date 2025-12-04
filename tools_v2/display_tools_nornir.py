@@ -5,7 +5,7 @@ in a GNS3 topology using Nornir.
 import json
 import os
 from dotenv import load_dotenv
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 from nornir import InitNornir
 from nornir.core.task import Task, Result
 from nornir_netmiko.tasks import netmiko_multiline
@@ -159,7 +159,8 @@ class ExecuteMultipleDeviceCommands(BaseTool):
             _result = task.run(
                 task=netmiko_multiline,
                 commands=config_commands,
-                enable=True
+                enable=True,
+                read_timeout=60,
             )
             return Result(host=task.host, result=_result.result)
 
@@ -170,7 +171,8 @@ class ExecuteMultipleDeviceCommands(BaseTool):
                 _result = task.run(
                     task=netmiko_multiline,
                     commands=config_commands,
-                    enable=True
+                    enable=True,
+                    read_timeout=60,
                 )
                 return Result(host=task.host, result=_result.result)
 
@@ -181,16 +183,47 @@ class ExecuteMultipleDeviceCommands(BaseTool):
                 failed=True
             )
 
-    def _validate_tool_input(self, tool_input):
-        """Validate and parse the JSON input for device display commands."""
-        try:
-            device_configs_list = json.loads(tool_input)
-            if not isinstance(device_configs_list, list):
-                return [{"error": "Input must be a JSON array of device display objects"}]
-        except json.JSONDecodeError as e:
-            logger.error("Invalid JSON input: %s", e)
-            return [{"error": f"Invalid JSON input: {e}"}]
+    def _validate_tool_input(self, tool_input: Union[str, bytes, List, Dict]):
+        """
+        Validate device display command input, handling both JSON string 
+        and already parsed Python object inputs from different LLM providers.
+        
+        Args:
+            tool_input: The input received from the LangChain/LangGraph tool call.
+        """
+        
+        device_configs_list = None
+        
+        # Compatibility Check and Parsing ---
+        # Check if the input is a string (or bytes) which needs to be parsed.
+        if isinstance(tool_input, (str, bytes, bytearray)):
+            # Handle models (like potentially DeepSeek) that return a raw JSON string.
+            try:
+                device_configs_list = json.loads(tool_input)
+                logger.info("Successfully parsed tool input from JSON string.")
+            except json.JSONDecodeError as e:
+                logger.error("Invalid JSON string received as tool input: %s", e)
+                return [{"error": f"Invalid JSON string input from model: {e}"}]
+        else:
+            # Handle standard models (like GPT/OpenAI) where the framework 
+            # has already parsed the JSON into a Python object (dict or list).
+            device_configs_list = tool_input
+            logger.info(f"Using tool input directly as type: {type(tool_input).__name__}")
 
+        # Core Business Logic Validation ---        
+        # Check if the final object is the expected Python list type.
+        if not isinstance(device_configs_list, list):
+            # If the result of parsing/direct use is not a list, raise an error.
+            error_msg = f"Tool input must result in a JSON array/Python list, but got {type(device_configs_list).__name__}"
+            logger.error(error_msg)
+            return [{"error": error_msg}]
+
+        # Further validation (e.g., ensuring the list is not empty)
+        if not device_configs_list:
+            logger.warning("Tool input list is empty.")
+            # Decide whether to return an error based on business requirements
+            return [] 
+            
         return device_configs_list
 
     def _configs_map(self, device_config_list):
