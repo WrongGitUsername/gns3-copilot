@@ -48,12 +48,15 @@ def list_thread_ids(langgraph_checkpointer):
         return []
 
 def new_session():
+    new_tid = str(uuid.uuid4())
+    # real new thread id
+    st.session_state["thread_id"] = new_tid
     # Clear your own state
     st.session_state["current_thread_id"] = None
     st.session_state["state_history"] = None
     # Reset the dropdown menu to the first option ("(Please select session)", None)
     st.session_state["session_select"] = session_options[0]
-
+    logger.debug(f"New Session created with thread_id={new_tid}")
 
 # Initialize session state for thread ID
 if "thread_id" not in st.session_state:
@@ -80,7 +83,12 @@ with st.sidebar:
             ckpt.get("channel_values", {}).get("conversation_title")
             if ckpt else None
         ) or "New Session"
-        session_options.append((title, tid))
+        # 相同的title name导致了ui界面上选择会话出现的总是选中同一个thread id的问题。
+        # 使用thread_id的部分内容来避免相同的title name
+        unique_title = f"{title} ({tid[:6]})"
+        session_options.append((unique_title, tid))
+        
+    logger.debug(f"session_options : {session_options}")
                 
     selected = st.selectbox(
         "Session History", 
@@ -88,8 +96,11 @@ with st.sidebar:
         format_func=lambda x: x[0],   # view conversation_title
         key="session_select",          # new key for state management
     )
+
     title, selected_thread_id = selected
-    
+
+    logger.debug(f"selectbox selected : {title}, {selected_thread_id}")
+
     st.markdown(f"Current Session: `{title} thread_id: {selected_thread_id}`")
     
     col1, col2 = st.columns(2)
@@ -99,7 +110,6 @@ with st.sidebar:
             on_click=new_session,
             help="Create a new session"
             )
-
     with col2:
         # Only allow deletion if the user has selected a valid thread_id
         if selected_thread_id and st.button(
