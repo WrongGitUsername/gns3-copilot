@@ -48,7 +48,7 @@ GNS3 Copilot 是一个强大的网络自动化工具，集成了多种AI模型�
 ### 环境要求
 
 - Python 3.8+
-- GNS3 Server (运行在 http://localhost:3080)
+- GNS3 Server (运行在 http://localhost:3080或远程主机)
 - 支持的操作系统: Windows, macOS, Linux
 
 ### 安装步骤
@@ -73,37 +73,12 @@ pip install -r requirements.txt
 pip install .
 ```
 
-4. **配置环境变量**
-复制环境变量模板并配置您的设置：
-```bash
-cp env.example .env
-```
-
-编辑 `.env` 文件并配置您的设置：
-```env
-# API Keys for LLM providers
-DEEPSEEK_API_KEY="your_deepseek_api_key_here"
-GOOGLE_API_KEY ="your_google_api_key_here"
-
-# GNS3 Server Configuration
-GNS3_SERVER_HOST="127.0.0.1"
-GNS3_SERVER_URL="http://127.0.0.1:3080"
-GNS3_SERVER_USERNAME=""
-GNS3_SERVER_PASSWORD=""
-
-# API Version
-API_VERSION="2"
-```
-
-5. **启动GNS3 Server**
-确保GNS3 Server运行在默认地址 `http://localhost:3080`
+1. **启动GNS3 Server**
+确保GNS3 Server运行并可以通过网络访问其API接口：`http://x.x.x.x:3080`
 
 ## 使用指南
 
-### 启动方式
-
-
-#### 方式2: Streamlit Web UI
+### 启动
 
 ```bash
 # 启动Streamlit Web界面
@@ -112,44 +87,16 @@ streamlit run app.py
 # Web界面将在 http://localhost:8501 打开
 # 提供直观的图形界面与AI代理交互
 ```
+### 在设置页面进行配置
 
+**使用First-Party Providers配置**
 
-## 配置说明
+![First-Party Providers](Config_First-Party.jpeg)
 
-### GNS3 Server配置
+**使用Third-Party Aggregators配置**
 
-确保GNS3 Server正确配置：
-- 默认端口: 3080
-- 启用HTTP API
-- 配置适当的模拟器镜像
-- GNS3 SERVER API v3（JWT认证）API(测试中)
+![Third-Party Aggregators](Config_Third-Party Aggregator.jpeg)
 
-### 日志配置
-
-项目使用统一的日志系统，日志文件保存在 `log/` 目录：
-- `gns3_copilot.log`: 主应用日志
-- `display_tools_nornir.log`: 查看类命令工具日志
-- `config_tools_nornir.log`: 配置类命令工具日志
-
-### AI模型配置
-
-支持多种AI模型，在 `agent/gns3_copilot.py` 中配置：
-
-```python
-# 主要模型 (DeepSeek)
-base_model = init_chat_model(
-    model="deepseek-chat",
-    temperature=0
-)
-
-# 辅助模型 (Google Gemini)
-assist_model = init_chat_model(
-    model="google_genai:gemini-2.5-flash",
-    temperature=0
-)
-```
-
-**说明**: 系统使用DeepSeek作为主要LLM进行自然语言处理，Google Gemini作为辅助模型提供增强功能。
 
 ## 安全注意事项
 

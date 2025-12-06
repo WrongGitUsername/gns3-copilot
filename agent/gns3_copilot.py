@@ -45,10 +45,13 @@ load_dotenv()
 logger = setup_logger("gns3_copilot", log_file="log/gns3_copilot.log")
 
 base_model = init_chat_model(
-    "deepseek:deepseek-chat",
+    model_provider=os.getenv("MODE_PROVIDER"),
+    model=os.getenv("MODEL_NAME"),
+    api_key = os.getenv("MODEL_API_KEY"),
+    base_url = os.getenv("BASE_URL", ""),
+    temperature=os.getenv("TEMPERATURE", "0"),
     configurable_fields="any",
     config_prefix="foo",
-    temperature=0
 )
 
 title_mode = base_model

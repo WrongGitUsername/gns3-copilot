@@ -185,3 +185,4 @@ log/*
 *.db-wal
 *.sqlite
 test/session_metadata.sqlite
+.env.bak

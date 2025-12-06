@@ -6,7 +6,7 @@ An AI-powered network automation assistant designed specifically for GNS3 networ
 
 GNS3 Copilot is a powerful network automation tool that integrates multiple AI models and network automation frameworks. It can interact with users through natural language and perform tasks such as network device configuration, topology management, and fault diagnosis.
 
-<img src="demo.gif" alt="GNS3 Copilot Function demonstration" width="1280"/>
+<img src="assets/demo.gif" alt="GNS3 Copilot Function demonstration" width="1280"/>
 
 ### Core Features
 
@@ -39,14 +39,14 @@ GNS3 Copilot is a powerful network automation tool that integrates multiple AI m
 | `ExecuteMultipleDeviceCommands` | Execute display commands |
 | `ExecuteMultipleDeviceConfigCommands` | Execute configuration commands |
 | `VPCSMultiCommands` | Execute VPCS commands on multiple devices |
-| `LinuxTelnetBatchTool` |  Batch execute commands on multiple Linux devices |
+| `LinuxTelnetBatchTool` | Execute linux commands on multiple devices |
 
 ## Installation Guide
 
 ### Environment Requirements
 
 - Python 3.8+
-- GNS3 Server (running on http://localhost:3080)
+- GNS3 Server (running on http://localhost:3080 or remote host)
 - Supported operating systems: Windows, macOS, Linux
 
 ### Installation Steps
@@ -71,36 +71,12 @@ pip install -r requirements.txt
 pip install .
 ```
 
-4. **Configure environment variables**
-Copy the environment variable template and configure your settings:
-```bash
-cp env.example .env
-```
-
-Edit the `.env` file and configure your settings:
-```env
-# API Keys for LLM providers
-DEEPSEEK_API_KEY="your_deepseek_api_key_here"
-GOOGLE_API_KEY ="your_google_api_key_here"
-
-# GNS3 Server Configuration
-GNS3_SERVER_HOST="127.0.0.1"
-GNS3_SERVER_URL="http://127.0.0.1:3080"
-GNS3_SERVER_USERNAME=""
-GNS3_SERVER_PASSWORD=""
-
-# API Version
-API_VERSION="2"
-```
-
-5. **Start GNS3 Server**
-Ensure GNS3 Server is running at the default address `http://localhost:3080`
+1. **Start GNS3 Server**
+Ensure GNS3 Server is running and can be accessed via its API interface: `http://x.x.x.x:3080`
 
 ## Usage Guide
 
-### Startup Methods
-
-#### Streamlit Web UI
+### Startup
 
 ```bash
 # Start Streamlit web interface
@@ -110,42 +86,15 @@ streamlit run app.py
 # Provides an intuitive graphical interface for interacting with the AI agent
 ```
 
-## Configuration Instructions
+### Configure on Settings Page
 
-### GNS3 Server Configuration
+**Configure using First-Party Providers**
 
-Ensure GNS3 Server is properly configured:
-- Default port: 3080
-- Enable HTTP API
-- Configure appropriate simulator images
-- GNS3 SERVER API v3 (JWT authentication) API (under testing)
+![First-Party Providers](Config_First-Party.jpeg)
 
-### Log Configuration
+**Configure using Third-Party Aggregators**
 
-The project uses a unified logging system, log files are saved in the `log/` directory:
-- `gns3_copilot.log`: Main application log
-- `display_tools_nornir.log`: Display tools log
-- `config_tools_nornir.log`: Configuration tools log
-
-### AI Model Configuration
-
-Supports multiple AI models, configured in `agent/gns3_copilot.py`:
-
-```python
-# Primary model (DeepSeek)
-base_model = init_chat_model(
-    model="deepseek-chat",
-    temperature=0
-)
-
-# Assistant model (Google Gemini)
-assist_model = init_chat_model(
-    model="google_genai:gemini-2.5-flash",
-    temperature=0
-)
-```
-
-**Note**: The system uses DeepSeek as the primary LLM for natural language processing and Google Gemini as an auxiliary model for enhanced assistance.
+![Third-Party Aggregators](Config_Third-Party Aggregator.jpeg)
 
 ## Security Considerations
 

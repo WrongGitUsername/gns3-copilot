@@ -43,26 +43,52 @@ classifiers = [
 ]
 requires-python = ">=3.8"
 dependencies = [
+    # Core AI and Automation Framework
     "langchain>=1.1.0",
-    "langchain-deepseek>=1.0.1",
     "langchain-core>=1.0.5",
-    "langchain-google-genai>=1.0.0",
     "langgraph>=1.0.0",
     "langgraph-cli>=0.4.4",
     "langgraph-cli[inmem]>=0.4.4",
+    
+    # Model Providers
+    "langchain-openai>=1.0.0",
+    "langchain-anthropic>=1.0.0",
+    "langchain-google-genai>=1.0.0",
+    "langchain-aws>=1.0.0",
+    "langchain-ollama>=1.0.0",
+    "langchain-deepseek>=1.0.0",
+    "langchain-xai>=1.0.0",
+    
+    # Network Automation
     "netmiko>=4.6.0",
     "nornir>=3.5.0",
     "nornir-netmiko>=1.0.1",
     "nornir-utils>=0.2.0",
     "nornir-salt>=0.22.5",
+    
+    # Environment Management
     "python-dotenv>=1.2.1",
+    
+    # HTTP Requests (for GNS3 API)
     "requests>=2.32.5",
     "urllib3>=2.5.0",
+    
+    # Data Validation
     "pydantic>=2.5.0",
+    
+    # Authentication
     "PyJWT>=2.10.1",
+    
+    # Display and Visualization
     "IPython>=8.0.0",
+    
+    # Type Extensions
     "typing-extensions>=4.0.0",
+    
+    # Telnet Client
     "telnetlib3>=2.0.8",
+    
+    # Web UI
     "streamlit>=1.32.0",
 ]
 
@@ -82,7 +108,7 @@ Documentation = "https://github.com/yueguobin/gns3-copilot/blob/main/README.md"
 "Bug Reports" = "https://github.com/yueguobin/gns3-copilot/issues"
 
 [tool.setuptools]
-packages = ["agent", "tools_v2", "prompts", "gns3_client", "log_config", "public_model"]
+packages = ["agent", "tools_v2", "prompts", "gns3_client", "log_config", "public_model", "ui_model"]
 include-package-data = true
 
 [tool.setuptools.package-data]
@@ -91,6 +117,7 @@ include-package-data = true
 "tools_v2" = ["*.py"]
 "public_model" = ["*.py"]
 "gns3_client" = ["*.py"]
+"ui_model" = ["*.py"]
 
 [tool.black]
 line-length = 88
@@ -128,7 +155,7 @@ python_functions = [
 ]
 
 [tool.coverage.run]
-source = ["agent", "tools_v2", "prompts", "public_model", "gns3_client"]
+source = ["agent", "tools_v2", "prompts", "public_model", "gns3_client", "ui_model"]
 omit = [
     "*/tests/*",
     "*/test/*",
