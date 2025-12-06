@@ -1,10 +1,9 @@
 """
-GNS3 Copilot Agent Package
+GNS3 Copilot - AI-powered network automation assistant for GNS3.
 
-This package contains the main GNS3 Copilot agent implementation for network automation tasks.
+This package provides a command-line interface for launching the GNS3 Copilot
+Streamlit application with support for Streamlit parameter passthrough.
 """
-
-from .gns3_copilot import agent, langgraph_checkpointer
 
 # Dynamic version management
 try:
@@ -14,7 +13,7 @@ except ImportError:
     # Fallback for Python < 3.8
     try:
         import pkg_resources
-        __version__ = pkg_resources.get_distribution("gns3-copilot").version
+        __version__ = pkg_resources.get_distribution("gns3-copilot")
     except Exception:
         __version__ = "unknown"
 except Exception:
@@ -23,8 +22,3 @@ except Exception:
 __author__ = "GNS3 Copilot Team"
 __description__ = "AI-powered network automation assistant for GNS3"
 __url__ = "https://github.com/yueguobin/gns3-copilot"
-
-__all__ = [
-    "agent",
-    "langgraph_checkpointer",
-]

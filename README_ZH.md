@@ -53,6 +53,31 @@ GNS3 Copilot 是一个强大的网络自动化工具，集成了多种AI模型�
 
 ### 安装步骤
 
+#### 方法 1：从 PyPI 安装（推荐）
+
+1. **创建虚拟环境**
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
+# 或
+venv\Scripts\activate     # Windows
+```
+
+2. **安装 GNS3 Copilot**
+```bash
+pip install gns3-copilot
+```
+
+3. **启动 GNS3 Server**
+确保 GNS3 Server 运行并可以通过网络访问其 API 接口：`http://x.x.x.x:3080`
+
+4. **启动应用程序**
+```bash
+gns3-copilot
+```
+
+#### 方法 2：从源码安装（适合开发者）
+
 1. **克隆项目**
 ```bash
 git clone https://github.com/yueguobin/gns3-copilot.git
@@ -73,19 +98,73 @@ pip install -r requirements.txt
 pip install .
 ```
 
-1. **启动GNS3 Server**
-确保GNS3 Server运行并可以通过网络访问其API接口：`http://x.x.x.x:3080`
+4. **启动 GNS3 Server**
+确保 GNS3 Server 运行并可以通过网络访问其 API 接口：`http://x.x.x.x:3080`
+
+5. **启动应用程序**
+```bash
+gns3-copilot
+```
 
 ## 使用指南
 
 ### 启动
 
+#### 方法 1：使用新的命令行界面（推荐）
+
+```bash
+# 基本启动
+gns3-copilot
+
+# 指定自定义端口
+gns3-copilot --server.port 8080
+
+# 指定地址和端口
+gns3-copilot --server.address 0.0.0.0 --server.port 8080
+
+# 无头模式运行
+gns3-copilot --server.headless true
+
+# 设置日志级别
+gns3-copilot --logger.level debug
+
+# 禁用使用统计
+gns3-copilot --browser.gatherUsageStats false
+
+# 获取帮助
+gns3-copilot --help
+
+# 显示版本
+gns3-copilot --version
+```
+
+#### 方法 2：传统 Streamlit 方式
+
 ```bash
 # 启动Streamlit Web界面
 streamlit run app.py
 
-# Web界面将在 http://localhost:8501 打开
+# 使用自定义参数
+streamlit run app.py --server.port 8080 --server.headless true
+
+# Web界面将在 http://localhost:8501（或指定端口）打开
 # 提供直观的图形界面与AI代理交互
+```
+
+#### 常用 Streamlit 参数
+
+`gns3-copilot` 命令支持所有 Streamlit 参数。常用的包括：
+
+- `--server.port PORT` - 运行端口（默认：8501）
+- `--server.address ADDRESS` - 绑定地址（默认：localhost）
+- `--server.headless true/false` - 无头模式运行
+- `--logger.level LEVEL` - 日志级别（error, warning, info, debug）
+- `--browser.gatherUsageStats true/false` - 收集使用统计
+- `--theme.base light/dark` - 设置基础主题
+
+获取完整的 Streamlit 参数列表，请运行：
+```bash
+streamlit run --help
 ```
 ### 在设置页面进行配置
 

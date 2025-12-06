@@ -51,6 +51,31 @@ GNS3 Copilot is a powerful network automation tool that integrates multiple AI m
 
 ### Installation Steps
 
+#### Method 1: Install from PyPI (Recommended)
+
+1. **Create virtual environment**
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
+# or
+venv\Scripts\activate     # Windows
+```
+
+2. **Install GNS3 Copilot**
+```bash
+pip install gns3-copilot
+```
+
+3. **Start GNS3 Server**
+Ensure GNS3 Server is running and can be accessed via its API interface: `http://x.x.x.x:3080`
+
+4. **Launch the application**
+```bash
+gns3-copilot
+```
+
+#### Method 2: Install from Source (For Developers)
+
 1. **Clone the project**
 ```bash
 git clone https://github.com/yueguobin/gns3-copilot.git
@@ -71,19 +96,73 @@ pip install -r requirements.txt
 pip install .
 ```
 
-1. **Start GNS3 Server**
+4. **Start GNS3 Server**
 Ensure GNS3 Server is running and can be accessed via its API interface: `http://x.x.x.x:3080`
+
+5. **Launch the application**
+```bash
+gns3-copilot
+```
 
 ## Usage Guide
 
 ### Startup
 
+#### Method 1: Using the new command-line interface (Recommended)
+
+```bash
+# Basic startup
+gns3-copilot
+
+# Specify custom port
+gns3-copilot --server.port 8080
+
+# Specify address and port
+gns3-copilot --server.address 0.0.0.0 --server.port 8080
+
+# Run in headless mode
+gns3-copilot --server.headless true
+
+# Set log level
+gns3-copilot --logger.level debug
+
+# Disable usage statistics
+gns3-copilot --browser.gatherUsageStats false
+
+# Get help
+gns3-copilot --help
+
+# Show version
+gns3-copilot --version
+```
+
+#### Method 2: Traditional Streamlit approach
+
 ```bash
 # Start Streamlit web interface
 streamlit run app.py
 
-# Web interface will open at http://localhost:8501
+# With custom parameters
+streamlit run app.py --server.port 8080 --server.headless true
+
+# Web interface will open at http://localhost:8501 (or specified port)
 # Provides an intuitive graphical interface for interacting with the AI agent
+```
+
+#### Common Streamlit Parameters
+
+The `gns3-copilot` command supports all Streamlit parameters. Commonly used ones include:
+
+- `--server.port PORT` - Port to run on (default: 8501)
+- `--server.address ADDRESS` - Address to bind to (default: localhost)
+- `--server.headless true/false` - Run in headless mode
+- `--logger.level LEVEL` - Log level (error, warning, info, debug)
+- `--browser.gatherUsageStats true/false` - Gather usage statistics
+- `--theme.base light/dark` - Set base theme
+
+For a complete list of Streamlit options, run:
+```bash
+streamlit run --help
 ```
 
 ### Configure on Settings Page
