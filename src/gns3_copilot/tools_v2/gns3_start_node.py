@@ -4,8 +4,8 @@ import os
 from pprint import pprint
 from dotenv import load_dotenv
 from langchain.tools import BaseTool
-from gns3_client import Gns3Connector, Node
-from log_config import setup_tool_logger
+from gns3_copilot.gns3_client import Gns3Connector, Node
+from gns3_copilot.log_config import setup_tool_logger
 
 # Configure logging
 logger = setup_tool_logger("gns3_start_node")

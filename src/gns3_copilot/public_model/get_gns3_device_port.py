@@ -2,8 +2,8 @@
 Public module for getting device port information from GNS3 topology
 """
 from typing import List, Dict, Any
-from gns3_client import GNS3TopologyTool
-from log_config import setup_tool_logger
+from gns3_copilot.gns3_client import GNS3TopologyTool
+from gns3_copilot.log_config import setup_tool_logger
 
 logger = setup_tool_logger("get_gns3_device_port")
 

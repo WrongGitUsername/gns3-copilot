@@ -19,7 +19,7 @@ Author: GNS3 Copilot Team
 import json
 import ast
 from typing import Any, Dict, Union, Optional, List
-from log_config import setup_tool_logger
+from gns3_copilot.log_config import setup_tool_logger
 
 logger = setup_tool_logger("parse_tool_content")
 

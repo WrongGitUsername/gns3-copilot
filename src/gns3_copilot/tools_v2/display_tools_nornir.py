@@ -10,8 +10,8 @@ from nornir import InitNornir
 from nornir.core.task import Task, Result
 from nornir_netmiko.tasks import netmiko_multiline
 from langchain.tools import BaseTool
-from public_model import get_device_ports_from_topology
-from log_config import setup_tool_logger
+from gns3_copilot.public_model import get_device_ports_from_topology
+from gns3_copilot.log_config import setup_tool_logger
 
 # config log
 logger = setup_tool_logger("display_tools_nornir")

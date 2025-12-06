@@ -6,8 +6,8 @@ import os
 import copy
 from dotenv import load_dotenv
 from langchain.tools import BaseTool
-from gns3_client import Gns3Connector, Project
-from log_config import setup_tool_logger
+from gns3_copilot.gns3_client import Gns3Connector, Project
+from gns3_copilot.log_config import setup_tool_logger
 
 # Configure logging
 logger = setup_tool_logger("gns3_topology_reader")

@@ -100,6 +100,8 @@ ALTERNATIVE USAGE:
 def print_version():
     """Print version information."""
     try:
+        import sys
+        sys.path.insert(0, str(Path(__file__).parent.parent.parent))
         from gns3_copilot import __version__
         print(f"GNS3 Copilot version {__version__}")
     except ImportError:

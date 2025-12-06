@@ -24,8 +24,8 @@ from langchain.messages import AnyMessage, SystemMessage, ToolMessage
 from langchain.chat_models import init_chat_model
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.sqlite import SqliteSaver
-from gns3_client import GNS3TopologyTool
-from tools_v2 import (
+from gns3_copilot.gns3_client import GNS3TopologyTool
+from gns3_copilot.tools_v2 import (
     GNS3TemplateTool,
     GNS3CreateNodeTool,
     GNS3LinkTool,
@@ -35,9 +35,9 @@ from tools_v2 import (
     VPCSMultiCommands,
     LinuxTelnetBatchTool
     )
-from log_config import setup_logger
-from prompts.react_prompt import SYSTEM_PROMPT
-from prompts.title_prompt import TITLE_PROMPT
+from gns3_copilot.log_config import setup_logger
+from gns3_copilot.prompts.react_prompt import SYSTEM_PROMPT
+from gns3_copilot.prompts.title_prompt import TITLE_PROMPT
 
 load_dotenv()
 

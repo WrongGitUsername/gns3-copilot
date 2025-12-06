@@ -29,11 +29,9 @@ import json
 import uuid
 import streamlit as st
 from langchain.messages import ToolMessage, HumanMessage, AIMessage
-from agent import agent, langgraph_checkpointer
-from log_config import setup_logger
-from public_model import (
-    format_tool_response,
-    )
+from gns3_copilot.agent import agent, langgraph_checkpointer
+from gns3_copilot.log_config import setup_logger
+from gns3_copilot.public_model import format_tool_response
 
 logger = setup_logger("app")
 

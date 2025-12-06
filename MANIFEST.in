@@ -1,0 +1,20 @@
+include LICENSE
+include README.md
+include README_ZH.md
+include pyproject.toml
+include requirements.txt
+include app.py
+include *.jpeg
+include *.gif
+include .env.example
+
+recursive-include src/gns3_copilot *.py
+recursive-include src/gns3_copilot *.json
+recursive-include src/gns3_copilot *.yaml
+recursive-include src/gns3_copilot *.yml
+recursive-include src/gns3_copilot *.txt
+
+recursive-include test *.py
+recursive-include test *.ipynb
+recursive-include test *.txt
+recursive-include test *.json
