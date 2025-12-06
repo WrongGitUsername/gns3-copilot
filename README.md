@@ -96,6 +96,74 @@ streamlit run app.py
 
 ![Third-Party Aggregators](Config_Third-Party-Aggregator.jpeg)
 
+### Configuration Parameters Details
+
+#### 📋 Configuration File Overview
+
+GNS3 Copilot configuration is managed through a Streamlit interface, with all settings saved in the `.env` file in the project root directory. If the `.env` file doesn't exist on first run, the system will automatically create it.
+
+#### 🔧 Main Configuration Content
+
+##### 1. GNS3 Server Configuration
+- **GNS3 Server Host**: GNS3 server host address (e.g., 127.0.0.1)
+- **GNS3 Server URL**: Complete GNS3 server URL (e.g., http://127.0.0.1:3080)
+- **API Version**: GNS3 API version (supports v2 and v3, currently only v2 is supported, v3 interface is under testing)
+- **GNS3 Server Username**: GNS3 server username (required only for API v3)
+- **GNS3 Server Password**: GNS3 server password (required only for API v3)
+
+##### 2. LLM Model Configuration
+- **Model Provider**: Model provider (supports: openai, anthropic, deepseek, xai, openrouter, etc.)
+- **Model Name**: Specific model name (e.g., deepseek-chat, gpt-4o-mini, etc.)
+- **Model API Key**: Model API key
+- **Base URL**: Base URL for model service (required when using third-party platforms like OpenRouter)
+- **Temperature**: Model temperature parameter (controls output randomness, range 0.0-1.0)
+
+##### 3. Other Settings
+- **Linux Console Username**: Linux console username (for Debian devices in GNS3)
+- **Linux Console Password**: Linux console password
+
+#### ⚠️ Important Notes
+
+##### 1. Configuration File Management
+- Configuration is automatically saved in the `.env` file in the project root directory
+- If the `.env` file doesn't exist, the system will automatically create it
+- A warning will be displayed on first run indicating the configuration file has been created
+
+##### 2. API Version Compatibility
+- **API v2**: No username and password authentication required
+- **API v3**: Username and password authentication required
+- The system dynamically shows/hides authentication fields based on the selected API version
+
+##### 3. Model Configuration Key Points
+- **OpenRouter Platform Usage**:
+  - Model Provider should be filled as "openai"
+  - Base URL must be filled: `https://openrouter.ai/api/v1`
+  - Model Name format: `openai/gpt-4o-mini` or `x-ai/grok-4-fast`
+
+##### 4. Security Considerations
+- API Key field uses password type input, content will be hidden
+- Recommend regular API key rotation
+- Do not commit `.env` file to version control system
+
+##### 5. Configuration Validation
+- The system performs basic validation on configuration items:
+  - API version can only be "2" or "3"
+  - Model Provider must be in the supported list
+  - Temperature must be a valid number format
+
+##### 6. Linux Device Configuration
+- Username and password are used to connect to Debian Linux devices in GNS3
+- Default example username and password are both "debian"
+- Ensure Debian devices are properly configured in GNS3
+
+#### 🚀 Usage Recommendations
+
+1. **First-time Configuration**: Fill in each item according to the interface prompts, items with `*` are required
+2. **Test Connection**: After configuration, it's recommended to test GNS3 server connection first
+3. **Model Selection**: Choose appropriate model provider and specific model based on your needs
+4. **Backup Configuration**: Regularly backup `.env` file to prevent configuration loss
+
+
 ## Security Considerations
 
 ⚠️ **Important Security Notes**:

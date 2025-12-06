@@ -97,6 +97,73 @@ streamlit run app.py
 
 ![Third-Party Aggregators](Config_Third-Party-Aggregator.jpeg)
 
+### 配置参数详解
+
+#### 📋 配置文件概述
+
+GNS3 Copilot 的配置通过 Streamlit 界面管理，所有设置保存在项目根目录的 `.env` 文件中。首次运行时如果 `.env` 文件不存在，系统会自动创建。
+
+#### 🔧 主要配置内容
+
+##### 1. GNS3 服务器配置
+- **GNS3 Server Host**: GNS3 服务器主机地址（如：127.0.0.1）
+- **GNS3 Server URL**: GNS3 服务器完整 URL（如：http://127.0.0.1:3080）
+- **API Version**: GNS3 API 版本（支持 v2 和 v3，目前仅支持v2， v3接口测试中。）
+- **GNS3 Server Username**: GNS3 服务器用户名（仅 API v3 需要）
+- **GNS3 Server Password**: GNS3 服务器密码（仅 API v3 需要）
+
+##### 2. LLM 模型配置
+- **Model Provider**: 模型提供商（支持：openai, anthropic, deepseek, xai, openrouter 等）
+- **Model Name**: 具体模型名称（如：deepseek-chat, gpt-4o-mini 等）
+- **Model API Key**: 模型 API 密钥
+- **Base URL**: 模型服务的基础 URL（使用 OpenRouter 等第三方平台时必需）
+- **Temperature**: 模型温度参数（控制输出随机性，范围 0.0-1.0）
+
+##### 3. 其他设置
+- **Linux Console Username**: Linux 控制台用户名（用于 GNS3 中的 Debian 设备）
+- **Linux Console Password**: Linux 控制台密码
+
+#### ⚠️ 重要注意事项
+
+##### 1. 配置文件管理
+- 配置自动保存在项目根目录的 `.env` 文件中
+- 如果 `.env` 文件不存在，系统会自动创建
+- 首次运行时会显示警告提示配置文件已创建
+
+##### 2. API 版本兼容性
+- **API v2**: 不需要用户名和密码认证
+- **API v3**: 必须提供用户名和密码进行认证
+- 系统会根据选择的 API 版本动态显示/隐藏认证字段
+
+##### 3. 模型配置要点
+- **OpenRouter 平台使用**：
+  - Model Provider 应填写 "openai"
+  - Base URL 必须填写：`https://openrouter.ai/api/v1`
+  - Model Name 格式：`openai/gpt-4o-mini` 或 `x-ai/grok-4-fast`
+
+##### 4. 安全注意事项
+- API Key 字段使用密码类型输入，内容会被隐藏
+- 建议定期更换 API 密钥
+- 不要将 `.env` 文件提交到版本控制系统
+
+##### 5. 配置验证
+- 系统会对配置项进行基本验证：
+  - API 版本只能是 "2" 或 "3"
+  - Model Provider 必须在支持的列表中
+  - Temperature 必须是有效的数字格式
+
+##### 6. Linux 设备配置
+- 用户名和密码用于连接 GNS3 中的 Debian Linux 设备
+- 默认示例用户名和密码都是 "debian"
+- 需要确保 GNS3 中已正确配置 Debian 设备
+
+#### 🚀 使用建议
+
+1. **首次配置**：按照界面提示逐项填写，带 `*` 的为必填项
+2. **测试连接**：配置完成后建议先测试 GNS3 服务器连接
+3. **模型选择**：根据需求选择合适的模型提供商和具体模型
+4. **备份配置**：定期备份 `.env` 文件以防配置丢失
+
 
 ## 安全注意事项
 
