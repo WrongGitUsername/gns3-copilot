@@ -49,6 +49,7 @@ dependencies = [
     "langgraph>=1.0.0",
     "langgraph-cli>=0.4.4",
     "langgraph-cli[inmem]>=0.4.4",
+    "langgraph-checkpoint-sqlite>=1.0.0",
     
     # Model Providers
     "langchain-openai>=1.0.0",

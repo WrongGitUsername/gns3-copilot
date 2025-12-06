@@ -37,10 +37,15 @@ logger = setup_logger("app")
 
 # get all thread_id from checkpoint database.
 def list_thread_ids(langgraph_checkpointer):
-    res = langgraph_checkpointer.conn.execute(
-        "SELECT DISTINCT thread_id FROM checkpoints ORDER BY rowid DESC"
-    ).fetchall()
-    return [r[0] for r in res]
+    try:
+        res = langgraph_checkpointer.conn.execute(
+            "SELECT DISTINCT thread_id FROM checkpoints ORDER BY rowid DESC"
+        ).fetchall()
+        return [r[0] for r in res]
+    except Exception as e:
+        # Table might not exist yet, return empty list
+        logger.debug(f"Error listing thread IDs (table may not exist): {e}")
+        return []
 
 def new_session():
     # Clear your own state
