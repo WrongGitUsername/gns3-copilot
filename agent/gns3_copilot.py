@@ -186,17 +186,17 @@ def should_continue(state: MessagesState) -> Literal["tool_node", "title_generat
     llm_calls = state.get("llm_calls", 0)
     current_title = state.get("conversation_title")
 
-    # Case 1: LLM requested one or more tool executions
+    # LLM requested one or more tool executions
     if last_message.tool_calls:
         logger.debug(f"LLM requested {len(last_message.tool_calls)} tool call(s) → routing to 'tool_node'")
         return "tool_node"
     
-    # Case 2: First full interaction completed and title not yet generated
-    if llm_calls == 1 and current_title in [None, "New Session"]:
+    # First full interaction completed and title not yet generated
+    if current_title in [None, "New Session"]:
         logger.info("First turn finished, no title yet → routing to 'title_generator_node'")
         return "title_generator_node"
     
-    # Case 3: Normal completion (multi-turn conversation or title already exists)
+    # Normal completion (multi-turn conversation or title already exists)
     logger.debug(f"Conversation turn complete (llm_calls={llm_calls}) → routing to END")
     return END
 

@@ -1,0 +1,9 @@
+import sqlite3
+
+def list_thread_ids(db_path="gns3_langgraph.db"):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute("SELECT DISTINCT thread_id FROM checkpoints")
+    return [row[0] for row in cursor.fetchall()]
+
+print(list_thread_ids())

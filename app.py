@@ -29,7 +29,7 @@ import json
 import uuid
 import streamlit as st
 from langchain.messages import ToolMessage, HumanMessage, AIMessage
-from agent import agent
+from agent import agent, langgraph_checkpointer
 from log_config import setup_logger
 from public_model import (
     format_tool_response,
@@ -37,17 +37,98 @@ from public_model import (
 
 logger = setup_logger("app")
 
+# get all thread_id from checkpoint database.
+def list_thread_ids(langgraph_checkpointer):
+    res = langgraph_checkpointer.conn.execute(
+        "SELECT DISTINCT thread_id FROM checkpoints ORDER BY rowid DESC"
+    ).fetchall()
+    return [r[0] for r in res]
+
+def new_session():
+    # Clear your own state
+    st.session_state["current_thread_id"] = None
+    st.session_state["state_history"] = None
+    # Reset the dropdown menu to the first option ("(Please select session)", None)
+    st.session_state["session_select"] = session_options[0]
+
 # Initialize session state for thread ID
 if "thread_id" not in st.session_state:
     # If thread_id is not in session_state, create and save a new one
     st.session_state["thread_id"] = str(uuid.uuid4())
 
 current_thread_id = st.session_state["thread_id"]
-# Unique thread ID for each session
-config = {"configurable": {"thread_id": current_thread_id, "max_iterations": 100}}
 
 # streamlit UI
 st.set_page_config(page_title="GNS3 Copilot", layout="wide")
+
+# siderbar info
+with st.sidebar:
+    thread_ids = list_thread_ids(langgraph_checkpointer)
+    
+    # Display name/value are title and id
+    # The first option is an empty/placeholder selection
+    session_options = [("(Please select session)", None)]
+    
+    for tid in thread_ids:
+        ckpt = langgraph_checkpointer.get({"configurable": {"thread_id": tid}})
+        title = (
+            ckpt.get("channel_values", {}).get("conversation_title")
+            if ckpt else None
+        ) or "New Session"
+        session_options.append((title, tid))
+                
+    selected = st.selectbox(
+        "Session History", 
+        options=session_options,
+        format_func=lambda x: x[0],   # view conversation_title
+        key="session_select",          # new key for state management
+    )
+    title, selected_thread_id = selected
+    
+    st.markdown(f"Current Session: `{title} thread_id: {selected_thread_id}`")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.button("New Session", on_click=new_session)
+
+    with col2:
+        # Only allow deletion if the user has selected a valid thread_id
+        if selected_thread_id and st.button("Delete"):
+            langgraph_checkpointer.delete_thread(thread_id=selected_thread_id)
+            st.success(f"_Delete Success_: {title} \n\n _Thread_id_: `{selected_thread_id}`")
+            st.rerun()
+        
+    # If a valid thread id is selected, load the historical messages
+    if selected_thread_id: 
+        # Store the selected ID for use in the main interface
+        st.session_state["current_thread_id"] = selected_thread_id   
+        st.session_state["state_history"] = agent.get_state(
+            {
+                "configurable": {"thread_id": selected_thread_id}
+                }
+            )
+
+    st.title("_GNS3 Copilot_ :sunglasses:")
+    st.title("About")
+    st.markdown(
+        """
+GNS3 Copilot is an AI-powered assistant designed to help network engineers with GNS3-related tasks.
+It leverages advanced language models to provide insights, answer questions,
+ and assist with network simulations.
+        
+**Features:**
+- Answer GNS3-related queries
+- Provide configuration examples
+- Assist with troubleshooting
+        
+**Usage:**
+Simply type your questions or commands in the chat interface,
+and GNS3 Copilot will respond accordingly.
+        
+**Note:** This is a prototype version. For more information,
+visit the [GNS3 Copilot GitHub Repository](https://github.com/yueguobin/gns3-copilot).
+        """
+    )
 
 # StateSnapshot state exapmle test/langgraph_checkpoint.json file
 # Display previous messages from state history
@@ -123,30 +204,13 @@ if st.session_state.get("state_history") is not None:
     if current_assistant_block is not None:
         current_assistant_block.__exit__(None, None, None)
 
-# siderbar info
-with st.sidebar:
-    st.title("_GNS3 Copilot_ :sunglasses:")
-    st.title("About")
-    st.markdown(
-        """
-GNS3 Copilot is an AI-powered assistant designed to help network engineers with GNS3-related tasks.
-It leverages advanced language models to provide insights, answer questions,
- and assist with network simulations.
-        
-**Features:**
-- Answer GNS3-related queries
-- Provide configuration examples
-- Assist with troubleshooting
-        
-**Usage:**
-Simply type your questions or commands in the chat interface,
-and GNS3 Copilot will respond accordingly.
-        
-**Note:** This is a prototype version. For more information,
-visit the [GNS3 Copilot GitHub Repository](https://github.com/yueguobin/gns3-copilot).
-        """
-    )
-
+# Unique thread ID for each session
+# If a session is selected, continue the conversation using its thread ID; otherwise, initialize a new thread ID.
+if selected_thread_id:
+    config = {"configurable": {"thread_id": st.session_state["current_thread_id"], "max_iterations": 100}}
+else:
+    config = {"configurable": {"thread_id": current_thread_id, "max_iterations": 100}}
+    
 # React to user input
 if prompt := st.chat_input("What is up?"):
     # Display user message in chat message container
