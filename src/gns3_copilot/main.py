@@ -33,7 +33,7 @@ def get_app_path():
     try:
         import gns3_copilot
         package_dir = Path(gns3_copilot.__file__).parent
-        app_path = package_dir.parent / "app.py"
+        app_path = package_dir / "app.py"
         if app_path.exists():
             return str(app_path)
     except ImportError:
