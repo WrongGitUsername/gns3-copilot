@@ -232,3 +232,7 @@ exclude = [
 ]
 
 [tool.setuptools_scm]
+# Configuration for setuptools_scm
+# See: https://github.com/pypa/setuptools_scm
+version_scheme = "post-release"
+local_scheme = "no-local-version"
