@@ -6,7 +6,7 @@ An AI-powered network automation assistant designed specifically for GNS3 networ
 
 GNS3 Copilot is a powerful network automation tool that integrates multiple AI models and network automation frameworks. It can interact with users through natural language and perform tasks such as network device configuration, topology management, and fault diagnosis.
 
-<img src="assets/demo.gif" alt="GNS3 Copilot Function demonstration" width="1280"/>
+<img src="demo.gif" alt="GNS3 Copilot Function demonstration" width="1280"/>
 
 ### Core Features
 
@@ -94,7 +94,7 @@ streamlit run app.py
 
 **Configure using Third-Party Aggregators**
 
-![Third-Party Aggregators](Config_Third-Party Aggregator.jpeg)
+![Third-Party Aggregators](Config_Third-Party-Aggregator.jpeg)
 
 ## Security Considerations
 

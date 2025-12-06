@@ -6,7 +6,7 @@
 
 GNS3 Copilot 是一个强大的网络自动化工具，集成了多种AI模型和网络自动化框架，能够通过自然语言与用户交互，执行网络设备配置、拓扑管理和故障诊断等任务。
 
-<img src="assets/demo.gif" alt="GNS3 Copilot 功能演示" width="1280"/>
+<img src="demo.gif" alt="GNS3 Copilot 功能演示" width="1280"/>
 
 
 ### 核心功能
@@ -95,7 +95,7 @@ streamlit run app.py
 
 **使用Third-Party Aggregators配置**
 
-![Third-Party Aggregators](Config_Third-Party Aggregator.jpeg)
+![Third-Party Aggregators](Config_Third-Party-Aggregator.jpeg)
 
 
 ## 安全注意事项
