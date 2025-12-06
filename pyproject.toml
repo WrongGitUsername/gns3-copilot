@@ -10,10 +10,10 @@ readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [
-    {name = "GNS3 Copilot Team"}
+    {name = "Guobin Yue"}
 ]
 maintainers = [
-    {name = "GNS3 Copilot Team"}
+    {name = "Guobin Yue"}
 ]
 keywords = [
     "gns3",

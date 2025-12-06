@@ -29,11 +29,10 @@ except ImportError:
 except Exception:
     __version__ = "unknown"
 
-__author__ = "GNS3 Copilot Team"
+__author__ = "Guobin Yue"
 __description__ = "AI-powered network automation assistant for GNS3"
 __url__ = "https://github.com/yueguobin/gns3-copilot"
 
-__author__ = "GNS3 Copilot Team"
 
 # Export main utility functions
 __all__ = [
