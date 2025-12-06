@@ -45,10 +45,13 @@ load_dotenv()
 logger = setup_logger("gns3_copilot", log_file="log/gns3_copilot.log")
 
 base_model = init_chat_model(
-    model="deepseek-chat",
+    "deepseek:deepseek-chat",
+    configurable_fields="any",
+    config_prefix="foo",
     temperature=0
 )
 
+title_mode = base_model
 # use OpenRouter
 #base_model = init_chat_model(
 #    model_provider="openai",
@@ -59,12 +62,6 @@ base_model = init_chat_model(
     #model="google/gemini-2.5-flash", # It ignores the observations after the tool is executed.
 #    model="x-ai/grok-4-fast",
 #)
-
-title_mode = init_chat_model(
-    model="deepseek-chat",
-    temperature=1
-)
-
 #assist_model = init_chat_model(
 #    model="google_genai:gemini-2.5-flash",
 #    temperature=1
@@ -135,7 +132,10 @@ def generate_title(state: MessagesState) -> dict:
         
         # Call the title generation model (currently using the same base_model / DeepSeek)
         try:
-            response = title_mode.invoke(title_prompt_messages)
+            response = title_mode.invoke(
+                title_prompt_messages,
+                config={"configurable": {"foo_temperature": 1.0}}
+                )
             logger.debug(f"generate_title: {response}")
             raw_content = response.content
             logger.debug(f"Raw title output from model: 【{raw_content}】")
