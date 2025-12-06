@@ -76,7 +76,7 @@ tools = [
     GNS3TopologyTool(),                # Read GNS3 topology information
     GNS3CreateNodeTool(),              # Create new nodes in GNS3
     GNS3LinkTool(),                    # Create links between nodes
-    GNS3StartNodeTool(),               # Start GNS3 nodes
+#    GNS3StartNodeTool(),               # Start GNS3 nodes
     ExecuteMultipleDeviceCommands(),   # Execute show/display commands on multiple devices
     ExecuteMultipleDeviceConfigCommands(),  # Execute configuration commands on multiple devices
     VPCSMultiCommands(),                    # Execute VPCS commands on multiple devices

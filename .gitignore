@@ -186,3 +186,4 @@ log/*
 *.sqlite
 test/session_metadata.sqlite
 .env.bak
+.pypirc
