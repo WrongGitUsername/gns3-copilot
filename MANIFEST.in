@@ -7,7 +7,7 @@ include *.gif
 
 recursive-include src/gns3_copilot *.py
 
-recursive-include test *.py
-recursive-include test *.ipynb
-recursive-include test *.txt
-recursive-include test *.json
+#recursive-include test *.py
+#recursive-include test *.ipynb
+#recursive-include test *.txt
+#recursive-include test *.json
