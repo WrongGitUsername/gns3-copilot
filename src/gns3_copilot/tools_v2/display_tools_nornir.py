@@ -4,8 +4,8 @@ in a GNS3 topology using Nornir.
 """
 import json
 import os
-from dotenv import load_dotenv
 from typing import List, Dict, Any, Union
+from dotenv import load_dotenv
 from nornir import InitNornir
 from nornir.core.task import Task, Result
 from nornir_netmiko.tasks import netmiko_multiline
@@ -191,9 +191,9 @@ class ExecuteMultipleDeviceCommands(BaseTool):
         Args:
             tool_input: The input received from the LangChain/LangGraph tool call.
         """
-        
+
         device_configs_list = None
-        
+
         # Compatibility Check and Parsing ---
         # Check if the input is a string (or bytes) which needs to be parsed.
         if isinstance(tool_input, (str, bytes, bytearray)):
@@ -205,16 +205,19 @@ class ExecuteMultipleDeviceCommands(BaseTool):
                 logger.error("Invalid JSON string received as tool input: %s", e)
                 return [{"error": f"Invalid JSON string input from model: {e}"}]
         else:
-            # Handle standard models (like GPT/OpenAI) where the framework 
+            # Handle standard models (like GPT/OpenAI) where the framework
             # has already parsed the JSON into a Python object (dict or list).
             device_configs_list = tool_input
-            logger.info(f"Using tool input directly as type: {type(tool_input).__name__}")
+            logger.info("Using tool input directly as type: %s", {type(tool_input).__name__})
 
-        # Core Business Logic Validation ---        
+        # Core Business Logic Validation ---
         # Check if the final object is the expected Python list type.
         if not isinstance(device_configs_list, list):
             # If the result of parsing/direct use is not a list, raise an error.
-            error_msg = f"Tool input must result in a JSON array/Python list, but got {type(device_configs_list).__name__}"
+            error_msg = (
+                "Tool input must result in a JSON array/Python list,"
+                f" but got {type(device_configs_list).__name__}"
+                )
             logger.error(error_msg)
             return [{"error": error_msg}]
 
@@ -222,8 +225,8 @@ class ExecuteMultipleDeviceCommands(BaseTool):
         if not device_configs_list:
             logger.warning("Tool input list is empty.")
             # Decide whether to return an error based on business requirements
-            return [] 
-            
+            return []
+
         return device_configs_list
 
     def _configs_map(self, device_config_list):
@@ -364,9 +367,9 @@ if __name__ == "__main__":
     failed_count = 0
 
     for i in range(0, 1):
-        results = exe_cmd._run(tool_input=device_commands)
-        for result in results:
-            for result in results:
+        exe_results = exe_cmd._run(tool_input=device_commands)
+        for result in exe_results:
+            for result in exe_results:
                 if result.get("status") == "failed":
                     failed_count += 1
 

@@ -28,33 +28,33 @@ def get_device_ports_from_topology(device_names: List[str]) -> Dict[str, Dict[st
         # Get topology information
         topo = GNS3TopologyTool()
         topology = topo._run()
-        
+
         # Dynamically build hosts_data from topology
         hosts_data = {}
-        
+
         if not topology:
             logger.warning("Unable to get topology information")
             return hosts_data
-            
+
         for device_name in device_names:
             # Check if device exists in topology
             if device_name not in topology.get("nodes", {}):
-                logger.warning(f"Device '{device_name}' not found in topology")
+                logger.warning("Device '%s' not found in topology", device_name)
                 continue
-                
+
             node_info = topology["nodes"][device_name]
             if "console_port" not in node_info:
-                logger.warning(f"Device '{device_name}' missing console_port")
+                logger.warning("Device '%s' missing console_port", device_name)
                 continue
-                
+
             # Add device to hosts_data
             hosts_data[device_name] = {
                 "port": node_info["console_port"],
                 "groups": ["cisco_IOSv_telnet"]
             }
-            
+
         return hosts_data
-        
+
     except Exception as e:
-        logger.error(f"Error getting device port information: {str(e)}")
+        logger.error("Error getting device port information: %s", e)
         return {}

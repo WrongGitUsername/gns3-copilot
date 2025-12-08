@@ -14,7 +14,7 @@ Supported formats:
 - Error message strings
 - Plain text output
 
-Author: GNS3 Copilot Team
+Author: Guobin Yue
 """
 import json
 import ast
@@ -24,7 +24,7 @@ from gns3_copilot.log_config import setup_tool_logger
 logger = setup_tool_logger("parse_tool_content")
 
 def parse_tool_content(
-    content: Optional[Union[str, dict, list, int, float, bool]], 
+    content: Optional[Union[str, dict, list, int, float, bool]],
     fallback_to_raw: bool = True,
     strict_mode: bool = False
 ) -> Union[Dict[str, Any], List[Any], Any]:
@@ -82,17 +82,17 @@ def parse_tool_content(
     if content is None:
         logger.debug("Content is None, returning empty dict")
         return {}
-    
+
     # Handle dictionary objects (already parsed)
     if isinstance(content, dict):
         logger.debug("Content is already a dictionary, returning as-is")
         return content
-    
+
     # Handle list objects (JSON arrays)
     if isinstance(content, list):
         logger.debug("Content is already a list, returning as-is")
         return content
-    
+
     # Handle primitive types that are JSON serializable
     if isinstance(content, (str, int, float, bool)):
         # For strings, we need to try parsing them
@@ -101,63 +101,72 @@ def parse_tool_content(
             if not content.strip():
                 logger.debug("Content is empty or whitespace, returning empty dict")
                 return {}
-            
+
             s = content.strip()
-            
+
             # Handle empty dictionary case
             if s == "{}":
                 logger.debug("Content is empty dictionary, returning empty dict")
                 return {}
-            
-            logger.debug(f"Attempting to parse string content: {s[:100]}{'...' if len(s) > 100 else ''}")
-            
-            # Try to parse as Python literal (higher priority as many tools return Python format strings)
+
+            logger.debug(
+                "Attempting to parse string content: %s %s",
+                s[:100],
+                '...' if len(s) > 100 else ''
+                )
+
+            # Try to parse as Python literal
+            # (higher priority as many tools return Python format strings)
             try:
                 result = ast.literal_eval(s)
                 logger.debug("Successfully parsed as Python literal")
                 return result
             except (ValueError, SyntaxError) as e:
-                logger.debug(f"Failed to parse as Python literal: {str(e)}")
-            
+                logger.debug("Failed to parse as Python literal: %s", e)
+
             # Try to parse as JSON
             try:
                 result = json.loads(s)
                 logger.debug("Successfully parsed as JSON")
                 return result
             except json.JSONDecodeError as e:
-                logger.debug(f"Failed to parse as JSON: {str(e)}")
-            
+                logger.debug("Failed to parse as JSON: %s", e)
+
             # Handle parsing failure for strings
-            error_msg = f"Unable to parse content as JSON or Python literal"
-            logger.warning(f"{error_msg}: {s[:100]}{'...' if len(s) > 100 else ''}")
-            
+            error_msg = "Unable to parse content as JSON or Python literal"
+            logger.warning("%s: %s %s",
+                           error_msg, s[:100], '...' if len(s) > 100 else '')
+
             if strict_mode:
-                raise ValueError(f"{error_msg}. Content: {s}")
-            
+                raise ValueError("%s. Content: %s", error_msg, s)
+
             if fallback_to_raw:
                 logger.debug("Returning raw content as fallback")
                 return {"raw": s}
-            else:
-                return {"error": error_msg}
-        else:
-            # For non-string primitives (int, float, bool), return as-is
-            logger.debug(f"Content is a primitive type ({type(content).__name__}), returning as-is")
-            return content
-    
+            return {"error": error_msg}
+        # For non-string primitives (int, float, bool), return as-is
+        logger.debug(
+            "Content is a primitive type %s, returning as-is", type(content).__name__)
+        return content
+
     # Handle unsupported types
-    error_msg = f"Content must be str, dict, list, int, float, bool, or None, got {type(content).__name__}"
+    error_msg = (
+        "Content must be str, dict, list, int, float, bool, or None, got "
+        f"{type(content).__name__}")
     logger.error(error_msg)
-    
+
     if strict_mode:
         raise TypeError(error_msg)
-    
+
     if fallback_to_raw:
         logger.debug("Returning raw content as fallback")
         return {"raw": str(content)}
-    else:
-        return {"error": error_msg}
+    return {"error": error_msg}
 
-def format_tool_response(content: Optional[Union[str, dict, list, int, float, bool]], indent: int = 2) -> str:
+def format_tool_response(
+    content: Optional[Union[str, dict, list, int, float, bool]],
+    indent: int = 2
+    ) -> str:
     """
     Format tool response as a beautiful JSON string for UI display.
     
@@ -177,14 +186,17 @@ def format_tool_response(content: Optional[Union[str, dict, list, int, float, bo
         return json.dumps(parsed, ensure_ascii=False, indent=indent)
     except (TypeError, ValueError) as e:
         # If the parsed result cannot be serialized, convert to string and wrap
-        logger.error(f"Cannot serialize parsed result to JSON: {str(e)}")
+        logger.error("Cannot serialize parsed result to JSON: %s", e)
         try:
             return json.dumps({"raw": str(content)}, ensure_ascii=False, indent=indent)
         except Exception:
             # Last resort: return a simple error message
-            return json.dumps({"error": "Unable to format response"}, ensure_ascii=False, indent=indent)
+            return json.dumps(
+                {"error": "Unable to format response"},
+                ensure_ascii=False,
+                indent=indent)
     except Exception as e:
-        logger.error(f"Error formatting tool response: {str(e)}")
+        logger.error("Error formatting tool response: %s", e)
         return json.dumps({"error": str(e)}, ensure_ascii=False, indent=indent)
 
 # Test function to verify the implementation
@@ -204,7 +216,7 @@ def _test_parse_tool_content():
         ("", {}),
         ("   ", {}),
         ("Invalid JSON input", {"raw": "Invalid JSON input"}),
-        
+
         # Direct object inputs
         ({"status": "success"}, {"status": "success"}),
         ([1, 2, 3], [1, 2, 3]),
@@ -214,13 +226,13 @@ def _test_parse_tool_content():
         (3.14, 3.14),
         (None, {}),
     ]
-    
+
     print("Testing parse_tool_content function:")
     for i, (input_data, expected) in enumerate(test_cases):
         result = parse_tool_content(input_data)
         status = "✓" if result == expected else "✗"
         print(f"Test {i+1}: {status} Input: {repr(input_data)} -> {result}")
-    
+
     print("\nTesting format_tool_response function:")
     format_tests = [
         '{"status": "success"}',
@@ -232,7 +244,7 @@ def _test_parse_tool_content():
         42,
         True,
     ]
-    
+
     for i, input_data in enumerate(format_tests):
         result = format_tool_response(input_data)
         # Verify it's valid JSON

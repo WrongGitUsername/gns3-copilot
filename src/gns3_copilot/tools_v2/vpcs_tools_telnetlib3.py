@@ -12,7 +12,7 @@ from langchain.tools import BaseTool
 from telnetlib3 import Telnet
 
 from gns3_copilot.log_config import setup_tool_logger
-from public_model.get_gns3_device_port import get_device_ports_from_topology
+from gns3_copilot.public_model import get_device_ports_from_topology
 
 logger = setup_tool_logger("vpcs_multi_commands")
 

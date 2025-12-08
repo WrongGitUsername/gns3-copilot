@@ -16,10 +16,10 @@ solution for GNS3 environments.
 import os
 import sqlite3
 import operator
-import streamlit as st
 from typing import Literal
 from typing_extensions import TypedDict, Annotated
 from dotenv import load_dotenv
+import streamlit as st
 from langchain.messages import AnyMessage, SystemMessage, ToolMessage
 from langchain.chat_models import init_chat_model
 from langgraph.graph import StateGraph, START, END
@@ -29,7 +29,7 @@ from gns3_copilot.tools_v2 import (
     GNS3TemplateTool,
     GNS3CreateNodeTool,
     GNS3LinkTool,
-    GNS3StartNodeTool,
+    #GNS3StartNodeTool,
     ExecuteMultipleDeviceCommands,
     ExecuteMultipleDeviceConfigCommands,
     VPCSMultiCommands,
@@ -92,10 +92,21 @@ logger.debug("Available tools: %s", [tool.__class__.__name__ for tool in tools])
 
 # Define state
 class MessagesState(TypedDict):
+    """
+    GNS3 Copilot conversation state management class.
+    
+    Maintains the conversation state for the LangGraph workflow, including message history,
+    call counters, and session titles for comprehensive dialogue management.
+    
+    Attributes:
+        messages: List of conversation messages with cumulative updates using operator.add
+        llm_calls: Counter for tracking the number of LLM invocations
+        conversation_title: Optional conversation title for session identification and management
+    """
     messages: Annotated[list[AnyMessage], operator.add]
     llm_calls: int
     conversation_title: str | None # Optional conversation title
-    
+
 # Define model node
 def llm_call(state: dict):
     """LLM decides whether to call a tool or not"""
@@ -113,55 +124,55 @@ def llm_call(state: dict):
         ],
         "llm_calls": state.get('llm_calls', 0) + 1
     }
-    
+
 # Define generate title node
 def generate_title(state: MessagesState) -> dict:
     """
     Generate a conversation title using a lightweight assistant LLM (title_model).
     This node is only executed when no title has been set yet (first round only).
     """
-    
+
     # Only generate a title if it hasn't been set yet
     if state.get("conversation_title") in [None, "New Session"]:
         messages = state["messages"]
-        
+
         # Build the prompt for title generation
         title_prompt_messages = [
             SystemMessage(content=TITLE_PROMPT),
             messages[0],       # User's first message
             messages[-1]       # Assistant's final response in this turn
         ]
-        logger.debug(f"summary_messages for title generation: {title_prompt_messages}")
-        
+        logger.debug("summary_messages for title generation: %s", title_prompt_messages)
+
         # Call the title generation model (currently using the same base_model / DeepSeek)
         try:
             response = title_mode.invoke(
                 title_prompt_messages,
                 config={"configurable": {"foo_temperature": 1.0}}
                 )
-            logger.debug(f"generate_title: {response}")
+            logger.debug("generate_title: %s", response)
             raw_content = response.content
-            logger.debug(f"Raw title output from model: 【{raw_content}】")
-            
+            logger.debug("Raw title output from model: %s", raw_content)
+
             new_title = raw_content.strip()
-            
+
             # Safety: truncate long titles and avoid line breaks
             if len(new_title) > 40:  # Increased limit for better Chinese support
                 new_title = new_title[:38] + "..."
-            
+
             # Remove unwanted characters
             new_title = new_title.replace("\n", " ").replace('"', '').replace("'", "")
-            
+
             if not new_title:
                 new_title = "GNS3 Session"
 
-            logger.info(f"Generated new title: {new_title}")
+            logger.info("Generated new title: %s", new_title)
             return {"conversation_title": new_title}
-            
+
         except Exception as e:
-            logger.error(f"Title generation failed: {e}")
+            logger.error("Title generation failed: %s", e)
             return {"conversation_title": "Untitled Session"}
-    
+
     # Title already exists → no update needed
     return {}
 
@@ -191,16 +202,19 @@ def should_continue(state: MessagesState) -> Literal["tool_node", "title_generat
 
     # LLM requested one or more tool executions
     if last_message.tool_calls:
-        logger.debug(f"LLM requested {len(last_message.tool_calls)} tool call(s) → routing to 'tool_node'")
+        logger.debug(
+            "LLM requested %s tool call(s) → routing to 'tool_node'",
+            len(last_message.tool_calls)
+            )
         return "tool_node"
-    
+
     # First full interaction completed and title not yet generated
     if current_title in [None, "New Session"]:
         logger.info("First turn finished, no title yet → routing to 'title_generator_node'")
         return "title_generator_node"
-    
+
     # Normal completion (multi-turn conversation or title already exists)
-    logger.debug(f"Conversation turn complete (llm_calls={llm_calls}) → routing to END")
+    logger.debug("Conversation turn complete (llm_calls= %s ) → routing to END", llm_calls)
     return END
 
 # Build and compile the agent

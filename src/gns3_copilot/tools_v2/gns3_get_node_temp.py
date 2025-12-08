@@ -1,3 +1,10 @@
+"""
+GNS3 template retrieval tool for device discovery.
+
+Provides functionality to retrieve all available device templates
+from a GNS3 server, including template names, IDs, and types.
+"""
+
 import json
 import os
 from pprint import pprint

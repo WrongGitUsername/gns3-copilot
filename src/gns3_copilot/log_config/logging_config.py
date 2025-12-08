@@ -151,6 +151,14 @@ LOGGER_CONFIGS = {
     "app": {
         "console_level": logging.ERROR,
         "file_level": logging.DEBUG
+    },
+    "settings": {
+        "console_level": logging.ERROR,
+        "file_level": logging.DEBUG
+    },
+    "chat": {
+        "console_level": logging.ERROR,
+        "file_level": logging.DEBUG
     }
 }
 

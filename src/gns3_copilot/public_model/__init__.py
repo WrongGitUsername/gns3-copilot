@@ -8,7 +8,7 @@ Main modules:
 - get_gns3_device_port: Device port information retrieval from GNS3 topology
 - parse_tool_content: Tool execution result parsing and formatting utilities
 
-Author: GNS3 Copilot Team
+Author: Guobin Yue
 """
 
 # Import main utility functions

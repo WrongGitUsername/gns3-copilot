@@ -1,13 +1,16 @@
+# Explicitly include mandatory top-level files (required for distribution package)
 include LICENSE
 include README.md
 include README_ZH.md
 include pyproject.toml
-include *.jpeg
-include *.gif
 
+# Recursively include only Python files (*.py) within the src/gns3_copilot directory
 recursive-include src/gns3_copilot *.py
 
-#recursive-include test *.py
-#recursive-include test *.ipynb
-#recursive-include test *.txt
-#recursive-include test *.json
+# Explicitly exclude the test/ directory (prevents test/ from being included)
+global-exclude test/*
+prune test/
+
+# Explicitly exclude all other data file types (optional but safe)
+global-exclude *.json *.yaml *.yml *.txt *.jpeg *.gif
+global-exclude notebok_en.md notebok_zh.md

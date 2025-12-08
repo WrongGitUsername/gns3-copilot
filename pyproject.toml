@@ -39,6 +39,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Operating System :: OS Independent",
 ]
 requires-python = ">=3.8"
@@ -105,7 +106,7 @@ dev = [
 [project.urls]
 Homepage = "https://github.com/yueguobin/gns3-copilot"
 Repository = "https://github.com/yueguobin/gns3-copilot"
-Documentation = "https://github.com/yueguobin/gns3-copilot/blob/main/README.md"
+Documentation = "https://github.com/yueguobin/gns3-copilot/blob/master/README.md"
 "Bug Reports" = "https://github.com/yueguobin/gns3-copilot/issues"
 
 [project.scripts]
@@ -123,22 +124,11 @@ packages = [
     "gns3_copilot.tools_v2",
     "gns3_copilot.ui_model"
 ]
-include-package-data = true
-
-[tool.setuptools.package-data]
-"*" = ["*.json", "*.yaml", "*.yml", "*.txt"]
-"gns3_copilot" = ["*.py"]
-"gns3_copilot.agent" = ["*.py"]
-"gns3_copilot.gns3_client" = ["*.py"]
-"gns3_copilot.log_config" = ["*.py"]
-"gns3_copilot.prompts" = ["*.py"]
-"gns3_copilot.public_model" = ["*.py"]
-"gns3_copilot.tools_v2" = ["*.py"]
-"gns3_copilot.ui_model" = ["*.py"]
+include-package-data = false
 
 [tool.black]
 line-length = 88
-target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312','py313']
 include = '\.pyi?$'
 extend-exclude = '''
 /(

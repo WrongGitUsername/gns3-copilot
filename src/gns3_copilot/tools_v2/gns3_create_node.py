@@ -1,9 +1,16 @@
+"""
+GNS3 node creation tool for network topology building.
+
+Provides functionality to create multiple nodes in GNS3 projects
+using specified templates and coordinates through the GNS3 API.
+"""
+
 import json
 import os
-from dotenv import load_dotenv
 from pprint import pprint
+from dotenv import load_dotenv
 from langchain.tools import BaseTool
-from gns3_copilot.gns3_client import Gns3Connector, Node, Project
+from gns3_copilot.gns3_client import Gns3Connector, Node
 from gns3_copilot.log_config import setup_tool_logger
 
 # Configure logging
@@ -14,10 +21,13 @@ load_dotenv()
 
 class GNS3CreateNodeTool(BaseTool):
     """
-    A LangChain tool to create multiple nodes in a GNS3 project using specified templates and coordinates.
+    A LangChain tool to create multiple nodes in a GNS3 project
+    using specified templates and coordinates.
 
     **Input:**
-    A JSON object containing the project_id and an array of nodes with template_id, x and y coordinates.
+    A JSON object containing the project_id and an array of nodes with template_id,
+    x and y coordinates.
+    
     Example input:
         {
             "project_id": "uuid-of-project",
@@ -104,7 +114,7 @@ class GNS3CreateNodeTool(BaseTool):
             if not project_id:
                 logger.error("Invalid input: Missing project_id.")
                 return {"error": "Missing project_id."}
-            
+
             if not isinstance(nodes, list) or len(nodes) == 0:
                 logger.error("Invalid input: nodes must be a non-empty array.")
                 return {"error": "nodes must be a non-empty array."}
@@ -114,13 +124,14 @@ class GNS3CreateNodeTool(BaseTool):
                 if not isinstance(node_data, dict):
                     logger.error("Invalid input: Node %d must be a dictionary.", i+1)
                     return {"error": f"Node {i+1} must be a dictionary."}
-                
+
                 template_id = node_data.get("template_id")
                 x = node_data.get("x")
                 y = node_data.get("y")
-                
+
                 if not all([template_id, isinstance(x, (int, float)), isinstance(y, (int, float))]):
-                    logger.error("Invalid input: Node %d missing or invalid template_id, x, or y.", i+1)
+                    logger.error(
+                        "Invalid input: Node %d missing or invalid template_id, x, or y.", i+1)
                     return {"error": f"Node {i+1} missing or invalid template_id, x, or y."}
 
             # Initialize Gns3Connector
@@ -130,16 +141,16 @@ class GNS3CreateNodeTool(BaseTool):
             # Create nodes
             logger.info("Creating %d nodes in project %s...", len(nodes), project_id)
             results = []
-            
+
             for i, node_data in enumerate(nodes):
                 try:
                     template_id = node_data.get("template_id")
                     x = node_data.get("x")
                     y = node_data.get("y")
-                    
-                    logger.info("Creating node %d/%d with template %s at coordinates (%s, %s)...", 
+
+                    logger.info("Creating node %d/%d with template %s at coordinates (%s, %s)...",
                                 i+1, len(nodes), template_id, x, y)
-                    
+
                     # Create node
                     node = Node(
                         project_id=project_id,
@@ -159,7 +170,9 @@ class GNS3CreateNodeTool(BaseTool):
                     }
 
                     results.append(node_info)
-                    logger.debug("Successfully created node %d: %s", i+1, json.dumps(node_info, indent=2, ensure_ascii=False))
+                    logger.debug(
+                        "Successfully created node %d: %s",
+                        i+1, json.dumps(node_info, indent=2, ensure_ascii=False))
 
                 except Exception as e:
                     error_info = {

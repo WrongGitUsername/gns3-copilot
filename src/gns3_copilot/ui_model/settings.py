@@ -1,6 +1,25 @@
-import streamlit as st
+"""
+Streamlit-based settings management module for GNS3 Copilot application.
+
+This module provides a comprehensive configuration interface for managing GNS3 server
+connections, LLM model settings, and application preferences. It handles loading and
+saving configuration to/from .env files, validates input parameters, and maintains
+session state for persistent settings across the Streamlit application.
+
+Key Features:
+- GNS3 server configuration (host, URL, API version, authentication)
+- LLM model provider setup with support for multiple providers
+- Environment variable management and persistence
+- Input validation and error handling
+- Streamlit UI components for interactive configuration
+"""
+
 import os
+import streamlit as st
 from dotenv import load_dotenv, set_key, find_dotenv
+from gns3_copilot.log_config import setup_logger
+
+logger = setup_logger("settings")
 
 # """
 # .env file content
@@ -31,10 +50,11 @@ CONFIG_MAP = {
     "API_VERSION": "API_VERSION",
     "GNS3_SERVER_USERNAME": "GNS3_SERVER_USERNAME",
     "GNS3_SERVER_PASSWORD": "GNS3_SERVER_PASSWORD",
-    
+
     # Model Configuration
     "MODE_PROVIDER": "MODE_PROVIDER",
-    "MODEL_NAME": "MODEL_NAME",   # Note: This key might require special handling (e.g., dynamic loading or mapping)
+    # Note: This key might require special handling (e.g., dynamic loading or mapping)
+    "MODEL_NAME": "MODEL_NAME",  
     "MODEL_API_KEY": "MODEL_API_KEY", # Base API Key
     "BASE_URL":"BASE_URL",
     "TEMPERATURE":"TEMPERATURE",
@@ -54,72 +74,121 @@ MODEL_PROVIDERS = [
 if not ENV_FILE_PATH or not os.path.exists(ENV_FILE_PATH):
     # Assume the file should be located in the current working directory
     ENV_FILE_PATH = os.path.join(os.getcwd(), ENV_FILENAME)
-    
+
     # If the file still does not exist, create it
     if not os.path.exists(ENV_FILE_PATH):
         try:
             # Create an empty .env file so that set_key can write to it later
-            with open(ENV_FILE_PATH, 'w') as f:
+            with open(ENV_FILE_PATH, 'w', encoding='utf-8') as f:
                 f.write(f"# Configuration file: {ENV_FILENAME}\n")
-            st.warning(f"**{ENV_FILENAME}** file not found. A new file has been automatically created in the application root directory. Please configure below and click Save.")
+            logger.info("Created new .env file at: %s", ENV_FILE_PATH)
+            st.warning(
+                f"**{ENV_FILENAME}** file not found. "
+                "A new file has been automatically created in the application root directory. "
+                "Please configure below and click Save.")
         except Exception as e:
-            st.error(f"Failed to create {ENV_FILENAME} file. Save function will be disabled. Error: {e}")
+            logger.error("Failed to create {ENV_FILENAME} file: %s", e)
+            st.error(
+                "Failed to create %s file. Save function will be disabled. Error: %s",
+                ENV_FILENAME, e
+                )
             ENV_FILE_PATH = None
-            
+
 def load_config_from_env():
     """Load configuration from the .env file and initialize st.session_state."""
     # Only attempt to load if the path is valid and the file exists
+    logger.info("Starting to load configuration from .env file")
     if ENV_FILE_PATH and os.path.exists(ENV_FILE_PATH):
+        logger.debug("Loading .env file from: %s", ENV_FILE_PATH)
         load_dotenv(ENV_FILE_PATH)
-    
+        logger.info("Successfully loaded .env file")
+    else:
+        logger.warning(".env file not found at: %s", ENV_FILE_PATH)
+
     # Load environment variables into Streamlit's session state
     for st_key, env_key in CONFIG_MAP.items():
         # Get the value from os.environ; default to an empty string if not found
         default_value = os.getenv(env_key) if os.getenv(env_key) is not None else ""
-        
+
         # Special handling for API_VERSION (kept consistent)
         if st_key == "API_VERSION":
             # Ensure the default value is either "2" or "3"
             default_value = "2" if default_value not in ["2", "3"] else default_value
-        
+
         # Special handling for MODE_PROVIDER (updated key name)
         if st_key == "MODE_PROVIDER":
             if default_value not in MODEL_PROVIDERS:
-                 # If the loaded value is not in the supported list, set it to an empty string for the user to select
-                 default_value = ""
-        
+                 # If the loaded value is not in the supported list,
+                 # set it to an empty string for the user to select
+                logger.warning("Unsupported MODE_PROVIDER %s, setting to empty", default_value)
+                default_value = ""
+
         # Special handling for TEMPERATURE (Ensure default is a number or empty string)
         if st_key == "TEMPERATURE" and not default_value.replace('.', '', 1).isdigit():
             # Provide a reasonable default value if not set or invalid
-            default_value = "0.0" 
+            logger.debug(
+                "Invalid TEMPERATURE value : %s, setting to default '0.0'",
+                default_value
+                )
+            default_value = "0.0"
 
         # Set the value in session state
         st.session_state[st_key] = default_value
+        logger.debug(
+            "Loaded config: %s = %s",
+            st_key,
+            '[HIDDEN]' if 'PASSWORD' in st_key or 'KEY' in st_key else default_value
+            )
+    logger.info("Configuration loading completed")
 
 def save_config_to_env():
     """Save the current session state to the .env file."""
     # Prevent saving if the .env file path is invalid
+    logger.info("Starting to save configuration to .env file")
+    
+    # Initialize saved_count counter
+    saved_count = 0
+
     if not ENV_FILE_PATH:
+        logger.error("Cannot save configuration: .env file path is invalid")
         st.error("Cannot save configuration because the .env file path is invalid.")
         return
-        
+
     for st_key, env_key in CONFIG_MAP.items():
         current_value = st.session_state.get(st_key)
-        
+
         if current_value is not None:
             str_value = str(current_value)
-            
-            # Save the value back to the .env file
-            set_key(ENV_FILE_PATH, env_key, str_value)
-            
-            # Immediately update the current Python process's environment variables
-            os.environ[env_key] = str_value
-            
+
+            try:
+                # Save the value back to the .env file
+                set_key(ENV_FILE_PATH, env_key, str_value)
+
+                # Immediately update the current Python process's environment variables
+                os.environ[env_key] = str_value
+
+                saved_count += 1
+                logger.debug(
+                    "Saved config: %s = %s",
+                    st_key,
+                    '[HIDDEN]' if 'PASSWORD' in st_key or 'KEY' in st_key else str_value
+                    )
+            except Exception as e:
+                logger.error("Failed to save %s: %s", st_key, e)
+
+    logger.info(
+        "Configuration save completed. Saved %s configuration items to %s",
+        saved_count,
+        ENV_FILE_PATH
+        )
     st.success("Configuration successfully saved to the .env file!")
-            
+
 # Initialization
 if 'GNS3_SERVER_HOST' not in st.session_state:
+    logger.info("Initializing Settings page - loading configuration")
     load_config_from_env()
+else:
+    logger.debug("Settings page already initialized")
 
 # Streamlit UI
 st.title("GNS3 Settings")
@@ -147,7 +216,7 @@ col1, col2, col3 = st.columns([1,2,2])
 with col1:
     st.selectbox(
         "GNS3 API Version", 
-        ["2", "3"], 
+        ["2", "3"],
         key="API_VERSION"
     )
 
@@ -191,7 +260,7 @@ with col1:
         """,
         placeholder="e.g. 'deepseek', 'openai'"
     )
-    
+
 with col2:
     # LLM Model Name
     st.text_input(
@@ -201,16 +270,18 @@ with col2:
         help="""
 The name or ID of the model, e.g. 'o3-mini', 'claude-sonnet-4-5-20250929', 'deepseek-caht'.
     
-If using the OpenRouter platform, please enter the model name in the OpenRouter format, e.g.: 'openai/gpt-4o-mini', 'x-ai/grok-4-fast'.
+If using the OpenRouter platform, 
+please enter the model name in the OpenRouter format, 
+e.g.: 'openai/gpt-4o-mini', 'x-ai/grok-4-fast'.
         """,
         placeholder="e.g. 'o3-mini', 'claude-sonnet-4-5-20250929', 'deepseek-caht'"
     )
-    
+
 with col3:
     # LLM model temperature
     st.text_input(
         "Model Temperature", 
-        key="TEMPERATURE", 
+        key="TEMPERATURE",
         type="default",
         help="""
 Controls randomness: higher values mean more random output. Typical range is 0.0 to 1.0.
@@ -220,7 +291,7 @@ Controls randomness: higher values mean more random output. Typical range is 0.0
 # LLM model provider base url
 st.text_input(
     "Base Url", 
-    key="BASE_URL", 
+    key="BASE_URL",
     type="default",
     help="""
 To use OpenRouter, the Base Url must be entered, e.g., https://openrouter.ai/api/v1.
@@ -231,10 +302,11 @@ To use OpenRouter, the Base Url must be entered, e.g., https://openrouter.ai/api
 # LLM API KEY
 st.text_input(
     "Model API Key *", 
-    key="MODEL_API_KEY", 
+    key="MODEL_API_KEY",
     type="password",
     help="""
-The key required for authenticating with the model’s provider. This is usually issued when you sign up for access to the model. 
+The key required for authenticating with the model’s provider. 
+This is usually issued when you sign up for access to the model. 
     """
 )
 

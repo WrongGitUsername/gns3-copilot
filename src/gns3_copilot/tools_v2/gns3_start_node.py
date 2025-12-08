@@ -1,3 +1,10 @@
+"""
+GNS3 node startup tool for network device activation.
+
+Provides functionality to start one or multiple nodes in GNS3 projects
+with progress tracking and status monitoring.
+"""
+
 import json
 import time
 import os
@@ -26,16 +33,16 @@ def show_progress_bar(duration=120, interval=1, node_count=1):
     for elapsed in range(duration):
         # Calculate progress percentage
         progress = (elapsed + 1) / duration * 100
-        
+
         # Create progress bar display
         bar_length = 30
         filled_length = int(bar_length * elapsed // duration)
-        bar = '=' * filled_length + '>' + ' ' * (bar_length - filled_length - 1)
-        
+        progress_string = '=' * filled_length + '>' + ' ' * (bar_length - filled_length - 1)
+
         # Print progress bar with node count
-        print(f'\r[{bar}] {progress:.1f}%', end='', flush=True)
+        print(f'\r[{progress_string}] {progress:.1f}%', end='', flush=True)
         time.sleep(interval)
-    
+
     print(f"\n{node_count} node(s) startup completed!")
 
 class GNS3StartNodeTool(BaseTool):
@@ -153,7 +160,7 @@ class GNS3StartNodeTool(BaseTool):
                 "nodes": results
             }
 
-            logger.info("Start operation completed: %d successful, %d failed", 
+            logger.info("Start operation completed: %d successful, %d failed",
                         len(successful_nodes), len(failed_nodes))
             logger.debug("Final result: %s", json.dumps(response, indent=2, ensure_ascii=False))
 

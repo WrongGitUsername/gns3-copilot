@@ -33,21 +33,43 @@ from gns3_copilot.agent import agent, langgraph_checkpointer
 from gns3_copilot.log_config import setup_logger
 from gns3_copilot.public_model import format_tool_response
 
-logger = setup_logger("app")
+logger = setup_logger("chat")
 
 # get all thread_id from checkpoint database.
-def list_thread_ids(langgraph_checkpointer):
+def list_thread_ids(checkpointer):
+    """
+    Get all unique thread IDs from LangGraph checkpoint database.
+    
+    Args:
+        checkpointer: LangGraph checkpointer instance.
+    
+    Returns:
+        list: List of unique thread IDs ordered by most recent activity.
+              Returns empty list on error or if table doesn't exist.
+    """
     try:
-        res = langgraph_checkpointer.conn.execute(
+        res = checkpointer.conn.execute(
             "SELECT DISTINCT thread_id FROM checkpoints ORDER BY rowid DESC"
         ).fetchall()
         return [r[0] for r in res]
     except Exception as e:
         # Table might not exist yet, return empty list
-        logger.debug(f"Error listing thread IDs (table may not exist): {e}")
+        logger.debug("Error listing thread IDs (table may not exist): %s", e)
         return []
 
 def new_session():
+    """
+    Create a new chat session by generating a unique thread ID and resetting session state.
+    
+    Initializes a fresh conversation session with a new UUID, clears existing session data,
+    and resets the UI session selector to the default option.
+    
+    Side Effects:
+        - Updates st.session_state with new thread_id
+        - Clears current_thread_id and state_history
+        - Resets session_select to default option
+        - Logs session creation
+    """
     new_tid = str(uuid.uuid4())
     # real new thread id
     st.session_state["thread_id"] = new_tid
@@ -56,7 +78,7 @@ def new_session():
     st.session_state["state_history"] = None
     # Reset the dropdown menu to the first option ("(Please select session)", None)
     st.session_state["session_select"] = session_options[0]
-    logger.debug(f"New Session created with thread_id={new_tid}")
+    logger.debug("New Session created with thread_id= %s", new_tid)
 
 # Initialize session state for thread ID
 if "thread_id" not in st.session_state:
@@ -72,11 +94,11 @@ st.set_page_config(page_title="GNS3 Copilot", layout="wide")
 with st.sidebar:
 
     thread_ids = list_thread_ids(langgraph_checkpointer)
-    
+
     # Display name/value are title and id
     # The first option is an empty/placeholder selection
     session_options = [("(Please select session)", None)]
-    
+
     for tid in thread_ids:
         ckpt = langgraph_checkpointer.get({"configurable": {"thread_id": tid}})
         title = (
@@ -87,9 +109,9 @@ with st.sidebar:
         # 使用thread_id的部分内容来避免相同的title name
         unique_title = f"{title} ({tid[:6]})"
         session_options.append((unique_title, tid))
-        
-    logger.debug(f"session_options : {session_options}")
-                
+
+    logger.debug("session_options : %s", session_options)
+
     selected = st.selectbox(
         "Session History", 
         options=session_options,
@@ -99,10 +121,10 @@ with st.sidebar:
 
     title, selected_thread_id = selected
 
-    logger.debug(f"selectbox selected : {title}, {selected_thread_id}")
+    logger.debug("selectbox selected : %s, %s", title, selected_thread_id)
 
     st.markdown(f"Current Session: `{title} thread_id: {selected_thread_id}`")
-    
+
     col1, col2 = st.columns(2)
     with col1:
         st.button(
@@ -119,11 +141,11 @@ with st.sidebar:
             langgraph_checkpointer.delete_thread(thread_id=selected_thread_id)
             st.success(f"_Delete Success_: {title} \n\n _Thread_id_: `{selected_thread_id}`")
             st.rerun()
-        
+
     # If a valid thread id is selected, load the historical messages
-    if selected_thread_id: 
+    if selected_thread_id:
         # Store the selected ID for use in the main interface
-        st.session_state["current_thread_id"] = selected_thread_id   
+        st.session_state["current_thread_id"] = selected_thread_id
         st.session_state["state_history"] = agent.get_state(
             {
                 "configurable": {"thread_id": selected_thread_id}
@@ -205,12 +227,18 @@ if st.session_state.get("state_history") is not None:
         current_assistant_block.__exit__(None, None, None)
 
 # Unique thread ID for each session
-# If a session is selected, continue the conversation using its thread ID; otherwise, initialize a new thread ID.
+# If a session is selected, continue the conversation using its thread ID;
+# otherwise, initialize a new thread ID.
 if selected_thread_id:
-    config = {"configurable": {"thread_id": st.session_state["current_thread_id"], "max_iterations": 100}}
+    config = {
+        "configurable": {
+            "thread_id": st.session_state["current_thread_id"],
+            "max_iterations": 100
+            }
+        }
 else:
     config = {"configurable": {"thread_id": current_thread_id, "max_iterations": 100}}
-    
+
 # React to user input
 if prompt := st.chat_input("What is up?"):
     # Display user message in chat message container

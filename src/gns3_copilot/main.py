@@ -9,46 +9,55 @@ Streamlit application with support for Streamlit parameter passthrough.
 import argparse
 import sys
 import subprocess
-import os
 from pathlib import Path
 
+# Conditional imports at top level
+try:
+    import streamlit
+    STREAMLIT_AVAILABLE = True
+except ImportError:
+    STREAMLIT_AVAILABLE = False
+
+try:
+    import gns3_copilot
+    from gns3_copilot import __version__
+    GNS3_COPILOT_AVAILABLE = True
+except ImportError:
+    gns3_copilot = None
+    __version__ = "unknown"
+    GNS3_COPILOT_AVAILABLE = False
 
 def get_app_path():
     """Get the path to the app.py file."""
     # Try to find app.py in the current directory first
     current_dir = Path.cwd()
     app_path = current_dir / "app.py"
-    
+
     if app_path.exists():
         return str(app_path)
-    
+
     # If not found, try to find it relative to this script
     script_dir = Path(__file__).parent.parent
     app_path = script_dir / "app.py"
-    
+
     if app_path.exists():
         return str(app_path)
-    
+
     # As a last resort, try to find it in the package installation
     try:
-        import gns3_copilot
         package_dir = Path(gns3_copilot.__file__).parent
         app_path = package_dir / "app.py"
         if app_path.exists():
             return str(app_path)
     except ImportError:
         pass
-    
+
     return None
 
 
 def check_streamlit():
     """Check if streamlit is available."""
-    try:
-        import streamlit
-        return True
-    except ImportError:
-        return False
+    return STREAMLIT_AVAILABLE
 
 
 def print_help():
@@ -99,12 +108,9 @@ ALTERNATIVE USAGE:
 
 def print_version():
     """Print version information."""
-    try:
-        import sys
-        sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-        from gns3_copilot import __version__
+    if GNS3_COPILOT_AVAILABLE:
         print(f"GNS3 Copilot version {__version__}")
-    except ImportError:
+    else:
         print("GNS3 Copilot version unknown")
 
 
@@ -115,60 +121,69 @@ def main():
         description="GNS3 Copilot - AI-powered network automation assistant for GNS3",
         add_help=False  # We'll handle help ourselves to allow unknown args
     )
-    
+
     # Add our custom arguments
-    parser.add_argument("--help", "-h", action="store_true", help="Show this help message and exit")
-    parser.add_argument("--version", "-v", action="store_true", help="Show version information and exit")
-    
+    parser.add_argument(
+        "--help", "-h", action="store_true", help="Show this help message and exit")
+    parser.add_argument(
+        "--version", "-v", action="store_true", help="Show version information and exit")
+
     # Parse known args, leaving unknown args for streamlit
     args, unknown_args = parser.parse_known_args()
-    
+
     # Handle our custom arguments
     if args.help:
         print_help()
         return 0
-    
+
     if args.version:
         print_version()
         return 0
-    
+
     # Check if streamlit is available
     if not check_streamlit():
         print("Error: Streamlit is not installed. Please install it with:")
         print("  pip install streamlit")
         return 1
-    
+
     # Find the app.py file
     app_path = get_app_path()
     if not app_path:
         print("Error: Could not find app.py file.")
-        print("Please ensure you're running this from the project directory or that the package is properly installed.")
+        print(
+            "Please ensure you're running this from the project directory "
+            "or that the package is properly installed."
+            )
         return 1
-    
+
     # Build the streamlit command
     cmd = ["streamlit", "run", app_path] + unknown_args
-    
+
     # Print startup information
     print("Starting GNS3 Copilot...")
     print(f"App file: {app_path}")
     if unknown_args:
         print(f"Additional arguments: {' '.join(unknown_args)}")
     print()
-    
+
+    exit_code = 0
     try:
         # Run streamlit
         subprocess.run(cmd, check=True)
     except subprocess.CalledProcessError as e:
         print(f"Error running Streamlit: {e}")
-        return 1
+        exit_code = 1
     except KeyboardInterrupt:
         print("\nGNS3 Copilot stopped by user.")
-        return 0
+        exit_code = 0
     except FileNotFoundError:
-        print("Error: 'streamlit' command not found. Please ensure Streamlit is installed and in your PATH.")
-        return 1
-    
-    return 0
+        print(
+            "Error: 'streamlit' command not found. "
+            "Please ensure Streamlit is installed and in your PATH."
+            )
+        exit_code = 1
+
+    return exit_code
 
 
 if __name__ == "__main__":

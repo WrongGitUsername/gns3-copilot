@@ -1,3 +1,9 @@
+"""
+Prompt template for generating conversation titles.
+
+Generates concise Chinese or English titles based on conversation language.
+"""
+
 TITLE_PROMPT = """
 Based on the following conversation records,
 analyze the language composition and generate a concise, summary title.

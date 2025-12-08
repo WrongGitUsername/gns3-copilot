@@ -1,3 +1,10 @@
+"""
+GNS3 link creation tool for connecting network nodes.
+
+Provides functionality to create links between nodes in GNS3 projects
+using the GNS3 API connector.
+"""
+
 import json
 import os
 from dotenv import load_dotenv
@@ -13,6 +20,13 @@ logger = setup_tool_logger("gns3_create_link")
 load_dotenv()
 
 class GNS3LinkTool(BaseTool):
+    """
+    Tool for creating network links between GNS3 nodes.
+
+    Creates one or more links between specified nodes in a GNS3 project
+    by connecting their network ports. Supports batch link creation
+    with error handling for individual link failures.
+    """
     name: str = "create_gns3_link"
     description: str = """
     Creates one or more links between nodes in a GNS3 project.
@@ -78,7 +92,7 @@ class GNS3LinkTool(BaseTool):
             if not project_id:
                 logger.error("Missing required field: project_id")
                 return [{"error": "Missing required field: project_id"}]
-            
+
             if not isinstance(links_data, list) or len(links_data) == 0:
                 logger.error("Invalid links data: must be a non-empty array")
                 return [{"error": "Invalid links data: must be a non-empty array"}]
@@ -88,12 +102,12 @@ class GNS3LinkTool(BaseTool):
             gns3_server = Gns3Connector(url=os.getenv("GNS3_SERVER_URL"))
 
             created_links = []
-            
+
             # Process each link definition
             for i, link_data in enumerate(links_data):
                 try:
                     logger.info("Creating link %d/%d", i + 1, len(links_data))
-                    
+
                     # Extract link parameters
                     node_id1 = link_data.get("node_id1")
                     port1 = link_data.get("port1")
@@ -117,8 +131,14 @@ class GNS3LinkTool(BaseTool):
                         continue
 
                     # Find port information
-                    port1_info = next((port for port in node1.get("ports", []) if port.get("name") == port1), None)
-                    port2_info = next((port for port in node2.get("ports", []) if port.get("name") == port2), None)
+                    port1_info = next(
+                        (port for port in node1.get("ports", []) if port.get("name") == port1),
+                        None
+                        )
+                    port2_info = next(
+                        (port for port in node2.get("ports", []) if port.get("name") == port2),
+                        None
+                        )
                     if not port1_info or not port2_info:
                         error_msg = f"Port not found in link {i}"
                         logger.error(error_msg)
@@ -156,7 +176,10 @@ class GNS3LinkTool(BaseTool):
                         "port2": port2
                     }
                     created_links.append(link_info)
-                    logger.debug("Successfully created link: %s", json.dumps(link_info, ensure_ascii=False))
+                    logger.debug(
+                        "Successfully created link: %s",
+                        json.dumps(link_info, ensure_ascii=False)
+                        )
 
                 except Exception as e:
                     error_msg = f"Failed to create link {i}: {str(e)}"
@@ -165,9 +188,9 @@ class GNS3LinkTool(BaseTool):
 
             # Log final results
             success_count = len([link for link in created_links if "error" not in link])
-            logger.info("Link creation completed: %d successful, %d failed", 
+            logger.info("Link creation completed: %d successful, %d failed",
                        success_count, len(links_data) - success_count)
-            
+
             return created_links
 
         except json.JSONDecodeError as e:
@@ -190,7 +213,7 @@ if __name__ == "__main__":
             }
         ]
     })
-    
+
     # Test with multiple links
     multiple_links_input = json.dumps({
         "project_id": "your-project-uuid",
@@ -209,13 +232,13 @@ if __name__ == "__main__":
             }
         ]
     })
-    
+
     tool = GNS3LinkTool()
-    
+
     print("=== Testing Single Link Creation ===")
     result = tool._run(single_link_input)
     pprint(result)
-    
+
     print("\n=== Testing Multiple Links Creation ===")
     result = tool._run(multiple_links_input)
     pprint(result)

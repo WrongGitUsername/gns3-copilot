@@ -1,12 +1,13 @@
 """
-This module uses Nornir + Netmiko to batch execute Linux commands on GNS3 topology devices via Telnet console.
+This module uses Nornir + Netmiko to batch execute Linux commands on GNS3 topology devices
+via Telnet console.
 """
 import json
 import os
 import re
 import time
-from dotenv import load_dotenv
 from typing import List, Dict, Any
+from dotenv import load_dotenv
 from nornir import InitNornir
 from nornir.core.task import Task, Result
 from nornir_netmiko.tasks import netmiko_send_command
@@ -20,7 +21,8 @@ logger = setup_tool_logger("linux_tools_nornir")
 # Load environment variables
 load_dotenv()
 
-# Linux Telnet dedicated connection group (using generic_telnet driver, suitable for GNS3/EVE-NG console)
+# Linux Telnet dedicated connection group
+# (using generic_telnet driver, suitable for GNS3 console)
 # Nornir configuration groups
 groups_data = {
     "linux_telnet": {
@@ -52,7 +54,8 @@ defaults = {
 
 class LinuxTelnetBatchTool(BaseTool):
     """
-    A tool to batch execute read-only commands on multiple Linux devices (Telnet console) in GNS3 labs.
+    A tool to batch execute read-only commands on multiple Linux devices (Telnet console)
+    in GNS3 labs.
 
     **Important:**
     This tool is strictly for operations. Configuration commands are prohibited.
@@ -96,7 +99,23 @@ class LinuxTelnetBatchTool(BaseTool):
             List[Dict[str, Any]]: A list of dictionaries containing device names and
             command outputs.
         """
-
+        if not os.getenv("LINUX_TELNET_USERNAME") or not os.getenv("LINUX_TELNET_PASSWORD"):
+            user_message = (
+                    "Sorry, I can't proceed just yet.\n\n"
+                    "You haven't configured the Linux login credentials (username and password) yet.\n"
+                    "Please go to the **Settings** page and fill in the Linux username and password under the login credentials section.\n\n"
+                    "Once you've saved them, just come back and say anything (like 'Done' or 'Configured'), "
+                    "and I'll immediately continue with the task!\n\n"
+                    "Need help finding the settings page? Let me know — happy to guide you!"
+                )
+            logger.warning("Linux login credentials not configured — user prompted to set them up")
+            return [
+                    {
+                        "error": user_message,
+                        "action_required": "configure_linux_credentials",
+                        "user_message": user_message  # optional, if your frontend uses a separate field
+                    }
+                ]
         # Validate input
         device_configs_list = self._validate_tool_input(tool_input)
         if (isinstance(device_configs_list, list)
@@ -129,37 +148,38 @@ class LinuxTelnetBatchTool(BaseTool):
         try:
             # Step 1: Execute login for all devices
             login_result = dynamic_nr.run(task=self._linux_telnet_login)
-            
+
             # Step 2: Check login results and execute commands for successful logins
             successful_logins = []
             failed_logins = []
-            
+
             for device_name, result in login_result.items():
                 if result.failed:
                     failed_logins.append(device_name)
-                    logger.error(f"Device {device_name} login failed: {result.result}")
+                    logger.error("Device %s login failed: %s", device_name, result.result)
                 else:
                     successful_logins.append(device_name)
-                    logger.info(f"Device {device_name} login successful: {result.result}")
-            
+                    logger.info("Device %s login successful: %s", device_name, result.result)
+
             # Step 3: Execute commands only for devices with successful login
             if successful_logins:
                 # Filter device_configs_map to only include successfully logged in devices
                 filtered_device_configs_map = {
-                    device_name: commands 
+                    device_name: commands
                     for device_name, commands in device_configs_map.items()
                     if device_name in successful_logins
                 }
-                
+
                 task_result = dynamic_nr.run(
                     task=self._run_all_device_configs_with_single_retry,
                     device_configs_map=filtered_device_configs_map
                 )
             else:
                 task_result = {}
-            
+
             # Step 4: Process results for all devices
-            results = self._process_task_results(device_configs_list, hosts_data, task_result, login_result)
+            results = self._process_task_results(
+                device_configs_list, hosts_data, task_result, login_result)
 
         except Exception as e:
             # Overall execution failed
@@ -177,41 +197,42 @@ class LinuxTelnetBatchTool(BaseTool):
         """Smart Linux Telnet login: detect login status and only login when needed."""
         try:
             net_connect = task.host.get_connection("netmiko", task.nornir.config)
-            
+
             # Clear the buffer + press Enter several times to wake up the device.
             net_connect.clear_buffer()
             time.sleep(0.3)
             net_connect.write_channel("\n\n")
-            
+
             # Read the device output (wait up to 10 seconds)
             output = net_connect.read_channel_timing(read_timeout=10)
-            logger.info(f"Device {task.host.name} initial output: {output}")
+            logger.info("Device %s initial output: %s", task.host.name, output)
 
             # Check if output contains "login:" prompt
             if re.search(r"(?i)(^|\n).{0,60}(debian\s+)?login:\s*$", output):
                 # Need to login, execute login process
-                logger.info(f"Device {task.host.name} requires login - detected login prompt")
-                
+                logger.info("Device %s requires login - detected login prompt", task.host.name)
+
                 # Send username
                 net_connect.write_channel(f"{task.host.username}\n")
                 time.sleep(1)
                 output = net_connect.read_until_prompt_or_pattern("Password:", read_timeout=10)
-                
+
                 # Send password
                 net_connect.write_channel(f"{task.host.password}\n")
                 time.sleep(1)
                 output += net_connect.read_until_prompt_or_pattern(r"[$#]", read_timeout=10)
-                
-                logger.info(f"Device {task.host.name} login successful")
-                return Result(host=task.host, result=f"Login successful")
-            
-            else:
-                # Already logged in, return directly
-                logger.info(f"Device {task.host.name} already logged in - no login prompt detected")
-                return Result(host=task.host, result="Already logged in")
-                
+
+                logger.info("Device %s login successful", task.host.name)
+                return Result(host=task.host, result="Login successful")
+
+            # Already logged in, return directly
+            logger.info(
+                "Device %s already logged in - no login prompt detected",
+                task.host.name)
+            return Result(host=task.host, result="Already logged in")
+
         except Exception as e:
-            logger.error(f"Device {task.host.name} login failed: {str(e)}")
+            logger.error("Device %s login failed: %s", task.host.name, e)
             return Result(host=task.host, result=f"Login failed: {str(e)}", failed=True)
 
     def _run_all_device_configs_with_single_retry(
@@ -219,7 +240,10 @@ class LinuxTelnetBatchTool(BaseTool):
         task: Task,
         device_configs_map: Dict[str, List[str]]
         ) -> Result:
-        """Execute commands one-by-one on a single device (optimized for generic_telnet + $ prompt)."""
+        """
+        Execute commands one-by-one on a single device
+        (optimized for generic_telnet + $ prompt).
+        """
         device_name = task.host.name
         config_commands = device_configs_map.get(device_name, [])
 
@@ -229,7 +253,8 @@ class LinuxTelnetBatchTool(BaseTool):
         _outputs = {}
         for _cmd in config_commands:
             try:
-                # Use timing mode + increased delay_factor to ensure stability with $ prompt and passwordless sudo
+                # Use timing mode + increased delay_factor to ensure stability with $ prompt
+                # and passwordless sudo
                 _result = task.run(
                     task=netmiko_send_command,
                     command_string=_cmd,
@@ -240,7 +265,7 @@ class LinuxTelnetBatchTool(BaseTool):
                 _outputs[_cmd] = _result.result
             except Exception as e:
                 _outputs[_cmd] = f"Command execution failed: {str(e)}"
-                
+
         return Result(host=task.host, result=_outputs)
 
     def _validate_tool_input(self, tool_input):
@@ -280,7 +305,7 @@ class LinuxTelnetBatchTool(BaseTool):
         # Force all devices to use linux_telnet group (compatible with generic_telnet)
         for _, _host_info in hosts_data.items():
             _host_info["groups"] = ["linux_telnet"]
-            
+
         # Check for missing devices
         missing_devices = set(device_names) - set(hosts_data.keys())
         if missing_devices:
@@ -314,7 +339,8 @@ class LinuxTelnetBatchTool(BaseTool):
             logger.error("Failed to initialize Nornir: %s", e)
             raise ValueError(f"Failed to initialize Nornir: {e}") from e
 
-    def _process_task_results(self, device_configs_list, hosts_data, task_result, login_result=None):
+    def _process_task_results(
+        self, device_configs_list, hosts_data, task_result, login_result=None):
         """Process task results and format them for return."""
         results = []
 
@@ -431,14 +457,12 @@ if __name__ == "__main__":
     failed_count = 0
 
     for i in range(0, 1):
-        results = exe_cmd._run(tool_input=device_commands)
-        for result in results:
-            for result in results:
-                if result.get("status") == "failed":
+        exe_results = exe_cmd._run(tool_input=device_commands)
+        for exe_result in exe_results:
+            for exe_result in exe_results:
+                if exe_result.get("status") == "failed":
                     failed_count += 1
 
- 
-
     print("Execution results:")
-    print(json.dumps(results, indent=2, ensure_ascii=False))
+    print(json.dumps(exe_results, indent=2, ensure_ascii=False))
     print(f"Failed Count: {failed_count}")

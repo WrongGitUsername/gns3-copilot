@@ -20,7 +20,7 @@ Main modules:
 
 Note: GNS3TopologyTool is now available from gns3_client package
 
-Author: GNS3 Copilot Team
+Author: Guobin Yue
 """
 
 # Import main tool classes
