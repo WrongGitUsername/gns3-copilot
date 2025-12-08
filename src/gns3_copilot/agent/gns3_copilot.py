@@ -23,6 +23,7 @@ import streamlit as st
 from langchain.messages import AnyMessage, SystemMessage, ToolMessage
 from langchain.chat_models import init_chat_model
 from langgraph.graph import StateGraph, START, END
+from langgraph.managed.is_last_step import RemainingSteps
 from langgraph.checkpoint.sqlite import SqliteSaver
 from gns3_copilot.gns3_client import GNS3TopologyTool
 from gns3_copilot.tools_v2 import (
@@ -101,10 +102,12 @@ class MessagesState(TypedDict):
     Attributes:
         messages: List of conversation messages with cumulative updates using operator.add
         llm_calls: Counter for tracking the number of LLM invocations
+        remaining_steps: Is automatically managed by LangGraph's RemainingSteps to track and limit recursion depth.
         conversation_title: Optional conversation title for session identification and management
     """
     messages: Annotated[list[AnyMessage], operator.add]
     llm_calls: int
+    remaining_steps: RemainingSteps
     conversation_title: str | None # Optional conversation title
 
 # Define model node
@@ -199,7 +202,7 @@ def should_continue(state: MessagesState) -> Literal["tool_node", "title_generat
     last_message = state["messages"][-1]
     llm_calls = state.get("llm_calls", 0)
     current_title = state.get("conversation_title")
-
+ 
     # LLM requested one or more tool executions
     if last_message.tool_calls:
         logger.debug(
@@ -207,9 +210,9 @@ def should_continue(state: MessagesState) -> Literal["tool_node", "title_generat
             len(last_message.tool_calls)
             )
         return "tool_node"
-
+    
     # First full interaction completed and title not yet generated
-    if current_title in [None, "New Session"]:
+    if current_title in [None, "GNS3 Session"]:
         logger.info("First turn finished, no title yet → routing to 'title_generator_node'")
         return "title_generator_node"
 
@@ -217,6 +220,31 @@ def should_continue(state: MessagesState) -> Literal["tool_node", "title_generat
     logger.debug("Conversation turn complete (llm_calls= %s ) → routing to END", llm_calls)
     return END
 
+# Routing logic after the tool node
+def recursion_limit_continue(state: MessagesState) -> Literal["llm_call", END]:
+    """
+    Routing logic after tool execution to prevent infinite recursion.
+    
+    Determines whether to continue with another LLM call or end the conversation
+    based on remaining steps and message type.
+    
+    Args:
+        state: Current conversation state with messages and remaining steps
+    
+    Returns:
+        "llm_call" to continue processing, END to terminate conversation
+    
+    Logic:
+        - If last message is ToolMessage and steps >= 4: continue to LLM
+        - Otherwise: end conversation to prevent infinite loops
+    """
+    last_message = state["messages"][-1]
+    if isinstance(last_message, ToolMessage):
+        if state["remaining_steps"] < 4:
+            return END
+        return "llm_call"
+    
+    return END
 # Build and compile the agent
 # Build workflow
 agent_builder = StateGraph(MessagesState)
@@ -228,17 +256,28 @@ agent_builder.add_node("tool_node", tool_node)
 
 # Add edges to connect nodes
 agent_builder.add_edge(START, "llm_call")
+# Conditional routing after LLM response
+# Determines next step based on whether LLM needs to call tools or generate title
 agent_builder.add_conditional_edges(
     "llm_call",
     should_continue,
     {
-        "tool_node": "tool_node",
-        "title_generator_node": "title_generator_node",
-        END: END
+        "tool_node": "tool_node", # Route to tool execution if LLM requested tools
+        "title_generator_node": "title_generator_node", # Generate title on first interaction
+        END: END # End conversation if no tools needed
+    }
+)
+# Conditional routing after tool execution
+# Prevents infinite recursion by checking remaining steps before continuings
+agent_builder.add_conditional_edges(
+    "tool_node",
+    recursion_limit_continue,
+    {
+        "llm_call": "llm_call", # Continue to LLM if tools executed and steps remain
+        END: END # End conversation to prevent infinite loops
     }
 )
 
-agent_builder.add_edge("tool_node", "llm_call")
 agent_builder.add_edge("title_generator_node", END)
 
 # Add checkpointing

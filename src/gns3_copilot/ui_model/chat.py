@@ -233,11 +233,18 @@ if selected_thread_id:
     config = {
         "configurable": {
             "thread_id": st.session_state["current_thread_id"],
-            "max_iterations": 100
-            }
+            "max_iterations": 50
+            },
+        "recursion_limit": 28
         }
 else:
-    config = {"configurable": {"thread_id": current_thread_id, "max_iterations": 100}}
+    config = {
+        "configurable": {
+            "thread_id": current_thread_id,
+            "max_iterations": 50
+            },
+        "recursion_limit": 28
+        }
 
 # React to user input
 if prompt := st.chat_input("What is up?"):
