@@ -13,6 +13,8 @@ Note: This file is adapted - not the untouched upstream source. See repository R
 import os
 import time
 import requests
+import jwt
+import urllib3
 from functools import wraps
 from urllib.parse import urlparse
 from requests import HTTPError
@@ -89,13 +91,21 @@ class Gns3Connector:
     """
 
     def __init__(self, url=None, user=None, cred=None, verify=False, api_version=2):
-        requests.packages.urllib3.disable_warnings()
+        # Disable SSL warnings
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
         self.base_url = f"{url.strip('/')}/v{api_version}"
         self.user = user
         self.cred = cred
         self.headers = {"Content-Type": "application/json"}
         self.verify = verify
         self.api_calls = 0
+
+        # v3 authentication attributes
+        self.access_token = None
+        self.token_expiry = None
+        self.auth_type = 'basic' if api_version == 2 else 'jwt'
+        self.api_version = api_version
 
         # Create session object
         self._create_session()
@@ -106,8 +116,64 @@ class Gns3Connector:
         """
         self.session = requests.Session()  # pragma: no cover
         self.session.headers["Accept"] = "application/json"  # pragma: no cover
-        if self.user:  # pragma: no cover
+        
+        # Set authentication based on API version
+        if self.auth_type == 'basic' and self.user:
             self.session.auth = (self.user, self.cred)  # pragma: no cover
+        elif self.auth_type == 'jwt' and self.access_token:
+            self.session.headers["Authorization"] = f"Bearer {self.access_token}"
+
+    def _authenticate_v3(self):
+        """
+        Performs v3 API authentication using username and password to get JWT token
+        """
+        if not self.user or not self.cred:
+            raise ValueError("Username and password are required for v3 authentication")
+        
+        # Construct authentication URL (v3 API uses different base URL)
+        auth_url = f"{self.base_url.replace('/v3', '')}/v3/access/users/authenticate"
+        auth_data = {"username": self.user, "password": self.cred}
+        
+        # Use temporary session for authentication
+        temp_session = requests.Session()
+        temp_session.headers["Content-Type"] = "application/json"
+        
+        try:
+            response = temp_session.post(auth_url, json=auth_data, verify=self.verify)
+            if response.status_code == 200:
+                auth_result = response.json()
+                self.access_token = auth_result["access_token"]
+                # Update session with new token
+                self.session.headers["Authorization"] = f"Bearer {self.access_token}"
+                #print(f"Successfully authenticated to v3 API, token obtained")
+            else:
+                raise HTTPError(f"v3 API authentication failed: {response.status_code} - {response.text}")
+        except Exception as e:
+            raise HTTPError(f"v3 API authentication error: {str(e)}")
+
+    def _is_token_expired(self):
+        """
+        Check if the JWT token is expired (basic implementation)
+        """
+        if not self.access_token:
+            return True
+        
+        try:
+            # Decode token without verification to check expiry
+            decoded = jwt.decode(self.access_token, options={"verify_signature": False})
+            exp = decoded.get('exp')
+            if exp:
+                return time.time() > exp
+            return False
+        except jwt.DecodeError:
+            return True
+
+    def _refresh_token(self):
+        """
+        Refresh the JWT token (for now, just re-authenticate)
+        """
+        print("Refreshing v3 API token...")
+        self._authenticate_v3()
 
     def http_call(
         self,
@@ -133,6 +199,10 @@ class Gns3Connector:
         - `verify`: SSL Verification
         - `params`: Dictionary or bytes to be sent in the query string for the Request
         """
+        # Handle v3 authentication if needed
+        if self.auth_type == 'jwt' and not self.access_token and self.user and self.cred:
+            self._authenticate_v3()
+        
         if data:
             _response = getattr(self.session, method.lower())(
                 url, data=data, headers=headers, params=params, verify=verify

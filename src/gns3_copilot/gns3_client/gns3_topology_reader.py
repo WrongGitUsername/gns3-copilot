@@ -79,7 +79,18 @@ class GNS3TopologyTool(BaseTool):
         """
 
         try:
-            server = Gns3Connector(url=os.getenv("GNS3_SERVER_URL"))
+            if os.getenv("API_VERSION") == '2':
+                server = Gns3Connector(
+                    url=os.getenv("GNS3_SERVER_URL"),
+                    api_version=os.getenv("API_VERSION")
+                    )
+            if os.getenv("API_VERSION") == '3':
+                server = Gns3Connector(
+                    url=os.getenv("GNS3_SERVER_URL"),
+                    user=os.getenv("GNS3_SERVER_USERNAME"),
+                    cred=os.getenv("GNS3_SERVER_PASSWORD"),
+                    api_version=os.getenv("API_VERSION")
+                    )
             projects = server.projects_summary(is_print=False)
 
             # Check if any projects exist

@@ -97,7 +97,20 @@ class GNS3StartNodeTool(BaseTool):
 
             # Initialize Gns3Connector
             logger.info("Connecting to GNS3 server at %s...", os.getenv("GNS3_SERVER_URL"))
-            gns3_server = Gns3Connector(url=os.getenv("GNS3_SERVER_URL"))
+            
+            if os.getenv("API_VERSION") == '2':
+                gns3_server = Gns3Connector(
+                    url=os.getenv("GNS3_SERVER_URL"),
+                    api_version=os.getenv("API_VERSION")
+                    )
+            if os.getenv("API_VERSION") == '3':
+                gns3_server = Gns3Connector(
+                    url=os.getenv("GNS3_SERVER_URL"),
+                    user=os.getenv("GNS3_SERVER_USERNAME"),
+                    cred=os.getenv("GNS3_SERVER_PASSWORD"),
+                    api_version=os.getenv("API_VERSION")
+                    )
+                
 
             # First loop: Send start commands for all nodes
             logger.info(
