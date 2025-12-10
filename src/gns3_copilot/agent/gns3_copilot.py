@@ -310,3 +310,9 @@ def get_agent():
 
 langgraph_checkpointer = get_checkpointer()   # Cached SqliteSaver instance
 agent = get_agent()                 # Cached compiled LangGraph agent (with persistence)
+
+
+# Show the agent
+graph_image_data = agent.get_graph(xray=True).draw_mermaid_png()
+with open("agent_graph.png", "wb") as f:
+    f.write(graph_image_data)
