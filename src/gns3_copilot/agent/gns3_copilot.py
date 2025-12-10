@@ -30,7 +30,7 @@ from gns3_copilot.tools_v2 import (
     GNS3TemplateTool,
     GNS3CreateNodeTool,
     GNS3LinkTool,
-    #GNS3StartNodeTool,
+    GNS3StartNodeTool,
     ExecuteMultipleDeviceCommands,
     ExecuteMultipleDeviceConfigCommands,
     VPCSMultiCommands,
@@ -77,7 +77,7 @@ tools = [
     GNS3TopologyTool(),                # Read GNS3 topology information
     GNS3CreateNodeTool(),              # Create new nodes in GNS3
     GNS3LinkTool(),                    # Create links between nodes
-#    GNS3StartNodeTool(),               # Start GNS3 nodes
+    GNS3StartNodeTool(),               # Start GNS3 nodes
     ExecuteMultipleDeviceCommands(),   # Execute show/display commands on multiple devices
     ExecuteMultipleDeviceConfigCommands(),  # Execute configuration commands on multiple devices
     VPCSMultiCommands(),                    # Execute VPCS commands on multiple devices
