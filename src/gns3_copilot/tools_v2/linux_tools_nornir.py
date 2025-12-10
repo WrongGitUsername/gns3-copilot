@@ -81,6 +81,11 @@ class LinuxTelnetBatchTool(BaseTool):
     If you need to start the server/client for testing, execute the command one device at a time, do not execute them simultaneously.
     
     **Do NOT use this tool for any Danger configuration commands.**
+    
+    ALL commands generated must be strictly non-interactive and non-paginated.
+    Prohibited commands include top, vi/nano, and using pipes to less or more.
+    For continuous tasks, use single-run alternatives (e.g., ping -c 1, ps -aux instead of top).
+    Output must exit immediately after execution.
     """
 
     def _run(

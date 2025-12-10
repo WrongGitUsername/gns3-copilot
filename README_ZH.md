@@ -55,8 +55,6 @@ GNS3 Copilot 是一个强大的网络自动化工具，集成了多种AI模型�
 
 ### 安装步骤
 
-#### 方法 1：从 PyPI 安装（推荐）
-
 1. **创建虚拟环境**
 ```bash
 python -m venv venv
@@ -65,54 +63,23 @@ source venv/bin/activate  # Linux/macOS
 venv\Scripts\activate     # Windows
 ```
 
-2. **安装 GNS3 Copilot**
+1. **安装 GNS3 Copilot**
 ```bash
 pip install gns3-copilot
 ```
 
-3. **启动 GNS3 Server**
+1. **启动 GNS3 Server**
 确保 GNS3 Server 运行并可以通过网络访问其 API 接口：`http://x.x.x.x:3080`
 
-4. **启动应用程序**
+1. **启动应用程序**
 ```bash
 gns3-copilot
 ```
 
-#### 方法 2：从源码安装（适合开发者）
-
-1. **克隆项目**
-```bash
-git clone https://github.com/yueguobin/gns3-copilot.git
-cd gns3-copilot
-```
-
-2. **创建虚拟环境**
-```bash
-python -m venv venv
-source venv/bin/activate  # Linux/macOS
-# 或
-venv\Scripts\activate     # Windows
-```
-
-3. **安装依赖**
-```bash
-pip install -r requirements.txt
-pip install .
-```
-
-4. **启动 GNS3 Server**
-确保 GNS3 Server 运行并可以通过网络访问其 API 接口：`http://x.x.x.x:3080`
-
-5. **启动应用程序**
-```bash
-gns3-copilot
-```
 
 ## 使用指南
 
 ### 启动
-
-#### 方法 1：使用新的命令行界面（推荐）
 
 ```bash
 # 基本启动
@@ -140,34 +107,6 @@ gns3-copilot --help
 gns3-copilot --version
 ```
 
-#### 方法 2：传统 Streamlit 方式
-
-```bash
-# 启动Streamlit Web界面
-streamlit run app.py
-
-# 使用自定义参数
-streamlit run app.py --server.port 8080 --server.headless true
-
-# Web界面将在 http://localhost:8501（或指定端口）打开
-# 提供直观的图形界面与AI代理交互
-```
-
-#### 常用 Streamlit 参数
-
-`gns3-copilot` 命令支持所有 Streamlit 参数。常用的包括：
-
-- `--server.port PORT` - 运行端口（默认：8501）
-- `--server.address ADDRESS` - 绑定地址（默认：localhost）
-- `--server.headless true/false` - 无头模式运行
-- `--logger.level LEVEL` - 日志级别（error, warning, info, debug）
-- `--browser.gatherUsageStats true/false` - 收集使用统计
-- `--theme.base light/dark` - 设置基础主题
-
-获取完整的 Streamlit 参数列表，请运行：
-```bash
-streamlit run --help
-```
 ### 在设置页面进行配置
 
 **使用First-Party Providers配置**
@@ -189,7 +128,7 @@ GNS3 Copilot 的配置通过 Streamlit 界面管理，所有设置保存在项�
 ##### 1. GNS3 服务器配置
 - **GNS3 Server Host**: GNS3 服务器主机地址（如：127.0.0.1）
 - **GNS3 Server URL**: GNS3 服务器完整 URL（如：http://127.0.0.1:3080）
-- **API Version**: GNS3 API 版本（支持 v2 和 v3，目前仅支持v2， v3接口测试中。）
+- **API Version**: GNS3 API 版本（支持 v2 和 v3）
 - **GNS3 Server Username**: GNS3 服务器用户名（仅 API v3 需要）
 - **GNS3 Server Password**: GNS3 服务器密码（仅 API v3 需要）
 
@@ -211,7 +150,7 @@ GNS3 Copilot 的配置通过 Streamlit 界面管理，所有设置保存在项�
 - 如果 `.env` 文件不存在，系统会自动创建
 - 首次运行时会显示警告提示配置文件已创建
 
-##### 2. API 版本兼容性
+##### 2.GNS3 Server API 版本兼容性
 - **API v2**: 不需要用户名和密码认证
 - **API v3**: 必须提供用户名和密码进行认证
 - 系统会根据选择的 API 版本动态显示/隐藏认证字段
@@ -248,50 +187,10 @@ GNS3 Copilot 的配置通过 Streamlit 界面管理，所有设置保存在项�
 
 ## 安全注意事项
 
-⚠️ **重要安全提示**：
-
-1. **配置命令安全**: 配置工具具有修改设备配置的能力，使用前请确保：
-   - 在测试环境中验证
-   - 备份重要配置
-   - 了解每个命令的作用
-
-2. **API密钥保护**: 
+**API密钥保护**: 
    - 不要将 `.env` 文件提交到版本控制
    - 定期轮换API密钥
    - 使用最小权限原则
-
-3. **网络隔离**: 建议在隔离的测试环境中使用
-
-## 故障排除
-
-### 常见问题
-
-1. **GNS3连接失败**
-   - 检查GNS3 Server是否运行
-   - 确认端口3080是否可访问
-   - 检查防火墙设置
-
-2. **设备连接问题**
-   - 确认设备控制台端口正确
-   - 检查设备是否已启动
-   - 验证Telnet连接
-
-3. **AI模型调用失败**
-   - 检查API密钥是否正确
-   - 确认网络连接
-   - 验证API配额
-
-4. **认证问题**
-   - 对于GNS3 v3，确保JWT令牌正确配置(测试中)
-   - 检查环境变量中的API凭据
-
-### 调试模式
-
-启用详细日志：
-```python
-import logging
-logging.basicConfig(level=logging.DEBUG)
-```
 
 ## 贡献指南
 

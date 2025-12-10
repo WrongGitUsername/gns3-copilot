@@ -53,8 +53,6 @@ GNS3 Copilot is a powerful network automation tool that integrates multiple AI m
 
 ### Installation Steps
 
-#### Method 1: Install from PyPI (Recommended)
-
 1. **Create virtual environment**
 ```bash
 python -m venv venv
@@ -63,45 +61,15 @@ source venv/bin/activate  # Linux/macOS
 venv\Scripts\activate     # Windows
 ```
 
-2. **Install GNS3 Copilot**
+1. **Install GNS3 Copilot**
 ```bash
 pip install gns3-copilot
 ```
 
-3. **Start GNS3 Server**
+1. **Start GNS3 Server**
 Ensure GNS3 Server is running and can be accessed via its API interface: `http://x.x.x.x:3080`
 
-4. **Launch the application**
-```bash
-gns3-copilot
-```
-
-#### Method 2: Install from Source (For Developers)
-
-1. **Clone the project**
-```bash
-git clone https://github.com/yueguobin/gns3-copilot.git
-cd gns3-copilot
-```
-
-2. **Create virtual environment**
-```bash
-python -m venv venv
-source venv/bin/activate  # Linux/macOS
-# or
-venv\Scripts\activate     # Windows
-```
-
-3. **Install dependencies**
-```bash
-pip install -r requirements.txt
-pip install .
-```
-
-4. **Start GNS3 Server**
-Ensure GNS3 Server is running and can be accessed via its API interface: `http://x.x.x.x:3080`
-
-5. **Launch the application**
+1. **Launch the application**
 ```bash
 gns3-copilot
 ```
@@ -109,8 +77,6 @@ gns3-copilot
 ## Usage Guide
 
 ### Startup
-
-#### Method 1: Using the new command-line interface (Recommended)
 
 ```bash
 # Basic startup
@@ -138,34 +104,6 @@ gns3-copilot --help
 gns3-copilot --version
 ```
 
-#### Method 2: Traditional Streamlit approach
-
-```bash
-# Start Streamlit web interface
-streamlit run app.py
-
-# With custom parameters
-streamlit run app.py --server.port 8080 --server.headless true
-
-# Web interface will open at http://localhost:8501 (or specified port)
-# Provides an intuitive graphical interface for interacting with the AI agent
-```
-
-#### Common Streamlit Parameters
-
-The `gns3-copilot` command supports all Streamlit parameters. Commonly used ones include:
-
-- `--server.port PORT` - Port to run on (default: 8501)
-- `--server.address ADDRESS` - Address to bind to (default: localhost)
-- `--server.headless true/false` - Run in headless mode
-- `--logger.level LEVEL` - Log level (error, warning, info, debug)
-- `--browser.gatherUsageStats true/false` - Gather usage statistics
-- `--theme.base light/dark` - Set base theme
-
-For a complete list of Streamlit options, run:
-```bash
-streamlit run --help
-```
 
 ### Configure on Settings Page
 
@@ -188,7 +126,7 @@ GNS3 Copilot configuration is managed through a Streamlit interface, with all se
 ##### 1. GNS3 Server Configuration
 - **GNS3 Server Host**: GNS3 server host address (e.g., 127.0.0.1)
 - **GNS3 Server URL**: Complete GNS3 server URL (e.g., http://127.0.0.1:3080)
-- **API Version**: GNS3 API version (supports v2 and v3, currently only v2 is supported, v3 interface is under testing)
+- **API Version**: GNS3 API version (supports v2 and v3)
 - **GNS3 Server Username**: GNS3 server username (required only for API v3)
 - **GNS3 Server Password**: GNS3 server password (required only for API v3)
 
@@ -210,7 +148,7 @@ GNS3 Copilot configuration is managed through a Streamlit interface, with all se
 - If the `.env` file doesn't exist, the system will automatically create it
 - A warning will be displayed on first run indicating the configuration file has been created
 
-##### 2. API Version Compatibility
+##### 2. GNS3 Server API Version Compatibility
 - **API v2**: No username and password authentication required
 - **API v3**: Username and password authentication required
 - The system dynamically shows/hides authentication fields based on the selected API version
@@ -247,19 +185,11 @@ GNS3 Copilot configuration is managed through a Streamlit interface, with all se
 
 ## Security Considerations
 
-⚠️ **Important Security Notes**:
-
-1. **Configuration Command Security**: Configuration tools have the ability to modify device configurations, ensure before use:
-   - Verify in test environment
-   - Backup important configurations
-   - Understand the function of each command
-
-2. **API Key Protection**:
+1. **API Key Protection**:
    - Do not commit `.env` file to version control
    - Regularly rotate API keys
    - Use principle of least privilege
 
-3. **Network Isolation**: Recommended to use in isolated test environment
 
 ## Troubleshooting
 
@@ -284,13 +214,6 @@ GNS3 Copilot configuration is managed through a Streamlit interface, with all se
    - For GNS3 v3, ensure JWT tokens are properly configured (under testing)
    - Check API credentials in environment variables
 
-### Debug Mode
-
-Enable detailed logging:
-```python
-import logging
-logging.basicConfig(level=logging.DEBUG)
-```
 
 ## Contribution Guidelines
 
