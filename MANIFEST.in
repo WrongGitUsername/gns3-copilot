@@ -11,6 +11,10 @@ recursive-include src/gns3_copilot *.py
 global-exclude test/*
 prune test/
 
+# Explicitly exclude the Architecture
+global-exclude Architecture/*
+prune Architecture/
+
 # Explicitly exclude all other data file types (optional but safe)
 global-exclude *.json *.yaml *.yml *.txt *.jpeg *.gif
 global-exclude notebok_en.md notebok_zh.md
