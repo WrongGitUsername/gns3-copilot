@@ -111,7 +111,6 @@ class GNS3StartNodeTool(BaseTool):
                     api_version=os.getenv("API_VERSION")
                     )
                 
-
             # First loop: Send start commands for all nodes
             logger.info(
                 "Sending start commands for %d nodes in project %s...", len(node_ids), project_id
