@@ -1,10 +1,4 @@
----
-title: GNS3 Copilot System Architecture
-config:
-    look: handDrawn
-    theme: forest
-    layout: elk
----
+```mermaid
 graph TB
     %% Presentation Layer
     subgraph "Presentation Layer"
@@ -165,8 +159,7 @@ graph TB
 	CheckpointDB --- SQLiteDB
 	subGraph2
 	LogFiles
-    
----
+```
 
 
 # GNS3 Copilot System Architecture

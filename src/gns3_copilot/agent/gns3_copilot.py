@@ -313,6 +313,6 @@ agent = get_agent()                 # Cached compiled LangGraph agent (with pers
 
 
 # Show the agent
-graph_image_data = agent.get_graph(xray=True).draw_mermaid_png()
-with open("agent_graph.png", "wb") as f:
-    f.write(graph_image_data)
+#graph_image_data = agent.get_graph(xray=True).draw_mermaid_png()
+#with open("agent_graph.png", "wb") as f:
+#    f.write(graph_image_data)

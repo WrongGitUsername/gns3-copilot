@@ -22,26 +22,9 @@ GNS3 Copilot is a powerful network automation tool that integrates multiple AI m
 
 ## Technical Architecture
 
-### Core Components
+[GNS3-Copilot Architecture](Architecture/gns3_copilot_architecture.md)
 
-- **Agent Framework**: Intelligent agent system built on LangChain v1.0.7 and LangGraph
-- **Network Automation**: Network device automation using Nornir v3.5.0 and Netmiko v4.6.0
-- **GNS3 Integration**: Custom GNS3 API client supporting topology and node management with JWT authentication capability
-- **AI Models**: Supports DeepSeek Chat large language model
-
-### Toolset
-
-| Tool Name | Function Description |
-|-----------|---------------------|
-| `GNS3TopologyTool` | Read GNS3 topology information |
-| `GNS3CreateNodeTool` | Create GNS3 nodes |
-| `GNS3LinkTool` | Create connections between nodes |
-| `GNS3StartNodeTool` | Start GNS3 nodes |
-| `GNS3TemplateTool` | Get node templates |
-| `ExecuteMultipleDeviceCommands` | Execute display commands |
-| `ExecuteMultipleDeviceConfigCommands` | Execute configuration commands |
-| `VPCSMultiCommands` | Execute VPCS commands on multiple devices |
-| `LinuxTelnetBatchTool` | Execute linux commands on multiple devices |
+[Core Framework Detailed Design](Architecture/Core%20Framework%20Detailed%20Design.md)
 
 ## Installation Guide
 
@@ -79,7 +62,7 @@ gns3-copilot
 ### Startup
 
 ```bash
-# Basic startup
+# Basic startup, default port 8501
 gns3-copilot
 
 # Specify custom port
@@ -91,33 +74,12 @@ gns3-copilot --server.address 0.0.0.0 --server.port 8080
 # Run in headless mode
 gns3-copilot --server.headless true
 
-# Set log level
-gns3-copilot --logger.level debug
-
-# Disable usage statistics
-gns3-copilot --browser.gatherUsageStats false
-
 # Get help
 gns3-copilot --help
 
-# Show version
-gns3-copilot --version
 ```
 
-
 ### Configure on Settings Page
-
-**Configure using First-Party Providers**
-
-![First-Party Providers](https://github.com/yueguobin/gns3-copilot/blob/master/Config_First-Party.jpeg?raw=true)
-
-**Configure using Third-Party Aggregators**
-
-![Third-Party Aggregators](https://github.com/yueguobin/gns3-copilot/blob/master/Config_Third-Party-Aggregator.jpeg?raw=true)
-
-### Configuration Parameters Details
-
-#### 📋 Configuration File Overview
 
 GNS3 Copilot configuration is managed through a Streamlit interface, with all settings saved in the `.env` file in the project root directory. If the `.env` file doesn't exist on first run, the system will automatically create it.
 
@@ -141,89 +103,12 @@ GNS3 Copilot configuration is managed through a Streamlit interface, with all se
 - **Linux Console Username**: Linux console username (for Debian devices in GNS3)
 - **Linux Console Password**: Linux console password
 
-#### ⚠️ Important Notes
-
-##### 1. Configuration File Management
-- Configuration is automatically saved in the `.env` file in the project root directory
-- If the `.env` file doesn't exist, the system will automatically create it
-- A warning will be displayed on first run indicating the configuration file has been created
-
-##### 2. GNS3 Server API Version Compatibility
-- **API v2**: No username and password authentication required
-- **API v3**: Username and password authentication required
-- The system dynamically shows/hides authentication fields based on the selected API version
-
-##### 3. Model Configuration Key Points
-- **OpenRouter Platform Usage**:
-  - Model Provider should be filled as "openai"
-  - Base URL must be filled: `https://openrouter.ai/api/v1`
-  - Model Name format: `openai/gpt-4o-mini` or `x-ai/grok-4-fast`
-
-##### 4. Security Considerations
-- API Key field uses password type input, content will be hidden
-- Recommend regular API key rotation
-- Do not commit `.env` file to version control system
-
-##### 5. Configuration Validation
-- The system performs basic validation on configuration items:
-  - API version can only be "2" or "3"
-  - Model Provider must be in the supported list
-  - Temperature must be a valid number format
-
-##### 6. Linux Device Configuration
-- Username and password are used to connect to Debian Linux devices in GNS3
-- Default example username and password are both "debian"
-- Ensure Debian devices are properly configured in GNS3
-
-#### 🚀 Usage Recommendations
-
-1. **First-time Configuration**: Fill in each item according to the interface prompts, items with `*` are required
-2. **Test Connection**: After configuration, it's recommended to test GNS3 server connection first
-3. **Model Selection**: Choose appropriate model provider and specific model based on your needs
-4. **Backup Configuration**: Regularly backup `.env` file to prevent configuration loss
-
-
 ## Security Considerations
 
 1. **API Key Protection**:
    - Do not commit `.env` file to version control
    - Regularly rotate API keys
    - Use principle of least privilege
-
-
-## Troubleshooting
-
-### Common Issues
-
-1. **GNS3 Connection Failure**
-   - Check if GNS3 Server is running
-   - Confirm port 3080 is accessible
-   - Check firewall settings
-
-2. **Device Connection Issues**
-   - Confirm device console ports are correct
-   - Check if devices are started
-   - Verify Telnet connections
-
-3. **AI Model Call Failures**
-   - Check if API keys are correct
-   - Confirm network connectivity
-   - Verify API quotas
-
-4. **Authentication Issues**
-   - For GNS3 v3, ensure JWT tokens are properly configured (under testing)
-   - Check API credentials in environment variables
-
-
-## Contribution Guidelines
-
-Welcome to contribute code! Please follow these steps:
-
-1. Fork the project
-2. Create feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open Pull Request
 
 ## License
 
@@ -235,5 +120,3 @@ This project uses MIT License - see [LICENSE](LICENSE) file for details.
 - Issue Reporting: https://github.com/yueguobin/gns3-copilot/issues
 
 ---
-
-**Disclaimer**: This tool is for educational and testing purposes only. Before using in production environment, please thoroughly test and ensure it complies with your security policies.

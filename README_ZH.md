@@ -24,26 +24,9 @@ GNS3 Copilot 是一个强大的网络自动化工具，集成了多种AI模型�
 
 ## 技术架构
 
-### 核心组件
+[GNS3-Copilot Architecture](Architecture/gns3_copilot_architecture.md)
 
-- **Agent Framework**: 基于LangChain v1.0.7和LangGraph构建的智能代理系统
-- **Network Automation**: 使用Nornir v3.5.0和Netmiko v4.6.0进行网络设备自动化
-- **GNS3 Integration**: 自定义GNS3 API客户端，支持拓扑和节点管理，具备JWT认证功能
-- **AI Models**: 支持DeepSeek Chat大语言模型
-
-### 工具集
-
-| 工具名称 | 功能描述 |
-|---------|---------|
-| `GNS3TopologyTool` | 读取GNS3拓扑信息 |
-| `GNS3CreateNodeTool` | 创建GNS3节点 |
-| `GNS3LinkTool` | 创建节点间连接 |
-| `GNS3StartNodeTool` | 启动GNS3节点 |
-| `GNS3TemplateTool` | 获取节点模板 |
-| `ExecuteMultipleDeviceCommands` | 执行显示命令 |
-| `ExecuteMultipleDeviceConfigCommands` | 执行配置命令 |
-| `VPCSMultiCommands` | 在多个设备上执行VPCS命令 |
-| `LinuxTelnetBatchTool` | 在多个设备上执行linux命令 |
+[Core Framework Detailed Design](Architecture/Core%20Framework%20Detailed%20Design.md)
 
 ## 安装指南
 
@@ -82,7 +65,7 @@ gns3-copilot
 ### 启动
 
 ```bash
-# 基本启动
+# 基本启动，默认端口8501
 gns3-copilot
 
 # 指定自定义端口
@@ -94,34 +77,14 @@ gns3-copilot --server.address 0.0.0.0 --server.port 8080
 # 无头模式运行
 gns3-copilot --server.headless true
 
-# 设置日志级别
-gns3-copilot --logger.level debug
-
-# 禁用使用统计
-gns3-copilot --browser.gatherUsageStats false
-
 # 获取帮助
 gns3-copilot --help
 
-# 显示版本
-gns3-copilot --version
 ```
 
-### 在设置页面进行配置
-
-**使用First-Party Providers配置**
-
-![First-Party Providers](https://github.com/yueguobin/gns3-copilot/blob/master/Config_First-Party.jpeg?raw=true)
-
-**使用Third-Party Aggregators配置**
-
-![Third-Party Aggregators](https://github.com/yueguobin/gns3-copilot/blob/master/Config_Third-Party-Aggregator.jpeg?raw=true)
 
 ### 配置参数详解
 
-#### 📋 配置文件概述
-
-GNS3 Copilot 的配置通过 Streamlit 界面管理，所有设置保存在项目根目录的 `.env` 文件中。首次运行时如果 `.env` 文件不存在，系统会自动创建。
 
 #### 🔧 主要配置内容
 
@@ -143,47 +106,6 @@ GNS3 Copilot 的配置通过 Streamlit 界面管理，所有设置保存在项�
 - **Linux Console Username**: Linux 控制台用户名（用于 GNS3 中的 Debian 设备）
 - **Linux Console Password**: Linux 控制台密码
 
-#### ⚠️ 重要注意事项
-
-##### 1. 配置文件管理
-- 配置自动保存在项目根目录的 `.env` 文件中
-- 如果 `.env` 文件不存在，系统会自动创建
-- 首次运行时会显示警告提示配置文件已创建
-
-##### 2.GNS3 Server API 版本兼容性
-- **API v2**: 不需要用户名和密码认证
-- **API v3**: 必须提供用户名和密码进行认证
-- 系统会根据选择的 API 版本动态显示/隐藏认证字段
-
-##### 3. 模型配置要点
-- **OpenRouter 平台使用**：
-  - Model Provider 应填写 "openai"
-  - Base URL 必须填写：`https://openrouter.ai/api/v1`
-  - Model Name 格式：`openai/gpt-4o-mini` 或 `x-ai/grok-4-fast`
-
-##### 4. 安全注意事项
-- API Key 字段使用密码类型输入，内容会被隐藏
-- 建议定期更换 API 密钥
-- 不要将 `.env` 文件提交到版本控制系统
-
-##### 5. 配置验证
-- 系统会对配置项进行基本验证：
-  - API 版本只能是 "2" 或 "3"
-  - Model Provider 必须在支持的列表中
-  - Temperature 必须是有效的数字格式
-
-##### 6. Linux 设备配置
-- 用户名和密码用于连接 GNS3 中的 Debian Linux 设备
-- 默认示例用户名和密码都是 "debian"
-- 需要确保 GNS3 中已正确配置 Debian 设备
-
-#### 🚀 使用建议
-
-1. **首次配置**：按照界面提示逐项填写，带 `*` 的为必填项
-2. **测试连接**：配置完成后建议先测试 GNS3 服务器连接
-3. **模型选择**：根据需求选择合适的模型提供商和具体模型
-4. **备份配置**：定期备份 `.env` 文件以防配置丢失
-
 
 ## 安全注意事项
 
@@ -192,15 +114,6 @@ GNS3 Copilot 的配置通过 Streamlit 界面管理，所有设置保存在项�
    - 定期轮换API密钥
    - 使用最小权限原则
 
-## 贡献指南
-
-欢迎贡献代码！请遵循以下步骤：
-
-1. Fork 项目
-2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启 Pull Request
 
 ## 许可证
 
@@ -213,5 +126,3 @@ GNS3 Copilot 的配置通过 Streamlit 界面管理，所有设置保存在项�
 
 
 ---
-
-**免责声明**: 本工具仅用于教育和测试目的。在生产环境中使用前，请充分测试并确保符合您的安全策略。
