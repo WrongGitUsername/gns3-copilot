@@ -19,12 +19,14 @@ import operator
 from typing import Literal
 from typing_extensions import TypedDict, Annotated
 from dotenv import load_dotenv
+
 import streamlit as st
 from langchain.messages import AnyMessage, SystemMessage, ToolMessage
 from langchain.chat_models import init_chat_model
 from langgraph.graph import StateGraph, START, END
 from langgraph.managed.is_last_step import RemainingSteps
 from langgraph.checkpoint.sqlite import SqliteSaver
+
 from gns3_copilot.gns3_client import GNS3TopologyTool
 from gns3_copilot.tools_v2 import (
     GNS3TemplateTool,
@@ -37,8 +39,8 @@ from gns3_copilot.tools_v2 import (
     LinuxTelnetBatchTool
     )
 from gns3_copilot.log_config import setup_logger
-from gns3_copilot.prompts.react_prompt import SYSTEM_PROMPT
-from gns3_copilot.prompts.title_prompt import TITLE_PROMPT
+from gns3_copilot.prompts import TITLE_PROMPT
+from gns3_copilot.prompts import load_system_prompt
 
 load_dotenv()
 
@@ -113,13 +115,14 @@ class MessagesState(TypedDict):
 # Define model node
 def llm_call(state: dict):
     """LLM decides whether to call a tool or not"""
+    current_prompt = load_system_prompt()
 
     return {
         "messages": [
             model_with_tools.invoke(
                 [
                     SystemMessage(
-                        content=SYSTEM_PROMPT
+                        content=current_prompt
                     )
                 ]
                 + state["messages"]

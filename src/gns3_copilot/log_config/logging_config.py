@@ -159,6 +159,10 @@ LOGGER_CONFIGS = {
     "chat": {
         "console_level": logging.ERROR,
         "file_level": logging.DEBUG
+    },
+    "prompt_loader": {
+        "console_level": logging.ERROR,
+        "file_level": logging.DEBUG
     }
 }
 

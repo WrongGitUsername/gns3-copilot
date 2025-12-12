@@ -61,6 +61,8 @@ CONFIG_MAP = {
     # Other Settings
     "LINUX_TELNET_USERNAME": "LINUX_TELNET_USERNAME",
     "LINUX_TELNET_PASSWORD": "LINUX_TELNET_PASSWORD",
+    # Prompt Configuration
+    "ENGLISH_LEVEL": "ENGLISH_LEVEL",
 }
 
 # Example list of supported providers (used for validation during loading)
@@ -108,7 +110,8 @@ def load_config_from_env():
     # Load environment variables into Streamlit's session state
     for st_key, env_key in CONFIG_MAP.items():
         # Get the value from os.environ; default to an empty string if not found
-        default_value = os.getenv(env_key) if os.getenv(env_key) is not None else ""
+        env_value = os.getenv(env_key)
+        default_value = env_value if env_value is not None else ""
 
         # Special handling for API_VERSION (kept consistent)
         if st_key == "API_VERSION":
@@ -311,6 +314,29 @@ This is usually issued when you sign up for access to the model.
 )
 
 st.header("Other Settings")
+
+english_levels = ['Normal Prompt', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2']
+st.selectbox(
+    "English Level",
+    options=english_levels,
+    key="ENGLISH_LEVEL",
+    help=
+"""
+Select your English proficiency level based on the CEFR (Common European Framework of Reference for Languages) framework:
+
+**CEFR English Levels:**
+- **A1 (Beginner)**: Basic phrases, simple network terminology
+- **A2 (Elementary)**: Simple sentences, common network concepts  
+- **B1 (Intermediate)**: Complex sentences, technical explanations
+- **B2 (Upper-Intermediate)**: Professional network terminology
+- **C1 (Advanced)**: Expert-level network discussions
+- **C2 (Proficiency)**: Native-level technical communication
+
+**Auto Select**: Uses the standard network automation prompt (React Prompt) optimized for general technical users
+
+The system will adjust prompt complexity, vocabulary, and explanation style based on your selected level.
+"""
+)
 
 col1, col2 = st.columns([1,1])
 with col1:
