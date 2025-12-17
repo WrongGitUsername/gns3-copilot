@@ -15,9 +15,11 @@ Key Features:
 """
 
 import os
+import requests
 import streamlit as st
-from dotenv import load_dotenv, set_key, find_dotenv
+from requests.exceptions import RequestException
 from gns3_copilot.log_config import setup_logger
+from dotenv import load_dotenv, set_key, find_dotenv
 
 logger = setup_logger("settings")
 
@@ -186,6 +188,72 @@ def save_config_to_env():
         )
     st.success("Configuration successfully saved to the .env file!")
 
+def check_gns3_api():
+    """
+    Check whether the GNS3 API is reachable using the provided configuration.
+    """
+    logger.info("Starting GNS3 API check.")
+
+    required_fields = {
+        "GNS3_SERVER_HOST": "GNS3 Server Host",
+        "GNS3_SERVER_URL": "GNS3 Server URL",
+        "API_VERSION": "API Version",
+    }
+
+    version = st.session_state.get("API_VERSION", "")
+    username = None
+    password = None
+
+    # Add auth fields for API v3
+    if version == "3":
+        required_fields.update({
+            "GNS3_SERVER_USERNAME": "GNS3 Server Username",
+            "GNS3_SERVER_PASSWORD": "GNS3 Server Password",
+        })
+
+    # Detect missing fields
+    missing_fields = [
+        label
+        for key, label in required_fields.items()
+        if not st.session_state.get(key)
+    ]
+
+    if missing_fields:
+        message = "Please fill out the following fields:\n\n"
+        message += "\n".join(f" - {field}" for field in missing_fields)
+        logger.warning("Missing fields detected: %s", ", ".join(missing_fields))
+        st.error(message)
+        return
+
+    # Extract validated values
+    url = st.session_state["GNS3_SERVER_URL"]
+    version = st.session_state["API_VERSION"]
+
+    if version == "3":
+        username = st.session_state["GNS3_SERVER_USERNAME"]
+        password = st.session_state["GNS3_SERVER_PASSWORD"]
+
+    auth = (username, password) if version == "3" else None
+
+    logger.debug(
+        "Checking GNS3 API",
+        extra={"url": url, "version": version, "auth": bool(auth)}
+    )
+
+    try:
+        response = requests.get(url, auth=auth, timeout=5)
+        response.raise_for_status()
+
+        logger.info(
+            "Successfully connected to GNS3 API at %s",
+            url
+        )
+        st.success(f"Successfully connected to the GNS3 API at {url}")
+
+    except RequestException as exc:
+        logger.error(f"Failed to connect to the GNS3 API: {exc}")
+        st.error(f"Failed to connect to the GNS3 API: {exc}")
+        
 # Initialization
 if 'GNS3_SERVER_HOST' not in st.session_state:
     logger.info("Initializing Settings page - loading configuration")
@@ -194,7 +262,7 @@ else:
     logger.debug("Settings page already initialized")
 
 # Streamlit UI
-st.title("GNS3 Settings")
+st.title("GNS3 API Settings")
 st.info(f"Configuration file path: **{ENV_FILE_PATH}**")
 
 # GNS3 Server address/API point
@@ -233,13 +301,17 @@ if st.session_state.get("API_VERSION") == "3":
             )
     with col3:
         st.text_input(
-            "GNS3 Passwd *",
+            "GNS3 Password *",
             key="GNS3_SERVER_PASSWORD",
             type="password",
             placeholder="E.g., admin"
             )
 else:
     pass
+
+# Button to manually check if GNS3 API is reachable
+if st.button("Check GNS3 API"):
+    check_gns3_api()
 
 st.header("LLM Model Configuration")
 col1, col2, col3 = st.columns([1,2,1])
