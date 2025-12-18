@@ -163,6 +163,14 @@ LOGGER_CONFIGS = {
     "prompt_loader": {
         "console_level": logging.ERROR,
         "file_level": logging.DEBUG
+    },
+    "whisper_stt": {
+        "console_level": logging.ERROR,
+        "file_level": logging.DEBUG
+    },
+    "openai_tts": {
+        "console_level": logging.ERROR,
+        "file_level": logging.DEBUG
     }
 }
 

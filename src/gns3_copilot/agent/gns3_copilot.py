@@ -116,7 +116,7 @@ class MessagesState(TypedDict):
 def llm_call(state: dict):
     """LLM decides whether to call a tool or not"""
     current_prompt = load_system_prompt()
-
+    print(current_prompt)
     return {
         "messages": [
             model_with_tools.invoke(

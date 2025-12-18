@@ -44,7 +44,7 @@ def main() -> None:
     # Set page metadata early to ensure consistent layout, title, and sidebar behavior.
     st.set_page_config(
         page_title="GNS3 Copilot",
-        page_icon="🤖",
+        page_icon="",
         layout="centered",
         initial_sidebar_state="expanded",
     )

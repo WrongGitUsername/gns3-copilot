@@ -35,6 +35,7 @@ logger = setup_logger("settings")
 # MODEL_API_KEY='your_api_key'
 # BASE_URL=''
 # TEMPERATURE='0.0'
+# VOICE='false'
 # LINUX_TELNET_USERNAME=''
 # LINUX_TELNET_PASSWORD=''
 # """
@@ -60,6 +61,24 @@ CONFIG_MAP = {
     "MODEL_API_KEY": "MODEL_API_KEY", # Base API Key
     "BASE_URL":"BASE_URL",
     "TEMPERATURE":"TEMPERATURE",
+    
+    # Voice Configuration
+    "VOICE": "VOICE",
+    # Voice TTS Configuration
+    "TTS_API_KEY": "TTS_API_KEY",
+    "TTS_BASE_URL": "TTS_BASE_URL",
+    "TTS_MODEL": "TTS_MODEL",
+    "TTS_VOICE": "TTS_VOICE",
+    "TTS_SPEED": "TTS_SPEED",
+    
+    # Voice STT Configuration
+    "STT_API_KEY": "STT_API_KEY",
+    "STT_BASE_URL": "STT_BASE_URL",
+    "STT_MODEL": "STT_MODEL",
+    "STT_LANGUAGE": "STT_LANGUAGE",
+    "STT_TEMPERATURE": "STT_TEMPERATURE",
+    "STT_RESPONSE_FORMAT": "STT_RESPONSE_FORMAT",
+    
     # Other Settings
     "LINUX_TELNET_USERNAME": "LINUX_TELNET_USERNAME",
     "LINUX_TELNET_PASSWORD": "LINUX_TELNET_PASSWORD",
@@ -73,6 +92,14 @@ MODEL_PROVIDERS = [
     "deepseek", "xai", "openrouter",
     # ... other providers
 ]
+
+# Voice TTS configuration options (used for validation during loading)
+TTS_MODELS = ["tts-1", "tts-1-hd", "gpt-4o-mini-tts"]
+TTS_VOICES = ["alloy", "ash", "ballad", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer", "verse"]
+
+# Voice STT configuration options (used for validation during loading)
+STT_MODELS = ["whisper-1", "gpt-4o-transcribe", "gpt-4o-transcribe-diarize"]
+STT_RESPONSE_FORMATS = ["json", "text", "srt", "verbose_json", "vtt", "tsv"]
 
 # If find_dotenv fails to locate the file, or if the file does not exist, attempt to create it.
 if not ENV_FILE_PATH or not os.path.exists(ENV_FILE_PATH):
@@ -136,6 +163,53 @@ def load_config_from_env():
                 default_value
                 )
             default_value = "0.0"
+
+        # Special handling for VOICE (boolean)
+        if st_key == "VOICE":
+            voice_value = default_value.lower().strip()
+            if voice_value not in ("true", "false", "1", "0", "yes", "no", "on", "off", ""):
+                logger.debug("Invalid VOICE value: %s, setting to default 'false'", default_value)
+                default_value = "false"
+            # Convert to boolean for checkbox
+            default_value = voice_value in ("true", "1", "yes", "on")
+
+        # Special handling for TTS configuration
+        if st_key == "TTS_MODEL" and default_value not in TTS_MODELS:
+            logger.warning("Unsupported TTS_MODEL %s, setting to empty", default_value)
+            default_value = ""
+        
+        if st_key == "TTS_VOICE" and default_value not in TTS_VOICES:
+            logger.warning("Unsupported TTS_VOICE %s, setting to empty", default_value)
+            default_value = ""
+        
+        if st_key == "TTS_SPEED":
+            try:
+                speed_float = float(default_value)
+                if not (0.25 <= speed_float <= 4.0):
+                    logger.debug("Invalid TTS_SPEED value: %s, setting to default '1.0'", default_value)
+                    default_value = "1.0"
+            except ValueError:
+                logger.debug("Invalid TTS_SPEED value: %s, setting to default '1.0'", default_value)
+                default_value = "1.0"
+
+        # Special handling for STT configuration
+        if st_key == "STT_MODEL" and default_value not in STT_MODELS:
+            logger.warning("Unsupported STT_MODEL %s, setting to empty", default_value)
+            default_value = ""
+        
+        if st_key == "STT_RESPONSE_FORMAT" and default_value not in STT_RESPONSE_FORMATS:
+            logger.warning("Unsupported STT_RESPONSE_FORMAT %s, setting to empty", default_value)
+            default_value = ""
+        
+        if st_key == "STT_TEMPERATURE":
+            try:
+                temp_float = float(default_value)
+                if not (0.0 <= temp_float <= 1.0):
+                    logger.debug("Invalid STT_TEMPERATURE value: %s, setting to default '0.0'", default_value)
+                    default_value = "0.0"
+            except ValueError:
+                logger.debug("Invalid STT_TEMPERATURE value: %s, setting to default '0.0'", default_value)
+                default_value = "0.0"
 
         # Set the value in session state
         st.session_state[st_key] = default_value
@@ -245,7 +319,7 @@ def check_gns3_api():
         response.raise_for_status()
 
         logger.info(
-            "Successfully connected to GNS3 API at %s",
+            "Successfully connected to the GNS3 API at %s",
             url
         )
         st.success(f"Successfully connected to the GNS3 API at {url}")
@@ -262,67 +336,68 @@ else:
     logger.debug("Settings page already initialized")
 
 # Streamlit UI
-st.title("GNS3 API Settings")
+st.title("GNS3 Copilot Settings")
 st.info(f"Configuration file path: **{ENV_FILE_PATH}**")
 
-# GNS3 Server address/API point
-col1, col2 = st.columns([1,2])
-with col1:
-    st.text_input(
-        "GNS3 Server Host *",
-        key="GNS3_SERVER_HOST",
-        type="default",
-        placeholder="E.g., 127.0.0.1",
-        )
-with col2:
-    st.text_input(
-        "GNS3 Server URL *",
-        key="GNS3_SERVER_URL",
-        type="default",
-        placeholder="E.g., http://127.0.0.1:3080 or http://127.0.0.1:8000",
-        )
-
-# GNS3 API version select
-col1, col2, col3 = st.columns([1,2,2])
-with col1:
-    st.selectbox(
-        "GNS3 API Version", 
-        ["2", "3"],
-        key="API_VERSION"
-    )
-
-if st.session_state.get("API_VERSION") == "3":
+with st.expander("🔧 GNS3 API Settings", expanded=True):
+    # GNS3 Server address/API point
+    col1, col2 = st.columns([1,2])
+    with col1:
+        st.text_input(
+            "GNS3 Server Host *",
+            key="GNS3_SERVER_HOST",
+            type="default",
+            placeholder="E.g., 127.0.0.1",
+            )
     with col2:
         st.text_input(
-            "GNS3 User *",
-            key="GNS3_SERVER_USERNAME",
+            "GNS3 Server URL *",
+            key="GNS3_SERVER_URL",
             type="default",
-            placeholder="E.g., admin"
+            placeholder="E.g., http://127.0.0.1:3080 or http://127.0.0.1:8000",
             )
-    with col3:
+
+    # GNS3 API version select
+    col1, col2, col3 = st.columns([1,2,2])
+    with col1:
+        st.selectbox(
+            "GNS3 API Version", 
+            ["2", "3"],
+            key="API_VERSION"
+        )
+
+    if st.session_state.get("API_VERSION") == "3":
+        with col2:
+            st.text_input(
+                "GNS3 User *",
+                key="GNS3_SERVER_USERNAME",
+                type="default",
+                placeholder="E.g., admin"
+                )
+        with col3:
+            st.text_input(
+                "GNS3 Password *",
+                key="GNS3_SERVER_PASSWORD",
+                type="password",
+                placeholder="E.g., admin"
+                )
+    else:
+        pass
+
+    # Button to manually check if GNS3 API is reachable
+    if st.button("Check GNS3 API"):
+        check_gns3_api()
+
+with st.expander("🤖 LLM Model Configuration", expanded=True):
+    col1, col2, col3 = st.columns([1,2,1])
+
+    with col1:
+        # LLM Model Provider
         st.text_input(
-            "GNS3 Password *",
-            key="GNS3_SERVER_PASSWORD",
-            type="password",
-            placeholder="E.g., admin"
-            )
-else:
-    pass
-
-# Button to manually check if GNS3 API is reachable
-if st.button("Check GNS3 API"):
-    check_gns3_api()
-
-st.header("LLM Model Configuration")
-col1, col2, col3 = st.columns([1,2,1])
-
-with col1:
-    # LLM Model Provider
-    st.text_input(
-        "Model Provider *", # Updated to use * for required field
-        key="MODE_PROVIDER",
-        type="default",
-        help="""
+            "Model Provider *", # Updated to use * for required field
+            key="MODE_PROVIDER",
+            type="default",
+            help="""
     Supported model_provider values and the corresponding integration package are:
 
     openai,
@@ -332,67 +407,240 @@ with col1:
     xai...
     
     If using the 'OpenRouter' platform, please enter 'openai' here.
-        """,
-        placeholder="e.g. 'deepseek', 'openai'"
-    )
+            """,
+            placeholder="e.g. 'deepseek', 'openai'"
+        )
 
-with col2:
-    # LLM Model Name
-    st.text_input(
-        "Model Name *",
-        key="MODEL_NAME",
-        type="default",
-        help="""
+    with col2:
+        # LLM Model Name
+        st.text_input(
+            "Model Name *",
+            key="MODEL_NAME",
+            type="default",
+            help="""
 The name or ID of the model, e.g. 'o3-mini', 'claude-sonnet-4-5-20250929', 'deepseek-caht'.
     
 If using the OpenRouter platform, 
 please enter the model name in the OpenRouter format, 
 e.g.: 'openai/gpt-4o-mini', 'x-ai/grok-4-fast'.
-        """,
-        placeholder="e.g. 'o3-mini', 'claude-sonnet-4-5-20250929', 'deepseek-caht'"
-    )
+            """,
+            placeholder="e.g. 'o3-mini', 'claude-sonnet-4-5-20250929', 'deepseek-caht'"
+        )
 
-with col3:
-    # LLM model temperature
+    with col3:
+        # LLM model temperature
+        st.text_input(
+            "Model Temperature", 
+            key="TEMPERATURE",
+            type="default",
+            help="""
+Controls randomness: higher values mean more random output. Typical range is 0.0 to 1.0.
+            """
+        )
+
+    # LLM model provider base url
     st.text_input(
-        "Model Temperature", 
-        key="TEMPERATURE",
+        "Base Url", 
+        key="BASE_URL",
         type="default",
         help="""
-Controls randomness: higher values mean more random output. Typical range is 0.0 to 1.0.
+To use OpenRouter, the Base Url must be entered, e.g., https://openrouter.ai/api/v1.
+        """,
+        placeholder="e.g., OpenRouter https://openrouter.ai/api/v1"
+    )
+
+    # LLM API KEY
+    st.text_input(
+        "Model API Key *", 
+        key="MODEL_API_KEY",
+        type="password",
+        help="""
+The key required for authenticating with the model's provider. 
+This is usually issued when you sign up for access to the model. 
         """
     )
 
-# LLM model provider base url
-st.text_input(
-    "Base Url", 
-    key="BASE_URL",
-    type="default",
-    help="""
-To use OpenRouter, the Base Url must be entered, e.g., https://openrouter.ai/api/v1.
-    """,
-    placeholder="e.g., OpenRouter https://openrouter.ai/api/v1"
-)
+with st.expander("🎤 Voice Settings (TTS/STT)", expanded=True):
+    # Voice Enable/Disable Toggle
+    st.subheader("Voice Control")
+    voice_enabled = st.checkbox(
+        "Enable Voice Features (TTS/STT)",
+        value=st.session_state.get("VOICE", False),
+        help="""
+Enable or disable voice features including:
+- **Text-to-Speech (TTS)**: Convert AI responses to speech
+- **Speech-to-Text (STT)**: Convert voice input to text
 
-# LLM API KEY
-st.text_input(
-    "Model API Key *", 
-    key="MODEL_API_KEY",
-    type="password",
-    help="""
-The key required for authenticating with the model’s provider. 
-This is usually issued when you sign up for access to the model. 
-    """
-)
+When disabled, all voice-related settings below will be hidden.
+        """
+    )
+    
+    # Update session state with boolean value
+    st.session_state["VOICE"] = voice_enabled
+    
+    # Show voice settings only when voice is enabled
+    if voice_enabled:
+        st.markdown("---")  # Separator
+        
+        # TTS Configuration Section
+        st.subheader("Text-to-Speech (TTS) Configuration")
 
-st.header("Other Settings")
+        # TTS First row: API Key, Model, Voice
+        col1, col2, col3 = st.columns([1,1,1])
+        with col1:
+            st.text_input(
+                "TTS API Key",
+                key="TTS_API_KEY",
+                type="password",
+                help="""
+API key for TTS service authentication.
+Leave empty for local/dummy services.
+                """,
+                placeholder="Enter your TTS API key"
+            )
+        with col2:
+            st.selectbox(
+                "TTS Model",
+                options=[""] + TTS_MODELS,
+                key="TTS_MODEL",
+                help="""
+Select the TTS model to use:
+- **tts-1**: Standard quality, faster
+- **tts-1-hd**: High quality, slower
+- **gpt-4o-mini-tts**: Latest model with voice instructions support
+                """
+            )
+        with col3:
+            st.selectbox(
+                "TTS Voice",
+                options=[""] + TTS_VOICES,
+                key="TTS_VOICE",
+                help="""
+Select the voice persona for TTS output.
+Different voices have different tones and characteristics.
+                """
+            )
 
-english_levels = ['Normal Prompt', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2']
-st.selectbox(
-    "English Level",
-    options=english_levels,
-    key="ENGLISH_LEVEL",
-    help=
+        # TTS Second row: Base URL and Speed
+        col1, col2 = st.columns([2,1])
+        with col1:
+            st.text_input(
+                "TTS Base URL",
+                key="TTS_BASE_URL",
+                type="default",
+                help="""
+Base URL for the TTS API endpoint.
+Use local TTS service endpoints like http://localhost:4123/v1
+                """,
+                placeholder="e.g., http://localhost:4123/v1"
+            )
+        with col2:
+            st.slider(
+                "TTS Speed",
+                min_value=0.25,
+                max_value=4.0,
+                value=1.0,
+                step=0.25,
+                key="TTS_SPEED",
+                help="""
+Controls the speed of speech synthesis:
+- 0.25: Very slow
+- 1.0: Normal speed
+- 4.0: Very fast
+                """
+            )
+
+        # STT Configuration Section
+        st.markdown("---")  # Separator
+        st.subheader("Speech-to-Text (STT) Configuration")
+
+        # STT First row: API Key, Model, Language
+        col1, col2, col3 = st.columns([1,1,1])
+        with col1:
+            st.text_input(
+                "STT API Key",
+                key="STT_API_KEY",
+                type="password",
+                help="""
+API key for STT service authentication.
+Leave empty for local/dummy services.
+                """,
+                placeholder="Enter your STT API key"
+            )
+        with col2:
+            st.selectbox(
+                "STT Model",
+                options=[""] + STT_MODELS,
+                key="STT_MODEL",
+                help="""
+Select the STT model to use:
+- **whisper-1**: Standard Whisper model
+- **gpt-4o-transcribe**: GPT-4 based transcription
+- **gpt-4o-transcribe-diarize**: With speaker diarization
+                """
+            )
+        with col3:
+            st.text_input(
+                "STT Language",
+                key="STT_LANGUAGE",
+                type="default",
+                help="""
+ISO 639-1 language code (e.g., 'en', 'zh', 'ja').
+Leave empty for auto-detection.
+                """,
+                placeholder="e.g., en, zh, ja (optional)"
+            )
+
+        # STT Second row: Base URL, Temperature, Response Format
+        col1, col2, col3 = st.columns([2,1,1])
+        with col1:
+            st.text_input(
+                "STT Base URL",
+                key="STT_BASE_URL",
+                type="default",
+                help="""
+Base URL for the STT API endpoint.
+Use local STT service endpoints like http://127.0.0.1:8001/v1
+                """,
+                placeholder="e.g., http://127.0.0.1:8001/v1"
+            )
+        with col2:
+            st.slider(
+                "STT Temperature",
+                min_value=0.0,
+                max_value=1.0,
+                value=0.0,
+                step=0.1,
+                key="STT_TEMPERATURE",
+                help="""
+Controls randomness in transcription:
+- 0.0: Deterministic, most accurate
+- 1.0: More creative, less accurate
+                """
+            )
+        with col3:
+            st.selectbox(
+                "STT Response Format",
+                options=[""] + STT_RESPONSE_FORMATS,
+                key="STT_RESPONSE_FORMAT",
+                help="""
+Output format for transcription results:
+- **json**: Standard JSON with text
+- **text**: Plain text only
+- **verbose_json**: JSON with timestamps
+- **srt/vtt**: Subtitle formats
+                """
+            )
+    else:
+        st.info("💡 **Voice features are currently disabled.** Enable the toggle above to configure TTS/STT settings.")
+
+with st.expander("⚙️ Other Settings", expanded=True):
+    english_levels = ['Normal Prompt', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2']
+    st.selectbox(
+        "English Level",
+        options=english_levels,
+        key="ENGLISH_LEVEL",
+        help=
 """
 Select your English proficiency level based on the CEFR (Common European Framework of Reference for Languages) framework:
 
@@ -408,28 +656,28 @@ Select your English proficiency level based on the CEFR (Common European Framewo
 
 The system will adjust prompt complexity, vocabulary, and explanation style based on your selected level.
 """
-)
+    )
 
-col1, col2 = st.columns([1,1])
-with col1:
-    st.text_input(
-        "Linux Console Username",
-        key="LINUX_TELNET_USERNAME",
-        placeholder="E.g., debian",
-        type="default",
-        help="""
+    col1, col2 = st.columns([1,1])
+    with col1:
+        st.text_input(
+            "Linux Console Username",
+            key="LINUX_TELNET_USERNAME",
+            placeholder="E.g., debian",
+            type="default",
+            help="""
 Use gns3 debian linux. 
 
 https://www.gns3.com/marketplace/appliances/debian-2
-        """
-    )
-with col2:
-    st.text_input(
-        "Linux Console Password",
-        key="LINUX_TELNET_PASSWORD",
-        placeholder="E.g., debian",
-        type="password"
-    )
+            """
+        )
+    with col2:
+        st.text_input(
+            "Linux Console Password",
+            key="LINUX_TELNET_PASSWORD",
+            placeholder="E.g., debian",
+            type="password"
+        )
 
 if ENV_FILE_PATH:
     st.button("Save Settings to .env", on_click=save_config_to_env)

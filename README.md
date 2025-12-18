@@ -26,6 +26,55 @@ GNS3 Copilot is a powerful network automation tool that integrates multiple AI m
 
 [Core Framework Detailed Design](Architecture/Core%20Framework%20Detailed%20Design.md)
 
+
+The Final Concept: Multi-Agent System Architecture and Dynamic Context Manager (Based on Current Understanding)
+
+ **Multi-Agent Role Assignment**
+
+This system employs distinct agents, each specializing in a specific function:
+
+- **Planning Agent:** Responsible for **identifying user intent** and **formulating the detailed task plan**.
+    
+- **Execution Agent:** Responsible for **executing specific device operations** step-by-step according to the plan.
+    
+- **Supervision Agent:** Responsible for **continuous monitoring** and evaluation of the Execution Agent's results. If issues are found, it requests the Execution Agent to **retry** or notifies the **Expert Agent** to intervene.
+    
+- **Expert Agent:** Responsible for addressing complex problems discovered by the Supervision Agent, providing **guidance**, **correcting the plan**, or **proposing solutions**.
+    
+
+ **System Workflow**
+
+The process operates in a closed-loop structure, ensuring reliability and self-correction:
+
+1. **User Input Request**
+    
+    - The user initiates the system by submitting a task or request.
+        
+2. **Planning Agent: Intent Recognition & Plan Formulation**
+    
+    - The Planning Agent analyzes the request, understands the objective, and generates a sequence of execution steps.
+        
+3. **Execution Agent: Execute Plan Steps**
+    
+    - The Execution Agent takes the planned steps and performs the corresponding concrete operations.
+        
+4. **Supervision Agent: Real-time Monitoring & Evaluation**
+    
+    - The Supervision Agent continuously checks the outcome of each execution step.
+        
+    - **Issue Detected** $\rightarrow$ Requests the Execution Agent to **Retry** OR **Notifies the Expert Agent**.
+        
+5. **Expert Agent: Intervention & Guidance/Correction**
+    
+    - The Expert Agent intervenes when complex problems are reported.
+        
+    - It provides guidance $\rightarrow$ **Corrects the Plan** (loops back to Step 2) OR **Proposes a Solution** (loops back to Step 3).
+        
+6. **Return Final Work Result**
+    
+    - Once all steps are successfully completed and verified, the final result is delivered to the user.
+
+
 ## Installation Guide
 
 ### Environment Requirements

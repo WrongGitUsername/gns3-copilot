@@ -14,6 +14,8 @@ Author: Guobin Yue
 # Import main utility functions
 from .get_gns3_device_port import get_device_ports_from_topology
 from .parse_tool_content import parse_tool_content, format_tool_response
+from .openai_tts import text_to_speech_wav, get_duration, get_tts_config
+from .openai_stt import speech_to_text, get_stt_config
 
 # Dynamic version management
 try:
@@ -39,4 +41,9 @@ __all__ = [
     "get_device_ports_from_topology",
     "parse_tool_content",
     "format_tool_response",
+    "text_to_speech_wav",
+    "speech_to_text",
+    "get_duration",
+    "get_tts_config",
+    "get_stt_config",
 ]

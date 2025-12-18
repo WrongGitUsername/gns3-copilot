@@ -27,13 +27,23 @@ Note: Requires proper configuration of GNS3 server and API credentials.
 """
 import json
 import uuid
+import os
+from dotenv import load_dotenv
+
+from time import sleep
 import streamlit as st
 from langchain.messages import ToolMessage, HumanMessage, AIMessage
 from gns3_copilot.agent import agent, langgraph_checkpointer
 from gns3_copilot.log_config import setup_logger
 from gns3_copilot.public_model import format_tool_response
+from public_model import speech_to_text, text_to_speech_wav, get_duration
 
 logger = setup_logger("chat")
+load_dotenv()
+
+# Voice functionality global switch
+# os.getenv returns a string, recommend converting to bool to avoid errors
+VOICE_ENABLED = os.getenv("VOICE", "false").lower() == "true"
 
 # get all thread_id from checkpoint database.
 def list_thread_ids(checkpointer):
@@ -71,7 +81,7 @@ def new_session():
         - Logs session creation
     """
     new_tid = str(uuid.uuid4())
-    # real new thread id
+    # Real new thread id
     st.session_state["thread_id"] = new_tid
     # Clear your own state
     st.session_state["current_thread_id"] = None
@@ -105,8 +115,8 @@ with st.sidebar:
             ckpt.get("channel_values", {}).get("conversation_title")
             if ckpt else None
         ) or "New Session"
-        # 相同的title name导致了ui界面上选择会话出现的总是选中同一个thread id的问题。
-        # 使用thread_id的部分内容来避免相同的title name
+        # Same title name caused the issue where selecting conversations always selected the same thread id.
+        # Use part of thread_id to avoid same title name
         unique_title = f"{title} ({tid[:6]})"
         session_options.append((unique_title, tid))
 
@@ -246,11 +256,40 @@ else:
         "recursion_limit": 28
         }
 
-# React to user input
-if prompt := st.chat_input("What is up?"):
+# Configure chat_input based on switch
+if VOICE_ENABLED:
+    prompt = st.chat_input(
+        "Say or record something...",
+        accept_audio=True,
+        audio_sample_rate=24000,
+    )
+else:
+    # When voice is disabled, do not enable accept_audio attribute
+    prompt = st.chat_input("Type your message here...")
+
+# Handle input
+if prompt:
+    user_text = ""
+
+    if VOICE_ENABLED:
+        # Mode A: prompt is an object (containing .text and .audio)
+        if prompt.audio:
+            user_text = speech_to_text(prompt.audio)
+        
+        # If voice is not converted to text, or user directly types
+        if not user_text:
+            user_text = prompt.text
+    else:
+        # Mode B: prompt is directly a string
+        user_text = prompt
+
+    # 3. Final check and run
+    if not user_text or user_text.strip() == "":
+        st.stop()
+        
     # Display user message in chat message container
     with st.chat_message("user"):
-        st.markdown(prompt)
+        st.markdown(user_text)
 
     # Display assistant response in chat message container
     with st.chat_message("assistant"):
@@ -260,11 +299,16 @@ if prompt := st.chat_input("What is up?"):
         # Core aggregation state: only stores currently streaming tool information
         # Structure: {'id': str, 'name': str, 'args_string': str} or None
         current_tool_state = None
-
+        
+        # TTS local switch for message control
+        tts_played = False
+        # Initialize audio_bytes variable
+        audio_bytes = None
+        
         # Stream the agent response
         for chunk in agent.stream(
             {
-                "messages": [HumanMessage(content=prompt)],
+                "messages": [HumanMessage(content=user_text)],
              },
             config=config,
             stream_mode="messages"
@@ -289,6 +333,25 @@ if prompt := st.chat_input("What is up?"):
                         active_text_placeholder.markdown(
                             current_text_chunk, unsafe_allow_html=True)
 
+                    # Determine if text message (i.e., msg.content) reception is complete
+                    is_text_ending = (
+                        # Case 1: Tool call starts
+                        msg.tool_calls or
+                        # Case 2: End metadata received
+                        msg.response_metadata.get('finish_reason') in ['tool_calls', 'stop']
+                    )
+                    if is_text_ending and not tts_played and current_text_chunk.strip() and VOICE_ENABLED:
+                        # Play once in a round of AIMessage/ToolMessage
+                        tts_played = True
+                        # Text_to_speech 
+                        try:
+                            with st.spinner("Generating voice..."):
+                                audio_bytes = text_to_speech_wav(current_text_chunk)
+                                st.audio(audio_bytes, format="audio/mp3", autoplay=True)
+                        except Exception as e:
+                            logger.error("TTS Error: %", e)
+                            st.error(f"TTS Error: {e}")
+                            
                     # Get metadata (ID and name) from tool_calls
                     if msg.tool_calls:
                         for tool in msg.tool_calls:
@@ -324,8 +387,7 @@ if prompt := st.chat_input("What is up?"):
                             and
                             current_tool_state is not None
                             )
-                        ):
-
+                        ):               
                         tool_data = current_tool_state
                         # Parse complete parameter string
                         parsed_args = {}
@@ -349,8 +411,7 @@ if prompt := st.chat_input("What is up?"):
                             # Inject tool_input structure
                             "args": parsed_args, 
                             "type": tool_data.get('type', 'tool_call') # Maintain completeness
-                        }
-
+                        }            
                         # Update Call Expander, display final parameters (collapsed)
                         with st.expander(
                             f"**Tool Call:** {tool_data['name']} `call_id: {tool_data['id']}`",
@@ -358,8 +419,12 @@ if prompt := st.chat_input("What is up?"):
                         ):
                             # Use the final complete structure
                             st.json(display_tool_call, expanded=False)
-
-                elif isinstance(msg, ToolMessage):
+                    
+                if isinstance(msg, ToolMessage):
+                    # Wait for audio playback to complete before returning ToolMessage to LLM
+                    if VOICE_ENABLED and audio_bytes:
+                        sleep(get_duration(audio_bytes))
+                    
                     # Clear state after completion, ready to receive next tool call
                     current_tool_state = None
 
@@ -373,6 +438,8 @@ if prompt := st.chat_input("What is up?"):
 
                     active_text_placeholder = st.empty()
                     current_text_chunk = ""
+                    # After a round of AIMessage/ToolMessage, reset tts_played switch, next round of AIMessage/ToolMessage can generate TTS again
+                    tts_played = False
 
     # After the interaction, update the session state with the latest StateSnapshot
     state_history = agent.get_state(config)
