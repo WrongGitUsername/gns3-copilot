@@ -48,7 +48,10 @@ venv\Scripts\activate     # Windows
 ```bash
 pip install gns3-copilot
 ```
-
+or
+```bash
+pip install git+https://github.com/yueguobin/gns3-copilot
+```
 1. **Start GNS3 Server**
 Ensure GNS3 Server is running and can be accessed via its API interface: `http://x.x.x.x:3080`
 
