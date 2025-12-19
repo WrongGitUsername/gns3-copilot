@@ -2,9 +2,9 @@ name: CI - QA & Testing
 
 on:
   push:
-    branches: [ dev, master ]
+    branches: [ Development, master ]
   pull_request:
-    branches: [ dev ]
+    branches: [ Development ]
 
 jobs:
   lint-and-test:
