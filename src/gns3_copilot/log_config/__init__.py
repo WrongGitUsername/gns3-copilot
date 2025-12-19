@@ -6,22 +6,23 @@ to eliminate duplicate logging setup code across modules.
 """
 
 from .logging_config import (
-    setup_logger,
-    get_logger,
-    configure_package_logging,
-    setup_tool_logger,
     LOGGER_CONFIGS,
+    configure_package_logging,
+    get_logger,
+    setup_logger,
+    setup_tool_logger,
 )
 
 # Dynamic version management
+__version__: str = "unknown"
 try:
     from importlib.metadata import version
-    __version__ = version("gns3-copilot")
+    __version__ = str(version("gns3-copilot"))
 except ImportError:
     # Fallback for Python < 3.8
     try:
         import pkg_resources
-        __version__ = pkg_resources.get_distribution("gns3-copilot").version
+        __version__ = str(pkg_resources.get_distribution("gns3-copilot").version)
     except Exception:
         __version__ = "unknown"
 except Exception:
@@ -33,7 +34,7 @@ __url__ = "https://github.com/yueguobin/gns3-copilot"
 
 __all__ = [
     "setup_logger",
-    "get_logger", 
+    "get_logger",
     "configure_package_logging",
     "setup_tool_logger",
     "LOGGER_CONFIGS",

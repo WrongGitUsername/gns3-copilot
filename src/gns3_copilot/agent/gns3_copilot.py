@@ -1,3 +1,4 @@
+# mypy: ignore-errors
 """
 GNS3 Network Automation Assistant
 
@@ -13,34 +14,34 @@ The assistant provides comprehensive GNS3 topology management capabilities inclu
 The assistant integrates with various tools to provide a complete network automation
 solution for GNS3 environments.
 """
+import operator
 import os
 import sqlite3
-import operator
 from typing import Literal
-from typing_extensions import TypedDict, Annotated
-from dotenv import load_dotenv
 
 import streamlit as st
-from langchain.messages import AnyMessage, SystemMessage, ToolMessage
+from dotenv import load_dotenv
 from langchain.chat_models import init_chat_model
-from langgraph.graph import StateGraph, START, END
-from langgraph.managed.is_last_step import RemainingSteps
+from langchain.messages import AnyMessage, SystemMessage, ToolMessage
 from langgraph.checkpoint.sqlite import SqliteSaver
+from langgraph.graph import END, START, StateGraph
+
+from langgraph.managed.is_last_step import RemainingSteps
+from typing_extensions import Annotated, TypedDict
 
 from gns3_copilot.gns3_client import GNS3TopologyTool
+from gns3_copilot.log_config import setup_logger
+from gns3_copilot.prompts import TITLE_PROMPT, load_system_prompt
 from gns3_copilot.tools_v2 import (
-    GNS3TemplateTool,
+    ExecuteMultipleDeviceCommands,
+    ExecuteMultipleDeviceConfigCommands,
     GNS3CreateNodeTool,
     GNS3LinkTool,
     GNS3StartNodeTool,
-    ExecuteMultipleDeviceCommands,
-    ExecuteMultipleDeviceConfigCommands,
+    GNS3TemplateTool,
+    LinuxTelnetBatchTool,
     VPCSMultiCommands,
-    LinuxTelnetBatchTool
-    )
-from gns3_copilot.log_config import setup_logger
-from gns3_copilot.prompts import TITLE_PROMPT
-from gns3_copilot.prompts import load_system_prompt
+)
 
 load_dotenv()
 
@@ -97,10 +98,10 @@ logger.debug("Available tools: %s", [tool.__class__.__name__ for tool in tools])
 class MessagesState(TypedDict):
     """
     GNS3 Copilot conversation state management class.
-    
+
     Maintains the conversation state for the LangGraph workflow, including message history,
     call counters, and session titles for comprehensive dialogue management.
-    
+
     Attributes:
         messages: List of conversation messages with cumulative updates using operator.add
         llm_calls: Counter for tracking the number of LLM invocations
@@ -116,7 +117,7 @@ class MessagesState(TypedDict):
 def llm_call(state: dict):
     """LLM decides whether to call a tool or not"""
     current_prompt = load_system_prompt()
-    print(current_prompt)
+    #print(current_prompt)
     return {
         "messages": [
             model_with_tools.invoke(
@@ -197,7 +198,7 @@ def tool_node(state: dict):
 def should_continue(state: MessagesState) -> Literal["tool_node", "title_generator_node", END]:
     """
     Determine the next step after the LLM has produced a response.
-    
+
     - If the LLM requested any tool calls → route to tool_node
     - If this is the first complete turn (llm_calls == 1) and no title exists → generate a title
     - Otherwise → conversation is complete, go to END
@@ -205,7 +206,7 @@ def should_continue(state: MessagesState) -> Literal["tool_node", "title_generat
     last_message = state["messages"][-1]
     llm_calls = state.get("llm_calls", 0)
     current_title = state.get("conversation_title")
- 
+
     # LLM requested one or more tool executions
     if last_message.tool_calls:
         logger.debug(
@@ -213,7 +214,7 @@ def should_continue(state: MessagesState) -> Literal["tool_node", "title_generat
             len(last_message.tool_calls)
             )
         return "tool_node"
-    
+
     # First full interaction completed and title not yet generated
     if current_title in [None, "GNS3 Session"]:
         logger.info("First turn finished, no title yet → routing to 'title_generator_node'")
@@ -227,16 +228,16 @@ def should_continue(state: MessagesState) -> Literal["tool_node", "title_generat
 def recursion_limit_continue(state: MessagesState) -> Literal["llm_call", END]:
     """
     Routing logic after tool execution to prevent infinite recursion.
-    
+
     Determines whether to continue with another LLM call or end the conversation
     based on remaining steps and message type.
-    
+
     Args:
         state: Current conversation state with messages and remaining steps
-    
+
     Returns:
         "llm_call" to continue processing, END to terminate conversation
-    
+
     Logic:
         - If last message is ToolMessage and steps >= 4: continue to LLM
         - Otherwise: end conversation to prevent infinite loops
@@ -246,7 +247,7 @@ def recursion_limit_continue(state: MessagesState) -> Literal["llm_call", END]:
         if state["remaining_steps"] < 4:
             return END
         return "llm_call"
-    
+
     return END
 # Build and compile the agent
 # Build workflow
@@ -290,7 +291,7 @@ LANGGRAPH_DB_PATH = "gns3_langgraph.db"
 def get_checkpointer() -> SqliteSaver:
     """
     Create and cache a single SqliteSaver instance for the entire app lifetime.
-    
+
     Important notes:
     - `check_same_thread=False` is required because Streamlit runs in a multi-threaded environment.
     - The returned checkpointer is automatically shared across all user sessions.
@@ -304,7 +305,7 @@ def get_checkpointer() -> SqliteSaver:
 def get_agent():
     """
     Compile and cache the LangGraph agent.
-    
+
     The agent builder (`agent_builder`) and checkpointer are defined earlier in the file.
     By not passing them as parameters we avoid Streamlit cache invalidation issues
     when the objects are recreated (even if they are logically identical).

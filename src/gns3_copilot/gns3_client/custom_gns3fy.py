@@ -12,18 +12,23 @@ Note: This file is adapted - not the untouched upstream source. See repository R
 """
 import os
 import time
-import requests
-import jwt
-import urllib3
-from functools import wraps
-from urllib.parse import urlparse
-from requests import HTTPError
 from dataclasses import field
-from typing import Optional, Any, Dict, List
-from pydantic import field_validator, ConfigDict
-from pydantic.dataclasses import dataclass
-from math import pi, sin, cos
+from functools import wraps
+from math import cos, pi, sin
+from typing import Any, Dict, List, Optional, TypeVar, Callable, cast, ParamSpec, Tuple, Union
+from typing_extensions import ParamSpec
+from urllib.parse import urlparse
 
+import jwt
+import requests
+import urllib3
+from pydantic import ConfigDict, field_validator
+from pydantic.dataclasses import dataclass
+from requests import HTTPError
+
+P = ParamSpec("P")
+R = TypeVar("R")
+F = TypeVar("F", bound=Callable[..., Any])
 
 config = ConfigDict(
     validate_assignment=True,
@@ -61,7 +66,6 @@ CONSOLE_TYPES = [
 
 LINK_TYPES = ["ethernet", "serial"]
 
-
 class Gns3Connector:
     """
     Connector to be use for interaction against GNS3 server controller API.
@@ -89,11 +93,23 @@ class Gns3Connector:
     {'local': False, 'version': '2.2.0b4'}
     ```
     """
+    access_token: Optional[str]
+    token_expiry: Optional[float]
+    
+    def __init__(
+        self,
+        url: Optional[str] = None,
+        user: Optional[str] = None, 
+        cred: Optional[str] = None,
+        verify: bool = False,
+        api_version: int = 2
+        )-> None:
 
-    def __init__(self, url=None, user=None, cred=None, verify=False, api_version=2):
         # Disable SSL warnings
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+        if url is None:
+            raise ValueError("URL is required for Gns3Connector")
         self.base_url = f"{url.strip('/')}/v{api_version}"
         self.user = user
         self.cred = cred
@@ -110,34 +126,35 @@ class Gns3Connector:
         # Create session object
         self._create_session()
 
-    def _create_session(self):
+    def _create_session(self) -> None:
         """
         Creates the requests.Session object and applies the necessary parameters
         """
         self.session = requests.Session()  # pragma: no cover
         self.session.headers["Accept"] = "application/json"  # pragma: no cover
-        
+
         # Set authentication based on API version
-        if self.auth_type == 'basic' and self.user:
+        if self.auth_type == 'basic' and self.user is not None and self.cred is not None:
             self.session.auth = (self.user, self.cred)  # pragma: no cover
+
         elif self.auth_type == 'jwt' and self.access_token:
             self.session.headers["Authorization"] = f"Bearer {self.access_token}"
 
-    def _authenticate_v3(self):
+    def _authenticate_v3(self) -> None:
         """
         Performs v3 API authentication using username and password to get JWT token
         """
         if not self.user or not self.cred:
             raise ValueError("Username and password are required for v3 authentication")
-        
+
         # Construct authentication URL (v3 API uses different base URL)
         auth_url = f"{self.base_url.replace('/v3', '')}/v3/access/users/authenticate"
         auth_data = {"username": self.user, "password": self.cred}
-        
+
         # Use temporary session for authentication
         temp_session = requests.Session()
         temp_session.headers["Content-Type"] = "application/json"
-        
+
         try:
             response = temp_session.post(auth_url, json=auth_data, verify=self.verify)
             if response.status_code == 200:
@@ -149,26 +166,29 @@ class Gns3Connector:
             else:
                 raise HTTPError(f"v3 API authentication failed: {response.status_code} - {response.text}")
         except Exception as e:
-            raise HTTPError(f"v3 API authentication error: {str(e)}")
+            raise HTTPError(f"v3 API authentication error: {str(e)}") from e
 
-    def _is_token_expired(self):
+    def _is_token_expired(self) -> bool:
         """
         Check if the JWT token is expired (basic implementation)
         """
-        if not self.access_token:
-            return True
-        
-        try:
-            # Decode token without verification to check expiry
-            decoded = jwt.decode(self.access_token, options={"verify_signature": False})
-            exp = decoded.get('exp')
-            if exp:
-                return time.time() > exp
-            return False
-        except jwt.DecodeError:
+        token = self.access_token
+        if not token:
             return True
 
-    def _refresh_token(self):
+        try:
+            # Decode token without verification to check expiry
+            decoded: Dict[str, Any] = jwt.decode(
+                token,
+                options={"verify_signature": False})
+            exp = decoded.get('exp')
+            if exp is not None:
+                return time.time() > float(exp)
+            return False
+        except (jwt.PyJWTError, ValueError, TypeError):
+            return True
+
+    def _refresh_token(self) -> None:
         """
         Refresh the JWT token (for now, just re-authenticate)
         """
@@ -176,84 +196,90 @@ class Gns3Connector:
         self._authenticate_v3()
 
     def http_call(
-        self,
-        method,
-        url,
-        data=None,
-        json_data=None,
-        headers=None,
-        verify=False,
-        params=None,
-    ):
-        """
-        Performs the HTTP operation actioned
+            self,
+            method: str,
+            url: str,
+            data: Optional[Any] = None,
+            json_data: Optional[Union[Dict[str, Any], List[Any]]] = None,
+            headers: Optional[Dict[str, str]] = None,
+            verify: bool = False,
+            params: Optional[Dict[str, Any]] = None
+        ) -> requests.Response:
+            """
+            执行 HTTP 操作并处理 GNS3 特有的错误逻辑。
+            """
+            # 处理 JWT 认证
+            if self.auth_type == 'jwt' and not self.access_token and self.user and self.cred:
+                self._authenticate_v3()
 
-        **Required Attributes:**
-
-        - `method` (enum): HTTP method to perform: get, post, put, delete, head,
-        patch (**required**)
-        - `url` (str): URL target (**required**)
-        - `data`: Dictionary or byte of request body data to attach to the Request
-        - `json_data`: Dictionary or List of dicts to be passed as JSON object/array
-        - `headers`: ictionary of HTTP Headers to attach to the Request
-        - `verify`: SSL Verification
-        - `params`: Dictionary or bytes to be sent in the query string for the Request
-        """
-        # Handle v3 authentication if needed
-        if self.auth_type == 'jwt' and not self.access_token and self.user and self.cred:
-            self._authenticate_v3()
-        
-        if data:
-            _response = getattr(self.session, method.lower())(
-                url, data=data, headers=headers, params=params, verify=verify
-            )
-
-        elif json_data:
-            _response = getattr(self.session, method.lower())(
-                url, json=json_data, headers=headers, params=params, verify=verify
-            )
-
-        else:
-            _response = getattr(self.session, method.lower())(
-                url, headers=headers, params=params, verify=verify
-            )
-        self.api_calls += 1
-
-        try:
-            _response.raise_for_status()
+            # 获取请求函数 (如 session.get, session.post)
+            caller = getattr(self.session, method.lower())
             
-        except HTTPError as e:
-            # Handle the HTTPError (e.g., 422 Client Error) raised by response.raise_for_status()
-            try:
-                # Attempt to parse the response body as JSON to extract a detailed error message from the GNS3 server
-                error_json = _response.json()
-                
-                # Safely get the 'status' key, providing a default message if it's missing (to avoid KeyError)
-                status = error_json.get("status", "Unknown Status")
-                
-                # Safely get the 'message' key, providing a default message if it's missing
-                message = error_json.get("message", "No message provided in JSON.")
-                
-                # Raise a new HTTPError with the extracted, more descriptive message
-                # 'from e' chains the exceptions, preserving the original traceback
-                raise HTTPError(f"{status}: {message} (Original 422 Error)", response=_response) from e
-                
-            except Exception:
-                # Fallback handling if the response is not valid JSON, or if unexpected JSON keys cause an error
-                # Raise an HTTPError that includes the original exception message and the raw response text for debugging
-                raise HTTPError(
-                    f"Original Error: {e.args[0]}. GNS3 response text: {_response.text}"
-                ) from e
-                
-        return _response
+            # 准备请求参数，避免多次重复调用 caller
+            kwargs: Dict[str, Any] = {
+                "headers": headers,
+                "params": params,
+                "verify": verify
+            }
+            if data is not None:
+                kwargs["data"] = data
+            elif json_data is not None:
+                kwargs["json"] = json_data
 
-    def get_version(self):
+            # 执行请求
+            _response: requests.Response = caller(url, **kwargs)
+            
+            self.api_calls += 1
+
+            try:
+                _response.raise_for_status()
+            except HTTPError as e:
+                # 抛出经过增强处理后的错误
+                raise self._extract_gns3_error(e) from e
+
+            return _response
+    
+    def _extract_gns3_error(self, e: HTTPError) -> HTTPError:
+            """
+            从 HTTPError 中提取 GNS3 特有的 JSON 错误信息。
+            如果无法解析，则返回原始错误。
+            """
+            # e.response 可能为 None，需要显式检查
+            response = e.response
+            if response is None:
+                return e
+
+            try:
+                # 只有当 Content-Type 是 JSON 时才尝试解析
+                if "application/json" in response.headers.get("Content-Type", "").lower():
+                    error_json = response.json()
+                    status = error_json.get("status", "Unknown Status")
+                    message = error_json.get("message", "No message provided in JSON.")
+                    # 构造一个更具描述性的新错误
+                    new_err = HTTPError(
+                        f"{status}: {message} (Original {response.status_code} Error)",
+                        response=response
+                    )
+                    return new_err
+            except Exception:
+                # 如果解析 JSON 失败，返回带原始文本的错误
+                return HTTPError(
+                    f"Original Error: {str(e)}. GNS3 response text: {response.text}",
+                    response=response
+                )
+            return e
+        
+    def get_version(self) -> Dict[str, Any]:
         """
         Returns the version information of GNS3 server
         """
-        return self.http_call("get", url=f"{self.base_url}/version").json()
+        response = self.http_call("get", url=f"{self.base_url}/version")
+        return cast(Dict[str, Any], response.json())
 
-    def projects_summary(self, is_print=True):
+    def projects_summary(
+        self,
+        is_print: bool = True
+        ) -> Optional[List[Tuple[str, str, int, int, str]]]:
         """
         Returns a summary of the projects in the server. If `is_print` is `False`, it
         will return a list of tuples like:
@@ -283,13 +309,18 @@ class Gns3Connector:
 
         return _projects_summary if not is_print else None
 
-    def get_projects(self):
+    def get_projects(self) -> List[Dict[str, Any]]:
         """
         Returns the list of the projects on the server
         """
-        return self.http_call("get", url=f"{self.base_url}/projects").json()
-
-    def get_project(self, name=None, project_id=None):
+        response = self.http_call("get", url=f"{self.base_url}/projects").json()
+        return cast(List[Dict[str, Any]], response)
+    
+    def get_project(
+        self,
+        name: Optional[str] = None,
+        project_id: Optional[str] = None
+        ) -> Optional[Dict[str, Any]]:
         """
         Retrieves a project from either a name or ID
 
@@ -298,9 +329,10 @@ class Gns3Connector:
         - `name` or `project_id`
         """
         if project_id:
-            return self.http_call(
+            _response= self.http_call(
                 "get", url=f"{self.base_url}/projects/{project_id}"
-            ).json()
+            )
+            return cast(Dict[str, Any], _response.json())
         elif name:
             try:
                 return next(p for p in self.get_projects() if p["name"] == name)
@@ -310,7 +342,10 @@ class Gns3Connector:
         else:
             raise ValueError("Must provide either a name or project_id")
 
-    def templates_summary(self, is_print=True):
+    def templates_summary(
+        self,
+        is_print: bool = True
+        ) -> Optional[List[Tuple[str, str, str, bool, str, str]]]:
         """
         Returns a summary of the templates in the server. If `is_print` is `False`, it
         will return a list of tuples like:
@@ -340,13 +375,18 @@ class Gns3Connector:
 
         return _templates_summary if not is_print else None
 
-    def get_templates(self):
+    def get_templates(self) -> List[Dict[str, Any]]:
         """
         Returns the templates defined on the server.
         """
-        return self.http_call("get", url=f"{self.base_url}/templates").json()
+        _response_data = self.http_call("get", url=f"{self.base_url}/templates").json()
+        return cast(List[Dict[str, Any]], _response_data)
 
-    def get_template(self, name=None, template_id=None):
+    def get_template(
+        self,
+        name: Optional[str] = None,
+        template_id: Optional[str] = None
+        )-> Optional[Dict[str, Any]]:
         """
         Retrieves a template from either a name or ID
 
@@ -355,9 +395,10 @@ class Gns3Connector:
         - `name` or `template_id`
         """
         if template_id:
-            return self.http_call(
+            _response_json = self.http_call(
                 "get", url=f"{self.base_url}/templates/{template_id}"
             ).json()
+            return cast(Dict[str, Any], _response_json)
         elif name:
             try:
                 return next(t for t in self.get_templates() if t["name"] == name)
@@ -367,7 +408,12 @@ class Gns3Connector:
         else:
             raise ValueError("Must provide either a name or template_id")
 
-    def update_template(self, name=None, template_id=None, **kwargs):
+    def update_template(
+        self,
+        name: Optional[str] = None,
+        template_id: Optional[str] = None,
+        **kwargs: Any
+    ) -> Dict[str, Any]:
         """
         Updates a template by giving its name or UUID. For more information [API INFO]
         (http://api.gns3.net/en/2.2/api/v2/controller/template/
@@ -377,7 +423,12 @@ class Gns3Connector:
 
         - `name` or `template_id`
         """
+        # 获取现有模板
         _template = self.get_template(name=name, template_id=template_id)
+        # 类型检查：处理 get_template 可能返回 None 的情况
+        if _template is None:
+            raise ValueError(f"Template not found (name={name}, id={template_id})")
+        # 更新本地字典并发送请求
         _template.update(**kwargs)
 
         response = self.http_call(
@@ -385,10 +436,10 @@ class Gns3Connector:
             url=f"{self.base_url}/templates/{_template['template_id']}",
             json_data=_template,
         )
+        # 返回 JSON 并处理 Any 类型报错
+        return cast(Dict[str, Any], response.json())
 
-        return response.json()
-
-    def create_template(self, **kwargs):
+    def create_template(self, **kwargs: Any) -> Dict[str, Any]:
         """
         Creates a template by giving its attributes. For more information [API INFO]
         (http://api.gns3.net/en/2.2/api/v2/controller/template/
@@ -400,20 +451,32 @@ class Gns3Connector:
         - `compute_id` by default is 'local'
         - `template_type`
         """
+        # 这里的 kwargs["name"] 可能会在运行时报 KeyError，如果想更严谨可以先 get
+        template_name = kwargs.get("name")
+        if not template_name:
+            raise ValueError("Attribute 'name' is required to create a template")
+        
+        # 检查模板是否已存在
         _template = self.get_template(name=kwargs["name"])
         if _template:
             raise ValueError(f"Template already used: {kwargs['name']}")
-
+        
+        # 设置默认值
         if "compute_id" not in kwargs:
             kwargs["compute_id"] = "local"
 
+        # 发送请求
         response = self.http_call(
             "post", url=f"{self.base_url}/templates", json_data=kwargs
         )
+        # 返回并转换类型
+        return cast(Dict[str, Any], response.json())
 
-        return response.json()
-
-    def delete_template(self, name=None, template_id=None):
+    def delete_template(
+        self,
+        name: Optional[str] = None,
+        template_id: Optional[str] = None
+    ) -> None:
         """
         Deletes a template by giving its attributes. For more information [API INFO]
         (http://api.gns3.net/en/2.2/api/v2/controller/template/
@@ -423,13 +486,22 @@ class Gns3Connector:
 
         - `name` or `template_id`
         """
+        # 逻辑处理：如果只给了 name，需要先查出 template_id
         if name and not template_id:
             _template = self.get_template(name=name)
+            # 类型收窄：检查 _template 是否为 None
+            if _template is None:
+                raise ValueError(f"Template with name '{name}' not found.")
+            
             template_id = _template["template_id"]
-
+            
+        # 最终检查：确保 template_id 此时一定有值
+        if not template_id:
+            raise ValueError("Must provide either a 'name' or 'template_id' to delete a template.")
+        
         self.http_call("delete", url=f"{self.base_url}/templates/{template_id}")
 
-    def get_nodes(self, project_id):
+    def get_nodes(self, project_id: str) -> List[Dict[str, Any]]:
         """
         Retieves the nodes defined on the project
 
@@ -437,11 +509,13 @@ class Gns3Connector:
 
         - `project_id`
         """
-        return self.http_call(
+        _response_data = self.http_call(
             "get", url=f"{self.base_url}/projects/{project_id}/nodes"
         ).json()
+        
+        return cast(List[Dict[str, Any]], _response_data)
 
-    def get_node(self, project_id, node_id):
+    def get_node(self, project_id: str, node_id: str) -> Dict[str, Any]:
         """
         Returns the node by locating its ID.
 
@@ -451,9 +525,10 @@ class Gns3Connector:
         - `node_id`
         """
         _url = f"{self.base_url}/projects/{project_id}/nodes/{node_id}"
-        return self.http_call("get", _url).json()
-
-    def get_links(self, project_id):
+        _response_data = self.http_call("get", _url).json()
+        return cast(Dict[str, Any], _response_data)
+    
+    def get_links(self, project_id: str) -> List[Dict[str, Any]]:
         """
         Retrieves the links defined in the project.
 
@@ -461,11 +536,13 @@ class Gns3Connector:
 
         - `project_id`
         """
-        return self.http_call(
-            "get", url=f"{self.base_url}/projects/{project_id}/links"
-        ).json()
+        _response_data = self.http_call(
+                "get", url=f"{self.base_url}/projects/{project_id}/links"
+            ).json()
+            
+        return cast(List[Dict[str, Any]], _response_data)
 
-    def get_link(self, project_id, link_id):
+    def get_link(self, project_id: str, link_id: str) -> Dict[str, Any]:
         """
         Returns the link by locating its ID.
 
@@ -475,9 +552,11 @@ class Gns3Connector:
         - `link_id`
         """
         _url = f"{self.base_url}/projects/{project_id}/links/{link_id}"
-        return self.http_call("get", _url).json()
+        _response_data = self.http_call("get", _url).json()
 
-    def create_project(self, **kwargs):
+        return cast(Dict[str, Any], _response_data)
+
+    def create_project(self, **kwargs: Any) -> Dict[str, Any]:
         """
         Pass a dictionary type object with the project parameters to be created.
 
@@ -492,9 +571,11 @@ class Gns3Connector:
         _url = f"{self.base_url}/projects"
         if "name" not in kwargs:
             raise ValueError("Parameter 'name' is mandatory")
-        return self.http_call("post", _url, json_data=kwargs).json()
+        _response = self.http_call("post", _url, json_data=kwargs)
 
-    def delete_project(self, project_id):
+        return cast(Dict[str, Any], _response.json())
+
+    def delete_project(self, project_id: str) -> None:
         """
         Deletes a project from server.
 
@@ -504,9 +585,9 @@ class Gns3Connector:
         """
         _url = f"{self.base_url}/projects/{project_id}"
         self.http_call("delete", _url)
-        return
+        return None
 
-    def get_computes(self):
+    def get_computes(self) -> List[Dict[str, Any]]:
         """
         Returns a list of computes.
 
@@ -515,9 +596,11 @@ class Gns3Connector:
         List of dictionaries of the computes attributes like cpu/memory usage
         """
         _url = f"{self.base_url}/computes"
-        return self.http_call("get", _url).json()
+        _response_data = self.http_call("get", _url).json()
 
-    def get_compute(self, compute_id="local"):
+        return cast(List[Dict[str, Any]], _response_data)
+
+    def get_compute(self, compute_id: str = "local") -> Dict[str, Any]:
         """
         Returns a compute.
 
@@ -526,9 +609,15 @@ class Gns3Connector:
         Dictionary of the compute attributes like cpu/memory usage
         """
         _url = f"{self.base_url}/computes/{compute_id}"
-        return self.http_call("get", _url).json()
+        _response_data = self.http_call("get", _url).json()
 
-    def get_compute_images(self, emulator, compute_id="local"):
+        return cast(Dict[str, Any], _response_data)
+
+    def get_compute_images(
+        self,
+        emulator: str,
+        compute_id: str = "local"
+    ) -> List[Dict[str, Any]]:
         """
         Returns a list of images available for a compute.
 
@@ -543,9 +632,16 @@ class Gns3Connector:
         emulator
         """
         _url = f"{self.base_url}/computes/{compute_id}/{emulator}/images"
-        return self.http_call("get", _url).json()
+        _response_data = self.http_call("get", _url).json()
 
-    def upload_compute_image(self, emulator, file_path, compute_id="local"):
+        return cast(List[Dict[str, Any]], _response_data)
+
+    def upload_compute_image(
+        self, 
+        emulator: str, 
+        file_path: str, 
+        compute_id: str = "local"
+    ) -> None:
         """
         uploads an image for use by a compute.
 
@@ -560,9 +656,12 @@ class Gns3Connector:
 
         _filename = os.path.basename(file_path)
         _url = f"{self.base_url}/computes/{compute_id}/{emulator}/images/{_filename}"
-        self.http_call("post", _url, data=open(file_path, "rb"))
+        with open(file_path, "rb") as f:
+            self.http_call("post", _url, data=f)
 
-    def get_compute_ports(self, compute_id="local"):
+        return None
+
+    def get_compute_ports(self, compute_id: str = "local") -> Dict[str, Any]:
         """
         Returns ports used and configured by a compute.
 
@@ -575,21 +674,27 @@ class Gns3Connector:
         Dictionary of `console_ports` used and range, as well as the `udp_ports`
         """
         _url = f"{self.base_url}/computes/{compute_id}/ports"
-        return self.http_call("get", _url).json()
+        _response_data = self.http_call("get", _url).json()
 
+        return cast(Dict[str, Any], _response_data)
 
-def verify_connector_and_id(f):
+def verify_connector_and_id(f: F) -> F:
     """
     Main checker for connector object and respective object's ID for their retrieval
     or actions methods.
     """
 
     @wraps(f)
-    def wrapper(self, *args, **kwargs):
-        if not self.connector:
+    def wrapper(self: Any, *args: Any, **kwargs: Any) -> Any:
+        
+        _conn = self.connector
+        _project_id = self.project_id
+        
+        if _conn is None:
             raise ValueError("Gns3Connector not assigned under 'connector'")
-        if not self.project_id:
+        if _project_id is None:
             raise ValueError("Need to submit project_id")
+
         # Checks for Node
         if self.__class__.__name__ == "Node":
             if not self.node_id:
@@ -597,8 +702,8 @@ def verify_connector_and_id(f):
                     raise ValueError("Need to either submit node_id or name")
 
                 # Try to retrieve the node_id
-                _url = f"{self.connector.base_url}/projects/{self.project_id}/nodes"
-                _response = self.connector.http_call("get", _url)
+                _url = f"{_conn.base_url}/projects/{_project_id}/nodes"
+                _response = _conn.http_call("get", _url)
 
                 extracted = [
                     node for node in _response.json() if node["name"] == self.name
@@ -614,7 +719,7 @@ def verify_connector_and_id(f):
                 raise ValueError("Need to submit link_id")
         return f(self, *args, **kwargs)
 
-    return wrapper
+    return cast(F, wrapper)
 
 
 @dataclass(config=config)
@@ -671,32 +776,32 @@ class Link:
 
     @field_validator("link_type")
     @classmethod
-    def _valid_link_type(cls, value):
+    def _valid_link_type(cls, value: Optional[str]) -> Optional[str]:
         if value not in LINK_TYPES and value is not None:
             raise ValueError(f"Not a valid link_type - {value}")
         return value
 
     @field_validator("suspend")
     @classmethod
-    def _valid_suspend(cls, value):
+    def _valid_suspend(cls, value: Optional[bool]) -> Optional[bool]:
         if type(value) is not bool and value is not None:
             raise ValueError(f"Not a valid suspend - {value}")
         return value
 
     @field_validator("filters")
     @classmethod
-    def _valid_filters(cls, value):
+    def _valid_filters(cls, value: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         if type(value) is not dict and value is not None:
             raise ValueError(f"Not a valid filters - {value}")
         return value
 
-    def _update(self, data_dict):
+    def _update(self, data_dict: Dict[str, Any]) -> None:
         for k, v in data_dict.items():
             if k in self.__dict__.keys():
                 self.__setattr__(k, v)
 
     @verify_connector_and_id
-    def get(self):
+    def get(self) -> None:
         """
         Retrieves the information from the link endpoint.
 
@@ -706,16 +811,24 @@ class Link:
         - `connector`
         - `link_id`
         """
+        _conn = self.connector
+        _project_id = self.project_id
+        
+        if _conn is None:
+            raise ValueError("Gns3Connector not assigned under 'connector'")
+        if _project_id is None:
+            raise ValueError("Need to submit project_id")
+        
         _url = (
-            f"{self.connector.base_url}/projects/{self.project_id}/links/{self.link_id}"
+            f"{_conn.base_url}/projects/{_project_id}/links/{self.link_id}"
         )
-        _response = self.connector.http_call("get", _url)
+        _response = _conn.http_call("get", _url)
 
         # Update object
         self._update(_response.json())
 
     @verify_connector_and_id
-    def delete(self):
+    def delete(self) -> None:
         """
         Deletes a link endpoint from the project. It sets to `None` the attributes
         `link_id` when executed sucessfully
@@ -726,16 +839,27 @@ class Link:
         - `connector`
         - `link_id`
         """
+        _conn = self.connector
+        _project_id = self.project_id
+        _link_id = self.link_id
+
+        if _conn is None:
+            raise ValueError("Gns3Connector not assigned under 'connector'")
+        if _project_id is None:
+            raise ValueError("Need to submit project_id")
+        if _link_id is None:
+            raise ValueError("Link ID is missing. The link might have already been deleted.")
+
         _url = (
-            f"{self.connector.base_url}/projects/{self.project_id}/links/{self.link_id}"
+            f"{_conn.base_url}/projects/{_project_id}/links/{self.link_id}"
         )
 
-        self.connector.http_call("delete", _url)
+        _conn.http_call("delete", _url)
 
         self.project_id = None
         self.link_id = None
 
-    def create(self):
+    def create(self) -> None:
         """
         Creates a link endpoint
 
@@ -765,7 +889,7 @@ class Link:
         self._update(_response.json())
 
     @verify_connector_and_id
-    def update(self, **kwargs):
+    def update(self, **kwargs: Any) -> None:
         """
         Updates the link instance by passing the keyword arguments of the attributes
         you want updated
@@ -784,6 +908,11 @@ class Link:
         - `connector`
         - `link_id`
         """
+        if not self.connector:
+            raise ValueError("Gns3Connector not assigned under 'connector'")
+        if not self.project_id:
+            raise ValueError("Need to submit project_id")
+        
         _url = (
             f"{self.connector.base_url}/projects/{self.project_id}/links/{self.link_id}"
         )
@@ -884,32 +1013,32 @@ class Node:
 
     @field_validator("node_type")
     @classmethod
-    def _valid_node_type(cls, value):
+    def _valid_node_type(cls, value: Any) -> Any:
         if value not in NODE_TYPES and value is not None:
             raise ValueError(f"Not a valid node_type - {value}")
         return value
 
     @field_validator("console_type")
     @classmethod
-    def _valid_console_type(cls, value):
+    def _valid_console_type(cls, value: Any) -> Any:
         if value not in CONSOLE_TYPES and value is not None:
             raise ValueError(f"Not a valid console_type - {value}")
         return value
 
     @field_validator("status")
     @classmethod
-    def _valid_status(cls, value):
+    def _valid_status(cls, value: Any) -> Any:
         if value not in ("stopped", "started", "suspended") and value is not None:
             raise ValueError(f"Not a valid status - {value}")
         return value
 
-    def _update(self, data_dict):
+    def _update(self, data_dict: Dict[str, Any]) -> None:
         for k, v in data_dict.items():
-            if k in self.__dict__.keys():
-                self.__setattr__(k, v)
+            if k in self.__dict__:
+                setattr(self, k, v)
 
     @verify_connector_and_id
-    def get(self, get_links=True):
+    def get(self, get_links: bool = True) -> None:
         """
         Retrieves the node information. When `get_links` is `True` it also retrieves the
         links respective to the node.
@@ -920,6 +1049,11 @@ class Node:
         - `connector`
         - `node_id`
         """
+        if not self.connector:
+            raise ValueError("Gns3Connector not assigned under 'connector'")
+        if not self.project_id:
+            raise ValueError("Need to submit project_id")
+
         _url = (
             f"{self.connector.base_url}/projects/{self.project_id}/nodes/{self.node_id}"
         )
@@ -932,7 +1066,7 @@ class Node:
             self.get_links()
 
     @verify_connector_and_id
-    def get_links(self):
+    def get_links(self) -> None:
         """
         Retrieves the links of the respective node. They will be saved at the `links`
         attribute
@@ -943,6 +1077,11 @@ class Node:
         - `connector`
         - `node_id`
         """
+        if not self.connector:
+            raise ValueError("Gns3Connector not assigned under 'connector'")
+        if not self.project_id:
+            raise ValueError("Need to submit project_id")
+
         _url = (
             f"{self.connector.base_url}/projects/{self.project_id}/nodes"
             f"/{self.node_id}/links"
@@ -956,7 +1095,7 @@ class Node:
             self.links.append(Link(connector=self.connector, **_link))
 
     @verify_connector_and_id
-    def start(self):
+    def start(self) -> Optional[bool]:
         """
         Starts the node.
 
@@ -966,22 +1105,29 @@ class Node:
         - `connector`
         - `node_id`
         """
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
+
         _url = (
-            f"{self.connector.base_url}/projects/{self.project_id}/nodes"
+            f"{_conn.base_url}/projects/{_project_id}/nodes"
             f"/{self.node_id}/start"
         )
         if "v2" in _url.lower():  # api_version 2
-            _response = self.connector.http_call("post", _url,)
+            _response = _conn.http_call("post", _url,)
 
             # Update object or perform get if change was not reflected
             if _response.json().get("status") == "started":
                 self._update(_response.json())
             else:
                 self.get()  # pragma: no cover
-        
+            
+            return True
+
         else:
             # api_version 3
-            _response = self.connector.http_call(
+            _response = _conn.http_call(
                 "post",
                 _url,
                 json_data={"additionalProp1": {}}
@@ -993,16 +1139,18 @@ class Node:
             else:
                 try:
                     error_detail = _response.json()
-                except:
-                    error_detail = _response.text
-                raise RuntimeError(
-                    "Failed to start node: %s, %s",
-                    _response.status_code,
-                    error_detail
-                    )
+                except Exception:
+                    error_detail = getattr(_response, "text", "No response body")
 
+                _msg = (
+                    "Failed to start node: "
+                    f"{getattr(_response, 'status_code', 'Unknown Status')}, "
+                    f"Detail: {error_detail}"
+                    )
+                raise RuntimeError(_msg) from None
+    
     @verify_connector_and_id
-    def stop(self):
+    def stop(self) -> Optional[bool]:
         """
         Stops the node.
 
@@ -1012,22 +1160,28 @@ class Node:
         - `connector`
         - `node_id`
         """
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
+
         _url = (
-            f"{self.connector.base_url}/projects/{self.project_id}/nodes"
+            f"{_conn.base_url}/projects/{_project_id}/nodes"
             f"/{self.node_id}/stop"
         )
         if "v2" in _url.lower():  # api_version 2
-            _response = self.connector.http_call("post", _url,)
+            _response = _conn.http_call("post", _url,)
 
             # Update object or perform get if change was not reflected
             if _response.json().get("status") == "stopped":
                 self._update(_response.json())
             else:
                 self.get()  # pragma: no cover
-        
+
+            return True
         else:
             # api_version 3
-            _response = self.connector.http_call(
+            _response = _conn.http_call(
                 "post",
                 _url,
                 json_data={"additionalProp1": {}}
@@ -1039,16 +1193,16 @@ class Node:
             else:
                 try:
                     error_detail = _response.json()
-                except:
+                except Exception:
                     error_detail = _response.text
-                raise RuntimeError(
-                    "Failed to start node: %s, %s",
-                    _response.status_code,
-                    error_detail
-                    )
+                _msg = (
+                    f"Failed to stop node: {_response.status_code}, "
+                    f"Detail: {error_detail}"
+                )
+                raise RuntimeError(_msg) from None
 
     @verify_connector_and_id
-    def reload(self):
+    def reload(self) -> Optional[bool]:
         """
         Reloads the node.
 
@@ -1058,24 +1212,32 @@ class Node:
         - `connector`
         - `node_id`
         """
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
+        _node_id = self.node_id
+        assert _node_id is not None
+        
         _url = (
-            f"{self.connector.base_url}/projects/{self.project_id}/nodes"
-            f"/{self.node_id}/reload"
+            f"{_conn.base_url}/projects/{_project_id}/nodes"
+            f"/{_node_id}/reload"
         )
-        _response = self.connector.http_call("post", _url)
+        _response = _conn.http_call("post", _url)
 
         if "v2" in _url.lower():  # api_version 2
-            _response = self.connector.http_call("post", _url,)
+            _response = _conn.http_call("post", _url,)
 
             # Update object or perform get if change was not reflected
             if _response.json().get("status") == "started":
                 self._update(_response.json())
             else:
                 self.get()  # pragma: no cover
-        
+            return True
+
         else:
             # api_version 3
-            _response = self.connector.http_call(
+            _response = _conn.http_call(
                 "post",
                 _url,
                 json_data={"additionalProp1": {}}
@@ -1087,16 +1249,16 @@ class Node:
             else:
                 try:
                     error_detail = _response.json()
-                except:
+                except Exception:
                     error_detail = _response.text
-                raise RuntimeError(
-                    "Failed to start node: %s, %s",
-                    _response.status_code,
-                    error_detail
-                    )
+                _msg = (
+                    f"Failed to reload node: {_response.status_code}, "
+                    f"Detail: {error_detail}"
+                )
+                raise RuntimeError(_msg) from None
 
     @verify_connector_and_id
-    def suspend(self):
+    def suspend(self) -> None:
         """
         Suspends the node.
 
@@ -1106,11 +1268,18 @@ class Node:
         - `connector`
         - `node_id`
         """
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
+        _node_id = self.node_id
+        assert _node_id is not None
+
         _url = (
-            f"{self.connector.base_url}/projects/{self.project_id}/nodes"
-            f"/{self.node_id}/suspend"
+            f"{_conn.base_url}/projects/{_project_id}/nodes"
+            f"/{_node_id}/suspend"
         )
-        _response = self.connector.http_call("post", _url)
+        _response = _conn.http_call("post", _url)
 
         # Update object or perform get if change was not reflected
         if _response.json().get("status") == "suspended":
@@ -1119,7 +1288,7 @@ class Node:
             self.get()  # pragma: no cover
 
     @verify_connector_and_id
-    def update(self, **kwargs):
+    def update(self, **kwargs: Any) -> None:
         """
         Updates the node instance by passing the keyword arguments of the attributes
         you want updated
@@ -1137,17 +1306,24 @@ class Node:
         - `project_id`
         - `connector`
         """
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
+        _node_id = self.node_id
+        assert _node_id is not None
+
         _url = (
-            f"{self.connector.base_url}/projects/{self.project_id}/nodes/{self.node_id}"
+            f"{_conn.base_url}/projects/{_project_id}/nodes/{_node_id}"
         )
 
         # TODO: Verify that the passed kwargs are supported ones
-        _response = self.connector.http_call("put", _url, json_data=kwargs)
+        _response = _conn.http_call("put", _url, json_data=kwargs)
 
         # Update object
         self._update(_response.json())
 
-    def create(self):
+    def create(self) -> None:
         """
         Creates a node.
 
@@ -1200,7 +1376,7 @@ class Node:
         )
 
         _response = self.connector.http_call(
-            "post", _url, json_data=dict(x=0, y=0, compute_id=self.compute_id)
+            "post", _url, json_data={'x': 0, 'y': 0, 'compute_id': self.compute_id}
         )
 
         self._update(_response.json())
@@ -1209,7 +1385,7 @@ class Node:
         self.update(**cached_data)
 
     @verify_connector_and_id
-    def delete(self):
+    def delete(self) -> None:
         """
         Deletes the node from the project. It sets to `None` the attributes `node_id`
         and `name` when executed successfully
@@ -1220,18 +1396,25 @@ class Node:
         - `connector`
         - `node_id`
         """
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
+        _node_id = self.node_id
+        assert _node_id is not None
+
         _url = (
-            f"{self.connector.base_url}/projects/{self.project_id}/nodes/{self.node_id}"
+            f"{_conn.base_url}/projects/{_project_id}/nodes/{_node_id}"
         )
 
-        self.connector.http_call("delete", _url)
+        _conn.http_call("delete", _url)
 
         self.project_id = None
         self.node_id = None
         self.name = None
 
     @verify_connector_and_id
-    def get_file(self, path):
+    def get_file(self, path: str) -> str:
         """
         Retrieve a file in the node directory.
 
@@ -1241,15 +1424,22 @@ class Node:
         - `connector`
         - `path`: Node's relative path of the file
         """
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
+        _node_id = self.node_id
+        assert _node_id is not None
+
         _url = (
-            f"{self.connector.base_url}/projects/{self.project_id}/nodes/{self.node_id}"
+            f"{_conn.base_url}/projects/{_project_id}/nodes/{_node_id}"
             f"/files/{path}"
         )
 
-        return self.connector.http_call("get", _url).text
+        return cast(str, _conn.http_call("get", _url).text)
 
     @verify_connector_and_id
-    def write_file(self, path, data):
+    def write_file(self, path: str, data: Any) -> None:
         """
         Places a file content on a specified node file path. Used mainly for docker
         images.
@@ -1272,13 +1462,19 @@ class Node:
         - `path`: Node's relative path of the file
         - `data`: Data to be included in the file
         """
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
+        _node_id = self.node_id
+        assert _node_id is not None
+
         _url = (
-            f"{self.connector.base_url}/projects/{self.project_id}/nodes/{self.node_id}"
+            f"{_conn.base_url}/projects/{_project_id}/nodes/{_node_id}"
             f"/files/{path}"
         )
 
-        self.connector.http_call("post", _url, data=data)
-
+        _conn.http_call("post", _url, data=data)
 
 @dataclass(config=config)
 class Project:
@@ -1356,17 +1552,22 @@ class Project:
 
     @field_validator("status")
     @classmethod
-    def _valid_status(cls, value):
+    def _valid_status(cls, value: Any) -> Any:
         if value != "opened" and value != "closed" and value is not None:
             raise ValueError("status must be opened or closed")
         return value
 
-    def _update(self, data_dict):
+    def _update(self, data_dict: Dict[str, Any]) -> None:
         for k, v in data_dict.items():
-            if k in self.__dict__.keys():
-                self.__setattr__(k, v)
+            if k in self.__dict__:
+                setattr(self, k, v)
 
-    def get(self, get_links=True, get_nodes=True, get_stats=True):
+    def get(
+        self,
+        get_links: bool = True,
+        get_nodes: bool = True,
+        get_stats: bool = True
+    ) -> None:
         """
         Retrieves the projects information.
 
@@ -1408,16 +1609,17 @@ class Project:
 
         if get_stats:
             self.get_stats()
-            if self.stats.get("snapshots", 0) > 0:
-                self.get_snapshots()
-            if self.stats.get("drawings", 0) > 0:
-                self.get_drawings()
+            if self.stats is not None:
+                if self.stats.get("snapshots", 0) > 0:
+                    self.get_snapshots()
+                if self.stats.get("drawings", 0) > 0:
+                    self.get_drawings()
         if get_nodes:
             self.get_nodes()
         if get_links:
             self.get_links()
 
-    def create(self):
+    def create(self) -> None:
         """
         Creates the project.
 
@@ -1453,7 +1655,7 @@ class Project:
         self._update(_response.json())
 
     @verify_connector_and_id
-    def update(self, **kwargs):
+    def update(self, **kwargs: Any) -> None:
         """
         Updates the project instance by passing the keyword arguments of the attributes
         you want updated
@@ -1471,16 +1673,21 @@ class Project:
         - `project_id`
         - `connector`
         """
-        _url = f"{self.connector.base_url}/projects/{self.project_id}"
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
+
+        _url = f"{_conn.base_url}/projects/{_project_id}"
 
         # TODO: Verify that the passed kwargs are supported ones
-        _response = self.connector.http_call("put", _url, json_data=kwargs)
+        _response = _conn.http_call("put", _url, json_data=kwargs)
 
         # Update object
         self._update(_response.json())
 
     @verify_connector_and_id
-    def delete(self):
+    def delete(self) -> None:
         """
         Deletes the project from the server. It sets to `None` the attributes
         `project_id` and `name` when executed successfully
@@ -1490,15 +1697,20 @@ class Project:
         - `project_id`
         - `connector`
         """
-        _url = f"{self.connector.base_url}/projects/{self.project_id}"
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
 
-        self.connector.http_call("delete", _url)
+        _url = f"{_conn.base_url}/projects/{_project_id}"
+
+        _conn.http_call("delete", _url)
 
         self.project_id = None
         self.name = None
 
     @verify_connector_and_id
-    def close(self):
+    def close(self) -> None:
         """
         Closes the project on the server.
 
@@ -1507,16 +1719,21 @@ class Project:
         - `project_id`
         - `connector`
         """
-        _url = f"{self.connector.base_url}/projects/{self.project_id}/close"
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
 
-        _response = self.connector.http_call("post", _url)
+        _url = f"{_conn.base_url}/projects/{_project_id}/close"
+
+        _response = _conn.http_call("post", _url)
 
         # Update object
         if _response.status_code == 204:
             self.status = "closed"
 
     @verify_connector_and_id
-    def open(self):
+    def open(self) -> None:
         """
         Opens the project on the server.
 
@@ -1525,15 +1742,20 @@ class Project:
         - `project_id`
         - `connector`
         """
-        _url = f"{self.connector.base_url}/projects/{self.project_id}/open"
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
 
-        _response = self.connector.http_call("post", _url)
+        _url = f"{_conn.base_url}/projects/{_project_id}/open"
+
+        _response = _conn.http_call("post", _url)
 
         # Update object
         self._update(_response.json())
 
     @verify_connector_and_id
-    def get_stats(self):
+    def get_stats(self) -> None:
         """
         Retrieve the stats of the project.
 
@@ -1542,15 +1764,20 @@ class Project:
         - `project_id`
         - `connector`
         """
-        _url = f"{self.connector.base_url}/projects/{self.project_id}/stats"
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
 
-        _response = self.connector.http_call("get", _url)
+        _url = f"{_conn.base_url}/projects/{_project_id}/stats"
+
+        _response = _conn.http_call("get", _url)
 
         # Update object
         self.stats = _response.json()
 
     @verify_connector_and_id
-    def get_file(self, path):
+    def get_file(self, path: str) -> str:
         """
         Retrieve a file in the project directory. Beware you have warranty to be able to
         access only to file global to the project.
@@ -1561,12 +1788,17 @@ class Project:
         - `connector`
         - `path`: Project's relative path of the file
         """
-        _url = f"{self.connector.base_url}/projects/{self.project_id}/files/{path}"
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
 
-        return self.connector.http_call("get", _url).text
+        _url = f"{_conn.base_url}/projects/{_project_id}/files/{path}"
+
+        return cast(str, _conn.http_call("get", _url).text)
 
     @verify_connector_and_id
-    def write_file(self, path, data):
+    def write_file(self, path: str, data: Any) -> None:
         """
         Places a file content on a specified project file path. Beware you have warranty
         to be able to access only to file global to the project.
@@ -1588,12 +1820,17 @@ class Project:
         - `path`: Project's relative path of the file
         - `data`: Data to be included in the file
         """
-        _url = f"{self.connector.base_url}/projects/{self.project_id}/files/{path}"
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
 
-        self.connector.http_call("post", _url, data=data)
+        _url = f"{_conn.base_url}/projects/{_project_id}/files/{path}"
+
+        _conn.http_call("post", _url, data=data)
 
     @verify_connector_and_id
-    def get_nodes(self):
+    def get_nodes(self) -> None:
         """
         Retrieve the nodes of the project.
 
@@ -1602,9 +1839,14 @@ class Project:
         - `project_id`
         - `connector`
         """
-        _url = f"{self.connector.base_url}/projects/{self.project_id}/nodes"
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
 
-        _response = self.connector.http_call("get", _url)
+        _url = f"{_conn.base_url}/projects/{_project_id}/nodes"
+
+        _response = _conn.http_call("get", _url)
 
         # Create the Nodes array but cleanup cache if there is one
         if self.nodes:
@@ -1615,7 +1857,7 @@ class Project:
             self.nodes.append(_n)
 
     @verify_connector_and_id
-    def get_links(self):
+    def get_links(self) -> None:
         """
         Retrieve the links of the project.
 
@@ -1624,9 +1866,14 @@ class Project:
         - `project_id`
         - `connector`
         """
-        _url = f"{self.connector.base_url}/projects/{self.project_id}/links"
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
 
-        _response = self.connector.http_call("get", _url)
+        _url = f"{_conn.base_url}/projects/{_project_id}/links"
+
+        _response = _conn.http_call("get", _url)
 
         # Create the Nodes array but cleanup cache if there is one
         if self.links:
@@ -1637,7 +1884,7 @@ class Project:
             self.links.append(_l)
 
     @verify_connector_and_id
-    def start_nodes(self, poll_wait_time=5):
+    def start_nodes(self, poll_wait_time: int = 5) -> None:
         """
         Starts all the nodes inside the project.
 
@@ -1649,16 +1896,21 @@ class Project:
         - `project_id`
         - `connector`
         """
-        _url = f"{self.connector.base_url}/projects/{self.project_id}/nodes/start"
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
 
-        self.connector.http_call("post", _url)
+        _url = f"{_conn.base_url}/projects/{_project_id}/nodes/start"
+
+        _conn.http_call("post", _url)
 
         # Update object
         time.sleep(poll_wait_time)
         self.get_nodes()
 
     @verify_connector_and_id
-    def stop_nodes(self, poll_wait_time=5):
+    def stop_nodes(self, poll_wait_time: int = 5) -> None:
         """
         Stops all the nodes inside the project.
 
@@ -1670,16 +1922,21 @@ class Project:
         - `project_id`
         - `connector`
         """
-        _url = f"{self.connector.base_url}/projects/{self.project_id}/nodes/stop"
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
 
-        self.connector.http_call("post", _url)
+        _url = f"{_conn.base_url}/projects/{_project_id}/nodes/stop"
+
+        _conn.http_call("post", _url)
 
         # Update object
         time.sleep(poll_wait_time)
         self.get_nodes()
 
     @verify_connector_and_id
-    def reload_nodes(self, poll_wait_time=5):
+    def reload_nodes(self, poll_wait_time: int = 5) -> None:
         """
         Reloads all the nodes inside the project.
 
@@ -1691,16 +1948,21 @@ class Project:
         - `project_id`
         - `connector`
         """
-        _url = f"{self.connector.base_url}/projects/{self.project_id}/nodes/reload"
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
 
-        self.connector.http_call("post", _url)
+        _url = f"{_conn.base_url}/projects/{_project_id}/nodes/reload"
+
+        _conn.http_call("post", _url)
 
         # Update object
         time.sleep(poll_wait_time)
         self.get_nodes()
 
     @verify_connector_and_id
-    def suspend_nodes(self, poll_wait_time=5):
+    def suspend_nodes(self, poll_wait_time: int = 5) -> None:
         """
         Suspends all the nodes inside the project.
 
@@ -1712,15 +1974,20 @@ class Project:
         - `project_id`
         - `connector`
         """
-        _url = f"{self.connector.base_url}/projects/{self.project_id}/nodes/suspend"
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
 
-        self.connector.http_call("post", _url)
+        _url = f"{_conn.base_url}/projects/{_project_id}/nodes/suspend"
+
+        _conn.http_call("post", _url)
 
         # Update object
         time.sleep(poll_wait_time)
         self.get_nodes()
 
-    def nodes_summary(self, is_print=True):
+    def nodes_summary(self, is_print: bool = True) -> Optional[List[Tuple[Any, ...]]]:
         """
         Returns a summary of the nodes insode the project. If `is_print` is `False`, it
         will return a list of tuples like:
@@ -1732,6 +1999,7 @@ class Project:
         - `project_id`
         - `connector`
         """
+
         if not self.nodes:
             self.get_nodes()
 
@@ -1746,7 +2014,7 @@ class Project:
 
         return _nodes_summary if not is_print else None
 
-    def nodes_inventory(self):
+    def nodes_inventory(self) -> Dict[str | None, Any]:
         """
         Returns an inventory-style dictionary of the nodes
 
@@ -1775,7 +2043,11 @@ class Project:
             self.get_nodes()
 
         _nodes_inventory = {}
-        _server = urlparse(self.connector.base_url).hostname
+        conn = self.connector
+        if not conn:
+            raise ValueError("Gns3Connector not assigned. Please set the connector first.")
+        
+        _server = urlparse(conn.base_url).hostname
 
         for _n in self.nodes:
 
@@ -1798,7 +2070,10 @@ class Project:
 
         return _nodes_inventory
 
-    def links_summary(self, is_print=True):
+    def links_summary(
+        self,
+        is_print: bool = True
+    ) -> Optional[List[Tuple[str, str, str, str]]]:
         """
         Returns a summary of the links insode the project. If `is_print` is False, it
         will return a list of tuples like:
@@ -1810,40 +2085,60 @@ class Project:
         - `project_id`
         - `connector`
         """
+        # 确保数据已加载
         if not self.nodes:
             self.get_nodes()
         if not self.links:
             self.get_links()
+        # 如果是 None，程序直接在这里报错，而不是往下走。
+        assert self.links is not None, "Links must be loaded"
+        assert self.nodes is not None, "Nodes must be loaded"
 
-        _links_summary = []
+        _links_summary: List[Tuple[str, str, str, str]] = []
+
         for _l in self.links:
             if not _l.nodes:
                 continue
             _side_a = _l.nodes[0]
             _side_b = _l.nodes[1]
-            _node_a = [x for x in self.nodes if x.node_id == _side_a["node_id"]][0]
-            _port_a = [
-                x["name"]
-                for x in _node_a.ports
-                if x["port_number"] == _side_a["port_number"]
-                and x["adapter_number"] == _side_a["adapter_number"]
-            ][0]
-            _node_b = [x for x in self.nodes if x.node_id == _side_b["node_id"]][0]
-            _port_b = [
-                x["name"]
-                for x in _node_b.ports
-                if x["port_number"] == _side_b["port_number"]
-                and x["adapter_number"] == _side_b["adapter_number"]
-            ][0]
-            endpoint_a = f"{_node_a.name}: {_port_a}"
-            endpoint_b = f"{_node_b.name}: {_port_b}"
-            if is_print:
-                print(f"{endpoint_a} ---- {endpoint_b}")
-            _links_summary.append((_node_a.name, _port_a, _node_b.name, _port_b))
+            
+            try:
+                # 增加类型安全的查找逻辑
+                _node_a = next(x for x in self.nodes if x.node_id == _side_a["node_id"])
+                # 确保获取的是 str，解决 [return-value] 报错
+                _port_a = str(next(
+                    x["name"]
+                    for x in (_node_a.ports or [])
+                    if x["port_number"] == _side_a["port_number"]
+                    and x["adapter_number"] == _side_a["adapter_number"]
+                ))
 
+                _node_b = next(x for x in self.nodes if x.node_id == _side_b["node_id"])
+                _port_b = str(next(
+                    x["name"]
+                    for x in (_node_b.ports or [])
+                    if x["port_number"] == _side_b["port_number"]
+                    and x["adapter_number"] == _side_b["adapter_number"]
+                ))
+                
+                # 确保名称不为 None
+                name_a = str(_node_a.name) if _node_a.name else "Unknown"
+                name_b = str(_node_b.name) if _node_b.name else "Unknown"
+
+                endpoint_a = f"{name_a}: {_port_a}"
+                endpoint_b = f"{name_b}: {_port_b}"
+
+                if is_print:
+                    print(f"{endpoint_a} ---- {endpoint_b}")
+                
+                _links_summary.append((name_a, _port_a, name_b, _port_b))
+            
+            except (StopIteration, KeyError, AttributeError):
+                # 预防列表推导式匹配不到数据时的错误
+                continue
         return _links_summary if not is_print else None
 
-    def _search_node(self, key, value):
+    def _search_node(self, key: str, value: Any) -> Optional[Any]:
         "Performs a search based on a key and value"
         # Retrive nodes if neccesary
         if not self.nodes:
@@ -1854,7 +2149,11 @@ class Project:
         except IndexError:
             return None
 
-    def get_node(self, name=None, node_id=None):
+    def get_node(
+        self,
+        name: Optional[str] = None,
+        node_id: Optional[str] = None
+    ) -> Optional[Any]:
         """
         Returns the Node object by searching for the `name` or the `node_id`.
 
@@ -1876,7 +2175,7 @@ class Project:
         else:
             raise ValueError("name or node_ide must be provided")
 
-    def _search_link(self, key, value):
+    def _search_link(self, key: str, value: Any) -> Optional[Any]:
         "Performs a search based on a key and value"
         # Retrive links if neccesary
         if not self.links:
@@ -1887,7 +2186,7 @@ class Project:
         except StopIteration:
             return None
 
-    def get_link(self, link_id):
+    def get_link(self, link_id: str)-> Optional[Any]:
         """
         Returns the Link object by locating its ID
 
@@ -1902,7 +2201,7 @@ class Project:
         """
         return self._search_link(key="link_id", value=link_id)
 
-    def create_node(self, **kwargs):
+    def create_node(self, **kwargs: Any) -> None:
         """
         Creates a node. To know available parameters see `Node` object, specifically
         the `create` method. The most basic example would be:
@@ -1932,7 +2231,7 @@ class Project:
             f"Console: {_node.console}"
         )
 
-    def create_link(self, node_a, port_a, node_b, port_b):
+    def create_link(self, node_a: str, port_a: str, node_b: str, port_b: str) -> None:
         """
         Creates a link.
 
@@ -1958,7 +2257,7 @@ class Project:
         try:
             _port_a = [_p for _p in _node_a.ports if _p["name"] == port_a][0]
         except IndexError:
-            raise ValueError(f"port_a: {port_a} not found")
+            raise ValueError(f"port_a: {port_a} not found") from None
 
         _node_b = self.get_node(name=node_b)
         if not _node_b:
@@ -1966,7 +2265,7 @@ class Project:
         try:
             _port_b = [_p for _p in _node_b.ports if _p["name"] == port_b][0]
         except IndexError:
-            raise ValueError(f"port_b: {port_b} not found")
+            raise ValueError(f"port_b: {port_b} not found") from None
 
         _matches = []
         for _l in self.links:
@@ -1992,18 +2291,18 @@ class Project:
             project_id=self.project_id,
             connector=self.connector,
             nodes=[
-                dict(
-                    node_id=_node_a.node_id,
-                    adapter_number=_port_a["adapter_number"],
-                    port_number=_port_a["port_number"],
-                    label=dict(text=_port_a["name"]),
-                ),
-                dict(
-                    node_id=_node_b.node_id,
-                    adapter_number=_port_b["adapter_number"],
-                    port_number=_port_b["port_number"],
-                    label=dict(text=_port_b["name"]),
-                ),
+                {
+                    'node_id': _node_a.node_id,
+                    'adapter_number': _port_a["adapter_number"],
+                    'port_number': _port_a["port_number"],
+                    'label': {'text': _port_a["name"]},
+                },
+                {
+                    'node_id': _node_b.node_id,
+                    'adapter_number': _port_b["adapter_number"],
+                    'port_number': _port_b["port_number"],
+                    'label': {'text': _port_b["name"]},
+                },
             ],
         )
 
@@ -2011,7 +2310,7 @@ class Project:
         self.links.append(_link)
         print(f"Created Link-ID: {_link.link_id} -- Type: {_link.link_type}")
 
-    def delete_link(self, node_a, port_a, node_b, port_b):
+    def delete_link(self, node_a: str, port_a: str, node_b: str, port_b: str) -> None:
         """
         Deletes  a link.
 
@@ -2038,7 +2337,7 @@ class Project:
         try:
             _port_a = [_p for _p in _node_a.ports if _p["name"] == port_a][0]
         except IndexError:
-            raise ValueError(f"port_a: {port_a} not found")
+            raise ValueError(f"port_a: {port_a} not found") from None
 
         _node_b = self.get_node(name=node_b)
         if not _node_b:
@@ -2046,7 +2345,7 @@ class Project:
         try:
             _port_b = [_p for _p in _node_b.ports if _p["name"] == port_b][0]
         except IndexError:
-            raise ValueError(f"port_b: {port_b} not found")
+            raise ValueError(f"port_b: {port_b} not found") from None
 
         _matches = []
         for _l in self.links:
@@ -2080,7 +2379,7 @@ class Project:
         )
 
     @verify_connector_and_id
-    def get_snapshots(self):
+    def get_snapshots(self) -> None:
         """
         Retrieves list of snapshots of the project
 
@@ -2089,22 +2388,31 @@ class Project:
         - `project_id`
         - `connector`
         """
-        _url = f"{self.connector.base_url}/projects/{self.project_id}/snapshots"
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
 
-        response = self.connector.http_call("get", _url)
-        self.snapshots = response.json()
+        _url = f"{_conn.base_url}/projects/{_project_id}/snapshots"
 
-    def _search_snapshot(self, key, value):
+        _response = _conn.http_call("get", _url)
+        self.snapshots = _response.json()
+
+    def _search_snapshot(self, key: str, value: Any) -> Optional[Dict[str, Any]]:
         "Performs a search based on a key and value"
         if not self.snapshots:
             self.get_snapshots()
 
         try:
-            return next(_p for _p in self.snapshots if _p[key] == value)
+            return next(_p for _p in (self.snapshots or []) if _p[key] == value)
         except StopIteration:
             return None
 
-    def get_snapshot(self, name=None, snapshot_id=None):
+    def get_snapshot(
+        self, 
+        name: Optional[str] = None, 
+        snapshot_id: Optional[str] = None
+    ) -> Optional[Dict[str, Any]]:
         """
         Returns the Snapshot by searching for the `name` or the `snapshot_id`.
 
@@ -2124,7 +2432,7 @@ class Project:
             raise ValueError("name or snapshot_id must be provided")
 
     @verify_connector_and_id
-    def create_snapshot(self, name):
+    def create_snapshot(self, name: str) -> None:
         """
         Creates a snapshot of the project
 
@@ -2137,23 +2445,35 @@ class Project:
 
         - `name`
         """
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
+
         self.get_snapshots()
 
         _snapshot = self.get_snapshot(name=name)
         if _snapshot:
             raise ValueError("Snapshot already created")
 
-        _url = f"{self.connector.base_url}/projects/{self.project_id}/snapshots"
+        _url = f"{_conn.nector.base_url}/projects/{_project_id}/snapshots"
 
-        response = self.connector.http_call("post", _url, json_data=dict(name=name))
+        _response = _conn.http_call("post", _url, json_data={'name': name})
 
-        _snapshot = response.json()
+        _snapshot = _response.json()
+
+        if self.snapshots is None:
+            self.snapshots = []
 
         self.snapshots.append(_snapshot)
         print(f"Created snapshot: {_snapshot['name']}")
 
     @verify_connector_and_id
-    def delete_snapshot(self, name=None, snapshot_id=None):
+    def delete_snapshot(
+        self,
+        name: Optional[str] = None,
+        snapshot_id: Optional[str] = None
+    ) -> None:
         """
         Deletes a snapshot of the project
 
@@ -2166,6 +2486,11 @@ class Project:
 
         - `name` or `snapshot_id`
         """
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
+        
         self.get_snapshots()
 
         _snapshot = self.get_snapshot(name=name, snapshot_id=snapshot_id)
@@ -2173,16 +2498,20 @@ class Project:
             raise ValueError("Snapshot not found")
 
         _url = (
-            f"{self.connector.base_url}/projects/{self.project_id}/snapshots/"
+            f"{_conn.base_url}/projects/{_project_id}/snapshots/"
             f"{_snapshot['snapshot_id']}"
         )
 
-        self.connector.http_call("delete", _url)
+        _conn.http_call("delete", _url)
 
         self.get_snapshots()
 
     @verify_connector_and_id
-    def restore_snapshot(self, name=None, snapshot_id=None):
+    def restore_snapshot(
+        self,
+        name: Optional[str] = None,
+        snapshot_id: Optional[str] = None
+    ) -> None:
         """
         Restore a snapshot from disk
 
@@ -2195,6 +2524,11 @@ class Project:
 
         - `name` or `snapshot_id`
         """
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
+        
         self.get_snapshots()
 
         _snapshot = self.get_snapshot(name=name, snapshot_id=snapshot_id)
@@ -2202,16 +2536,16 @@ class Project:
             raise ValueError("Snapshot not found")
 
         _url = (
-            f"{self.connector.base_url}/projects/{self.project_id}/snapshots/"
+            f"{_conn.base_url}/projects/{_project_id}/snapshots/"
             f"{_snapshot['snapshot_id']}/restore"
         )
 
-        self.connector.http_call("post", _url)
+        _conn.http_call("post", _url)
 
         # Update the whole project
         self.get()
 
-    def arrange_nodes_circular(self, radius=120):
+    def arrange_nodes_circular(self, radius: int = 120) -> None:
         """
         Re-arrgange the existing nodes
         in a circular fashion
@@ -2239,7 +2573,7 @@ class Project:
             _y = int(radius * (-cos(_angle * index)))
             n.update(x=_x, y=_y)
 
-    def get_drawing(self, drawing_id=None):
+    def get_drawing(self, drawing_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
         """
         Returns the drawing by searching for the `svg` or the `drawing_id`.
 
@@ -2257,14 +2591,14 @@ class Project:
         try:
             return next(
                 _drawing
-                for _drawing in self.drawings
+                for _drawing in (self.drawings or [])
                 if _drawing["drawing_id"] == drawing_id
             )
-        except StopIteration:
+        except (StopIteration, KeyError, TypeError):
             return None
 
     @verify_connector_and_id
-    def get_drawings(self):
+    def get_drawings(self) -> None:
         """
         Retrieves list of drawings  of the project
 
@@ -2273,86 +2607,75 @@ class Project:
         - `project_id`
         - `connector`
         """
-        _url = f"{self.connector.base_url}/projects/{self.project_id}/drawings"
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
 
-        _response = self.connector.http_call("get", _url)
+        _url = f"{_conn.base_url}/projects/{_project_id}/drawings"
+
+        _response = _conn.http_call("get", _url)
         self.drawings = _response.json()
 
     @verify_connector_and_id
-    def create_drawing(self, svg, locked=False, x=10, y=10, z=1):
-        """
-        Creates a drawing on the project
+    def update_drawing(
+        self, 
+        drawing_id: str, 
+        svg: Optional[str] = None, 
+        locked: Optional[bool] = None, 
+        x: Optional[int] = None, 
+        y: Optional[int] = None, 
+        z: Optional[int] = None
+    ) -> Dict[str, Any]:
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
+        
+        _url = f"{_conn.base_url}/projects/{_project_id}/drawings/{drawing_id}"
 
-        **Required Project instance attributes:**
+        # 确保数据存在
+        if not self.drawings:
+            self.get_drawings()
+        
+        # 类型守卫：告知 Mypy self.drawings 现在是可迭代的 list
+        # 使用 or [] 配合 next 查找目标对象
+        current_drawing = next(
+            (d for d in (self.drawings or []) if d.get("drawing_id") == drawing_id), 
+            None
+        )
+        
+        if current_drawing is None:
+            raise ValueError(f"Drawing with ID {drawing_id} not found in project.")
 
-        - `project_id`
-        - `connector`
-        """
-        _url = f"{self.connector.base_url}/projects/{self.project_id}/drawings"
+        # 如果参数为 None，则从当前对象中获取原始值
+        # 这样处理后，Mypy 就不会再对每个字段的列表推导式报错了
+        final_svg = svg if svg is not None else current_drawing.get("svg")
+        final_locked = locked if locked is not None else current_drawing.get("locked")
+        final_x = x if x is not None else current_drawing.get("x")
+        final_y = y if y is not None else current_drawing.get("y")
+        final_z = z if z is not None else current_drawing.get("z")
 
-        response = self.connector.http_call(
-            "post", _url, json_data=dict(svg=svg, locked=locked, x=x, y=y, z=z)
+        # 执行更新
+        response = _conn.http_call(
+            "put", 
+            _url, 
+            json_data={
+                'svg': final_svg, 
+                'locked': final_locked, 
+                'x': final_x, 
+                'y': final_y, 
+                'z': final_z
+            }
         )
 
-        _drawing = response.json()
-
-        self.drawings.append(_drawing)
-        print(f"Created drawing: {_drawing['drawing_id']}")
-
-    @verify_connector_and_id
-    def update_drawing(self, drawing_id, svg=None, locked=None, x=None, y=None, z=None):
-        """
-        Updates a drawing on the project
-
-        **Required Project instance attributes:**
-
-        - `project_id`
-        - `connector`
-        """
-        _url = (
-            f"{self.connector.base_url}/projects/{self.project_id}/drawings/"
-            f"{drawing_id}"
-        )
-
-        if svg is None:
-            svg = [
-                draw["svg"]
-                for draw in self.drawings
-                if draw["drawing_id"] == drawing_id
-            ][0]
-
-        if locked is None:
-            locked = [
-                draw["locked"]
-                for draw in self.drawings
-                if draw["drawing_id"] == drawing_id
-            ][0]
-
-        if x is None:
-            x = [
-                draw["x"] for draw in self.drawings if draw["drawing_id"] == drawing_id
-            ][0]
-
-        if y is None:
-            y = [
-                draw["y"] for draw in self.drawings if draw["drawing_id"] == drawing_id
-            ][0]
-
-        if z is None:
-            z = [
-                draw["z"] for draw in self.drawings if draw["drawing_id"] == drawing_id
-            ][0]
-
-        response = self.connector.http_call(
-            "put", _url, json_data=dict(svg=svg, locked=locked, x=x, y=y, z=z)
-        )
-
+        # 更新本地缓存
         self.get_drawings()
 
-        return response.json()
+        return cast(Dict[str, Any], response.json())
 
     @verify_connector_and_id
-    def delete_drawing(self, drawing_id=None):
+    def delete_drawing(self, drawing_id: Optional[str] = None) -> None:
         """
         Deletes a drawing of the project
 
@@ -2365,6 +2688,11 @@ class Project:
 
         - `drawing_id`
         """
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
+
         self.get_drawings()
 
         _drawing = self.get_drawing(drawing_id=drawing_id)
@@ -2372,10 +2700,10 @@ class Project:
             raise ValueError("drawing not found")
 
         _url = (
-            f"{self.connector.base_url}/projects/{self.project_id}/drawings/"
+            f"{_conn.base_url}/projects/{_project_id}/drawings/"
             f"{_drawing['drawing_id']}"
         )
 
-        self.connector.http_call("delete", _url)
+        _conn.http_call("delete", _url)
 
         self.get_drawings()

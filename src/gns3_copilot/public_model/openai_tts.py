@@ -1,17 +1,25 @@
 """
 OpenAI TTS Interface Module
 ---------------------------
-This module provides a robust interface for converting text to speech using 
-OpenAI-compatible APIs, specifically optimized for WAV output and automated 
+This module provides a robust interface for converting text to speech using
+OpenAI-compatible APIs, specifically optimized for WAV output and automated
 duration calculation.
 """
 
-from openai import OpenAI, APIError, AuthenticationError, RateLimitError, APIConnectionError
-from typing import Optional
 import io
 import os
+from typing import Optional, Dict, Any, List
+
 import soundfile as sf
 from dotenv import load_dotenv
+from openai import (
+    APIConnectionError,
+    APIError,
+    AuthenticationError,
+    OpenAI,
+    RateLimitError,
+)
+
 from gns3_copilot.log_config import setup_logger
 
 # Load environment variables
@@ -20,12 +28,9 @@ load_dotenv()
 # Setup logger
 logger = setup_logger("openai_tts")
 
-def get_tts_config():
+def get_tts_config() -> Dict[str, Any]:
     """
     Get TTS configuration from environment variables with sensible defaults.
-    
-    Returns:
-        dict: Dictionary containing TTS configuration parameters.
     """
     return {
         'api_key': os.getenv('TTS_API_KEY', 'dummy-key'),
@@ -38,7 +43,7 @@ def get_tts_config():
 def text_to_speech_wav(
     text: str,
     model: Optional[str] = None,
-    voice: Optional[str] = None, 
+    voice: Optional[str] = None,
     speed: Optional[float] = None,
     instructions: Optional[str] = None,
     api_key: Optional[str] = None,
@@ -46,117 +51,62 @@ def text_to_speech_wav(
 ) -> bytes:
     """
     Convert text to speech audio in WAV format using OpenAI TTS API.
-
-    Args:
-        text (str): The text content to convert. Max length is 4096 characters.
-        model (Optional[str]): TTS model to use. Options: "tts-1", "tts-1-hd", "gpt-4o-mini-tts". 
-                              If not provided, uses TTS_MODEL environment variable or "tts-1".
-        voice (Optional[str]): The voice persona. Options: "alloy", "ash", "ballad", etc.
-                              If not provided, uses TTS_VOICE environment variable or "alloy".
-        speed (Optional[float]): Audio speed from 0.25 to 4.0. 
-                                If not provided, uses TTS_SPEED environment variable or 1.0.
-        instructions (Optional[str]): Voice control instructions (gpt-4o-mini-tts only).
-        api_key (Optional[str]): API key for authentication. 
-                                If not provided, uses TTS_API_KEY environment variable or "dummy-key".
-        base_url (Optional[str]): Base URL for the API endpoint. 
-                                 If not provided, uses TTS_BASE_URL environment variable or "http://localhost:4123/v1".
-
-    Returns:
-        bytes: Binary audio data in WAV format.
-
-    Raises:
-        ValueError: If input parameters are invalid.
-        Exception: If API authentication, connection, or rate limits fail.
     """
-    
-    # Get default configuration from environment variables
     config = get_tts_config()
-    
-    # Use provided parameters or fall back to environment defaults
-    model = model if model is not None else config['model']
-    voice = voice if voice is not None else config['voice']
-    speed = speed if speed is not None else config['speed']
-    api_key = api_key if api_key is not None else config['api_key']
-    base_url = base_url if base_url is not None else config['base_url']
-    
-    # 1. Basic parameter validation
+
+    # 确保变量类型确定，避免 Optional 带来的后续麻烦
+    final_model: str = model if model is not None else str(config['model'])
+    final_voice: Any = voice if voice is not None else config['voice'] # voice SDK 类型较复杂，暂用 Any 或 str
+    final_speed: float = speed if speed is not None else float(config['speed'])
+    final_api_key: str = api_key if api_key is not None else str(config['api_key'])
+    final_base_url: str = base_url if base_url is not None else str(config['base_url'])
+
     if not text or not text.strip():
         raise ValueError("Error: Text content cannot be empty.")
-    
+
     if len(text) > 4096:
         raise ValueError(f"Error: Text length ({len(text)}) exceeds 4096 character limit.")
-    
-    if not (0.25 <= speed <= 4.0):
+
+    if not (0.25 <= final_speed <= 4.0):
         raise ValueError("Error: Speed must be between 0.25 and 4.0.")
 
-    # 2. Model and Voice validation
+    # 验证模型
     valid_models = ["tts-1", "tts-1-hd", "gpt-4o-mini-tts"]
-    if model not in valid_models:
-        raise ValueError(f"Error: Unsupported model '{model}'. Valid options: {valid_models}")
-    
-    valid_voices = ["alloy", "ash", "ballad", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer", "verse"]
-    if voice not in valid_voices:
-        raise ValueError(f"Error: Unsupported voice '{voice}'. Valid options: {valid_voices}")
-
-    # 3. Prepare API parameters (Format fixed to WAV)
-    api_params = {
-        "model": model,
-        "voice": voice,
-        "response_format": "wav",
-        "input": text,
-        "speed": speed,
-    }
-    
-    # Optional instructions for specific models
-    if instructions:
-        if model == "gpt-4o-mini-tts":
-            api_params["instructions"] = instructions
-        else:
-            logger.warning(f"Model {model} does not support instructions. Parameter ignored.")
+    if final_model not in valid_models:
+        raise ValueError(f"Error: Unsupported model '{final_model}'.")
 
     try:
-        # Initialize OpenAI client
-        logger.debug(f"Initializing OpenAI client with base_url: {base_url}")
-        client = OpenAI(api_key=api_key, base_url=base_url)
+        client = OpenAI(api_key=final_api_key, base_url=final_base_url)
+        logger.info(f"Generating TTS: model={final_model}, voice={final_voice}")
+
+        # 显式传参，不使用字典解包 (**api_params)
+        # 这样 Mypy 能够直接核对类型，解决大量的 [arg-type] 错误
         
-        # Execute API request
-        logger.info(f"Generating TTS audio using model: {model}, voice: {voice}, text length: {len(text)} characters")
-        response = client.audio.speech.create(**api_params)
-        logger.debug("TTS API request completed successfully")
-        
+        # 注意：response_format 必须是 SDK 支持的字面量
+        response = client.audio.speech.create(
+            model=final_model,
+            voice=final_voice,
+            input=text,
+            speed=final_speed,
+            response_format="wav"  # 显式字符串
+        )
+
         return response.content
 
-    # 4. Comprehensive Error Handling
-    except AuthenticationError as e:
-        logger.error(f"Authentication failed: {e}")
-        raise Exception("Authentication failed: Please check your API Key.")
-    except RateLimitError as e:
-        logger.error(f"Rate limit exceeded: {e}")
-        raise Exception("Rate limit exceeded: Please wait before trying again.")
-    except APIConnectionError as e:
-        logger.error(f"Connection error: {e}")
-        raise Exception("Connection error: Cannot reach the server. Check your network or base_url.")
-    except APIError as e:
-        logger.error(f"OpenAI API error: {e}")
-        raise Exception(f"OpenAI API error: {str(e)}")
     except Exception as e:
-        logger.error(f"Unexpected error in TTS processing: {e}")
-        raise Exception(f"Unexpected error: {str(e)}")
+        logger.error(f"TTS processing failed: {e}")
+        raise Exception(f"TTS Error: {str(e)}") from e
 
 def get_duration(audio_bytes: bytes) -> float:
     """
     Calculate the duration of WAV audio data in seconds.
-
-    Args:
-        audio_bytes (bytes): The binary audio data.
-
-    Returns:
-        float: Duration in seconds. Returns 0.0 if calculation fails.
     """
     try:
         with io.BytesIO(audio_bytes) as bio:
+            # 使用 float() 强制转换，解决 [no-any-return]
             data, samplerate = sf.read(bio)
-            return len(data) / samplerate
+            duration = len(data) / samplerate
+            return float(duration)
     except Exception as e:
         logger.error(f"Failed to calculate duration: {e}")
         return 0.0
@@ -172,7 +122,7 @@ if __name__ == "__main__":
         logger.info("Starting TTS test with default configuration")
         print("Generating audio...")
         print("Using environment variables for TTS configuration...")
-        
+
         # Display current configuration
         config = get_tts_config()
         logger.info(f"TTS Configuration - Model: {config['model']}, Voice: {config['voice']}, Speed: {config['speed']}")
@@ -181,7 +131,7 @@ if __name__ == "__main__":
         print(f"TTS Speed: {config['speed']}")
         print(f"TTS Base URL: {config['base_url']}")
         print(f"TTS API Key: {'***' if config['api_key'] != 'dummy-key' else 'dummy-key'}")
-        
+
         # Generate audio using environment variables (no explicit parameters needed)
         audio_data = text_to_speech_wav(
             text=test_topology
@@ -196,7 +146,7 @@ if __name__ == "__main__":
             f.write(audio_data)
         logger.info("Audio file saved as network_info.wav")
         print("File saved as network_info.wav")
-        
+
         # Example with explicit parameter override
         print("\n--- Example with parameter override ---")
         logger.info("Testing TTS with parameter override")

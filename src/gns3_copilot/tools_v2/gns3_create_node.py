@@ -8,8 +8,10 @@ using specified templates and coordinates through the GNS3 API.
 import json
 import os
 from pprint import pprint
+from typing import Any, Dict, List, Optional, Union
 from dotenv import load_dotenv
 from langchain.tools import BaseTool
+from langchain_core.callbacks import CallbackManagerForToolRun
 from gns3_copilot.gns3_client import Gns3Connector, Node
 from gns3_copilot.log_config import setup_tool_logger
 
@@ -27,7 +29,7 @@ class GNS3CreateNodeTool(BaseTool):
     **Input:**
     A JSON object containing the project_id and an array of nodes with template_id,
     x and y coordinates.
-    
+
     Example input:
         {
             "project_id": "uuid-of-project",
@@ -57,7 +59,7 @@ class GNS3CreateNodeTool(BaseTool):
                     "status": "success"
                 },
                 {
-                    "node_id": "uuid-of-node2", 
+                    "node_id": "uuid-of-node2",
                     "name": "NodeName2",
                     "status": "success"
                 }
@@ -93,7 +95,12 @@ class GNS3CreateNodeTool(BaseTool):
     If the operation fails during input validation, returns a dictionary with an error message.
     """
 
-    def _run(self, tool_input: str, **kwargs) -> dict:
+    def _run(
+        self,
+        tool_input: str,
+        run_manager: Optional[CallbackManagerForToolRun] = None,
+        **kwargs: Any
+    ) -> Dict[str, Any]:
         """
         Creates multiple nodes in a GNS3 project using the provided templates and coordinates.
 
@@ -134,26 +141,29 @@ class GNS3CreateNodeTool(BaseTool):
                         "Invalid input: Node %d missing or invalid template_id, x, or y.", i+1)
                     return {"error": f"Node {i+1} missing or invalid template_id, x, or y."}
 
+            raw_version = os.getenv("API_VERSION")
+            api_version = int(raw_version) if raw_version else 2 # 确保是 int
+            server_url = os.getenv("GNS3_SERVER_URL")
+
             # Initialize Gns3Connector
             logger.info("Connecting to GNS3 server at %s...", os.getenv("GNS3_SERVER_URL"))
-            
-            if os.getenv("API_VERSION") == '2':
+
+            if api_version == 2:
+                gns3_server = Gns3Connector(url=server_url, api_version=api_version)
+            elif api_version == 3:
                 gns3_server = Gns3Connector(
-                    url=os.getenv("GNS3_SERVER_URL"),
-                    api_version=os.getenv("API_VERSION")
-                    )
-            if os.getenv("API_VERSION") == '3':
-                gns3_server = Gns3Connector(
-                    url=os.getenv("GNS3_SERVER_URL"),
+                    url=server_url,
                     user=os.getenv("GNS3_SERVER_USERNAME"),
                     cred=os.getenv("GNS3_SERVER_PASSWORD"),
-                    api_version=os.getenv("API_VERSION")
-                    )
-                
+                    api_version=api_version
+                )
+            else:
+                raise ValueError(f"Unsupported API version: {api_version}")
+
 
             # Create nodes
             logger.info("Creating %d nodes in project %s...", len(nodes), project_id)
-            results = []
+            results: List[Dict[str, Any]] = []
 
             for i, node_data in enumerate(nodes):
                 try:

@@ -8,7 +8,7 @@ to guide network automation tasks and reasoning processes.
 # System prompt for the LangChain v1.0 agent
 # This prompt provides guidance for network automation tasks
 SYSTEM_PROMPT = """
-You are a network automation assistant that can execute commands on network devices. 
+You are a network automation assistant that can execute commands on network devices.
 You have access to tools that can help you complete network automation tasks.
 
 Your main responsibilities include:

@@ -1,7 +1,8 @@
 """
 Public module for getting device port information from GNS3 topology
 """
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 from gns3_copilot.gns3_client import GNS3TopologyTool
 from gns3_copilot.log_config import setup_tool_logger
 
@@ -10,10 +11,10 @@ logger = setup_tool_logger("get_gns3_device_port")
 def get_device_ports_from_topology(device_names: List[str]) -> Dict[str, Dict[str, Any]]:
     """
     Get device connection information from GNS3 topology
-    
+
     Args:
         device_names: List of device names to look up
-        
+
     Returns:
         Dictionary mapping device names to their connection data:
         {
@@ -30,7 +31,7 @@ def get_device_ports_from_topology(device_names: List[str]) -> Dict[str, Dict[st
         topology = topo._run()
 
         # Dynamically build hosts_data from topology
-        hosts_data = {}
+        hosts_data: Dict[str, Dict[str, Any]] = {}
 
         if not topology:
             logger.warning("Unable to get topology information")

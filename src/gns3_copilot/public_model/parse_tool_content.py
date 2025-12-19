@@ -16,9 +16,9 @@ Supported formats:
 
 Author: Guobin Yue
 """
-import json
 import ast
-from typing import Any, Dict, Union, Optional, List
+import json
+from typing import Any, Dict, List, Optional, Union, Tuple
 from gns3_copilot.log_config import setup_tool_logger
 
 logger = setup_tool_logger("parse_tool_content")
@@ -30,16 +30,16 @@ def parse_tool_content(
 ) -> Union[Dict[str, Any], List[Any], Any]:
     """
     Parse tool execution results into structured data, specifically for UI display.
-    
+
     This function can handle various input types including strings, dictionaries, lists,
     and primitive types. It ensures the returned data can be properly serialized
     by json.dumps.
-    
+
     Args:
         content: Content returned by tools (can be str, dict, list, int, float, bool, or None)
         fallback_to_raw: Whether to return raw content when parsing fails, default True
         strict_mode: Strict mode, raises exceptions when parsing fails, default False
-        
+
     Returns:
         Union[Dict[str, Any], List[Any], Any]: Parsed data that can be serialized by json.dumps:
         - Successfully parsed JSON/Python literal data
@@ -48,33 +48,33 @@ def parse_tool_content(
         - {"raw": content} when unable to parse but fallback_to_raw=True
         - {"error": "error_message"} when parsing fails and fallback_to_raw=False
         - {} for None input
-        
+
     Raises:
         ValueError: When strict_mode=True and parsing fails
         TypeError: When content type is unsupported and strict_mode=True
-        
+
     Examples:
         >>> parse_tool_content('{"status": "success", "data": [1, 2, 3]}')
         {'status': 'success', 'data': [1, 2, 3]}
-        
+
         >>> parse_tool_content({"status": "success"})
         {'status': 'success'}
-        
+
         >>> parse_tool_content([1, 2, 3])
         [1, 2, 3]
-        
+
         >>> parse_tool_content(42)
         42
-        
+
         >>> parse_tool_content("{'name': 'PC1', 'status': 'ok'}")
         {'name': 'PC1', 'status': 'ok'}
-        
+
         >>> parse_tool_content("Invalid JSON input: ...")
         {'raw': 'Invalid JSON input: ...'}
-        
+
         >>> parse_tool_content("{}")
         {}
-        
+
         >>> parse_tool_content(None)
         {}
     """
@@ -150,7 +150,7 @@ def parse_tool_content(
         return content
 
     # Handle unsupported types
-    error_msg = (
+    error_msg = ( # type: ignore[unreachable]
         "Content must be str, dict, list, int, float, bool, or None, got "
         f"{type(content).__name__}")
     logger.error(error_msg)
@@ -169,14 +169,14 @@ def format_tool_response(
     ) -> str:
     """
     Format tool response as a beautiful JSON string for UI display.
-    
+
     This function ensures that the output is always a valid JSON string that can be
     properly displayed in UI interfaces.
-    
+
     Args:
         content: Content returned by tools (can be str, dict, list, int, float, bool, or None)
         indent: JSON indentation spaces, default 2
-        
+
     Returns:
         str: Formatted JSON string, always valid JSON
     """
@@ -200,9 +200,9 @@ def format_tool_response(
         return json.dumps({"error": str(e)}, ensure_ascii=False, indent=indent)
 
 # Test function to verify the implementation
-def _test_parse_tool_content():
+def _test_parse_tool_content() -> None:
     """Test function to verify parse_tool_content works correctly with all input types"""
-    test_cases = [
+    test_cases: List[Tuple[Any, Any]] = [
         # String inputs
         ('{"status": "success", "data": [1, 2, 3]}', {'status': 'success', 'data': [1, 2, 3]}),
         ("{'name': 'PC1', 'status': 'ok'}", {'name': 'PC1', 'status': 'ok'}),
@@ -251,7 +251,7 @@ def _test_parse_tool_content():
         try:
             json.loads(result)
             valid = "✓"
-        except:
+        except Exception:
             valid = "✗"
         print(f"Format Test {i+1}: {valid} Input: {repr(input_data)} -> {result}")
 

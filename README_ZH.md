@@ -1,6 +1,19 @@
 # GNS3 Copilot
 
-![Python](https://img.shields.io/badge/python-3.8+-blue.svg) ![GNS3](https://img.shields.io/badge/GNS3-2.2+-green.svg) ![LangChain](https://img.shields.io/badge/LangChain-1.0.7-orange.svg) ![Nornir](https://img.shields.io/badge/Nornir-3.5.0-red.svg) ![Netmiko](https://img.shields.io/badge/Netmiko-4.6.0-blue.svg) ![LangGraph](https://img.shields.io/badge/LangGraph-1.0.0-purple.svg) ![License](https://img.shields.io/badge/license-MIT-green.svg) ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)
+[![CI - Quality Assurance](https://github.com/yueguobin/gns3-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/yueguobin/gns3-copilot/actions/workflows/ci.yml)
+[![CD - Production Release](https://github.com/yueguobin/gns3-copilot/actions/workflows/cd.yml/badge.svg)](https://github.com/yueguobin/gns3-copilot/actions/workflows/cd.yml)
+[![PyPI version](https://img.shields.io/pypi/v/gns3-copilot.svg)](https://pypi.org/project/gns3-copilot/)
+[![Codecov](https://codecov.io/gh/yueguobin/gns3-copilot/branch/master/graph/badge.svg)](https://codecov.io/gh/yueguobin/gns3-copilot)
+
+
+![Python](https://img.shields.io/badge/python-3.9+-blue.svg) 
+![GNS3](https://img.shields.io/badge/GNS3-2.2+-green.svg) 
+![LangChain](https://img.shields.io/badge/LangChain-1.0.7-orange.svg) 
+![Nornir](https://img.shields.io/badge/Nornir-3.5.0-red.svg) 
+![Netmiko](https://img.shields.io/badge/Netmiko-4.6.0-blue.svg) 
+![LangGraph](https://img.shields.io/badge/LangGraph-1.0.0-purple.svg) 
+![License](https://img.shields.io/badge/license-MIT-green.svg) 
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)
 
 一个基于AI的网络自动化助手，专为GNS3网络模拟器设计，提供智能化的网络设备管理和自动化操作。
 
@@ -80,7 +93,7 @@ GNS3 Copilot 是一个强大的网络自动化工具，集成了多种AI模型�
 
 ### 环境要求
 
-- Python 3.8+
+- Python 3.9+
 - GNS3 Server (运行在 http://localhost:3080或远程主机)
 - 支持的操作系统: Windows, macOS, Linux
 

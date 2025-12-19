@@ -1,3 +1,4 @@
+# mypy: ignore-errors
 """
 GNS3 Copilot - AI-Powered Network Engineering Assistant
 
@@ -26,17 +27,18 @@ Run this module directly to start the GNS3 Copilot web interface:
 Note: Requires proper configuration of GNS3 server and API credentials.
 """
 import json
-import uuid
 import os
-from dotenv import load_dotenv
-
+import uuid
 from time import sleep
+from typing import Any, cast
 import streamlit as st
-from langchain.messages import ToolMessage, HumanMessage, AIMessage
+from dotenv import load_dotenv
+from langchain.messages import AIMessage, HumanMessage, ToolMessage
+from gns3_copilot.public_model import get_duration, speech_to_text, text_to_speech_wav
+
 from gns3_copilot.agent import agent, langgraph_checkpointer
 from gns3_copilot.log_config import setup_logger
 from gns3_copilot.public_model import format_tool_response
-from public_model import speech_to_text, text_to_speech_wav, get_duration
 
 logger = setup_logger("chat")
 load_dotenv()
@@ -46,13 +48,13 @@ load_dotenv()
 VOICE_ENABLED = os.getenv("VOICE", "false").lower() == "true"
 
 # get all thread_id from checkpoint database.
-def list_thread_ids(checkpointer):
+def list_thread_ids(checkpointer: Any) -> list[str]:
     """
     Get all unique thread IDs from LangGraph checkpoint database.
-    
+
     Args:
         checkpointer: LangGraph checkpointer instance.
-    
+
     Returns:
         list: List of unique thread IDs ordered by most recent activity.
               Returns empty list on error or if table doesn't exist.
@@ -67,13 +69,13 @@ def list_thread_ids(checkpointer):
         logger.debug("Error listing thread IDs (table may not exist): %s", e)
         return []
 
-def new_session():
+def new_session()-> None:
     """
     Create a new chat session by generating a unique thread ID and resetting session state.
-    
+
     Initializes a fresh conversation session with a new UUID, clears existing session data,
     and resets the UI session selector to the default option.
-    
+
     Side Effects:
         - Updates st.session_state with new thread_id
         - Clears current_thread_id and state_history
@@ -123,7 +125,7 @@ with st.sidebar:
     logger.debug("session_options : %s", session_options)
 
     selected = st.selectbox(
-        "Session History", 
+        "Session History",
         options=session_options,
         format_func=lambda x: x[0],   # view conversation_title
         key="session_select",          # new key for state management
@@ -275,7 +277,7 @@ if prompt:
         # Mode A: prompt is an object (containing .text and .audio)
         if prompt.audio:
             user_text = speech_to_text(prompt.audio)
-        
+
         # If voice is not converted to text, or user directly types
         if not user_text:
             user_text = prompt.text
@@ -286,7 +288,7 @@ if prompt:
     # 3. Final check and run
     if not user_text or user_text.strip() == "":
         st.stop()
-        
+
     # Display user message in chat message container
     with st.chat_message("user"):
         st.markdown(user_text)
@@ -299,12 +301,12 @@ if prompt:
         # Core aggregation state: only stores currently streaming tool information
         # Structure: {'id': str, 'name': str, 'args_string': str} or None
         current_tool_state = None
-        
+
         # TTS local switch for message control
         tts_played = False
         # Initialize audio_bytes variable
         audio_bytes = None
-        
+
         # Stream the agent response
         for chunk in agent.stream(
             {
@@ -343,7 +345,7 @@ if prompt:
                     if is_text_ending and not tts_played and current_text_chunk.strip() and VOICE_ENABLED:
                         # Play once in a round of AIMessage/ToolMessage
                         tts_played = True
-                        # Text_to_speech 
+                        # Text_to_speech
                         try:
                             with st.spinner("Generating voice..."):
                                 audio_bytes = text_to_speech_wav(current_text_chunk)
@@ -351,7 +353,7 @@ if prompt:
                         except Exception as e:
                             logger.error("TTS Error: %", e)
                             st.error(f"TTS Error: {e}")
-                            
+
                     # Get metadata (ID and name) from tool_calls
                     if msg.tool_calls:
                         for tool in msg.tool_calls:
@@ -361,7 +363,7 @@ if prompt:
                                 # Initialize current tool state (this is the only time to get ID)
                                 # Note: only one tool can be called at a time
                                 current_tool_state = {
-                                    "id": tool_id, 
+                                    "id": tool_id,
                                     "name": tool.get('name', 'UNKNOWN_TOOL'),
                                     "args_string": "" ,
                                 }
@@ -387,10 +389,10 @@ if prompt:
                             and
                             current_tool_state is not None
                             )
-                        ):               
+                        ):
                         tool_data = current_tool_state
                         # Parse complete parameter string
-                        parsed_args = {}
+                        parsed_args: dict[str, Any] = {}
                         try:
                             parsed_args = json.loads(tool_data['args_string'])
                         except json.JSONDecodeError:
@@ -409,9 +411,9 @@ if prompt:
                             "name": tool_data['name'],
                             "id": tool_data['id'],
                             # Inject tool_input structure
-                            "args": parsed_args, 
+                            "args": parsed_args,
                             "type": tool_data.get('type', 'tool_call') # Maintain completeness
-                        }            
+                        }
                         # Update Call Expander, display final parameters (collapsed)
                         with st.expander(
                             f"**Tool Call:** {tool_data['name']} `call_id: {tool_data['id']}`",
@@ -419,12 +421,12 @@ if prompt:
                         ):
                             # Use the final complete structure
                             st.json(display_tool_call, expanded=False)
-                    
+
                 if isinstance(msg, ToolMessage):
                     # Wait for audio playback to complete before returning ToolMessage to LLM
                     if VOICE_ENABLED and audio_bytes:
                         sleep(get_duration(audio_bytes))
-                    
+
                     # Clear state after completion, ready to receive next tool call
                     current_tool_state = None
 

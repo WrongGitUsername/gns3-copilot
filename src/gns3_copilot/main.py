@@ -7,27 +7,38 @@ Streamlit application with support for Streamlit parameter passthrough.
 """
 
 import argparse
-import sys
+import importlib.util
 import subprocess
+import sys
 from pathlib import Path
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import types
 
 # Conditional imports at top level
-try:
-    import streamlit
-    STREAMLIT_AVAILABLE = True
-except ImportError:
-    STREAMLIT_AVAILABLE = False
+# Check if streamlit exists without actually importing it
+STREAMLIT_AVAILABLE = importlib.util.find_spec("streamlit") is not None
+
+if STREAMLIT_AVAILABLE:
+    # If streamlit is needed later, it can be imported inside functions or keep current logic
+    pass
+
+# Global variables with proper typing
+gns3_copilot: Optional["types.ModuleType"] = None
+__version__: str = "unknown"
+GNS3_COPILOT_AVAILABLE: bool = False
 
 try:
-    import gns3_copilot
-    from gns3_copilot import __version__
+    import gns3_copilot as gns3_copilot_import
+    from gns3_copilot import __version__ as version_import
+    gns3_copilot = gns3_copilot_import
+    __version__ = version_import
     GNS3_COPILOT_AVAILABLE = True
 except ImportError:
-    gns3_copilot = None
-    __version__ = "unknown"
-    GNS3_COPILOT_AVAILABLE = False
+    pass
 
-def get_app_path():
+def get_app_path() -> Optional[str]:
     """Get the path to the app.py file."""
     # Try to find app.py in the current directory first
     current_dir = Path.cwd()
@@ -44,23 +55,26 @@ def get_app_path():
         return str(app_path)
 
     # As a last resort, try to find it in the package installation
-    try:
-        package_dir = Path(gns3_copilot.__file__).parent
-        app_path = package_dir / "app.py"
-        if app_path.exists():
-            return str(app_path)
-    except ImportError:
-        pass
+    if gns3_copilot is not None:
+        try:
+            module_file = gns3_copilot.__file__
+            if module_file is not None:
+                package_dir = Path(module_file).parent
+                app_path = package_dir / "app.py"
+                if app_path.exists():
+                    return str(app_path)
+        except (AttributeError, ImportError):
+            pass
 
     return None
 
 
-def check_streamlit():
+def check_streamlit() -> bool:
     """Check if streamlit is available."""
     return STREAMLIT_AVAILABLE
 
 
-def print_help():
+def print_help() -> None:
     """Print help information."""
     help_text = """
 GNS3 Copilot - AI-powered network automation assistant for GNS3
@@ -71,19 +85,19 @@ USAGE:
 EXAMPLES:
     # Basic startup
     gns3-copilot
-    
+
     # Specify custom port
     gns3-copilot --server.port 8080
-    
+
     # Specify address and port
     gns3-copilot --server.address 0.0.0.0 --server.port 8080
-    
+
     # Run in headless mode
     gns3-copilot --server.headless true
-    
+
     # Set log level
     gns3-copilot --logger.level debug
-    
+
     # Disable usage statistics
     gns3-copilot --browser.gatherUsageStats false
 
@@ -106,7 +120,7 @@ ALTERNATIVE USAGE:
     print(help_text)
 
 
-def print_version():
+def print_version() -> None:
     """Print version information."""
     if GNS3_COPILOT_AVAILABLE:
         print(f"GNS3 Copilot version {__version__}")
@@ -114,7 +128,7 @@ def print_version():
         print("GNS3 Copilot version unknown")
 
 
-def main():
+def main() -> int:
     """Main entry point."""
     parser = argparse.ArgumentParser(
         prog="gns3-copilot",

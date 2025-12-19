@@ -1,17 +1,21 @@
 """
-This module provides a tool to execute display commands on multiple devices 
-in a GNS3 topology using Nornir.
+This module provides a tool to execute display commands on multiple devices
+ in a GNS3 topology using Nornir.
 """
 import json
 import os
-from typing import List, Dict, Any, Union
+from typing import Any, Dict, List, Union, Optional
+
 from dotenv import load_dotenv
-from nornir import InitNornir
-from nornir.core.task import Task, Result
-from nornir_netmiko.tasks import netmiko_multiline
 from langchain.tools import BaseTool
-from gns3_copilot.public_model import get_device_ports_from_topology
+from langchain_core.callbacks import CallbackManagerForToolRun
+from nornir import InitNornir
+from nornir.core.task import Result, Task, AggregatedResult
+from nornir_netmiko.tasks import netmiko_multiline
+from nornir.core import Nornir
+
 from gns3_copilot.log_config import setup_tool_logger
+from gns3_copilot.public_model import get_device_ports_from_topology
 
 # config log
 logger = setup_tool_logger("display_tools_nornir")
@@ -46,13 +50,13 @@ defaults = {
 class ExecuteMultipleDeviceCommands(BaseTool):
     """
     A tool to execute display (show) commands on multiple devices in a GNS3 topology using Nornir.
-    This class uses Nornir to manage connections and execute commands on multiple devices 
-    concurrently.
+    This class uses Nornir to manage connections and execute commands on multiple devices
+     concurrently.
 
     **Important:**
     This tool is strictly for read-only operations.
-    It is forbidden to execute any configuration commands, including 'configure terminal' or 
-    any command that changes device state.
+    It is forbidden to execute any configuration commands, including 'configure terminal' or
+     any command that changes device state.
     Only use this tool for safe, non-intrusive 'show' or display commands.
     """
 
@@ -67,7 +71,7 @@ class ExecuteMultipleDeviceCommands(BaseTool):
                 "commands": ["show version", "show ip interface brief"]
             },
             {
-                "device_name": "R-2", 
+                "device_name": "R-2",
                 "commands": ["show version", "show ip ospf neighbor"]
             }
         ]
@@ -78,9 +82,9 @@ class ExecuteMultipleDeviceCommands(BaseTool):
 
     def _run(
         self,
-        tool_input: str,
-        run_manager=None
-        ) -> List[Dict[str, Any]]:  # pylint: disable=unused-argument
+        tool_input: Union[str, bytes, List[Any], Dict[str, Any]],
+        run_manager: Optional[CallbackManagerForToolRun] = None
+    ) -> List[Dict[str, Any]]:
         """
         Executes display commands on multiple devices in the current GNS3 topology.
 
@@ -183,11 +187,14 @@ class ExecuteMultipleDeviceCommands(BaseTool):
                 failed=True
             )
 
-    def _validate_tool_input(self, tool_input: Union[str, bytes, List, Dict]):
+    def _validate_tool_input(
+        self, 
+        tool_input: Union[str, bytes, List[Any], Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """
-        Validate device display command input, handling both JSON string 
+        Validate device display command input, handling both JSON string
         and already parsed Python object inputs from different LLM providers.
-        
+
         Args:
             tool_input: The input received from the LangChain/LangGraph tool call.
         """
@@ -229,7 +236,10 @@ class ExecuteMultipleDeviceCommands(BaseTool):
 
         return device_configs_list
 
-    def _configs_map(self, device_config_list):
+    def _configs_map(
+        self,
+        device_config_list: List[Dict[str, Any]]
+    ) -> Dict[str, List[str]]:
         """Create a mapping of device names to their display commands."""
         device_configs_map = {}
         for device_config in device_config_list:
@@ -239,7 +249,10 @@ class ExecuteMultipleDeviceCommands(BaseTool):
 
         return device_configs_map
 
-    def _prepare_device_hosts_data(self, device_config_list):
+    def _prepare_device_hosts_data(
+        self,
+        device_config_list: List[Dict[str, Any]]
+    ) -> Dict[str, Dict[str, Any]]:
         """Prepare device hosts data from topology information."""
         # Extract device names list
         device_names = [device_config["device_name"] for device_config in device_config_list]
@@ -259,7 +272,10 @@ class ExecuteMultipleDeviceCommands(BaseTool):
 
         return hosts_data
 
-    def _initialize_nornir(self, hosts_data):
+    def _initialize_nornir(
+        self,
+        hosts_data: Dict[str, Dict[str, Any]]
+    ) -> Nornir:
         """Initialize Nornir with the provided hosts data."""
         try:
             return InitNornir(
@@ -285,7 +301,12 @@ class ExecuteMultipleDeviceCommands(BaseTool):
             logger.error("Failed to initialize Nornir: %s", e)
             raise ValueError(f"Failed to initialize Nornir: {e}") from e
 
-    def _process_task_results(self, device_configs_list, hosts_data, task_result):
+    def _process_task_results(
+        self, 
+        device_configs_list: List[Dict[str, Any]], 
+        hosts_data: Dict[str, Dict[str, Any]], 
+        task_result: AggregatedResult
+    ) -> List[Dict[str, Any]]:
         """Process the task results and format them for return."""
         results = []
 
@@ -309,7 +330,7 @@ class ExecuteMultipleDeviceCommands(BaseTool):
             if device_name not in task_result:
                 device_result = {
                     "device_name": device_name,
-                    "status": "failed", 
+                    "status": "failed",
                     "error": (
                         f"Device '{device_name}' not found in task results"
                         )
@@ -366,7 +387,7 @@ if __name__ == "__main__":
 
     failed_count = 0
 
-    for i in range(0, 1):
+    for _i in range(0, 1):
         exe_results = exe_cmd._run(tool_input=device_commands)
         for result in exe_results:
             for result in exe_results:

@@ -15,11 +15,13 @@ Key Features:
 """
 
 import os
+from typing import Optional
 import requests
 import streamlit as st
+from dotenv import find_dotenv, load_dotenv, set_key
 from requests.exceptions import RequestException
+
 from gns3_copilot.log_config import setup_logger
-from dotenv import load_dotenv, set_key, find_dotenv
 
 logger = setup_logger("settings")
 
@@ -57,11 +59,11 @@ CONFIG_MAP = {
     # Model Configuration
     "MODE_PROVIDER": "MODE_PROVIDER",
     # Note: This key might require special handling (e.g., dynamic loading or mapping)
-    "MODEL_NAME": "MODEL_NAME",  
+    "MODEL_NAME": "MODEL_NAME",
     "MODEL_API_KEY": "MODEL_API_KEY", # Base API Key
     "BASE_URL":"BASE_URL",
     "TEMPERATURE":"TEMPERATURE",
-    
+
     # Voice Configuration
     "VOICE": "VOICE",
     # Voice TTS Configuration
@@ -70,7 +72,7 @@ CONFIG_MAP = {
     "TTS_MODEL": "TTS_MODEL",
     "TTS_VOICE": "TTS_VOICE",
     "TTS_SPEED": "TTS_SPEED",
-    
+
     # Voice STT Configuration
     "STT_API_KEY": "STT_API_KEY",
     "STT_BASE_URL": "STT_BASE_URL",
@@ -78,7 +80,7 @@ CONFIG_MAP = {
     "STT_LANGUAGE": "STT_LANGUAGE",
     "STT_TEMPERATURE": "STT_TEMPERATURE",
     "STT_RESPONSE_FORMAT": "STT_RESPONSE_FORMAT",
-    
+
     # Other Settings
     "LINUX_TELNET_USERNAME": "LINUX_TELNET_USERNAME",
     "LINUX_TELNET_PASSWORD": "LINUX_TELNET_PASSWORD",
@@ -88,7 +90,7 @@ CONFIG_MAP = {
 
 # Example list of supported providers (used for validation during loading)
 MODEL_PROVIDERS = [
-    "openai", "anthropic", "azure_openai", 
+    "openai", "anthropic", "azure_openai",
     "deepseek", "xai", "openrouter",
     # ... other providers
 ]
@@ -118,14 +120,14 @@ if not ENV_FILE_PATH or not os.path.exists(ENV_FILE_PATH):
                 "A new file has been automatically created in the application root directory. "
                 "Please configure below and click Save.")
         except Exception as e:
-            logger.error("Failed to create {ENV_FILENAME} file: %s", e)
+            logger.error("Failed to create %s file: %s", ENV_FILENAME, e)
             st.error(
-                "Failed to create %s file. Save function will be disabled. Error: %s",
-                ENV_FILENAME, e
-                )
-            ENV_FILE_PATH = None
+                f"Failed to create {ENV_FILENAME} file. "
+                f"Save function will be disabled. Error: {e}"
+            )
+            ENV_FILE_PATH = ""
 
-def load_config_from_env():
+def load_config_from_env()-> None:
     """Load configuration from the .env file and initialize st.session_state."""
     # Only attempt to load if the path is valid and the file exists
     logger.info("Starting to load configuration from .env file")
@@ -166,22 +168,29 @@ def load_config_from_env():
 
         # Special handling for VOICE (boolean)
         if st_key == "VOICE":
-            voice_value = default_value.lower().strip()
-            if voice_value not in ("true", "false", "1", "0", "yes", "no", "on", "off", ""):
+            # 确保 default_value 是字符串后再进行处理
+            voice_str = str(default_value).lower().strip()
+            
+            if voice_str not in ("true", "false", "1", "0", "yes", "no", "on", "off", ""):
                 logger.debug("Invalid VOICE value: %s, setting to default 'false'", default_value)
-                default_value = "false"
-            # Convert to boolean for checkbox
-            default_value = voice_value in ("true", "1", "yes", "on")
+                voice_str = "false"
+            
+            # 直接计算布尔值并存入 session_state
+            is_enabled: bool = voice_str in ("true", "1", "yes", "on")
+            st.session_state[st_key] = is_enabled
+            
+            logger.debug("Loaded config: %s = %s", st_key, is_enabled)
+            continue  # 重要：处理完布尔类型后跳过本次循环，防止被最后的通用赋值覆盖
 
         # Special handling for TTS configuration
         if st_key == "TTS_MODEL" and default_value not in TTS_MODELS:
             logger.warning("Unsupported TTS_MODEL %s, setting to empty", default_value)
             default_value = ""
-        
+
         if st_key == "TTS_VOICE" and default_value not in TTS_VOICES:
             logger.warning("Unsupported TTS_VOICE %s, setting to empty", default_value)
             default_value = ""
-        
+
         if st_key == "TTS_SPEED":
             try:
                 speed_float = float(default_value)
@@ -196,11 +205,11 @@ def load_config_from_env():
         if st_key == "STT_MODEL" and default_value not in STT_MODELS:
             logger.warning("Unsupported STT_MODEL %s, setting to empty", default_value)
             default_value = ""
-        
+
         if st_key == "STT_RESPONSE_FORMAT" and default_value not in STT_RESPONSE_FORMATS:
             logger.warning("Unsupported STT_RESPONSE_FORMAT %s, setting to empty", default_value)
             default_value = ""
-        
+
         if st_key == "STT_TEMPERATURE":
             try:
                 temp_float = float(default_value)
@@ -220,11 +229,11 @@ def load_config_from_env():
             )
     logger.info("Configuration loading completed")
 
-def save_config_to_env():
+def save_config_to_env()-> None:
     """Save the current session state to the .env file."""
     # Prevent saving if the .env file path is invalid
     logger.info("Starting to save configuration to .env file")
-    
+
     # Initialize saved_count counter
     saved_count = 0
 
@@ -262,21 +271,19 @@ def save_config_to_env():
         )
     st.success("Configuration successfully saved to the .env file!")
 
-def check_gns3_api():
+def check_gns3_api()-> None:
     """
     Check whether the GNS3 API is reachable using the provided configuration.
     """
     logger.info("Starting GNS3 API check.")
+
+    version: str = str(st.session_state.get("API_VERSION", "2"))
 
     required_fields = {
         "GNS3_SERVER_HOST": "GNS3 Server Host",
         "GNS3_SERVER_URL": "GNS3 Server URL",
         "API_VERSION": "API Version",
     }
-
-    version = st.session_state.get("API_VERSION", "")
-    username = None
-    password = None
 
     # Add auth fields for API v3
     if version == "3":
@@ -300,14 +307,14 @@ def check_gns3_api():
         return
 
     # Extract validated values
-    url = st.session_state["GNS3_SERVER_URL"]
-    version = st.session_state["API_VERSION"]
+    url: str = st.session_state.get("GNS3_SERVER_URL", "")
+    auth: Optional[tuple[str, str]] = None
 
     if version == "3":
-        username = st.session_state["GNS3_SERVER_USERNAME"]
-        password = st.session_state["GNS3_SERVER_PASSWORD"]
-
-    auth = (username, password) if version == "3" else None
+        u = st.session_state.get("GNS3_SERVER_USERNAME", "")
+        p = st.session_state.get("GNS3_SERVER_PASSWORD", "")
+        if u and p:
+            auth = (u, p)
 
     logger.debug(
         "Checking GNS3 API",
@@ -327,7 +334,7 @@ def check_gns3_api():
     except RequestException as exc:
         logger.error(f"Failed to connect to the GNS3 API: {exc}")
         st.error(f"Failed to connect to the GNS3 API: {exc}")
-        
+
 # Initialization
 if 'GNS3_SERVER_HOST' not in st.session_state:
     logger.info("Initializing Settings page - loading configuration")
@@ -361,7 +368,7 @@ with st.expander("🔧 GNS3 API Settings", expanded=True):
     col1, col2, col3 = st.columns([1,2,2])
     with col1:
         st.selectbox(
-            "GNS3 API Version", 
+            "GNS3 API Version",
             ["2", "3"],
             key="API_VERSION"
         )
@@ -405,7 +412,7 @@ with st.expander("🤖 LLM Model Configuration", expanded=True):
     ollama,
     deepseek,
     xai...
-    
+
     If using the 'OpenRouter' platform, please enter 'openai' here.
             """,
             placeholder="e.g. 'deepseek', 'openai'"
@@ -419,9 +426,9 @@ with st.expander("🤖 LLM Model Configuration", expanded=True):
             type="default",
             help="""
 The name or ID of the model, e.g. 'o3-mini', 'claude-sonnet-4-5-20250929', 'deepseek-caht'.
-    
-If using the OpenRouter platform, 
-please enter the model name in the OpenRouter format, 
+
+If using the OpenRouter platform,
+please enter the model name in the OpenRouter format,
 e.g.: 'openai/gpt-4o-mini', 'x-ai/grok-4-fast'.
             """,
             placeholder="e.g. 'o3-mini', 'claude-sonnet-4-5-20250929', 'deepseek-caht'"
@@ -430,7 +437,7 @@ e.g.: 'openai/gpt-4o-mini', 'x-ai/grok-4-fast'.
     with col3:
         # LLM model temperature
         st.text_input(
-            "Model Temperature", 
+            "Model Temperature",
             key="TEMPERATURE",
             type="default",
             help="""
@@ -440,7 +447,7 @@ Controls randomness: higher values mean more random output. Typical range is 0.0
 
     # LLM model provider base url
     st.text_input(
-        "Base Url", 
+        "Base Url",
         key="BASE_URL",
         type="default",
         help="""
@@ -451,12 +458,12 @@ To use OpenRouter, the Base Url must be entered, e.g., https://openrouter.ai/api
 
     # LLM API KEY
     st.text_input(
-        "Model API Key *", 
+        "Model API Key *",
         key="MODEL_API_KEY",
         type="password",
         help="""
-The key required for authenticating with the model's provider. 
-This is usually issued when you sign up for access to the model. 
+The key required for authenticating with the model's provider.
+This is usually issued when you sign up for access to the model.
         """
     )
 
@@ -474,14 +481,14 @@ Enable or disable voice features including:
 When disabled, all voice-related settings below will be hidden.
         """
     )
-    
+
     # Update session state with boolean value
     st.session_state["VOICE"] = voice_enabled
-    
+
     # Show voice settings only when voice is enabled
     if voice_enabled:
         st.markdown("---")  # Separator
-        
+
         # TTS Configuration Section
         st.subheader("Text-to-Speech (TTS) Configuration")
 
@@ -646,7 +653,7 @@ Select your English proficiency level based on the CEFR (Common European Framewo
 
 **CEFR English Levels:**
 - **A1 (Beginner)**: Basic phrases, simple network terminology
-- **A2 (Elementary)**: Simple sentences, common network concepts  
+- **A2 (Elementary)**: Simple sentences, common network concepts
 - **B1 (Intermediate)**: Complex sentences, technical explanations
 - **B2 (Upper-Intermediate)**: Professional network terminology
 - **C1 (Advanced)**: Expert-level network discussions
@@ -666,7 +673,7 @@ The system will adjust prompt complexity, vocabulary, and explanation style base
             placeholder="E.g., debian",
             type="default",
             help="""
-Use gns3 debian linux. 
+Use gns3 debian linux.
 
 https://www.gns3.com/marketplace/appliances/debian-2
             """

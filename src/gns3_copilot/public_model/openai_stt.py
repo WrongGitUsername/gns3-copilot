@@ -1,9 +1,9 @@
-from openai import OpenAI
-from typing import Union, BinaryIO, Optional, List
 import io
 import os
-import json
+from typing import BinaryIO, List, Optional, Union, Dict, Any, IO, Literal, cast
 from dotenv import load_dotenv
+from openai import OpenAI
+from openai._types import NOT_GIVEN
 from gns3_copilot.log_config import setup_logger
 
 # Load environment variables
@@ -11,19 +11,15 @@ load_dotenv()
 
 logger = setup_logger("openai_stt")
 
-# Default networking prompt to improve recognition of technical terms
 DEFAULT_GNS3_PROMPT = (
     "GNS3, Cisco, router, switch, OSPF, BGP, EIGRP, ISIS, VLAN, STP, "
     "interface, FastEthernet, GigabitEthernet, loopback, config terminal, "
     "no shutdown, show running-config, Wireshark, encapsulation."
 )
 
-def get_stt_config():
+def get_stt_config() -> Dict[str, Any]:
     """
     Get STT configuration from environment variables with sensible defaults.
-    
-    Returns:
-        dict: Dictionary containing STT configuration parameters.
     """
     return {
         'api_key': os.getenv('STT_API_KEY', ''),
@@ -41,111 +37,83 @@ def speech_to_text(
     prompt: Optional[str] = DEFAULT_GNS3_PROMPT,
     response_format: Optional[str] = None,
     temperature: Optional[float] = None,
-    timestamp_granularities: Optional[List[str]] = None,
+    timestamp_granularities: Optional[List[Literal["word", "segment"]]] = None,
     api_key: Optional[str] = None,
     base_url: Optional[str] = None
-) -> Union[str, dict]:
+) -> Union[str, Dict[str, Any]]:
     """
     Transcribe audio to text using OpenAI Whisper API.
-    
-    Args:
-        audio_data: Audio data as bytes or file-like object.
-        model: Optional[str]: Whisper model name. If not provided, uses STT_MODEL environment variable or "whisper-1".
-        language: Optional[str]: ISO 639-1 language code. If not provided, uses STT_LANGUAGE environment variable or None.
-        prompt: Optional[str]: Contextual text to guide transcription.
-        response_format: Optional[str]: Output format (json, text, srt, etc.). If not provided, uses STT_RESPONSE_FORMAT environment variable or "json".
-        temperature: Optional[float]: Sampling temperature (0.0 to 1.0). If not provided, uses STT_TEMPERATURE environment variable or 0.0.
-        timestamp_granularities: Optional[List[str]]: Levels of detail for timestamps.
-        api_key: Optional[str]: OpenAI API key. If not provided, uses STT_API_KEY environment variable or "".
-        base_url: Optional[str]: Custom API endpoint. If not provided, uses STT_BASE_URL environment variable or "http://127.0.0.1:8001/v1".
     """
-    # Get default configuration from environment variables
     config = get_stt_config()
-    
-    # Use provided parameters or fall back to environment defaults
-    model = model if model is not None else config['model']
-    response_format = response_format if response_format is not None else config['response_format']
-    temperature = temperature if temperature is not None else config['temperature']
-    api_key = api_key if api_key is not None else config['api_key']
-    base_url = base_url if base_url is not None else config['base_url']
-    language = language if language is not None else config['language']
-    
-    # 1. Basic parameter validation
+
+    # 确定具体类型，避免 Optional
+    f_model: str = model if model is not None else str(config['model'])
+    f_response_format: Any = response_format if response_format is not None else config['response_format']
+    f_temperature: float = temperature if temperature is not None else float(config['temperature'])
+    f_api_key: str = api_key if api_key is not None else str(config['api_key'])
+    f_base_url: str = base_url if base_url is not None else str(config['base_url'])
+    f_language: Optional[str] = language if language is not None else config.get('language')
+
     if not audio_data:
         raise ValueError("Audio data cannot be empty")
-    
-    valid_models = ["whisper-1", "gpt-4o-transcribe", "gpt-4o-transcribe-diarize"]
-    if model not in valid_models:
-        raise ValueError(f"Invalid model '{model}'. Supported: {valid_models}")
-    
-    valid_formats = ["json", "text", "srt", "verbose_json", "vtt", "tsv"]
-    if response_format not in valid_formats:
-        raise ValueError(f"Invalid response_format '{response_format}'")
 
-    # 2. Audio preprocessing and size validation (OpenAI 25MB limit)
+    # 使用 IO[bytes] 统一 BytesIO 和 BinaryIO 的类型声明
+    audio_file: IO[bytes]
+    
     if isinstance(audio_data, bytes):
         size_mb = len(audio_data) / (1024 * 1024)
         audio_file = io.BytesIO(audio_data)
-        audio_file.name = "audio.wav"
+        # 给 BytesIO 对象动态添加 name 属性以满足 OpenAI SDK 要求
+        setattr(audio_file, "name", "audio.wav")
     else:
         audio_file = audio_data
         if not hasattr(audio_file, "name"):
             setattr(audio_file, "name", "audio.wav")
-        
-        # Check size of the file-like object
+
         audio_file.seek(0, os.SEEK_END)
         size_mb = audio_file.tell() / (1024 * 1024)
-        audio_file.seek(0) # Important: reset pointer
+        audio_file.seek(0)
 
     if size_mb > 25:
-        raise ValueError(f"Audio file size too large ({size_mb:.2f}MB). Max limit is 25MB.")
+        raise ValueError(f"Audio file size too large ({size_mb:.2f}MB).")
 
     try:
-        # 3. Initialize OpenAI Client
         client = OpenAI(
-            api_key=api_key if api_key is not None else "local-dummy",
-            base_url=base_url if base_url is not None else "http://127.0.0.1:8001/v1",
-            timeout=60.0  # Transcription can be slow; use longer timeout
+            api_key=f_api_key if f_api_key else "local-dummy",
+            base_url=f_base_url,
+            timeout=60.0
         )
 
-        # 4. Prepare API request parameters
-        api_params = {
-            "file": audio_file,
-            "model": model,
-            "response_format": response_format,
-            "temperature": temperature,
-        }
-        
-        if language: api_params["language"] = language
-        if prompt: api_params["prompt"] = prompt
-        if timestamp_granularities: api_params["timestamp_granularities"] = timestamp_granularities
+        response = client.audio.transcriptions.create(
+            file=audio_file,
+            model=f_model,
+            language=cast(Any, f_language or NOT_GIVEN),
+            prompt=cast(Any, prompt or NOT_GIVEN),
+            response_format=f_response_format,
+            temperature=f_temperature,
+            timestamp_granularities=cast(Any, timestamp_granularities or NOT_GIVEN)
+        )
 
-        # 5. Execute API Call
-        response = client.audio.transcriptions.create(**api_params)
-
-        # 6. Handle response variations across SDK versions and formats
-        # Return raw string if format is text/srt/vtt/tsv
+        # 显式处理响应类型，解决 unreachable 和 no-any-return
         if isinstance(response, str):
             return response
 
-        # Extract dict if response is a Pydantic model (OpenAI SDK v1.0+)
+        # 对于 Pydantic 模型对象
         if hasattr(response, 'model_dump'):
-            data = response.model_dump()
-            # If JSON format requested but only need text string
-            if response_format == "json":
-                return data.get("text", "")
+            data = cast(Dict[str, Any], response.model_dump())
+            if f_response_format == "json":
+                return str(data.get("text", ""))
             return data
 
-        # Generic fallback
         return str(response)
 
     except Exception as e:
         logger.error(f"STT API call failed: {type(e).__name__} - {str(e)}")
-        raise Exception(f"Speech-to-text service error: {str(e)}")
+        raise Exception(f"Speech-to-text service error: {str(e)}") from e
 
 def speech_to_text_simple(
     audio_data: Union[bytes, BinaryIO],
-    **kwargs
+    **kwargs: Any
 ) -> str:
     """
     Simplified version that always returns a plain transcription string.
@@ -160,7 +128,7 @@ def speech_to_text_simple(
 # Module Test
 if __name__ == "__main__":
     print("Whisper STT module initialized...")
-    
+
     # Display current environment configuration
     print("\n=== Current STT Environment Configuration ===")
     config = get_stt_config()
@@ -169,7 +137,7 @@ if __name__ == "__main__":
             print(f'{key}: ***')
         else:
             print(f'{key}: {value}')
-    
+
     # Example usage with environment variables
     print("\n=== Example Usage ===")
     print("Using environment variables for configuration:")

@@ -6,9 +6,14 @@ eliminating duplicate logging setup code across modules.
 """
 import logging
 import os
+from typing import Any, Dict, Optional
 
-
-def setup_logger(name, log_file=None, console_level=logging.INFO, file_level=logging.DEBUG):
+def setup_logger(
+    name: str, 
+    log_file: Optional[str] = None, 
+    console_level: int = logging.INFO, 
+    file_level: int = logging.DEBUG
+)-> logging.Logger:
     """
     Set up unified logging configuration.
 
@@ -55,7 +60,7 @@ def setup_logger(name, log_file=None, console_level=logging.INFO, file_level=log
     return logger
 
 
-def get_logger(name):
+def get_logger(name: str) -> logging.Logger:
     """
     Get configured logger, use default configuration if not configured.
 
@@ -74,7 +79,7 @@ def get_logger(name):
     return logger
 
 
-def configure_package_logging(level=logging.INFO):
+def configure_package_logging(level: int = logging.INFO) -> None:
     """
     Configure root log level for the entire package.
 
@@ -175,7 +180,10 @@ LOGGER_CONFIGS = {
 }
 
 
-def setup_tool_logger(tool_name, config_name=None):
+def setup_tool_logger(
+    tool_name: str,
+    config_name: Optional[str] = None
+) -> logging.Logger:
     """
     Set up logger for specific tool using predefined configuration.
 

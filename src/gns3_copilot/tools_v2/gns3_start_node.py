@@ -6,11 +6,13 @@ with progress tracking and status monitoring.
 """
 
 import json
-import time
 import os
+import time
 from pprint import pprint
+from typing import Any, Dict, List, Optional, Union
 from dotenv import load_dotenv
 from langchain.tools import BaseTool
+from langchain_core.callbacks import CallbackManagerForToolRun
 from gns3_copilot.gns3_client import Gns3Connector, Node
 from gns3_copilot.log_config import setup_tool_logger
 
@@ -20,10 +22,10 @@ logger = setup_tool_logger("gns3_start_node")
 # Load environment variables
 load_dotenv()
 
-def show_progress_bar(duration=120, interval=1, node_count=1):
+def show_progress_bar(duration: int = 120, interval: int = 1, node_count: int = 1) -> None:
     """
     Display a simple text progress bar for node startup.
-    
+
     Args:
         duration: Total duration of the progress bar in seconds
         interval: Update interval in seconds
@@ -58,7 +60,7 @@ class GNS3StartNodeTool(BaseTool):
         }
 
     **Output**:
-    A dictionary with all nodes' details: 
+    A dictionary with all nodes' details:
     {
         "project_id": "...",
         "total_nodes": 2,
@@ -73,12 +75,16 @@ class GNS3StartNodeTool(BaseTool):
 
     name: str = "start_gns3_node"
     description: str = """
-    Starts one or multiple nodes in a GNS3 project. 
+    Starts one or multiple nodes in a GNS3 project.
     Input: JSON with project_id and node_ids (list of node IDs).
     Returns: A dictionary with all nodes' details including success/failure status.
     """
 
-    def _run(self, tool_input: str, run_manager=None) -> dict:
+    def _run(
+        self, 
+        tool_input: str, 
+        run_manager: Optional[CallbackManagerForToolRun] = None
+    ) -> Dict[str, Any]:
         logger.debug("Received input: %s", tool_input)
         try:
             # Parse input JSON
@@ -95,22 +101,29 @@ class GNS3StartNodeTool(BaseTool):
                 logger.error("node_ids must be a list.")
                 return {"error": "node_ids must be a list."}
 
+            raw_version = os.getenv("API_VERSION")
+            api_version = int(raw_version) if raw_version else 2
+            server_url = os.getenv("GNS3_SERVER_URL")
+
             # Initialize Gns3Connector
             logger.info("Connecting to GNS3 server at %s...", os.getenv("GNS3_SERVER_URL"))
-            
-            if os.getenv("API_VERSION") == '2':
+
+            # Initialize Gns3Connector
+            if api_version == 2:
                 gns3_server = Gns3Connector(
-                    url=os.getenv("GNS3_SERVER_URL"),
-                    api_version=os.getenv("API_VERSION")
-                    )
-            if os.getenv("API_VERSION") == '3':
+                    url=server_url,
+                    api_version=api_version
+                )
+            elif api_version == 3:
                 gns3_server = Gns3Connector(
-                    url=os.getenv("GNS3_SERVER_URL"),
+                    url=server_url,
                     user=os.getenv("GNS3_SERVER_USERNAME"),
                     cred=os.getenv("GNS3_SERVER_PASSWORD"),
-                    api_version=os.getenv("API_VERSION")
-                    )
-                
+                    api_version=api_version
+                )
+            else:
+                 raise ValueError(f"Unsupported API version: {api_version}")
+
             # First loop: Send start commands for all nodes
             logger.info(
                 "Sending start commands for %d nodes in project %s...", len(node_ids), project_id

@@ -13,9 +13,9 @@ Author: Guobin Yue
 
 # Import main utility functions
 from .get_gns3_device_port import get_device_ports_from_topology
-from .parse_tool_content import parse_tool_content, format_tool_response
-from .openai_tts import text_to_speech_wav, get_duration, get_tts_config
-from .openai_stt import speech_to_text, get_stt_config
+from .openai_stt import get_stt_config, speech_to_text
+from .openai_tts import get_duration, get_tts_config, text_to_speech_wav
+from .parse_tool_content import format_tool_response, parse_tool_content
 
 # Dynamic version management
 try:

@@ -6,14 +6,19 @@ import json
 import os
 import re
 import time
-from typing import List, Dict, Any
+from typing import Any, Dict, List, Optional, Union
 from dotenv import load_dotenv
-from nornir import InitNornir
-from nornir.core.task import Task, Result
-from nornir_netmiko.tasks import netmiko_send_command
+
 from langchain.tools import BaseTool
-from gns3_copilot.public_model import get_device_ports_from_topology
+from langchain_core.callbacks import CallbackManagerForToolRun
+
+from nornir import InitNornir
+from nornir.core.task import Result, Task, AggregatedResult
+from nornir_netmiko.tasks import netmiko_send_command
+from nornir.core import Nornir
+
 from gns3_copilot.log_config import setup_tool_logger
+from gns3_copilot.public_model import get_device_ports_from_topology
 
 # config log
 logger = setup_tool_logger("linux_tools_nornir")
@@ -72,16 +77,16 @@ class LinuxTelnetBatchTool(BaseTool):
                 "commands": ["uname -a", "df -h", "sudo docker ps"]
             },
             {
-                "device_name": "ubuntu01", 
+                "device_name": "ubuntu01",
                 "commands": ["ip a", "uptime"]
             }
         ]
     Returns a list of dictionaries, each containing the device name and command outputs.
 
     If you need to start the server/client for testing, execute the command one device at a time, do not execute them simultaneously.
-    
+
     **Do NOT use this tool for any Danger configuration commands.**
-    
+
     ALL commands generated must be strictly non-interactive and non-paginated.
     Prohibited commands include top, vi/nano, and using pipes to less or more.
     For continuous tasks, use single-run alternatives (e.g., ping -c 1, ps -aux instead of top).
@@ -91,8 +96,8 @@ class LinuxTelnetBatchTool(BaseTool):
     def _run(
         self,
         tool_input: str,
-        run_manager=None
-        ) -> List[Dict[str, Any]]:  # pylint: disable=unused-argument
+        run_manager: Optional[CallbackManagerForToolRun] = None
+    ) -> List[Dict[str, Any]]:
         """
         Batch execute Linux read-only commands (main entry).
 
@@ -166,6 +171,8 @@ class LinuxTelnetBatchTool(BaseTool):
                     successful_logins.append(device_name)
                     logger.info("Device %s login successful: %s", device_name, result.result)
 
+            task_result: Union[AggregatedResult, Dict[str, Any]]
+
             # Step 3: Execute commands only for devices with successful login
             if successful_logins:
                 # Filter device_configs_map to only include successfully logged in devices
@@ -180,7 +187,7 @@ class LinuxTelnetBatchTool(BaseTool):
                     device_configs_map=filtered_device_configs_map
                 )
             else:
-                task_result = {}
+                task_result = AggregatedResult("empty_command_execution")
 
             # Step 4: Process results for all devices
             results = self._process_task_results(
@@ -273,7 +280,7 @@ class LinuxTelnetBatchTool(BaseTool):
 
         return Result(host=task.host, result=_outputs)
 
-    def _validate_tool_input(self, tool_input):
+    def _validate_tool_input(self, tool_input: str) -> List[Dict[str, Any]]:
         """Validate and parse the JSON input for device display commands."""
         try:
             device_configs_list = json.loads(tool_input)
@@ -285,7 +292,7 @@ class LinuxTelnetBatchTool(BaseTool):
 
         return device_configs_list
 
-    def _configs_map(self, device_config_list):
+    def _configs_map(self, device_config_list: List[Dict[str, Any]]) -> Dict[str, List[str]]:
         """Create a mapping of device names to their display commands."""
         device_configs_map = {}
         for device_config in device_config_list:
@@ -295,7 +302,10 @@ class LinuxTelnetBatchTool(BaseTool):
 
         return device_configs_map
 
-    def _prepare_device_hosts_data(self, device_config_list):
+    def _prepare_device_hosts_data(
+        self,
+        device_config_list: List[Dict[str, Any]]
+    ) -> Dict[str, Dict[str, Any]]:
         """Prepare device hosts data from topology information."""
         # Extract device names list
         device_names = [device_config["device_name"] for device_config in device_config_list]
@@ -318,7 +328,7 @@ class LinuxTelnetBatchTool(BaseTool):
 
         return hosts_data
 
-    def _initialize_nornir(self, hosts_data):
+    def _initialize_nornir(self, hosts_data: Dict[str, Dict[str, Any]]) -> Nornir:
         """Initialize Nornir with the provided hosts data."""
         try:
             return InitNornir(
@@ -345,7 +355,12 @@ class LinuxTelnetBatchTool(BaseTool):
             raise ValueError(f"Failed to initialize Nornir: {e}") from e
 
     def _process_task_results(
-        self, device_configs_list, hosts_data, task_result, login_result=None):
+        self, 
+        device_configs_list: List[Dict[str, Any]], 
+        hosts_data: Dict[str, Dict[str, Any]], 
+        task_result: AggregatedResult, 
+        login_result: Optional[AggregatedResult] = None
+    ) -> List[Dict[str, Any]]:
         """Process task results and format them for return."""
         results = []
 
@@ -382,7 +397,7 @@ class LinuxTelnetBatchTool(BaseTool):
             if device_name not in task_result:
                 device_result = {
                     "device_name": device_name,
-                    "status": "failed", 
+                    "status": "failed",
                     "error": (
                         f"Device '{device_name}' not found in task results"
                         )
@@ -461,7 +476,7 @@ if __name__ == "__main__":
 
     failed_count = 0
 
-    for i in range(0, 1):
+    for _i in range(0, 1):
         exe_results = exe_cmd._run(tool_input=device_commands)
         for exe_result in exe_results:
             for exe_result in exe_results:

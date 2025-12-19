@@ -1,0 +1,68 @@
+name: CD - Production Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Build packages
+        run: |
+          pip install build
+          python -m build
+      - name: Check build metadata
+        run: |
+          pip install twine
+          twine check dist/*
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-packages
+          path: dist/
+          retention-days: 1
+
+  # First publish to TestPyPI for verification
+  publish-test:
+    needs: build-and-verify
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist-packages
+          path: dist/
+      - name: Publish to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  # Only proceed to production after TestPyPI success
+  publish-prod:
+    needs: publish-test
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write # Key: Used for creating GitHub Release
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Build
+        run: |
+          pip install build
+          python -m build
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true

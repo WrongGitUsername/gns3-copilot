@@ -2,13 +2,13 @@
 Multi-device VPCS command execution tool using telnetlib3 with threading.
 Supports concurrent execution of multiple command groups across multiple VPCS devices.
 """
-import os
 import json
+import os
 import threading
 from time import sleep
-from typing import List, Dict, Any
-
+from typing import Any, Dict, List, Optional, Union
 from langchain.tools import BaseTool
+from langchain_core.callbacks import CallbackManagerForToolRun
 from telnetlib3 import Telnet
 
 from gns3_copilot.log_config import setup_tool_logger
@@ -20,7 +20,7 @@ class VPCSMultiCommands(BaseTool):
     """
     A tool to execute multiple command groups across multiple VPCS devices concurrently.
     Supports parallel execution with threading for improved performance.
-    
+
     Input should be a JSON array containing command group objects.
     Example input:
         [
@@ -29,11 +29,11 @@ class VPCSMultiCommands(BaseTool):
                 "commands": ["ip 10.10.0.12/24 10.10.0.254", "ping 10.10.0.254"]
             },
             {
-                "device_name": "PC2", 
+                "device_name": "PC2",
                 "commands": ["ip 10.10.0.13/24 10.10.0.254"]
             }
         ]
-    
+
     Returns a list of results, one for each command group.
     """
 
@@ -41,7 +41,7 @@ class VPCSMultiCommands(BaseTool):
     description: str = """
     Executes multiple command groups across multiple VPCS devices concurrently using telnetlib3.
     Supports parallel execution with threading for improved performance.
-    
+
     Input should be a JSON array containing command group objects with device_name and commands.
     Example input:
         [
@@ -50,16 +50,23 @@ class VPCSMultiCommands(BaseTool):
                 "commands": ["ip 10.10.0.12/24 10.10.0.254", "ping 10.10.0.254"]
             },
             {
-                "device_name": "PC2", 
+                "device_name": "PC2",
                 "commands": ["ip 10.10.0.13/24 10.10.0.254"]
             }
         ]
-    
+
     Returns a list of results, each containing device_name, status, output, and commands.
     """
 
-    def _connect_and_execute_commands(self, device_name, commands, results_list, index,
-                                     device_ports, gns3_host):
+    def _connect_and_execute_commands(
+        self, 
+        device_name: str, 
+        commands: List[str], 
+        results_list: List[Any], 
+        index: int,
+        device_ports: Dict[str, Any], 
+        gns3_host: str
+    ) -> None:
         """Internal method to connect to device and execute multiple commands"""
 
         # Check if device has port information
@@ -117,7 +124,11 @@ class VPCSMultiCommands(BaseTool):
         finally:
             tn.close()
 
-    def _run(self, tool_input: str, run_manager=None) -> List[Dict[str, Any]]:
+    def _run(
+        self, 
+        tool_input: str, 
+        run_manager: Optional[CallbackManagerForToolRun] = None
+    ) -> List[Dict[str, Any]]:
         """Main method to execute multi-device multi-commands"""
 
         try:
@@ -132,13 +143,13 @@ class VPCSMultiCommands(BaseTool):
         device_names = {cmd_group["device_name"] for cmd_group in cmd_groups}
 
         # Get device port mapping
-        device_ports = get_device_ports_from_topology(device_names)
+        device_ports = get_device_ports_from_topology(list(device_names))
 
         # Get host IP from environment variable
         gns3_host = os.getenv("GNS3_SERVER_HOST", "127.0.0.1")
 
         # Initialize results list (pre-allocate space for concurrent writes)
-        results = [None] * len(cmd_groups)
+        results: List[Dict[str, Any]] = [{} for _ in range(len(cmd_groups))]
         threads = []
 
         # Create thread for each command group
@@ -174,7 +185,7 @@ if __name__ == "__main__":
             "commands": ["ip 10.10.0.12/24 10.10.0.254", "ping 10.10.0.254"]
         },
         {
-            "device_name": "PC2", 
+            "device_name": "PC2",
             "commands": ["ip 10.10.0.13/24 10.10.0.254"]
         },
         {
@@ -182,7 +193,7 @@ if __name__ == "__main__":
             "commands": ["ip 10.20.0.22/24 10.20.0.254", "ping 10.20.0.254"]
         },
         {
-            "device_name": "PC4", 
+            "device_name": "PC4",
             "commands": ["ip 10.20.0.23/24 10.20.0.254"]
         }
     ]
