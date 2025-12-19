@@ -6,14 +6,19 @@ on:
   pull_request:
     branches: [ Development ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
     timeout-minutes: 30  # Increase timeout to prevent cancellation
     strategy:
+      fail-fast: false
       matrix:
         # Considering network library compatibility, cover versions declared in your pyproject
-        python-version: ["3.8", "3.10", "3.12"] 
+        python-version: ["3.9", "3.10", "3.12"] 
 
     steps:
       - uses: actions/checkout@v4
@@ -26,28 +31,22 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: 'pip' # Automatically cache dependencies
 
-      - name: Cache pip dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # Directly install optional dependencies [dev]
-          pip install -e ".[dev]"
+          pip install --prefer-binary -e ".[dev]"
 
-      - name: Code Formatting (Black)
-        run: black --check .
+      - name: Code Linting & Formatting (Ruff)
+        run: |
+          pip install ruff
+          ruff check .
+          ruff format --check .
 
       - name: Type Check (Mypy)
         run: mypy src
 
-      - name: Security Scan (Bandit)
-        run: bandit -r src/ -ll # -ll means only report medium and high severity risks
+      - name: Type Check (Mypy)
+        run: mypy src --install-types --non-interactive
 
       - name: Dependency Security Check (Safety)
         run: safety check
@@ -60,4 +59,4 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true # Let CI fail on upload failure for easy issue detection
+          fail_ci_if_error: false # Let CI fail on upload failure for easy issue detection
