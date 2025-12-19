@@ -6,7 +6,7 @@
 [![Codecov](https://codecov.io/gh/yueguobin/gns3-copilot/branch/master/graph/badge.svg)](https://codecov.io/gh/yueguobin/gns3-copilot)
 
 
-![Python](https://img.shields.io/badge/python-3.9+-blue.svg) 
+![Python](https://img.shields.io/badge/python-3.10+-blue.svg) 
 ![GNS3](https://img.shields.io/badge/GNS3-2.2+-green.svg) 
 ![LangChain](https://img.shields.io/badge/LangChain-1.0.7-orange.svg) 
 ![Nornir](https://img.shields.io/badge/Nornir-3.5.0-red.svg) 
@@ -93,7 +93,7 @@ GNS3 Copilot 是一个强大的网络自动化工具，集成了多种AI模型�
 
 ### 环境要求
 
-- Python 3.9+
+- Python 3.10+
 - GNS3 Server (运行在 http://localhost:3080或远程主机)
 - 支持的操作系统: Windows, macOS, Linux
 

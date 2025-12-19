@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         # Considering network library compatibility, cover versions declared in your pyproject
-        python-version: ["3.9", "3.10", "3.12"] 
+        python-version: ["3.10", "3.11", "3.12", "3.13"] 
 
     steps:
       - uses: actions/checkout@v4
@@ -45,7 +45,7 @@ jobs:
         run: mypy src --install-types --non-interactive
 
       - name: Dependency Security Check (Safety)
-        run: safety check || echo "Security vulnerabilities found, please check manually."
+        run: safety scan --system-environment || echo "Security vulnerabilities found, please check manually."
 
       - name: Run Tests with Coverage
         # Run tests and generate XML format report

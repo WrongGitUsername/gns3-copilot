@@ -6,7 +6,7 @@
 [![Codecov](https://codecov.io/gh/yueguobin/gns3-copilot/branch/master/graph/badge.svg)](https://codecov.io/gh/yueguobin/gns3-copilot)
 
 
-![Python](https://img.shields.io/badge/python-3.9+-blue.svg) 
+![Python](https://img.shields.io/badge/python-3.10+-blue.svg) 
 ![GNS3](https://img.shields.io/badge/GNS3-2.2+-green.svg) 
 ![LangChain](https://img.shields.io/badge/LangChain-1.0.7-orange.svg) 
 ![Nornir](https://img.shields.io/badge/Nornir-3.5.0-red.svg) 
@@ -92,7 +92,7 @@ The process operates in a closed-loop structure, ensuring reliability and self-c
 
 ### Environment Requirements
 
-- Python 3.9+
+- Python 3.10+
 - GNS3 Server (running on http://localhost:3080 or remote host)
 - Supported operating systems: Windows, macOS, Linux
 
