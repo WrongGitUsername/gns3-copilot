@@ -6,7 +6,8 @@ import json
 import os
 import threading
 from time import sleep
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional
+
 from langchain.tools import BaseTool
 from langchain_core.callbacks import CallbackManagerForToolRun
 from telnetlib3 import Telnet
@@ -59,12 +60,12 @@ class VPCSMultiCommands(BaseTool):
     """
 
     def _connect_and_execute_commands(
-        self, 
-        device_name: str, 
-        commands: List[str], 
-        results_list: List[Any], 
+        self,
+        device_name: str,
+        commands: list[str],
+        results_list: list[Any],
         index: int,
-        device_ports: Dict[str, Any], 
+        device_ports: dict[str, Any],
         gns3_host: str
     ) -> None:
         """Internal method to connect to device and execute multiple commands"""
@@ -125,10 +126,10 @@ class VPCSMultiCommands(BaseTool):
             tn.close()
 
     def _run(
-        self, 
-        tool_input: str, 
+        self,
+        tool_input: str,
         run_manager: Optional[CallbackManagerForToolRun] = None
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Main method to execute multi-device multi-commands"""
 
         try:
@@ -149,7 +150,7 @@ class VPCSMultiCommands(BaseTool):
         gns3_host = os.getenv("GNS3_SERVER_HOST", "127.0.0.1")
 
         # Initialize results list (pre-allocate space for concurrent writes)
-        results: List[Dict[str, Any]] = [{} for _ in range(len(cmd_groups))]
+        results: list[dict[str, Any]] = [{} for _ in range(len(cmd_groups))]
         threads = []
 
         # Create thread for each command group

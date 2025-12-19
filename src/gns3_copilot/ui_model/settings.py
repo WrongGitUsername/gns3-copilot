@@ -16,6 +16,7 @@ Key Features:
 
 import os
 from typing import Optional
+
 import requests
 import streamlit as st
 from dotenv import find_dotenv, load_dotenv, set_key
@@ -170,15 +171,15 @@ def load_config_from_env()-> None:
         if st_key == "VOICE":
             # 确保 default_value 是字符串后再进行处理
             voice_str = str(default_value).lower().strip()
-            
+
             if voice_str not in ("true", "false", "1", "0", "yes", "no", "on", "off", ""):
                 logger.debug("Invalid VOICE value: %s, setting to default 'false'", default_value)
                 voice_str = "false"
-            
+
             # 直接计算布尔值并存入 session_state
             is_enabled: bool = voice_str in ("true", "1", "yes", "on")
             st.session_state[st_key] = is_enabled
-            
+
             logger.debug("Loaded config: %s = %s", st_key, is_enabled)
             continue  # 重要：处理完布尔类型后跳过本次循环，防止被最后的通用赋值覆盖
 

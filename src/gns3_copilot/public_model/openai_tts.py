@@ -8,16 +8,12 @@ duration calculation.
 
 import io
 import os
-from typing import Optional, Dict, Any, List
+from typing import Any, Optional
 
 import soundfile as sf
 from dotenv import load_dotenv
 from openai import (
-    APIConnectionError,
-    APIError,
-    AuthenticationError,
     OpenAI,
-    RateLimitError,
 )
 
 from gns3_copilot.log_config import setup_logger
@@ -28,7 +24,7 @@ load_dotenv()
 # Setup logger
 logger = setup_logger("openai_tts")
 
-def get_tts_config() -> Dict[str, Any]:
+def get_tts_config() -> dict[str, Any]:
     """
     Get TTS configuration from environment variables with sensible defaults.
     """
@@ -81,7 +77,7 @@ def text_to_speech_wav(
 
         # 显式传参，不使用字典解包 (**api_params)
         # 这样 Mypy 能够直接核对类型，解决大量的 [arg-type] 错误
-        
+
         # 注意：response_format 必须是 SDK 支持的字面量
         response = client.audio.speech.create(
             model=final_model,

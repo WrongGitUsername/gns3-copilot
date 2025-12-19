@@ -1,4 +1,5 @@
 # mypy: ignore-errors
+
 """
 GNS3 Network Automation Assistant
 
@@ -17,7 +18,7 @@ solution for GNS3 environments.
 import operator
 import os
 import sqlite3
-from typing import Literal
+from typing import Annotated, Literal
 
 import streamlit as st
 from dotenv import load_dotenv
@@ -25,9 +26,8 @@ from langchain.chat_models import init_chat_model
 from langchain.messages import AnyMessage, SystemMessage, ToolMessage
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import END, START, StateGraph
-
 from langgraph.managed.is_last_step import RemainingSteps
-from typing_extensions import Annotated, TypedDict
+from typing_extensions import TypedDict
 
 from gns3_copilot.gns3_client import GNS3TopologyTool
 from gns3_copilot.log_config import setup_logger

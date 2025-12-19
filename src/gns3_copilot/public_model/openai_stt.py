@@ -1,9 +1,11 @@
 import io
 import os
-from typing import BinaryIO, List, Optional, Union, Dict, Any, IO, Literal, cast
+from typing import IO, Any, BinaryIO, Literal, Optional, Union, cast
+
 from dotenv import load_dotenv
 from openai import OpenAI
 from openai._types import NOT_GIVEN
+
 from gns3_copilot.log_config import setup_logger
 
 # Load environment variables
@@ -17,7 +19,7 @@ DEFAULT_GNS3_PROMPT = (
     "no shutdown, show running-config, Wireshark, encapsulation."
 )
 
-def get_stt_config() -> Dict[str, Any]:
+def get_stt_config() -> dict[str, Any]:
     """
     Get STT configuration from environment variables with sensible defaults.
     """
@@ -37,10 +39,10 @@ def speech_to_text(
     prompt: Optional[str] = DEFAULT_GNS3_PROMPT,
     response_format: Optional[str] = None,
     temperature: Optional[float] = None,
-    timestamp_granularities: Optional[List[Literal["word", "segment"]]] = None,
+    timestamp_granularities: Optional[list[Literal["word", "segment"]]] = None,
     api_key: Optional[str] = None,
     base_url: Optional[str] = None
-) -> Union[str, Dict[str, Any]]:
+) -> Union[str, dict[str, Any]]:
     """
     Transcribe audio to text using OpenAI Whisper API.
     """
@@ -59,16 +61,15 @@ def speech_to_text(
 
     # 使用 IO[bytes] 统一 BytesIO 和 BinaryIO 的类型声明
     audio_file: IO[bytes]
-    
+    file_name: str = "audio.wav"
+
     if isinstance(audio_data, bytes):
         size_mb = len(audio_data) / (1024 * 1024)
         audio_file = io.BytesIO(audio_data)
-        # 给 BytesIO 对象动态添加 name 属性以满足 OpenAI SDK 要求
-        setattr(audio_file, "name", "audio.wav")
+
     else:
         audio_file = audio_data
-        if not hasattr(audio_file, "name"):
-            setattr(audio_file, "name", "audio.wav")
+        file_name = getattr(audio_file, "name", "audio.wav")
 
         audio_file.seek(0, os.SEEK_END)
         size_mb = audio_file.tell() / (1024 * 1024)
@@ -85,7 +86,7 @@ def speech_to_text(
         )
 
         response = client.audio.transcriptions.create(
-            file=audio_file,
+            file=(file_name, audio_file),
             model=f_model,
             language=cast(Any, f_language or NOT_GIVEN),
             prompt=cast(Any, prompt or NOT_GIVEN),
@@ -100,7 +101,7 @@ def speech_to_text(
 
         # 对于 Pydantic 模型对象
         if hasattr(response, 'model_dump'):
-            data = cast(Dict[str, Any], response.model_dump())
+            data = cast(dict[str, Any], response.model_dump())
             if f_response_format == "json":
                 return str(data.get("text", ""))
             return data

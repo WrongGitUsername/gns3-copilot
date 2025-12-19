@@ -8,10 +8,12 @@ using specified templates and coordinates through the GNS3 API.
 import json
 import os
 from pprint import pprint
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional
+
 from dotenv import load_dotenv
 from langchain.tools import BaseTool
 from langchain_core.callbacks import CallbackManagerForToolRun
+
 from gns3_copilot.gns3_client import Gns3Connector, Node
 from gns3_copilot.log_config import setup_tool_logger
 
@@ -100,7 +102,7 @@ class GNS3CreateNodeTool(BaseTool):
         tool_input: str,
         run_manager: Optional[CallbackManagerForToolRun] = None,
         **kwargs: Any
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Creates multiple nodes in a GNS3 project using the provided templates and coordinates.
 
@@ -163,7 +165,7 @@ class GNS3CreateNodeTool(BaseTool):
 
             # Create nodes
             logger.info("Creating %d nodes in project %s...", len(nodes), project_id)
-            results: List[Dict[str, Any]] = []
+            results: list[dict[str, Any]] = []
 
             for i, node_data in enumerate(nodes):
                 try:

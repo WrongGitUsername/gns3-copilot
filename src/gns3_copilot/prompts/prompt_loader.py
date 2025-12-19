@@ -9,6 +9,7 @@ Additionally, it can append voice-optimized prompts when VOICE mode is enabled.
 import importlib
 import os
 from typing import Optional, cast
+
 from gns3_copilot.log_config import setup_logger
 
 logger = setup_logger("prompt_loader")

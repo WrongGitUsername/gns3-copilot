@@ -9,10 +9,12 @@ import json
 import os
 import time
 from pprint import pprint
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional
+
 from dotenv import load_dotenv
 from langchain.tools import BaseTool
 from langchain_core.callbacks import CallbackManagerForToolRun
+
 from gns3_copilot.gns3_client import Gns3Connector, Node
 from gns3_copilot.log_config import setup_tool_logger
 
@@ -81,10 +83,10 @@ class GNS3StartNodeTool(BaseTool):
     """
 
     def _run(
-        self, 
-        tool_input: str, 
+        self,
+        tool_input: str,
         run_manager: Optional[CallbackManagerForToolRun] = None
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         logger.debug("Received input: %s", tool_input)
         try:
             # Parse input JSON

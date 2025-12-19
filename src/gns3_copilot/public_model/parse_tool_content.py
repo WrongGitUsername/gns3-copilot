@@ -18,7 +18,8 @@ Author: Guobin Yue
 """
 import ast
 import json
-from typing import Any, Dict, List, Optional, Union, Tuple
+from typing import Any, Optional, Union
+
 from gns3_copilot.log_config import setup_tool_logger
 
 logger = setup_tool_logger("parse_tool_content")
@@ -27,7 +28,7 @@ def parse_tool_content(
     content: Optional[Union[str, dict, list, int, float, bool]],
     fallback_to_raw: bool = True,
     strict_mode: bool = False
-) -> Union[Dict[str, Any], List[Any], Any]:
+) -> Union[dict[str, Any], list[Any], Any]:
     """
     Parse tool execution results into structured data, specifically for UI display.
 
@@ -202,7 +203,7 @@ def format_tool_response(
 # Test function to verify the implementation
 def _test_parse_tool_content() -> None:
     """Test function to verify parse_tool_content works correctly with all input types"""
-    test_cases: List[Tuple[Any, Any]] = [
+    test_cases: list[tuple[Any, Any]] = [
         # String inputs
         ('{"status": "success", "data": [1, 2, 3]}', {'status': 'success', 'data': [1, 2, 3]}),
         ("{'name': 'PC1', 'status': 'ok'}", {'name': 'PC1', 'status': 'ok'}),

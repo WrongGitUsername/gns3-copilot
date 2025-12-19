@@ -4,8 +4,8 @@ This module provides a LangChain BaseTool to retrieve the topology of the
 """
 import copy
 import os
+from typing import Any
 
-from typing import Any, Optional, Dict, List, Tuple
 from dotenv import load_dotenv
 from langchain.tools import BaseTool
 
@@ -84,7 +84,7 @@ class GNS3TopologyTool(BaseTool):
         try:
             api_version_str = os.getenv("API_VERSION")
             server_url = os.getenv("GNS3_SERVER_URL")
-            
+
             if api_version_str == '2':
                 server = Gns3Connector(
                     url=server_url,

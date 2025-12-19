@@ -30,15 +30,20 @@ import json
 import os
 import uuid
 from time import sleep
-from typing import Any, cast
+from typing import Any
+
 import streamlit as st
 from dotenv import load_dotenv
 from langchain.messages import AIMessage, HumanMessage, ToolMessage
-from gns3_copilot.public_model import get_duration, speech_to_text, text_to_speech_wav
 
 from gns3_copilot.agent import agent, langgraph_checkpointer
 from gns3_copilot.log_config import setup_logger
-from gns3_copilot.public_model import format_tool_response
+from gns3_copilot.public_model import (
+    format_tool_response,
+    get_duration,
+    speech_to_text,
+    text_to_speech_wav,
+)
 
 logger = setup_logger("chat")
 load_dotenv()

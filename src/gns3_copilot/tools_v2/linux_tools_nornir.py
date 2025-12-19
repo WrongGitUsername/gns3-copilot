@@ -6,16 +6,15 @@ import json
 import os
 import re
 import time
-from typing import Any, Dict, List, Optional, Union
-from dotenv import load_dotenv
+from typing import Any, Optional, Union
 
+from dotenv import load_dotenv
 from langchain.tools import BaseTool
 from langchain_core.callbacks import CallbackManagerForToolRun
-
 from nornir import InitNornir
-from nornir.core.task import Result, Task, AggregatedResult
-from nornir_netmiko.tasks import netmiko_send_command
 from nornir.core import Nornir
+from nornir.core.task import AggregatedResult, Result, Task
+from nornir_netmiko.tasks import netmiko_send_command
 
 from gns3_copilot.log_config import setup_tool_logger
 from gns3_copilot.public_model import get_device_ports_from_topology
@@ -97,7 +96,7 @@ class LinuxTelnetBatchTool(BaseTool):
         self,
         tool_input: str,
         run_manager: Optional[CallbackManagerForToolRun] = None
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Batch execute Linux read-only commands (main entry).
 
@@ -171,7 +170,7 @@ class LinuxTelnetBatchTool(BaseTool):
                     successful_logins.append(device_name)
                     logger.info("Device %s login successful: %s", device_name, result.result)
 
-            task_result: Union[AggregatedResult, Dict[str, Any]]
+            task_result: Union[AggregatedResult, dict[str, Any]]
 
             # Step 3: Execute commands only for devices with successful login
             if successful_logins:
@@ -250,7 +249,7 @@ class LinuxTelnetBatchTool(BaseTool):
     def _run_all_device_configs_with_single_retry(
         self,
         task: Task,
-        device_configs_map: Dict[str, List[str]]
+        device_configs_map: dict[str, list[str]]
         ) -> Result:
         """
         Execute commands one-by-one on a single device
@@ -280,7 +279,7 @@ class LinuxTelnetBatchTool(BaseTool):
 
         return Result(host=task.host, result=_outputs)
 
-    def _validate_tool_input(self, tool_input: str) -> List[Dict[str, Any]]:
+    def _validate_tool_input(self, tool_input: str) -> list[dict[str, Any]]:
         """Validate and parse the JSON input for device display commands."""
         try:
             device_configs_list = json.loads(tool_input)
@@ -292,7 +291,7 @@ class LinuxTelnetBatchTool(BaseTool):
 
         return device_configs_list
 
-    def _configs_map(self, device_config_list: List[Dict[str, Any]]) -> Dict[str, List[str]]:
+    def _configs_map(self, device_config_list: list[dict[str, Any]]) -> dict[str, list[str]]:
         """Create a mapping of device names to their display commands."""
         device_configs_map = {}
         for device_config in device_config_list:
@@ -304,8 +303,8 @@ class LinuxTelnetBatchTool(BaseTool):
 
     def _prepare_device_hosts_data(
         self,
-        device_config_list: List[Dict[str, Any]]
-    ) -> Dict[str, Dict[str, Any]]:
+        device_config_list: list[dict[str, Any]]
+    ) -> dict[str, dict[str, Any]]:
         """Prepare device hosts data from topology information."""
         # Extract device names list
         device_names = [device_config["device_name"] for device_config in device_config_list]
@@ -328,7 +327,7 @@ class LinuxTelnetBatchTool(BaseTool):
 
         return hosts_data
 
-    def _initialize_nornir(self, hosts_data: Dict[str, Dict[str, Any]]) -> Nornir:
+    def _initialize_nornir(self, hosts_data: dict[str, dict[str, Any]]) -> Nornir:
         """Initialize Nornir with the provided hosts data."""
         try:
             return InitNornir(
@@ -355,12 +354,12 @@ class LinuxTelnetBatchTool(BaseTool):
             raise ValueError(f"Failed to initialize Nornir: {e}") from e
 
     def _process_task_results(
-        self, 
-        device_configs_list: List[Dict[str, Any]], 
-        hosts_data: Dict[str, Dict[str, Any]], 
-        task_result: AggregatedResult, 
+        self,
+        device_configs_list: list[dict[str, Any]],
+        hosts_data: dict[str, dict[str, Any]],
+        task_result: AggregatedResult,
         login_result: Optional[AggregatedResult] = None
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Process task results and format them for return."""
         results = []
 

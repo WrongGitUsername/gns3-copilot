@@ -8,10 +8,12 @@ from a GNS3 server, including template names, IDs, and types.
 import json
 import os
 from pprint import pprint
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional
+
 from dotenv import load_dotenv
 from langchain.tools import BaseTool
 from langchain_core.callbacks import CallbackManagerForToolRun
+
 from gns3_copilot.gns3_client import Gns3Connector
 from gns3_copilot.log_config import setup_tool_logger
 
@@ -59,10 +61,10 @@ class GNS3TemplateTool(BaseTool):
     """
 
     def _run(
-        self, 
-        tool_input: str = "", 
+        self,
+        tool_input: str = "",
         run_manager: Optional[CallbackManagerForToolRun] = None
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Connects to the GNS3 server and retrieves a list of all available device templates.
 

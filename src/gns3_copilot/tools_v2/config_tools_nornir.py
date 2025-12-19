@@ -4,16 +4,15 @@ This module provides a tool to execute configuration commands on multiple device
 """
 import json
 import os
-from typing import Any, Dict, List, Union, Optional
+from typing import Any, Optional, Union
 
 from dotenv import load_dotenv
 from langchain.tools import BaseTool
 from langchain_core.callbacks import CallbackManagerForToolRun
 from nornir import InitNornir
-from nornir.core.task import Result, Task
-from nornir_netmiko.tasks import netmiko_send_config
 from nornir.core import Nornir
-from nornir.core.task import AggregatedResult
+from nornir.core.task import AggregatedResult, Result, Task
+from nornir_netmiko.tasks import netmiko_send_config
 
 from gns3_copilot.log_config import setup_tool_logger
 from gns3_copilot.public_model import get_device_ports_from_topology
@@ -98,10 +97,10 @@ class ExecuteMultipleDeviceConfigCommands(BaseTool):
     """
 
     def _run(
-        self, 
+        self,
         tool_input: str,  # 或者是 Union[str, List[Any], Dict[str, Any]]
         run_manager: Optional[CallbackManagerForToolRun] = None
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Executes configuration commands on multiple devices in the current GNS3 topology.
 
@@ -166,7 +165,7 @@ class ExecuteMultipleDeviceConfigCommands(BaseTool):
     def _run_all_device_configs_with_single_retry(
         self,
         task: Task,
-        device_configs_map: Dict[str, List[str]]
+        device_configs_map: dict[str, list[str]]
         ) -> Result:
         """Execute configuration commands with single retry mechanism."""
         device_name = task.host.name
@@ -201,8 +200,8 @@ class ExecuteMultipleDeviceConfigCommands(BaseTool):
 
     def _validate_tool_input(
         self,
-        tool_input: Union[str, bytes, List[Any], Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+        tool_input: Union[str, bytes, list[Any], dict[str, Any]]
+    ) -> list[dict[str, Any]]:
         """
         Validate device display command input, handling both JSON string
          and already parsed Python object inputs from different LLM providers.
@@ -249,8 +248,8 @@ class ExecuteMultipleDeviceConfigCommands(BaseTool):
 
     def _configs_map(
         self,
-        device_config_list: List[Dict[str, Any]]
-    ) -> Dict[str, List[str]]:
+        device_config_list: list[dict[str, Any]]
+    ) -> dict[str, list[str]]:
         """Create a mapping of device names to their configuration commands."""
         device_configs_map = {}
         for device_config in device_config_list:
@@ -262,8 +261,8 @@ class ExecuteMultipleDeviceConfigCommands(BaseTool):
 
     def _prepare_device_hosts_data(
         self,
-        device_config_list: List[Dict[str, Any]]
-    ) -> Dict[str, Dict[str, Any]]:
+        device_config_list: list[dict[str, Any]]
+    ) -> dict[str, dict[str, Any]]:
         """Prepare device hosts data from topology information."""
         # Extract device names list
         device_names = [device_config["device_name"] for device_config in device_config_list]
@@ -285,7 +284,7 @@ class ExecuteMultipleDeviceConfigCommands(BaseTool):
 
     def _initialize_nornir(
         self,
-        hosts_data: Dict[str, Dict[str, Any]]
+        hosts_data: dict[str, dict[str, Any]]
     ) -> Nornir:
         """Initialize Nornir with the provided hosts data."""
         try:
@@ -313,11 +312,11 @@ class ExecuteMultipleDeviceConfigCommands(BaseTool):
             raise ValueError(f"Failed to initialize Nornir: {e}") from e
 
     def _process_task_results(
-        self, 
-        device_configs_list: List[Dict[str, Any]], 
-        hosts_data: Dict[str, Dict[str, Any]], 
+        self,
+        device_configs_list: list[dict[str, Any]],
+        hosts_data: dict[str, dict[str, Any]],
         task_result: AggregatedResult
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Process the task results and format them for return."""
         results = []
 

@@ -11,7 +11,7 @@ import importlib.util
 import subprocess
 import sys
 from pathlib import Path
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     import types

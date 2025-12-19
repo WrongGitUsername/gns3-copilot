@@ -6,12 +6,13 @@ eliminating duplicate logging setup code across modules.
 """
 import logging
 import os
-from typing import Any, Dict, Optional
+from typing import Optional
+
 
 def setup_logger(
-    name: str, 
-    log_file: Optional[str] = None, 
-    console_level: int = logging.INFO, 
+    name: str,
+    log_file: Optional[str] = None,
+    console_level: int = logging.INFO,
     file_level: int = logging.DEBUG
 )-> logging.Logger:
     """
