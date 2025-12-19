@@ -9,6 +9,7 @@ on:
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 30  # Increase timeout to prevent cancellation
     strategy:
       matrix:
         # Considering network library compatibility, cover versions declared in your pyproject
@@ -25,11 +26,20 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: 'pip' # Automatically cache dependencies
 
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           # Directly install optional dependencies [dev]
           pip install -e ".[dev]"
+  +++++++ REPLACE
 
       - name: Code Formatting (Black)
         run: black --check .
