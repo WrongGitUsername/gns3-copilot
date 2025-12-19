@@ -8,7 +8,7 @@ using the GNS3 API connector.
 import json
 import os
 from pprint import pprint
-from typing import Any, Optional
+from typing import Any
 
 from dotenv import load_dotenv
 from langchain.tools import BaseTool
@@ -78,7 +78,7 @@ class GNS3LinkTool(BaseTool):
     """
 
     def _run(
-        self, tool_input: str, run_manager: Optional[CallbackManagerForToolRun] = None
+        self, tool_input: str, run_manager: CallbackManagerForToolRun | None = None
     ) -> list[dict[str, Any]]:
         """
         Creates one or multiple links between nodes in a GNS3 project.

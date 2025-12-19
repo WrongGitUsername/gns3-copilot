@@ -40,7 +40,7 @@ except ImportError:
     pass
 
 
-def get_app_path() -> Optional[str]:
+def get_app_path() -> str | None:
     """Get the path to the app.py file."""
     # Try to find app.py in the current directory first
     current_dir = Path.cwd()

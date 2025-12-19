@@ -15,7 +15,6 @@ Key Features:
 """
 
 import os
-from typing import Optional
 
 import requests
 import streamlit as st
@@ -358,7 +357,7 @@ def check_gns3_api() -> None:
 
     # Extract validated values
     url: str = st.session_state.get("GNS3_SERVER_URL", "")
-    auth: Optional[tuple[str, str]] = None
+    auth: tuple[str, str] | None = None
 
     if version == "3":
         u = st.session_state.get("GNS3_SERVER_USERNAME", "")

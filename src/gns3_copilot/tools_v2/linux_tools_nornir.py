@@ -7,7 +7,7 @@ import json
 import os
 import re
 import time
-from typing import Any, Optional, Union
+from typing import Any
 
 from dotenv import load_dotenv
 from langchain.tools import BaseTool
@@ -91,7 +91,7 @@ class LinuxTelnetBatchTool(BaseTool):
     """
 
     def _run(
-        self, tool_input: str, run_manager: Optional[CallbackManagerForToolRun] = None
+        self, tool_input: str, run_manager: CallbackManagerForToolRun | None = None
     ) -> list[dict[str, Any]]:
         """
         Batch execute Linux read-only commands (main entry).
@@ -174,7 +174,7 @@ class LinuxTelnetBatchTool(BaseTool):
                         "Device %s login successful: %s", device_name, result.result
                     )
 
-            task_result: Union[AggregatedResult, dict[str, Any]]
+            task_result: AggregatedResult | dict[str, Any]
 
             # Step 3: Execute commands only for devices with successful login
             if successful_logins:
@@ -368,7 +368,7 @@ class LinuxTelnetBatchTool(BaseTool):
         device_configs_list: list[dict[str, Any]],
         hosts_data: dict[str, dict[str, Any]],
         task_result: AggregatedResult,
-        login_result: Optional[AggregatedResult] = None,
+        login_result: AggregatedResult | None = None,
     ) -> list[dict[str, Any]]:
         """Process task results and format them for return."""
         results = []

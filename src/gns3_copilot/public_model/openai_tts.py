@@ -8,7 +8,7 @@ duration calculation.
 
 import io
 import os
-from typing import Any, Optional
+from typing import Any
 
 import soundfile as sf
 from dotenv import load_dotenv
@@ -40,12 +40,12 @@ def get_tts_config() -> dict[str, Any]:
 
 def text_to_speech_wav(
     text: str,
-    model: Optional[str] = None,
-    voice: Optional[str] = None,
-    speed: Optional[float] = None,
-    instructions: Optional[str] = None,
-    api_key: Optional[str] = None,
-    base_url: Optional[str] = None,
+    model: str | None = None,
+    voice: str | None = None,
+    speed: float | None = None,
+    instructions: str | None = None,
+    api_key: str | None = None,
+    base_url: str | None = None,
 ) -> bytes:
     """
     Convert text to speech audio in WAV format using OpenAI TTS API.

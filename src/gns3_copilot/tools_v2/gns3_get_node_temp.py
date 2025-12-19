@@ -8,7 +8,7 @@ from a GNS3 server, including template names, IDs, and types.
 import json
 import os
 from pprint import pprint
-from typing import Any, Optional
+from typing import Any
 
 from dotenv import load_dotenv
 from langchain.tools import BaseTool
@@ -64,7 +64,7 @@ class GNS3TemplateTool(BaseTool):
     def _run(
         self,
         tool_input: str = "",
-        run_manager: Optional[CallbackManagerForToolRun] = None,
+        run_manager: CallbackManagerForToolRun | None = None,
     ) -> dict[str, Any]:
         """
         Connects to the GNS3 server and retrieves a list of all available device templates.

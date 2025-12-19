@@ -1,6 +1,6 @@
 import io
 import os
-from typing import IO, Any, BinaryIO, Literal, Optional, Union, cast
+from typing import IO, Any, BinaryIO, Literal, cast
 
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -35,16 +35,16 @@ def get_stt_config() -> dict[str, Any]:
 
 
 def speech_to_text(
-    audio_data: Union[bytes, BinaryIO],
-    model: Optional[str] = None,
-    language: Optional[str] = None,
-    prompt: Optional[str] = DEFAULT_GNS3_PROMPT,
-    response_format: Optional[str] = None,
-    temperature: Optional[float] = None,
-    timestamp_granularities: Optional[list[Literal["word", "segment"]]] = None,
-    api_key: Optional[str] = None,
-    base_url: Optional[str] = None,
-) -> Union[str, dict[str, Any]]:
+    audio_data: bytes | BinaryIO,
+    model: str | None = None,
+    language: str | None = None,
+    prompt: str | None = DEFAULT_GNS3_PROMPT,
+    response_format: str | None = None,
+    temperature: float | None = None,
+    timestamp_granularities: list[Literal["word", "segment"]] | None = None,
+    api_key: str | None = None,
+    base_url: str | None = None,
+) -> str | dict[str, Any]:
     """
     Transcribe audio to text using OpenAI Whisper API.
     """
@@ -60,7 +60,7 @@ def speech_to_text(
     )
     f_api_key: str = api_key if api_key is not None else str(config["api_key"])
     f_base_url: str = base_url if base_url is not None else str(config["base_url"])
-    f_language: Optional[str] = (
+    f_language: str | None = (
         language if language is not None else config.get("language")
     )
 
@@ -121,7 +121,7 @@ def speech_to_text(
         raise Exception(f"Speech-to-text service error: {str(e)}") from e
 
 
-def speech_to_text_simple(audio_data: Union[bytes, BinaryIO], **kwargs: Any) -> str:
+def speech_to_text_simple(audio_data: bytes | BinaryIO, **kwargs: Any) -> str:
     """
     Simplified version that always returns a plain transcription string.
     """

@@ -8,7 +8,7 @@ using specified templates and coordinates through the GNS3 API.
 import json
 import os
 from pprint import pprint
-from typing import Any, Optional
+from typing import Any
 
 from dotenv import load_dotenv
 from langchain.tools import BaseTool
@@ -101,7 +101,7 @@ class GNS3CreateNodeTool(BaseTool):
     def _run(
         self,
         tool_input: str,
-        run_manager: Optional[CallbackManagerForToolRun] = None,
+        run_manager: CallbackManagerForToolRun | None = None,
         **kwargs: Any,
     ) -> dict[str, Any]:
         """

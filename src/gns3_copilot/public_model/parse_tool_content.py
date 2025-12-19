@@ -19,7 +19,7 @@ Author: Guobin Yue
 
 import ast
 import json
-from typing import Any, Optional, Union
+from typing import Any
 
 from gns3_copilot.log_config import setup_tool_logger
 
@@ -27,10 +27,10 @@ logger = setup_tool_logger("parse_tool_content")
 
 
 def parse_tool_content(
-    content: Optional[Union[str, dict, list, int, float, bool]],
+    content: str | dict | list | int | float | bool | None,
     fallback_to_raw: bool = True,
     strict_mode: bool = False,
-) -> Union[dict[str, Any], list[Any], Any]:
+) -> dict[str, Any] | list[Any] | Any:
     """
     Parse tool execution results into structured data, specifically for UI display.
 
@@ -171,7 +171,7 @@ def parse_tool_content(
 
 
 def format_tool_response(
-    content: Optional[Union[str, dict, list, int, float, bool]], indent: int = 2
+    content: str | dict | list | int | float | bool | None, indent: int = 2
 ) -> str:
     """
     Format tool response as a beautiful JSON string for UI display.

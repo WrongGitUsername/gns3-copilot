@@ -9,7 +9,7 @@ import json
 import os
 import time
 from pprint import pprint
-from typing import Any, Optional
+from typing import Any
 
 from dotenv import load_dotenv
 from langchain.tools import BaseTool
@@ -89,7 +89,7 @@ class GNS3StartNodeTool(BaseTool):
     """
 
     def _run(
-        self, tool_input: str, run_manager: Optional[CallbackManagerForToolRun] = None
+        self, tool_input: str, run_manager: CallbackManagerForToolRun | None = None
     ) -> dict[str, Any]:
         logger.debug("Received input: %s", tool_input)
         try:

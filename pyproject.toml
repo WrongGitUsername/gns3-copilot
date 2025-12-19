@@ -148,7 +148,7 @@ extend-exclude = '''
 minversion = "6.0"
 addopts = "-ra -q --strict-markers"
 testpaths = [
-    "test",
+    "tests",
 ]
 python_files = [
     "test_*.py",

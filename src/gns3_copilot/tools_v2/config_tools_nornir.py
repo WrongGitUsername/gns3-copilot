@@ -5,7 +5,7 @@ This module provides a tool to execute configuration commands on multiple device
 
 import json
 import os
-from typing import Any, Optional, Union
+from typing import Any
 
 from dotenv import load_dotenv
 from langchain.tools import BaseTool
@@ -93,7 +93,7 @@ class ExecuteMultipleDeviceConfigCommands(BaseTool):
     def _run(
         self,
         tool_input: str,  # 或者是 Union[str, List[Any], Dict[str, Any]]
-        run_manager: Optional[CallbackManagerForToolRun] = None,
+        run_manager: CallbackManagerForToolRun | None = None,
     ) -> list[dict[str, Any]]:
         """
         Executes configuration commands on multiple devices in the current GNS3 topology.
@@ -191,7 +191,7 @@ class ExecuteMultipleDeviceConfigCommands(BaseTool):
             )
 
     def _validate_tool_input(
-        self, tool_input: Union[str, bytes, list[Any], dict[str, Any]]
+        self, tool_input: str | bytes | list[Any] | dict[str, Any]
     ) -> list[dict[str, Any]]:
         """
         Validate device display command input, handling both JSON string

@@ -8,7 +8,7 @@ Additionally, it can append voice-optimized prompts when VOICE mode is enabled.
 
 import importlib
 import os
-from typing import Optional, cast
+from typing import cast
 
 from gns3_copilot.log_config import setup_logger
 
@@ -70,7 +70,7 @@ def _load_base_prompt() -> str:
         ) from e
 
 
-def _load_regular_level_prompt(level: Optional[str] = None) -> str:
+def _load_regular_level_prompt(level: str | None = None) -> str:
     """
     Load regular prompt based on English proficiency level.
 
@@ -126,7 +126,7 @@ def _load_regular_level_prompt(level: Optional[str] = None) -> str:
         return _load_base_prompt()
 
 
-def _load_voice_level_prompt(level: Optional[str] = None) -> str:
+def _load_voice_level_prompt(level: str | None = None) -> str:
     """
     Load voice prompt based on English proficiency level.
 
@@ -220,7 +220,7 @@ def _is_voice_enabled() -> bool:
     return voice_value in ("true", "1", "yes", "on")
 
 
-def load_system_prompt(level: Optional[str] = None) -> str:
+def load_system_prompt(level: str | None = None) -> str:
     """
     Load system prompt based on English proficiency level and voice mode settings.
 

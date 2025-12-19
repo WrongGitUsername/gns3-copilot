@@ -7,12 +7,11 @@ eliminating duplicate logging setup code across modules.
 
 import logging
 import os
-from typing import Optional
 
 
 def setup_logger(
     name: str,
-    log_file: Optional[str] = None,
+    log_file: str | None = None,
     console_level: int = logging.INFO,
     file_level: int = logging.DEBUG,
 ) -> logging.Logger:
@@ -134,9 +133,7 @@ LOGGER_CONFIGS = {
 }
 
 
-def setup_tool_logger(
-    tool_name: str, config_name: Optional[str] = None
-) -> logging.Logger:
+def setup_tool_logger(tool_name: str, config_name: str | None = None) -> logging.Logger:
     """
     Set up logger for specific tool using predefined configuration.
 

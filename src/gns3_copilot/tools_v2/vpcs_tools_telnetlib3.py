@@ -7,7 +7,7 @@ import json
 import os
 import threading
 from time import sleep
-from typing import Any, Optional
+from typing import Any
 
 from langchain.tools import BaseTool
 from langchain_core.callbacks import CallbackManagerForToolRun
@@ -128,7 +128,7 @@ class VPCSMultiCommands(BaseTool):
             tn.close()
 
     def _run(
-        self, tool_input: str, run_manager: Optional[CallbackManagerForToolRun] = None
+        self, tool_input: str, run_manager: CallbackManagerForToolRun | None = None
     ) -> list[dict[str, Any]]:
         """Main method to execute multi-device multi-commands"""
 

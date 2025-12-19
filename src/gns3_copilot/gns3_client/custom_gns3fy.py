@@ -13,16 +13,14 @@ Note: This file is adapted - not the untouched upstream source. See repository R
 
 import os
 import time
+from collections.abc import Callable
 from dataclasses import field
 from functools import wraps
 from math import cos, pi, sin
 from typing import (
     Any,
-    Callable,
-    Optional,
     ParamSpec,
     TypeVar,
-    Union,
     cast,
 )
 from urllib.parse import urlparse
@@ -100,14 +98,14 @@ class Gns3Connector:
     ```
     """
 
-    access_token: Optional[str]
-    token_expiry: Optional[float]
+    access_token: str | None
+    token_expiry: float | None
 
     def __init__(
         self,
-        url: Optional[str] = None,
-        user: Optional[str] = None,
-        cred: Optional[str] = None,
+        url: str | None = None,
+        user: str | None = None,
+        cred: str | None = None,
         verify: bool = False,
         api_version: int = 2,
     ) -> None:
@@ -211,11 +209,11 @@ class Gns3Connector:
         self,
         method: str,
         url: str,
-        data: Optional[Any] = None,
-        json_data: Optional[Union[dict[str, Any], list[Any]]] = None,
-        headers: Optional[dict[str, str]] = None,
+        data: Any | None = None,
+        json_data: dict[str, Any] | list[Any] | None = None,
+        headers: dict[str, str] | None = None,
         verify: bool = False,
-        params: Optional[dict[str, Any]] = None,
+        params: dict[str, Any] | None = None,
     ) -> requests.Response:
         """
         执行 HTTP 操作并处理 GNS3 特有的错误逻辑。
@@ -295,7 +293,7 @@ class Gns3Connector:
 
     def projects_summary(
         self, is_print: bool = True
-    ) -> Optional[list[tuple[str, str, int, int, str]]]:
+    ) -> list[tuple[str, str, int, int, str]] | None:
         """
         Returns a summary of the projects in the server. If `is_print` is `False`, it
         will return a list of tuples like:
@@ -333,8 +331,8 @@ class Gns3Connector:
         return cast(list[dict[str, Any]], response)
 
     def get_project(
-        self, name: Optional[str] = None, project_id: Optional[str] = None
-    ) -> Optional[dict[str, Any]]:
+        self, name: str | None = None, project_id: str | None = None
+    ) -> dict[str, Any] | None:
         """
         Retrieves a project from either a name or ID
 
@@ -358,7 +356,7 @@ class Gns3Connector:
 
     def templates_summary(
         self, is_print: bool = True
-    ) -> Optional[list[tuple[str, str, str, bool, str, str]]]:
+    ) -> list[tuple[str, str, str, bool, str, str]] | None:
         """
         Returns a summary of the templates in the server. If `is_print` is `False`, it
         will return a list of tuples like:
@@ -396,8 +394,8 @@ class Gns3Connector:
         return cast(list[dict[str, Any]], _response_data)
 
     def get_template(
-        self, name: Optional[str] = None, template_id: Optional[str] = None
-    ) -> Optional[dict[str, Any]]:
+        self, name: str | None = None, template_id: str | None = None
+    ) -> dict[str, Any] | None:
         """
         Retrieves a template from either a name or ID
 
@@ -421,8 +419,8 @@ class Gns3Connector:
 
     def update_template(
         self,
-        name: Optional[str] = None,
-        template_id: Optional[str] = None,
+        name: str | None = None,
+        template_id: str | None = None,
         **kwargs: Any,
     ) -> dict[str, Any]:
         """
@@ -484,7 +482,7 @@ class Gns3Connector:
         return cast(dict[str, Any], response.json())
 
     def delete_template(
-        self, name: Optional[str] = None, template_id: Optional[str] = None
+        self, name: str | None = None, template_id: str | None = None
     ) -> None:
         """
         Deletes a template by giving its attributes. For more information [API INFO]
@@ -766,39 +764,37 @@ class Link:
     ```
     """
 
-    link_id: Optional[str] = None
-    link_type: Optional[str] = None
-    link_style: Optional[Any] = None
-    project_id: Optional[str] = None
-    suspend: Optional[bool] = None
-    nodes: Optional[list[Any]] = None
-    filters: Optional[dict] = None
-    capturing: Optional[bool] = None
-    capture_file_path: Optional[str] = None
-    capture_file_name: Optional[str] = None
-    capture_compute_id: Optional[str] = None
+    link_id: str | None = None
+    link_type: str | None = None
+    link_style: Any | None = None
+    project_id: str | None = None
+    suspend: bool | None = None
+    nodes: list[Any] | None = None
+    filters: dict | None = None
+    capturing: bool | None = None
+    capture_file_path: str | None = None
+    capture_file_name: str | None = None
+    capture_compute_id: str | None = None
 
-    connector: Optional[Any] = field(default=None, repr=False)
+    connector: Any | None = field(default=None, repr=False)
 
     @field_validator("link_type")
     @classmethod
-    def _valid_link_type(cls, value: Optional[str]) -> Optional[str]:
+    def _valid_link_type(cls, value: str | None) -> str | None:
         if value not in LINK_TYPES and value is not None:
             raise ValueError(f"Not a valid link_type - {value}")
         return value
 
     @field_validator("suspend")
     @classmethod
-    def _valid_suspend(cls, value: Optional[bool]) -> Optional[bool]:
+    def _valid_suspend(cls, value: bool | None) -> bool | None:
         if type(value) is not bool and value is not None:
             raise ValueError(f"Not a valid suspend - {value}")
         return value
 
     @field_validator("filters")
     @classmethod
-    def _valid_filters(
-        cls, value: Optional[dict[str, Any]]
-    ) -> Optional[dict[str, Any]]:
+    def _valid_filters(cls, value: dict[str, Any] | None) -> dict[str, Any] | None:
         if type(value) is not dict and value is not None:
             raise ValueError(f"Not a valid filters - {value}")
         return value
@@ -985,37 +981,37 @@ class Node:
     ```
     """
 
-    name: Optional[str] = None
-    project_id: Optional[str] = None
-    node_id: Optional[str] = None
+    name: str | None = None
+    project_id: str | None = None
+    node_id: str | None = None
     compute_id: str = "local"
-    node_type: Optional[str] = None
-    node_directory: Optional[str] = None
-    status: Optional[str] = None
-    ports: Optional[list] = None
-    port_name_format: Optional[str] = None
-    port_segment_size: Optional[int] = None
-    first_port_name: Optional[str] = None
-    locked: Optional[bool] = None
-    label: Optional[Any] = None
-    console: Optional[int] = None
-    console_host: Optional[str] = None
-    console_type: Optional[str] = None
-    console_auto_start: Optional[bool] = None
-    command_line: Optional[str] = None
-    custom_adapters: Optional[list[Any]] = None
-    height: Optional[int] = None
-    width: Optional[int] = None
-    symbol: Optional[str] = None
-    x: Optional[int] = None
-    y: Optional[int] = None
-    z: Optional[int] = None
-    template_id: Optional[str] = None
-    properties: Optional[Any] = None
+    node_type: str | None = None
+    node_directory: str | None = None
+    status: str | None = None
+    ports: list | None = None
+    port_name_format: str | None = None
+    port_segment_size: int | None = None
+    first_port_name: str | None = None
+    locked: bool | None = None
+    label: Any | None = None
+    console: int | None = None
+    console_host: str | None = None
+    console_type: str | None = None
+    console_auto_start: bool | None = None
+    command_line: str | None = None
+    custom_adapters: list[Any] | None = None
+    height: int | None = None
+    width: int | None = None
+    symbol: str | None = None
+    x: int | None = None
+    y: int | None = None
+    z: int | None = None
+    template_id: str | None = None
+    properties: Any | None = None
 
-    template: Optional[str] = None
+    template: str | None = None
     links: list[Link] = field(default_factory=list, repr=False)
-    connector: Optional[Any] = field(default=None, repr=False)
+    connector: Any | None = field(default=None, repr=False)
 
     @field_validator("node_type")
     @classmethod
@@ -1101,7 +1097,7 @@ class Node:
             self.links.append(Link(connector=self.connector, **_link))
 
     @verify_connector_and_id
-    def start(self) -> Optional[bool]:
+    def start(self) -> bool | None:
         """
         Starts the node.
 
@@ -1152,7 +1148,7 @@ class Node:
                 raise RuntimeError(_msg) from None
 
     @verify_connector_and_id
-    def stop(self) -> Optional[bool]:
+    def stop(self) -> bool | None:
         """
         Stops the node.
 
@@ -1200,7 +1196,7 @@ class Node:
                 raise RuntimeError(_msg) from None
 
     @verify_connector_and_id
-    def reload(self) -> Optional[bool]:
+    def reload(self) -> bool | None:
         """
         Reloads the node.
 
@@ -1505,32 +1501,32 @@ class Project:
     ```
     """
 
-    name: Optional[str] = None
-    project_id: Optional[str] = None
-    status: Optional[str] = None
-    path: Optional[str] = None
-    filename: Optional[str] = None
-    auto_start: Optional[bool] = None
-    auto_close: Optional[bool] = None
-    auto_open: Optional[bool] = None
-    drawing_grid_size: Optional[int] = None
-    grid_size: Optional[int] = None
-    scene_height: Optional[int] = None
-    scene_width: Optional[int] = None
-    show_grid: Optional[bool] = None
-    show_interface_labels: Optional[bool] = None
-    show_layers: Optional[bool] = None
-    snap_to_grid: Optional[bool] = None
-    supplier: Optional[Any] = None
-    variables: Optional[list] = None
-    zoom: Optional[int] = None
+    name: str | None = None
+    project_id: str | None = None
+    status: str | None = None
+    path: str | None = None
+    filename: str | None = None
+    auto_start: bool | None = None
+    auto_close: bool | None = None
+    auto_open: bool | None = None
+    drawing_grid_size: int | None = None
+    grid_size: int | None = None
+    scene_height: int | None = None
+    scene_width: int | None = None
+    show_grid: bool | None = None
+    show_interface_labels: bool | None = None
+    show_layers: bool | None = None
+    snap_to_grid: bool | None = None
+    supplier: Any | None = None
+    variables: list | None = None
+    zoom: int | None = None
 
-    stats: Optional[dict[str, Any]] = None
-    snapshots: Optional[list[dict]] = None
-    drawings: Optional[list[dict]] = None
+    stats: dict[str, Any] | None = None
+    snapshots: list[dict] | None = None
+    drawings: list[dict] | None = None
     nodes: list[Node] = field(default_factory=list, repr=False)
     links: list[Link] = field(default_factory=list, repr=False)
-    connector: Optional[Any] = field(default=None, repr=False)
+    connector: Any | None = field(default=None, repr=False)
 
     @field_validator("status")
     @classmethod
@@ -1966,7 +1962,7 @@ class Project:
         time.sleep(poll_wait_time)
         self.get_nodes()
 
-    def nodes_summary(self, is_print: bool = True) -> Optional[list[tuple[Any, ...]]]:
+    def nodes_summary(self, is_print: bool = True) -> list[tuple[Any, ...]] | None:
         """
         Returns a summary of the nodes insode the project. If `is_print` is `False`, it
         will return a list of tuples like:
@@ -2052,7 +2048,7 @@ class Project:
 
     def links_summary(
         self, is_print: bool = True
-    ) -> Optional[list[tuple[str, str, str, str]]]:
+    ) -> list[tuple[str, str, str, str]] | None:
         """
         Returns a summary of the links insode the project. If `is_print` is False, it
         will return a list of tuples like:
@@ -2121,7 +2117,7 @@ class Project:
                 continue
         return _links_summary if not is_print else None
 
-    def _search_node(self, key: str, value: Any) -> Optional[Any]:
+    def _search_node(self, key: str, value: Any) -> Any | None:
         "Performs a search based on a key and value"
         # Retrive nodes if neccesary
         if not self.nodes:
@@ -2133,8 +2129,8 @@ class Project:
             return None
 
     def get_node(
-        self, name: Optional[str] = None, node_id: Optional[str] = None
-    ) -> Optional[Any]:
+        self, name: str | None = None, node_id: str | None = None
+    ) -> Any | None:
         """
         Returns the Node object by searching for the `name` or the `node_id`.
 
@@ -2156,7 +2152,7 @@ class Project:
         else:
             raise ValueError("name or node_ide must be provided")
 
-    def _search_link(self, key: str, value: Any) -> Optional[Any]:
+    def _search_link(self, key: str, value: Any) -> Any | None:
         "Performs a search based on a key and value"
         # Retrive links if neccesary
         if not self.links:
@@ -2167,7 +2163,7 @@ class Project:
         except StopIteration:
             return None
 
-    def get_link(self, link_id: str) -> Optional[Any]:
+    def get_link(self, link_id: str) -> Any | None:
         """
         Returns the Link object by locating its ID
 
@@ -2379,7 +2375,7 @@ class Project:
         _response = _conn.http_call("get", _url)
         self.snapshots = _response.json()
 
-    def _search_snapshot(self, key: str, value: Any) -> Optional[dict[str, Any]]:
+    def _search_snapshot(self, key: str, value: Any) -> dict[str, Any] | None:
         "Performs a search based on a key and value"
         if not self.snapshots:
             self.get_snapshots()
@@ -2390,8 +2386,8 @@ class Project:
             return None
 
     def get_snapshot(
-        self, name: Optional[str] = None, snapshot_id: Optional[str] = None
-    ) -> Optional[dict[str, Any]]:
+        self, name: str | None = None, snapshot_id: str | None = None
+    ) -> dict[str, Any] | None:
         """
         Returns the Snapshot by searching for the `name` or the `snapshot_id`.
 
@@ -2449,7 +2445,7 @@ class Project:
 
     @verify_connector_and_id
     def delete_snapshot(
-        self, name: Optional[str] = None, snapshot_id: Optional[str] = None
+        self, name: str | None = None, snapshot_id: str | None = None
     ) -> None:
         """
         Deletes a snapshot of the project
@@ -2485,7 +2481,7 @@ class Project:
 
     @verify_connector_and_id
     def restore_snapshot(
-        self, name: Optional[str] = None, snapshot_id: Optional[str] = None
+        self, name: str | None = None, snapshot_id: str | None = None
     ) -> None:
         """
         Restore a snapshot from disk
@@ -2548,7 +2544,7 @@ class Project:
             _y = int(radius * (-cos(_angle * index)))
             n.update(x=_x, y=_y)
 
-    def get_drawing(self, drawing_id: Optional[str] = None) -> Optional[dict[str, Any]]:
+    def get_drawing(self, drawing_id: str | None = None) -> dict[str, Any] | None:
         """
         Returns the drawing by searching for the `svg` or the `drawing_id`.
 
@@ -2596,11 +2592,11 @@ class Project:
     def update_drawing(
         self,
         drawing_id: str,
-        svg: Optional[str] = None,
-        locked: Optional[bool] = None,
-        x: Optional[int] = None,
-        y: Optional[int] = None,
-        z: Optional[int] = None,
+        svg: str | None = None,
+        locked: bool | None = None,
+        x: int | None = None,
+        y: int | None = None,
+        z: int | None = None,
     ) -> dict[str, Any]:
         _conn = self.connector
         assert _conn is not None
@@ -2650,7 +2646,7 @@ class Project:
         return cast(dict[str, Any], response.json())
 
     @verify_connector_and_id
-    def delete_drawing(self, drawing_id: Optional[str] = None) -> None:
+    def delete_drawing(self, drawing_id: str | None = None) -> None:
         """
         Deletes a drawing of the project
 
