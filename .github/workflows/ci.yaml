@@ -39,7 +39,6 @@ jobs:
           python -m pip install --upgrade pip
           # Directly install optional dependencies [dev]
           pip install -e ".[dev]"
-  +++++++ REPLACE
 
       - name: Code Formatting (Black)
         run: black --check .
