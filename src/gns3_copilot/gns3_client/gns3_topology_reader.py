@@ -2,6 +2,7 @@
 This module provides a LangChain BaseTool to retrieve the topology of the
  currently open GNS3 project.
 """
+
 import copy
 import os
 from typing import Any
@@ -18,9 +19,11 @@ logger = setup_tool_logger("gns3_topology_reader")
 # load environment variables
 load_dotenv()
 
+
 # Define LangChain tool class
 class GNS3TopologyTool(BaseTool):
     """LangChain tool for retrieving GNS3 project topology information."""
+
     name: str = "gns3_topology_reader"
     description: str = """
     Retrieves the topology of the currently open GNS3 project.
@@ -85,21 +88,23 @@ class GNS3TopologyTool(BaseTool):
             api_version_str = os.getenv("API_VERSION")
             server_url = os.getenv("GNS3_SERVER_URL")
 
-            if api_version_str == '2':
+            if api_version_str == "2":
                 server = Gns3Connector(
                     url=server_url,
-                    api_version=int(api_version_str)  # 强制转换为 int
+                    api_version=int(api_version_str),  # 强制转换为 int
                 )
-            elif api_version_str == '3':
+            elif api_version_str == "3":
                 server = Gns3Connector(
                     url=server_url,
                     user=os.getenv("GNS3_SERVER_USERNAME"),
                     cred=os.getenv("GNS3_SERVER_PASSWORD"),
-                    api_version=int(api_version_str)  # 强制转换为 int
+                    api_version=int(api_version_str),  # 强制转换为 int
                 )
             else:
                 # 兜底处理：如果 API_VERSION 既不是 2 也不是 3
-                raise ValueError(f"Unsupported or missing API_VERSION: {api_version_str}")
+                raise ValueError(
+                    f"Unsupported or missing API_VERSION: {api_version_str}"
+                )
 
             projects = server.projects_summary(is_print=False)
             print(projects)
@@ -128,8 +133,10 @@ class GNS3TopologyTool(BaseTool):
                 "project_id": project.project_id,
                 "name": project.name,
                 "status": project.status,
-                "nodes": self._clean_nodes_ports(copy.deepcopy(project.nodes_inventory())),
-                "links": project.links_summary(is_print=False)
+                "nodes": self._clean_nodes_ports(
+                    copy.deepcopy(project.nodes_inventory())
+                ),
+                "links": project.links_summary(is_print=False),
             }
             logger.debug("Topology retrieved: %s", topology)
             return topology
@@ -143,7 +150,7 @@ class GNS3TopologyTool(BaseTool):
         Clean and simplify the nodes data structure.
         Simplify each node's ports list to only keep name and short_name fields.
         """
-        for node in data.values():                     # Iterate through R-1, R-2, R-3, R-4
+        for node in data.values():  # Iterate through R-1, R-2, R-3, R-4
             if "ports" in node and isinstance(node["ports"], list):
                 node["ports"] = [
                     {"name": port["name"], "short_name": port["short_name"]}
@@ -151,8 +158,10 @@ class GNS3TopologyTool(BaseTool):
                 ]
         return data
 
+
 if __name__ == "__main__":
     from pprint import pprint
+
     # Test the tool
     tool = GNS3TopologyTool()
     result = tool._run()

@@ -111,5 +111,5 @@ Always respond to users in the same language as their input and provide detailed
 
 Unless explicitly requested by the user,do not use device templates with a "template_type" value of "cloud," "nat," "ethernet_switch," "ethernet_hub," "frame_relay_switch," or "atm_switch."
 """
-#After the topology is created, the devices are not started. Please instruct the user to manually start the devices. I will proceed with the operation only after the devices are fully started.
-#"""
+# After the topology is created, the devices are not started. Please instruct the user to manually start the devices. I will proceed with the operation only after the devices are fully started.
+# """

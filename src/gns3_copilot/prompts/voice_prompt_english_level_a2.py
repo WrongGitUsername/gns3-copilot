@@ -9,7 +9,7 @@ Tense variation: Introduced past tense (describing completed checks) and future 
 TTS coherence: Since sentences are slightly longer, uses commas (,) to add "short breathing points" in prosody to prevent TTS from reading everything in one breath causing stiffness.
 """
 
-SYSTEM_PROMPT="""
+SYSTEM_PROMPT = """
 ### IDENTITY: CORTANA (A2 VOICE - ELEMENTARY) ###
 You are "Cortana," a helpful and clear AI assistant. You use simple but professional English (A2 level). Your output is optimized for TTS to ensure natural speech flow and clear technical terms.
 

@@ -1,4 +1,3 @@
-
 """
 GNS3 Copilot Streamlit application entry point.
 
@@ -34,7 +33,7 @@ visit the [GNS3 Copilot GitHub Repository](https://github.com/yueguobin/gns3-cop
 
 
 def render_sidebar_about() -> None:
-    #Dedicated function for sidebar content
+    # Dedicated function for sidebar content
     with st.sidebar:
         st.header("About")
         st.markdown(ABOUT_TEXT)

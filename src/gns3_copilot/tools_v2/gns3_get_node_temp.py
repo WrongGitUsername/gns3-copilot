@@ -23,6 +23,7 @@ logger = setup_tool_logger("gns3_get_node_temp")
 # Load environment variables
 load_dotenv()
 
+
 class GNS3TemplateTool(BaseTool):
     """
     A LangChain tool to retrieve all available device templates from a GNS3 server.
@@ -63,7 +64,7 @@ class GNS3TemplateTool(BaseTool):
     def _run(
         self,
         tool_input: str = "",
-        run_manager: Optional[CallbackManagerForToolRun] = None
+        run_manager: Optional[CallbackManagerForToolRun] = None,
     ) -> dict[str, Any]:
         """
         Connects to the GNS3 server and retrieves a list of all available device templates.
@@ -81,23 +82,21 @@ class GNS3TemplateTool(BaseTool):
             server_url = os.getenv("GNS3_SERVER_URL")
 
             # Initialize Gns3Connector
-            logger.info("Connecting to GNS3 server at %s...", os.getenv("GNS3_SERVER_URL"))
+            logger.info(
+                "Connecting to GNS3 server at %s...", os.getenv("GNS3_SERVER_URL")
+            )
 
             if api_version == 2:
-                gns3_server = Gns3Connector(
-                    url=server_url,
-                    api_version=api_version
-                )
-            elif api_version == 3: # 使用 elif 增强逻辑完备性
+                gns3_server = Gns3Connector(url=server_url, api_version=api_version)
+            elif api_version == 3:  # 使用 elif 增强逻辑完备性
                 gns3_server = Gns3Connector(
                     url=server_url,
                     user=os.getenv("GNS3_SERVER_USERNAME"),
                     cred=os.getenv("GNS3_SERVER_PASSWORD"),
-                    api_version=api_version
+                    api_version=api_version,
                 )
             else:
                 raise ValueError(f"Unsupported API version: {api_version}")
-
 
             # Retrieve all available templates
             templates = gns3_server.get_templates()
@@ -107,22 +106,26 @@ class GNS3TemplateTool(BaseTool):
                 {
                     "name": template.get("name", "N/A"),
                     "template_id": template.get("template_id", "N/A"),
-                    "template_type": template.get("template_type", "N/A")
+                    "template_type": template.get("template_type", "N/A"),
                 }
                 for template in templates
             ]
 
             # Log the retrieved templates
             logger.debug(
-                "Retrieved templates: %s", json.dumps(template_info, indent=2, ensure_ascii=False)
-                )
+                "Retrieved templates: %s",
+                json.dumps(template_info, indent=2, ensure_ascii=False),
+            )
 
             # Return JSON-formatted result
             return {"templates": template_info}
 
         except Exception as e:
-            logger.error("Failed to connect to GNS3 server or retrieve templates: %s", e)
+            logger.error(
+                "Failed to connect to GNS3 server or retrieve templates: %s", e
+            )
             return {"error": f"Failed to retrieve templates: {str(e)}"}
+
 
 if __name__ == "__main__":
     # Test the tool locally

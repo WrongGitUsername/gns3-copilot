@@ -2,6 +2,7 @@
 This module uses Nornir + Netmiko to batch execute Linux commands on GNS3 topology devices
 via Telnet console.
 """
+
 import json
 import os
 import re
@@ -40,21 +41,18 @@ groups_data = {
                 "platform": "linux",
                 "extras": {
                     "device_type": "generic_telnet",
-                    #"use_timing": True,
+                    # "use_timing": True,
                     "global_delay_factor": 3,
                     "timeout": 120,
                     "fast_cli": False,
-                }
+                },
             }
-        }
+        },
     }
 }
 
-defaults = {
-    "data": {
-        "location": "gns3"
-    }
-}
+defaults = {"data": {"location": "gns3"}}
+
 
 class LinuxTelnetBatchTool(BaseTool):
     """
@@ -93,9 +91,7 @@ class LinuxTelnetBatchTool(BaseTool):
     """
 
     def _run(
-        self,
-        tool_input: str,
-        run_manager: Optional[CallbackManagerForToolRun] = None
+        self, tool_input: str, run_manager: Optional[CallbackManagerForToolRun] = None
     ) -> list[dict[str, Any]]:
         """
         Batch execute Linux read-only commands (main entry).
@@ -108,30 +104,34 @@ class LinuxTelnetBatchTool(BaseTool):
             List[Dict[str, Any]]: A list of dictionaries containing device names and
             command outputs.
         """
-        if not os.getenv("LINUX_TELNET_USERNAME") or not os.getenv("LINUX_TELNET_PASSWORD"):
+        if not os.getenv("LINUX_TELNET_USERNAME") or not os.getenv(
+            "LINUX_TELNET_PASSWORD"
+        ):
             user_message = (
-                    "Sorry, I can't proceed just yet.\n\n"
-                    "You haven't configured the Linux login credentials (username and password) yet.\n"
-                    "Please go to the **Settings** page and fill in the Linux username and password under the login credentials section.\n\n"
-                    "Once you've saved them, just come back and say anything (like 'Done' or 'Configured'), "
-                    "and I'll immediately continue with the task!\n\n"
-                    "Need help finding the settings page? Let me know — happy to guide you!"
-                )
-            logger.warning("Linux login credentials not configured — user prompted to set them up")
+                "Sorry, I can't proceed just yet.\n\n"
+                "You haven't configured the Linux login credentials (username and password) yet.\n"
+                "Please go to the **Settings** page and fill in the Linux username and password under the login credentials section.\n\n"
+                "Once you've saved them, just come back and say anything (like 'Done' or 'Configured'), "
+                "and I'll immediately continue with the task!\n\n"
+                "Need help finding the settings page? Let me know — happy to guide you!"
+            )
+            logger.warning(
+                "Linux login credentials not configured — user prompted to set them up"
+            )
             return [
-                    {
-                        "error": user_message,
-                        "action_required": "configure_linux_credentials",
-                        "user_message": user_message  # optional, if your frontend uses a separate field
-                    }
-                ]
+                {
+                    "error": user_message,
+                    "action_required": "configure_linux_credentials",
+                    "user_message": user_message,  # optional, if your frontend uses a separate field
+                }
+            ]
         # Validate input
         device_configs_list = self._validate_tool_input(tool_input)
-        if (isinstance(device_configs_list, list)
+        if (
+            isinstance(device_configs_list, list)
             and len(device_configs_list) > 0
-            and "error"
-            in device_configs_list[0]
-            ):
+            and "error" in device_configs_list[0]
+        ):
             return device_configs_list
 
         # Create a mapping of device names to their display commands
@@ -165,10 +165,14 @@ class LinuxTelnetBatchTool(BaseTool):
             for device_name, result in login_result.items():
                 if result.failed:
                     failed_logins.append(device_name)
-                    logger.error("Device %s login failed: %s", device_name, result.result)
+                    logger.error(
+                        "Device %s login failed: %s", device_name, result.result
+                    )
                 else:
                     successful_logins.append(device_name)
-                    logger.info("Device %s login successful: %s", device_name, result.result)
+                    logger.info(
+                        "Device %s login successful: %s", device_name, result.result
+                    )
 
             task_result: Union[AggregatedResult, dict[str, Any]]
 
@@ -183,14 +187,15 @@ class LinuxTelnetBatchTool(BaseTool):
 
                 task_result = dynamic_nr.run(
                     task=self._run_all_device_configs_with_single_retry,
-                    device_configs_map=filtered_device_configs_map
+                    device_configs_map=filtered_device_configs_map,
                 )
             else:
                 task_result = AggregatedResult("empty_command_execution")
 
             # Step 4: Process results for all devices
             results = self._process_task_results(
-                device_configs_list, hosts_data, task_result, login_result)
+                device_configs_list, hosts_data, task_result, login_result
+            )
 
         except Exception as e:
             # Overall execution failed
@@ -199,7 +204,7 @@ class LinuxTelnetBatchTool(BaseTool):
 
         logger.info(
             "Multiple device display execution completed. Results: %s",
-            json.dumps(results, indent=2, ensure_ascii=False)
+            json.dumps(results, indent=2, ensure_ascii=False),
         )
 
         return results
@@ -221,25 +226,31 @@ class LinuxTelnetBatchTool(BaseTool):
             # Check if output contains "login:" prompt
             if re.search(r"(?i)(^|\n).{0,60}(debian\s+)?login:\s*$", output):
                 # Need to login, execute login process
-                logger.info("Device %s requires login - detected login prompt", task.host.name)
+                logger.info(
+                    "Device %s requires login - detected login prompt", task.host.name
+                )
 
                 # Send username
                 net_connect.write_channel(f"{task.host.username}\n")
                 time.sleep(1)
-                output = net_connect.read_until_prompt_or_pattern("Password:", read_timeout=10)
+                output = net_connect.read_until_prompt_or_pattern(
+                    "Password:", read_timeout=10
+                )
 
                 # Send password
                 net_connect.write_channel(f"{task.host.password}\n")
                 time.sleep(1)
-                output += net_connect.read_until_prompt_or_pattern(r"[$#]", read_timeout=10)
+                output += net_connect.read_until_prompt_or_pattern(
+                    r"[$#]", read_timeout=10
+                )
 
                 logger.info("Device %s login successful", task.host.name)
                 return Result(host=task.host, result="Login successful")
 
             # Already logged in, return directly
             logger.info(
-                "Device %s already logged in - no login prompt detected",
-                task.host.name)
+                "Device %s already logged in - no login prompt detected", task.host.name
+            )
             return Result(host=task.host, result="Already logged in")
 
         except Exception as e:
@@ -247,10 +258,8 @@ class LinuxTelnetBatchTool(BaseTool):
             return Result(host=task.host, result=f"Login failed: {str(e)}", failed=True)
 
     def _run_all_device_configs_with_single_retry(
-        self,
-        task: Task,
-        device_configs_map: dict[str, list[str]]
-        ) -> Result:
+        self, task: Task, device_configs_map: dict[str, list[str]]
+    ) -> Result:
         """
         Execute commands one-by-one on a single device
         (optimized for generic_telnet + $ prompt).
@@ -284,14 +293,18 @@ class LinuxTelnetBatchTool(BaseTool):
         try:
             device_configs_list = json.loads(tool_input)
             if not isinstance(device_configs_list, list):
-                return [{"error": "Input must be a JSON array of device display objects"}]
+                return [
+                    {"error": "Input must be a JSON array of device display objects"}
+                ]
         except json.JSONDecodeError as e:
             logger.error("Invalid JSON input: %s", e)
             return [{"error": f"Invalid JSON input: {e}"}]
 
         return device_configs_list
 
-    def _configs_map(self, device_config_list: list[dict[str, Any]]) -> dict[str, list[str]]:
+    def _configs_map(
+        self, device_config_list: list[dict[str, Any]]
+    ) -> dict[str, list[str]]:
         """Create a mapping of device names to their display commands."""
         device_configs_map = {}
         for device_config in device_config_list:
@@ -302,12 +315,13 @@ class LinuxTelnetBatchTool(BaseTool):
         return device_configs_map
 
     def _prepare_device_hosts_data(
-        self,
-        device_config_list: list[dict[str, Any]]
+        self, device_config_list: list[dict[str, Any]]
     ) -> dict[str, dict[str, Any]]:
         """Prepare device hosts data from topology information."""
         # Extract device names list
-        device_names = [device_config["device_name"] for device_config in device_config_list]
+        device_names = [
+            device_config["device_name"] for device_config in device_config_list
+        ]
 
         # Get device port information
         hosts_data = get_device_ports_from_topology(device_names)
@@ -315,7 +329,7 @@ class LinuxTelnetBatchTool(BaseTool):
         if not hosts_data:
             raise ValueError(
                 "Failed to get device information from topology or no valid devices found"
-                )
+            )
         # Force all devices to use linux_telnet group (compatible with generic_telnet)
         for _, _host_info in hosts_data.items():
             _host_info["groups"] = ["linux_telnet"]
@@ -341,13 +355,9 @@ class LinuxTelnetBatchTool(BaseTool):
                 },
                 runner={
                     "plugin": "threaded",
-                    "options": {
-                        "num_workers": 10
-                    },
+                    "options": {"num_workers": 10},
                 },
-                logging={
-                    "enabled": False
-                },
+                logging={"enabled": False},
             )
         except Exception as e:
             logger.error("Failed to initialize Nornir: %s", e)
@@ -358,7 +368,7 @@ class LinuxTelnetBatchTool(BaseTool):
         device_configs_list: list[dict[str, Any]],
         hosts_data: dict[str, dict[str, Any]],
         task_result: AggregatedResult,
-        login_result: Optional[AggregatedResult] = None
+        login_result: Optional[AggregatedResult] = None,
     ) -> list[dict[str, Any]]:
         """Process task results and format them for return."""
         results = []
@@ -374,7 +384,7 @@ class LinuxTelnetBatchTool(BaseTool):
                     "status": "failed",
                     "error": (
                         f"Device '{device_name}' not found in topology or missing console_port"
-                        )
+                    ),
                 }
                 results.append(device_result)
                 continue
@@ -387,7 +397,7 @@ class LinuxTelnetBatchTool(BaseTool):
                         "device_name": device_name,
                         "status": "failed",
                         "error": f"Login failed: {login_status.result}",
-                        "login_status": login_status.result
+                        "login_status": login_status.result,
                     }
                     results.append(device_result)
                     continue
@@ -397,9 +407,7 @@ class LinuxTelnetBatchTool(BaseTool):
                 device_result = {
                     "device_name": device_name,
                     "status": "failed",
-                    "error": (
-                        f"Device '{device_name}' not found in task results"
-                        )
+                    "error": (f"Device '{device_name}' not found in task results"),
                 }
                 results.append(device_result)
                 continue
@@ -413,7 +421,7 @@ class LinuxTelnetBatchTool(BaseTool):
                 device_result["status"] = "failed"
                 device_result["error"] = (
                     f"Command execution failed: {multi_result[0].result}"
-                    )
+                )
                 device_result["output"] = multi_result[0].result
             else:
                 # Execution successful
@@ -448,8 +456,8 @@ if __name__ == "__main__":
                     "ping -c 3 114.114.114.114",
                     "ps aux --sort=-%mem | head -15",
                     "journalctl -u ssh --no-pager -n 20",
-                    "find /etc -name \"*.conf\" | head -10",
-                    ]
+                    'find /etc -name "*.conf" | head -10',
+                ],
             },
             {
                 "device_name": "Debian12.6-2",
@@ -465,8 +473,8 @@ if __name__ == "__main__":
                     "ping -c 3 114.114.114.114",
                     "ps aux --sort=-%mem | head -15",
                     "journalctl -u ssh --no-pager -n 20",
-                    "find /etc -name \"*.conf\" | head -10",
-                    ]
+                    'find /etc -name "*.conf" | head -10',
+                ],
             },
         ]
     )

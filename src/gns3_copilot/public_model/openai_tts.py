@@ -24,17 +24,19 @@ load_dotenv()
 # Setup logger
 logger = setup_logger("openai_tts")
 
+
 def get_tts_config() -> dict[str, Any]:
     """
     Get TTS configuration from environment variables with sensible defaults.
     """
     return {
-        'api_key': os.getenv('TTS_API_KEY', 'dummy-key'),
-        'base_url': os.getenv('TTS_BASE_URL', 'http://localhost:4123/v1'),
-        'model': os.getenv('TTS_MODEL', 'tts-1'),
-        'voice': os.getenv('TTS_VOICE', 'alloy'),
-        'speed': float(os.getenv('TTS_SPEED', '1.0'))
+        "api_key": os.getenv("TTS_API_KEY", "dummy-key"),
+        "base_url": os.getenv("TTS_BASE_URL", "http://localhost:4123/v1"),
+        "model": os.getenv("TTS_MODEL", "tts-1"),
+        "voice": os.getenv("TTS_VOICE", "alloy"),
+        "speed": float(os.getenv("TTS_SPEED", "1.0")),
     }
+
 
 def text_to_speech_wav(
     text: str,
@@ -43,7 +45,7 @@ def text_to_speech_wav(
     speed: Optional[float] = None,
     instructions: Optional[str] = None,
     api_key: Optional[str] = None,
-    base_url: Optional[str] = None
+    base_url: Optional[str] = None,
 ) -> bytes:
     """
     Convert text to speech audio in WAV format using OpenAI TTS API.
@@ -51,17 +53,21 @@ def text_to_speech_wav(
     config = get_tts_config()
 
     # 确保变量类型确定，避免 Optional 带来的后续麻烦
-    final_model: str = model if model is not None else str(config['model'])
-    final_voice: Any = voice if voice is not None else config['voice'] # voice SDK 类型较复杂，暂用 Any 或 str
-    final_speed: float = speed if speed is not None else float(config['speed'])
-    final_api_key: str = api_key if api_key is not None else str(config['api_key'])
-    final_base_url: str = base_url if base_url is not None else str(config['base_url'])
+    final_model: str = model if model is not None else str(config["model"])
+    final_voice: Any = (
+        voice if voice is not None else config["voice"]
+    )  # voice SDK 类型较复杂，暂用 Any 或 str
+    final_speed: float = speed if speed is not None else float(config["speed"])
+    final_api_key: str = api_key if api_key is not None else str(config["api_key"])
+    final_base_url: str = base_url if base_url is not None else str(config["base_url"])
 
     if not text or not text.strip():
         raise ValueError("Error: Text content cannot be empty.")
 
     if len(text) > 4096:
-        raise ValueError(f"Error: Text length ({len(text)}) exceeds 4096 character limit.")
+        raise ValueError(
+            f"Error: Text length ({len(text)}) exceeds 4096 character limit."
+        )
 
     if not (0.25 <= final_speed <= 4.0):
         raise ValueError("Error: Speed must be between 0.25 and 4.0.")
@@ -84,7 +90,7 @@ def text_to_speech_wav(
             voice=final_voice,
             input=text,
             speed=final_speed,
-            response_format="wav"  # 显式字符串
+            response_format="wav",  # 显式字符串
         )
 
         return response.content
@@ -92,6 +98,7 @@ def text_to_speech_wav(
     except Exception as e:
         logger.error(f"TTS processing failed: {e}")
         raise Exception(f"TTS Error: {str(e)}") from e
+
 
 def get_duration(audio_bytes: bytes) -> float:
     """
@@ -107,6 +114,7 @@ def get_duration(audio_bytes: bytes) -> float:
         logger.error(f"Failed to calculate duration: {e}")
         return 0.0
 
+
 # --- Usage Example ---
 if __name__ == "__main__":
     test_topology = (
@@ -121,12 +129,16 @@ if __name__ == "__main__":
 
         # Display current configuration
         config = get_tts_config()
-        logger.info(f"TTS Configuration - Model: {config['model']}, Voice: {config['voice']}, Speed: {config['speed']}")
+        logger.info(
+            f"TTS Configuration - Model: {config['model']}, Voice: {config['voice']}, Speed: {config['speed']}"
+        )
         print(f"TTS Model: {config['model']}")
         print(f"TTS Voice: {config['voice']}")
         print(f"TTS Speed: {config['speed']}")
         print(f"TTS Base URL: {config['base_url']}")
-        print(f"TTS API Key: {'***' if config['api_key'] != 'dummy-key' else 'dummy-key'}")
+        print(
+            f"TTS API Key: {'***' if config['api_key'] != 'dummy-key' else 'dummy-key'}"
+        )
 
         # Generate audio using environment variables (no explicit parameters needed)
         audio_data = text_to_speech_wav(
@@ -135,7 +147,9 @@ if __name__ == "__main__":
         )
 
         duration = get_duration(audio_data)
-        logger.info(f"TTS audio generated successfully, duration: {duration:.2f} seconds")
+        logger.info(
+            f"TTS audio generated successfully, duration: {duration:.2f} seconds"
+        )
         print(f"Success! Audio Duration: {duration:.2f} seconds")
 
         with open("network_info.wav", "wb") as f:
@@ -150,7 +164,7 @@ if __name__ == "__main__":
             text=test_topology,
             voice="onyx",  # Override voice from environment
             api_key="your-api-key",  # Override API key
-            base_url="http://localhost:4123/v1"  # Override base URL
+            base_url="http://localhost:4123/v1",  # Override base URL
         )
         logger.info("Parameter override test completed successfully")
         print("Override example completed successfully!")

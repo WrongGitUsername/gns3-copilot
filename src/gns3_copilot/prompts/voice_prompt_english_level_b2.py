@@ -7,7 +7,7 @@ More confident tone: Uses "I've analyzed" and "Typically indicates" to show an "
 TTS sound quality: Through more compact sentence structures and professional transition words, TTS will synthesize a capable, fast, logical voice that perfectly fits the image of an advanced lab assistant.
 """
 
-SYSTEM_PROMPT="""
+SYSTEM_PROMPT = """
 ### IDENTITY: CORTANA (B2 VOICE - UPPER-INTERMEDIATE) ###
 You are "Cortana," a highly efficient and professional technical partner. You provide clear, analytical support for G N S 3 labs using fluent, upper-intermediate English (B2 level).
 

@@ -22,7 +22,7 @@ ENGLISH_LEVEL_PROMPT_MAP = {
     "B1": "english_level_prompt_b1",
     "B2": "english_level_prompt_b2",
     "C1": "english_level_prompt_c1",
-    "C2": "english_level_prompt_c2"
+    "C2": "english_level_prompt_c2",
 }
 
 # Mapping of English levels to their corresponding voice prompt modules
@@ -32,10 +32,11 @@ VOICE_LEVEL_PROMPT_MAP = {
     "B1": "voice_prompt_english_level_b1",
     "B2": "voice_prompt_english_level_b2",
     "C1": "voice_prompt_english_level_c1",
-    "C2": "voice_prompt_english_level_c2"
+    "C2": "voice_prompt_english_level_c2",
 }
 
-def _load_base_prompt()-> str:
+
+def _load_base_prompt() -> str:
     """
     Load the base_prompt system prompt.
 
@@ -51,7 +52,7 @@ def _load_base_prompt()-> str:
         base_prompt_module = importlib.import_module("gns3_copilot.prompts.base_prompt")
 
         # Get the SYSTEM_PROMPT from the module
-        if hasattr(base_prompt_module, 'SYSTEM_PROMPT'):
+        if hasattr(base_prompt_module, "SYSTEM_PROMPT"):
             system_prompt = cast(str, base_prompt_module.SYSTEM_PROMPT)
             logger.info("Successfully loaded base_prompt")
             return system_prompt
@@ -64,7 +65,10 @@ def _load_base_prompt()-> str:
 
     except AttributeError as e:
         logger.error("Error accessing SYSTEM_PROMPT in base_prompt module: %s", e)
-        raise AttributeError(f"Error accessing SYSTEM_PROMPT in base_prompt module: {e}") from e
+        raise AttributeError(
+            f"Error accessing SYSTEM_PROMPT in base_prompt module: {e}"
+        ) from e
+
 
 def _load_regular_level_prompt(level: Optional[str] = None) -> str:
     """
@@ -83,7 +87,9 @@ def _load_regular_level_prompt(level: Optional[str] = None) -> str:
 
     # If no valid English level is specified, use base_prompt
     if not level or level not in ENGLISH_LEVEL_PROMPT_MAP:
-        logger.info("No valid English level specified (got '%s'), using base_prompt", level)
+        logger.info(
+            "No valid English level specified (got '%s'), using base_prompt", level
+        )
         return _load_base_prompt()
 
     # Get the module name for the level
@@ -94,9 +100,11 @@ def _load_regular_level_prompt(level: Optional[str] = None) -> str:
         prompt_module = importlib.import_module(f"gns3_copilot.prompts.{module_name}")
 
         # Get the SYSTEM_PROMPT from the module
-        if hasattr(prompt_module, 'SYSTEM_PROMPT'):
+        if hasattr(prompt_module, "SYSTEM_PROMPT"):
             base_prompt = cast(str, prompt_module.SYSTEM_PROMPT)
-            logger.info("Successfully loaded regular system prompt for English level: %s", level)
+            logger.info(
+                "Successfully loaded regular system prompt for English level: %s", level
+            )
             return base_prompt
         else:
             raise AttributeError(f"SYSTEM_PROMPT not found in module {module_name}")
@@ -108,10 +116,15 @@ def _load_regular_level_prompt(level: Optional[str] = None) -> str:
         return _load_base_prompt()
 
     except AttributeError as e:
-        logger.error("Error accessing SYSTEM_PROMPT in regular prompt module '%s': %s", module_name, e)
+        logger.error(
+            "Error accessing SYSTEM_PROMPT in regular prompt module '%s': %s",
+            module_name,
+            e,
+        )
         # Fallback to base_prompt
         logger.info("Falling back to base_prompt due to attribute error")
         return _load_base_prompt()
+
 
 def _load_voice_level_prompt(level: Optional[str] = None) -> str:
     """
@@ -133,35 +146,53 @@ def _load_voice_level_prompt(level: Optional[str] = None) -> str:
         module_name = VOICE_LEVEL_PROMPT_MAP[level]
         try:
             # Import the level-specific voice prompt module
-            voice_prompt_module = importlib.import_module(f"gns3_copilot.prompts.{module_name}")
+            voice_prompt_module = importlib.import_module(
+                f"gns3_copilot.prompts.{module_name}"
+            )
 
             # Get the SYSTEM_PROMPT from the module
-            if hasattr(voice_prompt_module, 'SYSTEM_PROMPT'):
+            if hasattr(voice_prompt_module, "SYSTEM_PROMPT"):
                 voice_prompt = cast(str, voice_prompt_module.SYSTEM_PROMPT)
-                logger.info("Successfully loaded voice prompt for English level: %s", level)
+                logger.info(
+                    "Successfully loaded voice prompt for English level: %s", level
+                )
                 return voice_prompt
             else:
-                raise AttributeError(f"SYSTEM_PROMPT not found in voice prompt module {module_name}")
+                raise AttributeError(
+                    f"SYSTEM_PROMPT not found in voice prompt module {module_name}"
+                )
 
         except ImportError as e:
-            logger.error("Failed to import level-specific voice prompt module '%s': %s", module_name, e)
+            logger.error(
+                "Failed to import level-specific voice prompt module '%s': %s",
+                module_name,
+                e,
+            )
             logger.info("Falling back to generic voice prompt")
         except AttributeError as e:
-            logger.error("Error accessing SYSTEM_PROMPT in level-specific voice prompt module '%s': %s", module_name, e)
+            logger.error(
+                "Error accessing SYSTEM_PROMPT in level-specific voice prompt module '%s': %s",
+                module_name,
+                e,
+            )
             logger.info("Falling back to generic voice prompt")
 
     # Fallback to generic voice prompt
     try:
         # Import the generic voice prompt module
-        voice_prompt_module = importlib.import_module("gns3_copilot.prompts.voice_prompt")
+        voice_prompt_module = importlib.import_module(
+            "gns3_copilot.prompts.voice_prompt"
+        )
 
         # Get the SYSTEM_PROMPT from the module
-        if hasattr(voice_prompt_module, 'SYSTEM_PROMPT'):
+        if hasattr(voice_prompt_module, "SYSTEM_PROMPT"):
             voice_prompt = cast(str, voice_prompt_module.SYSTEM_PROMPT)
             logger.info("Successfully loaded generic voice prompt")
             return voice_prompt
         else:
-            raise AttributeError("SYSTEM_PROMPT not found in generic voice prompt module")
+            raise AttributeError(
+                "SYSTEM_PROMPT not found in generic voice prompt module"
+            )
 
     except ImportError as e:
         logger.error("Failed to import generic voice prompt module: %s", e)
@@ -170,10 +201,13 @@ def _load_voice_level_prompt(level: Optional[str] = None) -> str:
         return _load_base_prompt()
 
     except AttributeError as e:
-        logger.error("Error accessing SYSTEM_PROMPT in generic voice prompt module: %s", e)
+        logger.error(
+            "Error accessing SYSTEM_PROMPT in generic voice prompt module: %s", e
+        )
         # Return base_prompt as ultimate fallback
         logger.warning("Voice prompt not found, falling back to base_prompt")
         return _load_base_prompt()
+
 
 def _is_voice_enabled() -> bool:
     """
@@ -184,6 +218,7 @@ def _is_voice_enabled() -> bool:
     """
     voice_value = os.getenv("VOICE", "False").lower().strip()
     return voice_value in ("true", "1", "yes", "on")
+
 
 def load_system_prompt(level: Optional[str] = None) -> str:
     """

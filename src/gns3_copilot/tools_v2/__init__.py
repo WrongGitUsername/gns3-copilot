@@ -36,11 +36,13 @@ from .vpcs_tools_telnetlib3 import VPCSMultiCommands
 # Dynamic version management
 try:
     from importlib.metadata import version
+
     __version__ = version("gns3-copilot")
 except ImportError:
     # Fallback for Python < 3.8
     try:
         import pkg_resources
+
         __version__ = pkg_resources.get_distribution("gns3-copilot").version
     except Exception:
         __version__ = "unknown"
@@ -60,8 +62,8 @@ __all__ = [
     "GNS3LinkTool",
     "GNS3StartNodeTool",
     "GNS3TemplateTool",
-    "LinuxTelnetBatchTool"
+    "LinuxTelnetBatchTool",
 ]
 
 # Package initialization message
-#print(f"GNS3 Copilot Tools package loaded (version {__version__})")
+# print(f"GNS3 Copilot Tools package loaded (version {__version__})")

@@ -7,7 +7,7 @@ Precise terminology: Specifically mentions "Hello timers" and "Neighbor connecti
 TTS rhythm: Sentence flow and transitions better match professional conversation habits, TTS synthesis will carry a sense of "explanation" and "logic".
 """
 
-SYSTEM_PROMPT="""
+SYSTEM_PROMPT = """
 ### IDENTITY: CORTANA (B1 VOICE - INTERMEDIATE) ###
 You are "Cortana," a professional and reliable network assistant. You use intermediate English (B1 level) to provide clear, narrative support for network automation and troubleshooting.
 

@@ -19,18 +19,20 @@ DEFAULT_GNS3_PROMPT = (
     "no shutdown, show running-config, Wireshark, encapsulation."
 )
 
+
 def get_stt_config() -> dict[str, Any]:
     """
     Get STT configuration from environment variables with sensible defaults.
     """
     return {
-        'api_key': os.getenv('STT_API_KEY', ''),
-        'base_url': os.getenv('STT_BASE_URL', 'http://127.0.0.1:8001/v1'),
-        'model': os.getenv('STT_MODEL', 'whisper-1'),
-        'language': os.getenv('STT_LANGUAGE', None),
-        'temperature': float(os.getenv('STT_TEMPERATURE', '0.0')),
-        'response_format': os.getenv('STT_RESPONSE_FORMAT', 'json')
+        "api_key": os.getenv("STT_API_KEY", ""),
+        "base_url": os.getenv("STT_BASE_URL", "http://127.0.0.1:8001/v1"),
+        "model": os.getenv("STT_MODEL", "whisper-1"),
+        "language": os.getenv("STT_LANGUAGE", None),
+        "temperature": float(os.getenv("STT_TEMPERATURE", "0.0")),
+        "response_format": os.getenv("STT_RESPONSE_FORMAT", "json"),
     }
+
 
 def speech_to_text(
     audio_data: Union[bytes, BinaryIO],
@@ -41,7 +43,7 @@ def speech_to_text(
     temperature: Optional[float] = None,
     timestamp_granularities: Optional[list[Literal["word", "segment"]]] = None,
     api_key: Optional[str] = None,
-    base_url: Optional[str] = None
+    base_url: Optional[str] = None,
 ) -> Union[str, dict[str, Any]]:
     """
     Transcribe audio to text using OpenAI Whisper API.
@@ -49,12 +51,18 @@ def speech_to_text(
     config = get_stt_config()
 
     # 确定具体类型，避免 Optional
-    f_model: str = model if model is not None else str(config['model'])
-    f_response_format: Any = response_format if response_format is not None else config['response_format']
-    f_temperature: float = temperature if temperature is not None else float(config['temperature'])
-    f_api_key: str = api_key if api_key is not None else str(config['api_key'])
-    f_base_url: str = base_url if base_url is not None else str(config['base_url'])
-    f_language: Optional[str] = language if language is not None else config.get('language')
+    f_model: str = model if model is not None else str(config["model"])
+    f_response_format: Any = (
+        response_format if response_format is not None else config["response_format"]
+    )
+    f_temperature: float = (
+        temperature if temperature is not None else float(config["temperature"])
+    )
+    f_api_key: str = api_key if api_key is not None else str(config["api_key"])
+    f_base_url: str = base_url if base_url is not None else str(config["base_url"])
+    f_language: Optional[str] = (
+        language if language is not None else config.get("language")
+    )
 
     if not audio_data:
         raise ValueError("Audio data cannot be empty")
@@ -82,7 +90,7 @@ def speech_to_text(
         client = OpenAI(
             api_key=f_api_key if f_api_key else "local-dummy",
             base_url=f_base_url,
-            timeout=60.0
+            timeout=60.0,
         )
 
         response = client.audio.transcriptions.create(
@@ -92,7 +100,7 @@ def speech_to_text(
             prompt=cast(Any, prompt or NOT_GIVEN),
             response_format=f_response_format,
             temperature=f_temperature,
-            timestamp_granularities=cast(Any, timestamp_granularities or NOT_GIVEN)
+            timestamp_granularities=cast(Any, timestamp_granularities or NOT_GIVEN),
         )
 
         # 显式处理响应类型，解决 unreachable 和 no-any-return
@@ -100,7 +108,7 @@ def speech_to_text(
             return response
 
         # 对于 Pydantic 模型对象
-        if hasattr(response, 'model_dump'):
+        if hasattr(response, "model_dump"):
             data = cast(dict[str, Any], response.model_dump())
             if f_response_format == "json":
                 return str(data.get("text", ""))
@@ -112,19 +120,14 @@ def speech_to_text(
         logger.error(f"STT API call failed: {type(e).__name__} - {str(e)}")
         raise Exception(f"Speech-to-text service error: {str(e)}") from e
 
-def speech_to_text_simple(
-    audio_data: Union[bytes, BinaryIO],
-    **kwargs: Any
-) -> str:
+
+def speech_to_text_simple(audio_data: Union[bytes, BinaryIO], **kwargs: Any) -> str:
     """
     Simplified version that always returns a plain transcription string.
     """
-    result = speech_to_text(
-        audio_data=audio_data,
-        response_format="text",
-        **kwargs
-    )
+    result = speech_to_text(audio_data=audio_data, response_format="text", **kwargs)
     return str(result)
+
 
 # Module Test
 if __name__ == "__main__":
@@ -134,10 +137,10 @@ if __name__ == "__main__":
     print("\n=== Current STT Environment Configuration ===")
     config = get_stt_config()
     for key, value in config.items():
-        if 'key' in key.lower() and value:
-            print(f'{key}: ***')
+        if "key" in key.lower() and value:
+            print(f"{key}: ***")
         else:
-            print(f'{key}: {value}')
+            print(f"{key}: {value}")
 
     # Example usage with environment variables
     print("\n=== Example Usage ===")
@@ -145,4 +148,6 @@ if __name__ == "__main__":
     print("result = speech_to_text(audio_data)")
     print()
     print("Overriding specific parameters:")
-    print("result = speech_to_text(audio_data, model='gpt-4o-transcribe', language='en')")
+    print(
+        "result = speech_to_text(audio_data, model='gpt-4o-transcribe', language='en')"
+    )

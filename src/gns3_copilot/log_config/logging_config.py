@@ -4,6 +4,7 @@ Unified logging configuration module.
 Provides centralized logging configuration for GNS3 Copilot tools package,
 eliminating duplicate logging setup code across modules.
 """
+
 import logging
 import os
 from typing import Optional
@@ -13,8 +14,8 @@ def setup_logger(
     name: str,
     log_file: Optional[str] = None,
     console_level: int = logging.INFO,
-    file_level: int = logging.DEBUG
-)-> logging.Logger:
+    file_level: int = logging.DEBUG,
+) -> logging.Logger:
     """
     Set up unified logging configuration.
 
@@ -102,88 +103,39 @@ def configure_package_logging(level: int = logging.INFO) -> None:
 
 # Predefined logging configurations
 LOGGER_CONFIGS = {
-    "device_config": {
-        "console_level": logging.ERROR,
-        "file_level": logging.DEBUG
-    },
-    "display_tools": {
-        "console_level": logging.ERROR,
-        "file_level": logging.DEBUG
-    },
-    "gns3_topology": {
-        "console_level": logging.ERROR,
-        "file_level": logging.DEBUG
-    },
-    "gns3_create_node": {
-        "console_level": logging.ERROR,
-        "file_level": logging.DEBUG
-    },
-    "gns3_create_link": {
-        "console_level": logging.ERROR,
-        "file_level": logging.DEBUG
-    },
-    "gns3_start_node": {
-        "console_level": logging.ERROR,
-        "file_level": logging.DEBUG
-    },
-    "gns3_template": {
-        "console_level": logging.ERROR,
-        "file_level": logging.DEBUG
-    },
+    "device_config": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
+    "display_tools": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
+    "gns3_topology": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
+    "gns3_create_node": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
+    "gns3_create_link": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
+    "gns3_start_node": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
+    "gns3_template": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
     "config_tools_nornir": {
         "console_level": logging.ERROR,
-        "file_level": logging.DEBUG
+        "file_level": logging.DEBUG,
     },
     "display_tools_nornir": {
         "console_level": logging.ERROR,
-        "file_level": logging.DEBUG
+        "file_level": logging.DEBUG,
     },
-    "static_server": {
-        "console_level": logging.ERROR,
-        "file_level": logging.DEBUG
-    },
-    "services_manager": {
-        "console_level": logging.ERROR,
-        "file_level": logging.DEBUG
-    },
+    "static_server": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
+    "services_manager": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
     "vpcs_multi_commands": {
         "console_level": logging.ERROR,
-        "file_level": logging.DEBUG
+        "file_level": logging.DEBUG,
     },
-    "linux_tools_nornir": {
-        "console_level": logging.ERROR,
-        "file_level": logging.DEBUG
-    },
-    "app": {
-        "console_level": logging.ERROR,
-        "file_level": logging.DEBUG
-    },
-    "settings": {
-        "console_level": logging.ERROR,
-        "file_level": logging.DEBUG
-    },
-    "chat": {
-        "console_level": logging.ERROR,
-        "file_level": logging.DEBUG
-    },
-    "prompt_loader": {
-        "console_level": logging.ERROR,
-        "file_level": logging.DEBUG
-    },
-    "whisper_stt": {
-        "console_level": logging.ERROR,
-        "file_level": logging.DEBUG
-    },
-    "openai_tts": {
-        "console_level": logging.ERROR,
-        "file_level": logging.DEBUG
-    }
+    "linux_tools_nornir": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
+    "app": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
+    "settings": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
+    "chat": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
+    "prompt_loader": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
+    "whisper_stt": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
+    "openai_tts": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
 }
 
 
 def setup_tool_logger(
-    tool_name: str,
-    config_name: Optional[str] = None
+    tool_name: str, config_name: Optional[str] = None
 ) -> logging.Logger:
     """
     Set up logger for specific tool using predefined configuration.
@@ -204,5 +156,5 @@ def setup_tool_logger(
         name=tool_name,
         log_file=f"log/{tool_name}.log",
         console_level=config.get("console_level", logging.ERROR),
-        file_level=config.get("file_level", logging.DEBUG)
+        file_level=config.get("file_level", logging.DEBUG),
     )

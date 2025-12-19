@@ -1,6 +1,7 @@
 """
 Public module for getting device port information from GNS3 topology
 """
+
 from typing import Any
 
 from gns3_copilot.gns3_client import GNS3TopologyTool
@@ -8,7 +9,10 @@ from gns3_copilot.log_config import setup_tool_logger
 
 logger = setup_tool_logger("get_gns3_device_port")
 
-def get_device_ports_from_topology(device_names: list[str]) -> dict[str, dict[str, Any]]:
+
+def get_device_ports_from_topology(
+    device_names: list[str],
+) -> dict[str, dict[str, Any]]:
     """
     Get device connection information from GNS3 topology
 
@@ -51,7 +55,7 @@ def get_device_ports_from_topology(device_names: list[str]) -> dict[str, dict[st
             # Add device to hosts_data
             hosts_data[device_name] = {
                 "port": node_info["console_port"],
-                "groups": ["cisco_IOSv_telnet"]
+                "groups": ["cisco_IOSv_telnet"],
             }
 
         return hosts_data

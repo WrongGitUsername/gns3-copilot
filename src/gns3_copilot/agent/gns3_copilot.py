@@ -15,6 +15,7 @@ The assistant provides comprehensive GNS3 topology management capabilities inclu
 The assistant integrates with various tools to provide a complete network automation
 solution for GNS3 environments.
 """
+
 import operator
 import os
 import sqlite3
@@ -51,8 +52,8 @@ logger = setup_logger("gns3_copilot", log_file="log/gns3_copilot.log")
 base_model = init_chat_model(
     model_provider=os.getenv("MODE_PROVIDER"),
     model=os.getenv("MODEL_NAME"),
-    api_key = os.getenv("MODEL_API_KEY"),
-    base_url = os.getenv("BASE_URL", ""),
+    api_key=os.getenv("MODEL_API_KEY"),
+    base_url=os.getenv("BASE_URL", ""),
     temperature=os.getenv("TEMPERATURE", "0"),
     configurable_fields="any",
     config_prefix="foo",
@@ -60,31 +61,31 @@ base_model = init_chat_model(
 
 title_mode = base_model
 # use OpenRouter
-#base_model = init_chat_model(
+# base_model = init_chat_model(
 #    model_provider="openai",
 #    base_url = "https://openrouter.ai/api/v1",
 #    temperature = 0,
 #    api_key = os.getenv("OPENROUTER_API_KEY"),
-    #model="openai/gpt-4o-mini",
-    #model="google/gemini-2.5-flash", # It ignores the observations after the tool is executed.
+# model="openai/gpt-4o-mini",
+# model="google/gemini-2.5-flash", # It ignores the observations after the tool is executed.
 #    model="x-ai/grok-4-fast",
-#)
-#assist_model = init_chat_model(
+# )
+# assist_model = init_chat_model(
 #    model="google_genai:gemini-2.5-flash",
 #    temperature=1
-#)
+# )
 
 # Define the available tools for the agent
 tools = [
-    GNS3TemplateTool(),                # Get GNS3 node templates
-    GNS3TopologyTool(),                # Read GNS3 topology information
-    GNS3CreateNodeTool(),              # Create new nodes in GNS3
-    GNS3LinkTool(),                    # Create links between nodes
-    GNS3StartNodeTool(),               # Start GNS3 nodes
-    ExecuteMultipleDeviceCommands(),   # Execute show/display commands on multiple devices
+    GNS3TemplateTool(),  # Get GNS3 node templates
+    GNS3TopologyTool(),  # Read GNS3 topology information
+    GNS3CreateNodeTool(),  # Create new nodes in GNS3
+    GNS3LinkTool(),  # Create links between nodes
+    GNS3StartNodeTool(),  # Start GNS3 nodes
+    ExecuteMultipleDeviceCommands(),  # Execute show/display commands on multiple devices
     ExecuteMultipleDeviceConfigCommands(),  # Execute configuration commands on multiple devices
-    VPCSMultiCommands(),                    # Execute VPCS commands on multiple devices
-    LinuxTelnetBatchTool()              # Execute Linux commands via Telnet on multiple devices
+    VPCSMultiCommands(),  # Execute VPCS commands on multiple devices
+    LinuxTelnetBatchTool(),  # Execute Linux commands via Telnet on multiple devices
 ]
 # Augment the LLM with tools
 tools_by_name = {tool.name: tool for tool in tools}
@@ -93,6 +94,7 @@ model_with_tools = base_model.bind_tools(tools)
 # Log application startup
 logger.info("GNS3 Copilot application starting up")
 logger.debug("Available tools: %s", [tool.__class__.__name__ for tool in tools])
+
 
 # Define state
 class MessagesState(TypedDict):
@@ -108,29 +110,27 @@ class MessagesState(TypedDict):
         remaining_steps: Is automatically managed by LangGraph's RemainingSteps to track and limit recursion depth.
         conversation_title: Optional conversation title for session identification and management
     """
+
     messages: Annotated[list[AnyMessage], operator.add]
     llm_calls: int
     remaining_steps: RemainingSteps
-    conversation_title: str | None # Optional conversation title
+    conversation_title: str | None  # Optional conversation title
+
 
 # Define model node
 def llm_call(state: dict):
     """LLM decides whether to call a tool or not"""
     current_prompt = load_system_prompt()
-    #print(current_prompt)
+    # print(current_prompt)
     return {
         "messages": [
             model_with_tools.invoke(
-                [
-                    SystemMessage(
-                        content=current_prompt
-                    )
-                ]
-                + state["messages"]
+                [SystemMessage(content=current_prompt)] + state["messages"]
             )
         ],
-        "llm_calls": state.get('llm_calls', 0) + 1
+        "llm_calls": state.get("llm_calls", 0) + 1,
     }
+
 
 # Define generate title node
 def generate_title(state: MessagesState) -> dict:
@@ -146,17 +146,16 @@ def generate_title(state: MessagesState) -> dict:
         # Build the prompt for title generation
         title_prompt_messages = [
             SystemMessage(content=TITLE_PROMPT),
-            messages[0],       # User's first message
-            messages[-1]       # Assistant's final response in this turn
+            messages[0],  # User's first message
+            messages[-1],  # Assistant's final response in this turn
         ]
         logger.debug("summary_messages for title generation: %s", title_prompt_messages)
 
         # Call the title generation model (currently using the same base_model / DeepSeek)
         try:
             response = title_mode.invoke(
-                title_prompt_messages,
-                config={"configurable": {"foo_temperature": 1.0}}
-                )
+                title_prompt_messages, config={"configurable": {"foo_temperature": 1.0}}
+            )
             logger.debug("generate_title: %s", response)
             raw_content = response.content
             logger.debug("Raw title output from model: %s", raw_content)
@@ -168,7 +167,7 @@ def generate_title(state: MessagesState) -> dict:
                 new_title = new_title[:38] + "..."
 
             # Remove unwanted characters
-            new_title = new_title.replace("\n", " ").replace('"', '').replace("'", "")
+            new_title = new_title.replace("\n", " ").replace('"', "").replace("'", "")
 
             if not new_title:
                 new_title = "GNS3 Session"
@@ -183,6 +182,7 @@ def generate_title(state: MessagesState) -> dict:
     # Title already exists → no update needed
     return {}
 
+
 # Define tool node
 def tool_node(state: dict):
     """Performs the tool call"""
@@ -194,8 +194,11 @@ def tool_node(state: dict):
         result.append(ToolMessage(content=observation, tool_call_id=tool_call["id"]))
     return {"messages": result}
 
+
 # Routing logic after the LLM node
-def should_continue(state: MessagesState) -> Literal["tool_node", "title_generator_node", END]:
+def should_continue(
+    state: MessagesState,
+) -> Literal["tool_node", "title_generator_node", END]:
     """
     Determine the next step after the LLM has produced a response.
 
@@ -211,18 +214,23 @@ def should_continue(state: MessagesState) -> Literal["tool_node", "title_generat
     if last_message.tool_calls:
         logger.debug(
             "LLM requested %s tool call(s) → routing to 'tool_node'",
-            len(last_message.tool_calls)
-            )
+            len(last_message.tool_calls),
+        )
         return "tool_node"
 
     # First full interaction completed and title not yet generated
     if current_title in [None, "GNS3 Session"]:
-        logger.info("First turn finished, no title yet → routing to 'title_generator_node'")
+        logger.info(
+            "First turn finished, no title yet → routing to 'title_generator_node'"
+        )
         return "title_generator_node"
 
     # Normal completion (multi-turn conversation or title already exists)
-    logger.debug("Conversation turn complete (llm_calls= %s ) → routing to END", llm_calls)
+    logger.debug(
+        "Conversation turn complete (llm_calls= %s ) → routing to END", llm_calls
+    )
     return END
+
 
 # Routing logic after the tool node
 def recursion_limit_continue(state: MessagesState) -> Literal["llm_call", END]:
@@ -249,6 +257,8 @@ def recursion_limit_continue(state: MessagesState) -> Literal["llm_call", END]:
         return "llm_call"
 
     return END
+
+
 # Build and compile the agent
 # Build workflow
 agent_builder = StateGraph(MessagesState)
@@ -266,10 +276,10 @@ agent_builder.add_conditional_edges(
     "llm_call",
     should_continue,
     {
-        "tool_node": "tool_node", # Route to tool execution if LLM requested tools
-        "title_generator_node": "title_generator_node", # Generate title on first interaction
-        END: END # End conversation if no tools needed
-    }
+        "tool_node": "tool_node",  # Route to tool execution if LLM requested tools
+        "title_generator_node": "title_generator_node",  # Generate title on first interaction
+        END: END,  # End conversation if no tools needed
+    },
 )
 # Conditional routing after tool execution
 # Prevents infinite recursion by checking remaining steps before continuings
@@ -277,15 +287,16 @@ agent_builder.add_conditional_edges(
     "tool_node",
     recursion_limit_continue,
     {
-        "llm_call": "llm_call", # Continue to LLM if tools executed and steps remain
-        END: END # End conversation to prevent infinite loops
-    }
+        "llm_call": "llm_call",  # Continue to LLM if tools executed and steps remain
+        END: END,  # End conversation to prevent infinite loops
+    },
 )
 
 agent_builder.add_edge("title_generator_node", END)
 
 # Add checkpointing
 LANGGRAPH_DB_PATH = "gns3_langgraph.db"
+
 
 @st.cache_resource(show_spinner="Initializing conversation persistence...")
 def get_checkpointer() -> SqliteSaver:
@@ -300,6 +311,7 @@ def get_checkpointer() -> SqliteSaver:
     # SqliteSaver will create the necessary tables on first use
     return SqliteSaver(conn)
 
+
 # Compile the agent
 @st.cache_resource(show_spinner="Compiling LangGraph agent...")
 def get_agent():
@@ -312,11 +324,12 @@ def get_agent():
     """
     return agent_builder.compile(checkpointer=get_checkpointer())
 
-langgraph_checkpointer = get_checkpointer()   # Cached SqliteSaver instance
-agent = get_agent()                 # Cached compiled LangGraph agent (with persistence)
+
+langgraph_checkpointer = get_checkpointer()  # Cached SqliteSaver instance
+agent = get_agent()  # Cached compiled LangGraph agent (with persistence)
 
 
 # Show the agent
-#graph_image_data = agent.get_graph(xray=True).draw_mermaid_png()
-#with open("agent_graph.png", "wb") as f:
+# graph_image_data = agent.get_graph(xray=True).draw_mermaid_png()
+# with open("agent_graph.png", "wb") as f:
 #    f.write(graph_image_data)

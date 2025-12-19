@@ -32,11 +32,13 @@ GNS3_COPILOT_AVAILABLE: bool = False
 try:
     import gns3_copilot as gns3_copilot_import
     from gns3_copilot import __version__ as version_import
+
     gns3_copilot = gns3_copilot_import
     __version__ = version_import
     GNS3_COPILOT_AVAILABLE = True
 except ImportError:
     pass
+
 
 def get_app_path() -> Optional[str]:
     """Get the path to the app.py file."""
@@ -133,14 +135,16 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         prog="gns3-copilot",
         description="GNS3 Copilot - AI-powered network automation assistant for GNS3",
-        add_help=False  # We'll handle help ourselves to allow unknown args
+        add_help=False,  # We'll handle help ourselves to allow unknown args
     )
 
     # Add our custom arguments
     parser.add_argument(
-        "--help", "-h", action="store_true", help="Show this help message and exit")
+        "--help", "-h", action="store_true", help="Show this help message and exit"
+    )
     parser.add_argument(
-        "--version", "-v", action="store_true", help="Show version information and exit")
+        "--version", "-v", action="store_true", help="Show version information and exit"
+    )
 
     # Parse known args, leaving unknown args for streamlit
     args, unknown_args = parser.parse_known_args()
@@ -167,7 +171,7 @@ def main() -> int:
         print(
             "Please ensure you're running this from the project directory "
             "or that the package is properly installed."
-            )
+        )
         return 1
 
     # Build the streamlit command
@@ -194,7 +198,7 @@ def main() -> int:
         print(
             "Error: 'streamlit' command not found. "
             "Please ensure Streamlit is installed and in your PATH."
-            )
+        )
         exit_code = 1
 
     return exit_code

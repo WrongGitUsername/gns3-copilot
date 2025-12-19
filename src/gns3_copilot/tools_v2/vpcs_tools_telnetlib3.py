@@ -2,6 +2,7 @@
 Multi-device VPCS command execution tool using telnetlib3 with threading.
 Supports concurrent execution of multiple command groups across multiple VPCS devices.
 """
+
 import json
 import os
 import threading
@@ -16,6 +17,7 @@ from gns3_copilot.log_config import setup_tool_logger
 from gns3_copilot.public_model import get_device_ports_from_topology
 
 logger = setup_tool_logger("vpcs_multi_commands")
+
 
 class VPCSMultiCommands(BaseTool):
     """
@@ -66,7 +68,7 @@ class VPCSMultiCommands(BaseTool):
         results_list: list[Any],
         index: int,
         device_ports: dict[str, Any],
-        gns3_host: str
+        gns3_host: str,
     ) -> None:
         """Internal method to connect to device and execute multiple commands"""
 
@@ -76,7 +78,7 @@ class VPCSMultiCommands(BaseTool):
                 "device_name": device_name,
                 "status": "error",
                 "output": f"Device '{device_name}' not found in topology or missing console port",
-                "commands": commands
+                "commands": commands,
             }
             return
 
@@ -96,15 +98,15 @@ class VPCSMultiCommands(BaseTool):
             sleep(0.5)
             tn.write(b"\n")
             sleep(0.5)
-            tn.expect([br"PC\d+>"])
+            tn.expect([rb"PC\d+>"])
 
             # Execute all commands and merge output
             combined_output = ""
             for command in commands:
-                tn.write(command.encode(encoding='ascii') + b"\n")
+                tn.write(command.encode(encoding="ascii") + b"\n")
                 sleep(5)
-                tn.expect([br"PC\d+>"])
-                output = tn.read_very_eager().decode('utf-8')
+                tn.expect([rb"PC\d+>"])
+                output = tn.read_very_eager().decode("utf-8")
                 combined_output += output
 
             # Add result to list
@@ -112,7 +114,7 @@ class VPCSMultiCommands(BaseTool):
                 "device_name": device_name,
                 "status": "success",
                 "output": combined_output,
-                "commands": commands
+                "commands": commands,
             }
 
         except Exception as e:
@@ -120,22 +122,22 @@ class VPCSMultiCommands(BaseTool):
                 "device_name": device_name,
                 "status": "error",
                 "output": str(e),
-                "commands": commands
+                "commands": commands,
             }
         finally:
             tn.close()
 
     def _run(
-        self,
-        tool_input: str,
-        run_manager: Optional[CallbackManagerForToolRun] = None
+        self, tool_input: str, run_manager: Optional[CallbackManagerForToolRun] = None
     ) -> list[dict[str, Any]]:
         """Main method to execute multi-device multi-commands"""
 
         try:
             cmd_groups = json.loads(tool_input)
             if not isinstance(cmd_groups, list):
-                return [{"error": "Input must be a JSON array of command group objects"}]
+                return [
+                    {"error": "Input must be a JSON array of command group objects"}
+                ]
         except json.JSONDecodeError as e:
             logger.error("Invalid JSON input: %s", e)
             return [{"error": f"Invalid JSON input: {e}"}]
@@ -163,8 +165,8 @@ class VPCSMultiCommands(BaseTool):
                     results,
                     i,
                     device_ports,
-                    gns3_host
-                )
+                    gns3_host,
+                ),
             )
             threads.append(thread)
             thread.start()
@@ -173,30 +175,27 @@ class VPCSMultiCommands(BaseTool):
         for thread in threads:
             thread.join()
 
-        logger.info("Multi-device command execution completed. Results: %s",
-                    json.dumps(results, indent=2, ensure_ascii=False))
+        logger.info(
+            "Multi-device command execution completed. Results: %s",
+            json.dumps(results, indent=2, ensure_ascii=False),
+        )
 
         return results
+
 
 if __name__ == "__main__":
     # Example usage
     command_groups = [
         {
             "device_name": "PC1",
-            "commands": ["ip 10.10.0.12/24 10.10.0.254", "ping 10.10.0.254"]
+            "commands": ["ip 10.10.0.12/24 10.10.0.254", "ping 10.10.0.254"],
         },
-        {
-            "device_name": "PC2",
-            "commands": ["ip 10.10.0.13/24 10.10.0.254"]
-        },
+        {"device_name": "PC2", "commands": ["ip 10.10.0.13/24 10.10.0.254"]},
         {
             "device_name": "PC3",
-            "commands": ["ip 10.20.0.22/24 10.20.0.254", "ping 10.20.0.254"]
+            "commands": ["ip 10.20.0.22/24 10.20.0.254", "ping 10.20.0.254"],
         },
-        {
-            "device_name": "PC4",
-            "commands": ["ip 10.20.0.23/24 10.20.0.254"]
-        }
+        {"device_name": "PC4", "commands": ["ip 10.20.0.23/24 10.20.0.254"]},
     ]
 
     exe_cmd = VPCSMultiCommands()
