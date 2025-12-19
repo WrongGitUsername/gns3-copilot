@@ -7,8 +7,7 @@ name = "gns3-copilot"
 dynamic = ["version"]
 description = "AI-powered network automation assistant for GNS3"
 readme = "README.md"
-license = "MIT"
-license-files = ["LICENSE"]
+license = { file = "LICENSE" }
 authors = [
     {name = "Guobin Yue"}
 ]
