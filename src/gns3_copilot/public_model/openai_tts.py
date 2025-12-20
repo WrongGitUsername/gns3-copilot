@@ -8,9 +8,9 @@ duration calculation.
 
 import io
 import os
+import wave
 from typing import Any
 
-import soundfile as sf
 from dotenv import load_dotenv
 from openai import (
     OpenAI,
@@ -102,14 +102,21 @@ def text_to_speech_wav(
 
 def get_duration(audio_bytes: bytes) -> float:
     """
-    Calculate the duration of WAV audio data in seconds.
+    使用 Python 内置 wave 模块计算 WAV 音频数据的时长（秒）。
     """
     try:
+        # 将字节流包装在 BytesIO 对象中，使其像文件一样可读
         with io.BytesIO(audio_bytes) as bio:
-            # 使用 float() 强制转换，解决 [no-any-return]
-            data, samplerate = sf.read(bio)
-            duration = len(data) / samplerate
-            return float(duration)
+            with wave.open(bio, "rb") as wav_f:
+                # 获取帧数和帧率（采样率）
+                n_frames = wav_f.getnframes()
+                frame_rate = wav_f.getframerate()
+
+                if frame_rate <= 0:
+                    return 0.0
+
+                duration = n_frames / float(frame_rate)
+                return float(duration)
     except Exception as e:
         logger.error(f"Failed to calculate duration: {e}")
         return 0.0

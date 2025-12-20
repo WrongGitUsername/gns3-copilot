@@ -77,10 +77,7 @@ dependencies = [
     
     # Authentication
     "PyJWT>=2.10.1",
-    
-    # Display and Visualization
-    "IPython>=8.0.0",
-    
+
     # Type Extensions
     "typing-extensions>=4.0.0",
     

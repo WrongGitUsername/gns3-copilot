@@ -392,7 +392,7 @@ else:
 st.title("GNS3 Copilot Settings")
 st.info(f"Configuration file path: **{ENV_FILE_PATH}**")
 
-with st.expander("🔧 GNS3 API Settings", expanded=True):
+with st.expander("GNS3 API Settings", expanded=True):
     # GNS3 Server address/API point
     col1, col2 = st.columns([1, 2])
     with col1:
@@ -437,7 +437,7 @@ with st.expander("🔧 GNS3 API Settings", expanded=True):
     if st.button("Check GNS3 API"):
         check_gns3_api()
 
-with st.expander("🤖 LLM Model Configuration", expanded=True):
+with st.expander("LLM Model Configuration", expanded=True):
     col1, col2, col3 = st.columns([1, 2, 1])
 
     with col1:
@@ -509,9 +509,9 @@ This is usually issued when you sign up for access to the model.
         """,
     )
 
-with st.expander("🎤 Voice Settings (TTS/STT)", expanded=True):
+with st.expander("Voice Settings (TTS/STT)", expanded=True):
     # Voice Enable/Disable Toggle
-    st.subheader("Voice Control")
+    st.caption("Voice Control")
     voice_enabled = st.checkbox(
         "Enable Voice Features (TTS/STT)",
         value=st.session_state.get("VOICE", False),
@@ -532,7 +532,7 @@ When disabled, all voice-related settings below will be hidden.
         st.markdown("---")  # Separator
 
         # TTS Configuration Section
-        st.subheader("Text-to-Speech (TTS) Configuration")
+        st.caption("Text-to-Speech (TTS) Configuration")
 
         # TTS First row: API Key, Model, Voice
         col1, col2, col3 = st.columns([1, 1, 1])
@@ -601,7 +601,7 @@ Controls the speed of speech synthesis:
 
         # STT Configuration Section
         st.markdown("---")  # Separator
-        st.subheader("Speech-to-Text (STT) Configuration")
+        st.caption("Speech-to-Text (STT) Configuration")
 
         # STT First row: API Key, Model, Language
         col1, col2, col3 = st.columns([1, 1, 1])
@@ -685,7 +685,7 @@ Output format for transcription results:
             "💡 **Voice features are currently disabled.** Enable the toggle above to configure TTS/STT settings."
         )
 
-with st.expander("⚙️ Other Settings", expanded=True):
+with st.expander("Other Settings", expanded=True):
     english_levels = ["Normal Prompt", "A1", "A2", "B1", "B2", "C1", "C2"]
     st.selectbox(
         "English Level",
