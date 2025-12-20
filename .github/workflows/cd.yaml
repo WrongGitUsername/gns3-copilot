@@ -18,7 +18,9 @@ jobs:
           python -m build
       - name: Check build metadata
         run: |
-          pip install twine
+          python -m pip install --upgrade pip
+          pip install --upgrade build twine pkginfo
+          python -m build
           twine check dist/*
       - name: Upload build artifacts
         uses: actions/upload-artifact@v6
