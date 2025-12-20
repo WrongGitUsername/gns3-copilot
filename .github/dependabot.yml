@@ -1,0 +1,21 @@
+version: 2
+updates:
+  # 1. Monitor Python dependencies (PyPI)
+  - package-ecosystem: "pip"
+    directory: "/" # Location of pyproject.toml
+    schedule:
+      interval: "weekly" # Check weekly to avoid too many PRs
+    open-pull-requests-limit: 5
+    # Automatically tag these PRs for easy filtering
+    labels:
+      - "dependencies"
+      - "python"
+
+  # 2. Monitor GitHub Actions plugin updates
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "dependencies"
+      - "github-actions"

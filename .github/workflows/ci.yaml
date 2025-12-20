@@ -1,0 +1,58 @@
+name: CI - QA & Testing
+
+on:
+  push:
+    branches: [ Development, master ]
+  pull_request:
+    branches: [ Development ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30  # Increase timeout to prevent cancellation
+    strategy:
+      fail-fast: false
+      matrix:
+        # Considering network library compatibility, cover versions declared in your pyproject
+        python-version: ["3.10", "3.11", "3.12", "3.13"] 
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # setuptools_scm needs complete history to calculate version
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip' # Automatically cache dependencies
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --prefer-binary -e ".[dev]"
+
+      - name: Code Linting & Formatting (Ruff)
+        run: |
+          ruff check .
+          ruff format --check .
+
+      - name: Type Check (Mypy)
+        run: mypy src --install-types --non-interactive
+
+      - name: Dependency Security Check (Safety)
+        run: safety scan --system-environment || echo "Security vulnerabilities found, please check manually."
+
+      - name: Run Tests with Coverage
+        # Run tests and generate XML format report
+        run: pytest --cov=gns3_copilot --cov-report=xml
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false # Let CI fail on upload failure for easy issue detection

@@ -52,13 +52,14 @@ with tab1_en:
 
     st.header("🌐 Third-Party Platform Setup (OpenRouter Example)")
     st.code(
-"""
+        """
 Model Provider: openai
 Base Url: https://openrouter.ai/api/v1
 Model Name: openai/gpt-4o-mini
 Model API Key: sk-or-v1-xxxxxxxxx
 """,
-    language="yaml")
+        language="yaml",
+    )
 
     st.header("⚠️ Important Notes")
     st.markdown("""
@@ -106,13 +107,14 @@ with tab2_zh:
 
     st.header("🌐 第三方平台配置 (OpenRouter示例)")
     st.code(
-"""
+        """
 Model Provider: openai
 Base Url: https://openrouter.ai/api/v1
 Model Name: openai/gpt-4o-mini
 Model API Key: sk-or-v1-xxxxxxxxx
 """,
-    language="yaml")
+        language="yaml",
+    )
 
     st.header("⚠️ 重要提醒")
     st.markdown("""

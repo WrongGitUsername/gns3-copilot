@@ -1,6 +1,15 @@
 # GNS3 Copilot
 
-![Python](https://img.shields.io/badge/python-3.8+-blue.svg) ![GNS3](https://img.shields.io/badge/GNS3-2.2+-green.svg) ![LangChain](https://img.shields.io/badge/LangChain-1.0.7-orange.svg) ![Nornir](https://img.shields.io/badge/Nornir-3.5.0-red.svg) ![Netmiko](https://img.shields.io/badge/Netmiko-4.6.0-blue.svg) ![LangGraph](https://img.shields.io/badge/LangGraph-1.0.0-purple.svg) ![License](https://img.shields.io/badge/license-MIT-green.svg) ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)
+[![CI - QA & Testing](https://github.com/yueguobin/gns3-copilot/actions/workflows/ci.yaml/badge.svg)](https://github.com/yueguobin/gns3-copilot/actions/workflows/ci.yaml)
+[![CD - Production Release](https://github.com/yueguobin/gns3-copilot/actions/workflows/cd.yml/badge.svg?branch=Development)](https://github.com/yueguobin/gns3-copilot/actions/workflows/cd.yaml)
+[![codecov](https://codecov.io/gh/yueguobin/gns3-copilot/branch/Development/graph/badge.svg?token=7FDUCM547W)](https://codecov.io/gh/yueguobin/gns3-copilot)
+
+![GNS3](https://img.shields.io/badge/GNS3-2.2+-green.svg) 
+![Nornir](https://img.shields.io/badge/Nornir-3.5.0-red.svg) 
+![Netmiko](https://img.shields.io/badge/Netmiko-4.6.0-blue.svg) 
+![LangGraph](https://img.shields.io/badge/LangGraph-1.0.0-purple.svg) 
+![License](https://img.shields.io/badge/license-MIT-green.svg) 
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)
 
 An AI-powered network automation assistant designed specifically for GNS3 network simulator, providing intelligent network device management and automated operations.
 
@@ -26,11 +35,60 @@ GNS3 Copilot is a powerful network automation tool that integrates multiple AI m
 
 [Core Framework Detailed Design](Architecture/Core%20Framework%20Detailed%20Design.md)
 
+
+The Final Concept: Multi-Agent System Architecture and Dynamic Context Manager (Based on Current Understanding)
+
+ **Multi-Agent Role Assignment**
+
+This system employs distinct agents, each specializing in a specific function:
+
+- **Planning Agent:** Responsible for **identifying user intent** and **formulating the detailed task plan**.
+    
+- **Execution Agent:** Responsible for **executing specific device operations** step-by-step according to the plan.
+    
+- **Supervision Agent:** Responsible for **continuous monitoring** and evaluation of the Execution Agent's results. If issues are found, it requests the Execution Agent to **retry** or notifies the **Expert Agent** to intervene.
+    
+- **Expert Agent:** Responsible for addressing complex problems discovered by the Supervision Agent, providing **guidance**, **correcting the plan**, or **proposing solutions**.
+    
+
+ **System Workflow**
+
+The process operates in a closed-loop structure, ensuring reliability and self-correction:
+
+1. **User Input Request**
+    
+    - The user initiates the system by submitting a task or request.
+        
+2. **Planning Agent: Intent Recognition & Plan Formulation**
+    
+    - The Planning Agent analyzes the request, understands the objective, and generates a sequence of execution steps.
+        
+3. **Execution Agent: Execute Plan Steps**
+    
+    - The Execution Agent takes the planned steps and performs the corresponding concrete operations.
+        
+4. **Supervision Agent: Real-time Monitoring & Evaluation**
+    
+    - The Supervision Agent continuously checks the outcome of each execution step.
+        
+    - **Issue Detected** $\rightarrow$ Requests the Execution Agent to **Retry** OR **Notifies the Expert Agent**.
+        
+5. **Expert Agent: Intervention & Guidance/Correction**
+    
+    - The Expert Agent intervenes when complex problems are reported.
+        
+    - It provides guidance $\rightarrow$ **Corrects the Plan** (loops back to Step 2) OR **Proposes a Solution** (loops back to Step 3).
+        
+6. **Return Final Work Result**
+    
+    - Once all steps are successfully completed and verified, the final result is delivered to the user.
+
+
 ## Installation Guide
 
 ### Environment Requirements
 
-- Python 3.8+
+- Python 3.10+
 - GNS3 Server (running on http://localhost:3080 or remote host)
 - Supported operating systems: Windows, macOS, Linux
 
@@ -48,7 +106,10 @@ venv\Scripts\activate     # Windows
 ```bash
 pip install gns3-copilot
 ```
-
+or
+```bash
+pip install git+https://github.com/yueguobin/gns3-copilot
+```
 1. **Start GNS3 Server**
 Ensure GNS3 Server is running and can be accessed via its API interface: `http://x.x.x.x:3080`
 

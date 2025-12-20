@@ -7,9 +7,13 @@ using the GNS3 API connector.
 
 import json
 import os
-from dotenv import load_dotenv
 from pprint import pprint
+from typing import Any
+
+from dotenv import load_dotenv
 from langchain.tools import BaseTool
+from langchain_core.callbacks import CallbackManagerForToolRun
+
 from gns3_copilot.gns3_client import Gns3Connector, Link
 from gns3_copilot.log_config import setup_tool_logger
 
@@ -19,6 +23,7 @@ logger = setup_tool_logger("gns3_create_link")
 # Load environment variables
 load_dotenv()
 
+
 class GNS3LinkTool(BaseTool):
     """
     Tool for creating network links between GNS3 nodes.
@@ -27,6 +32,7 @@ class GNS3LinkTool(BaseTool):
     by connecting their network ports. Supports batch link creation
     with error handling for individual link failures.
     """
+
     name: str = "create_gns3_link"
     description: str = """
     Creates one or more links between nodes in a GNS3 project.
@@ -49,7 +55,7 @@ class GNS3LinkTool(BaseTool):
                 "port1": "Ethernet0/0",
                 "node_id2": "uuid-of-node2",
                 "port2": "Ethernet0/0"
-            }   
+            }
         ]
     }
     Output: A list of dictionaries, each containing:
@@ -71,7 +77,9 @@ class GNS3LinkTool(BaseTool):
     ]
     """
 
-    def _run(self, tool_input: str, run_manager=None) -> list:
+    def _run(
+        self, tool_input: str, run_manager: CallbackManagerForToolRun | None = None
+    ) -> list[dict[str, Any]]:
         """
         Creates one or multiple links between nodes in a GNS3 project.
 
@@ -97,22 +105,29 @@ class GNS3LinkTool(BaseTool):
                 logger.error("Invalid links data: must be a non-empty array")
                 return [{"error": "Invalid links data: must be a non-empty array"}]
 
+            raw_api_version = os.getenv("API_VERSION")
+            api_version = int(raw_api_version) if raw_api_version else 2
+
             # Initialize Gns3Connector
-            logger.info("Connecting to GNS3 server at %s...", os.getenv("GNS3_SERVER_URL"))
-            
-            if os.getenv("API_VERSION") == '2':
+            logger.info(
+                "Connecting to GNS3 server at %s...", os.getenv("GNS3_SERVER_URL")
+            )
+
+            if api_version == 2:
                 gns3_server = Gns3Connector(
-                    url=os.getenv("GNS3_SERVER_URL"),
-                    api_version=os.getenv("API_VERSION")
-                    )
-            if os.getenv("API_VERSION") == '3':
+                    url=os.getenv("GNS3_SERVER_URL"), api_version=api_version
+                )
+
+            elif api_version == 3:
                 gns3_server = Gns3Connector(
                     url=os.getenv("GNS3_SERVER_URL"),
                     user=os.getenv("GNS3_SERVER_USERNAME"),
                     cred=os.getenv("GNS3_SERVER_PASSWORD"),
-                    api_version=os.getenv("API_VERSION")
-                    )
-                
+                    api_version=api_version,
+                )
+            else:
+                raise ValueError(f"Unsupported API version: {api_version}")
+
             created_links = []
 
             # Process each link definition
@@ -134,8 +149,12 @@ class GNS3LinkTool(BaseTool):
                         continue
 
                     # Get node details
-                    node1 = gns3_server.get_node(project_id=project_id, node_id=node_id1)
-                    node2 = gns3_server.get_node(project_id=project_id, node_id=node_id2)
+                    node1 = gns3_server.get_node(
+                        project_id=project_id, node_id=node_id1
+                    )
+                    node2 = gns3_server.get_node(
+                        project_id=project_id, node_id=node_id2
+                    )
                     if not node1 or not node2:
                         error_msg = f"Node not found in link {i}"
                         logger.error(error_msg)
@@ -144,13 +163,21 @@ class GNS3LinkTool(BaseTool):
 
                     # Find port information
                     port1_info = next(
-                        (port for port in node1.get("ports", []) if port.get("name") == port1),
-                        None
-                        )
+                        (
+                            port
+                            for port in node1.get("ports", [])
+                            if port.get("name") == port1
+                        ),
+                        None,
+                    )
                     port2_info = next(
-                        (port for port in node2.get("ports", []) if port.get("name") == port2),
-                        None
-                        )
+                        (
+                            port
+                            for port in node2.get("ports", [])
+                            if port.get("name") == port2
+                        ),
+                        None,
+                    )
                     if not port1_info or not port2_info:
                         error_msg = f"Port not found in link {i}"
                         logger.error(error_msg)
@@ -166,15 +193,15 @@ class GNS3LinkTool(BaseTool):
                                 "node_id": node_id1,
                                 "adapter_number": port1_info.get("adapter_number", 0),
                                 "port_number": port1_info.get("port_number", 0),
-                                "label": {"text": port1}
+                                "label": {"text": port1},
                             },
                             {
                                 "node_id": node_id2,
                                 "adapter_number": port2_info.get("adapter_number", 0),
                                 "port_number": port2_info.get("port_number", 0),
-                                "label": {"text": port2}
-                            }
-                        ]
+                                "label": {"text": port2},
+                            },
+                        ],
                     )
                     link.create()
                     link.get()
@@ -185,13 +212,13 @@ class GNS3LinkTool(BaseTool):
                         "node_id1": node_id1,
                         "port1": port1,
                         "node_id2": node_id2,
-                        "port2": port2
+                        "port2": port2,
                     }
                     created_links.append(link_info)
                     logger.debug(
                         "Successfully created link: %s",
-                        json.dumps(link_info, ensure_ascii=False)
-                        )
+                        json.dumps(link_info, ensure_ascii=False),
+                    )
 
                 except Exception as e:
                     error_msg = f"Failed to create link {i}: {str(e)}"
@@ -200,8 +227,11 @@ class GNS3LinkTool(BaseTool):
 
             # Log final results
             success_count = len([link for link in created_links if "error" not in link])
-            logger.info("Link creation completed: %d successful, %d failed",
-                       success_count, len(links_data) - success_count)
+            logger.info(
+                "Link creation completed: %d successful, %d failed",
+                success_count,
+                len(links_data) - success_count,
+            )
 
             return created_links
 
@@ -212,38 +242,43 @@ class GNS3LinkTool(BaseTool):
             logger.error("Failed to process link creation: %s", e)
             return [{"error": f"Failed to process link creation: {str(e)}"}]
 
+
 if __name__ == "__main__":
     # Test with single link
-    single_link_input = json.dumps({
-        "project_id": "your-project-uuid",
-        "links": [
-            {
-                "node_id1": "your-node1-uuid",
-                "port1": "Ethernet0/0",
-                "node_id2": "your-node2-uuid",
-                "port2": "Ethernet0/0"
-            }
-        ]
-    })
+    single_link_input = json.dumps(
+        {
+            "project_id": "your-project-uuid",
+            "links": [
+                {
+                    "node_id1": "your-node1-uuid",
+                    "port1": "Ethernet0/0",
+                    "node_id2": "your-node2-uuid",
+                    "port2": "Ethernet0/0",
+                }
+            ],
+        }
+    )
 
     # Test with multiple links
-    multiple_links_input = json.dumps({
-        "project_id": "your-project-uuid",
-        "links": [
-            {
-                "node_id1": "your-node1-uuid",
-                "port1": "Ethernet0/0",
-                "node_id2": "your-node2-uuid",
-                "port2": "Ethernet0/0"
-            },
-            {
-                "node_id1": "your-node1-uuid",
-                "port1": "Ethernet0/1",
-                "node_id2": "your-node3-uuid",
-                "port2": "Ethernet0/0"
-            }
-        ]
-    })
+    multiple_links_input = json.dumps(
+        {
+            "project_id": "your-project-uuid",
+            "links": [
+                {
+                    "node_id1": "your-node1-uuid",
+                    "port1": "Ethernet0/0",
+                    "node_id2": "your-node2-uuid",
+                    "port2": "Ethernet0/0",
+                },
+                {
+                    "node_id1": "your-node1-uuid",
+                    "port1": "Ethernet0/1",
+                    "node_id2": "your-node3-uuid",
+                    "port2": "Ethernet0/0",
+                },
+            ],
+        }
+    )
 
     tool = GNS3LinkTool()
 
