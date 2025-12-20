@@ -3,13 +3,10 @@
 [![CI - QA & Testing](https://github.com/yueguobin/gns3-copilot/actions/workflows/ci.yaml/badge.svg)](https://github.com/yueguobin/gns3-copilot/actions/workflows/ci.yaml)
 [![CD - Production Release](https://github.com/yueguobin/gns3-copilot/actions/workflows/cd.yaml/badge.svg)](https://github.com/yueguobin/gns3-copilot/actions/workflows/cd.yaml)
 [![codecov](https://codecov.io/gh/yueguobin/gns3-copilot/branch/Development/graph/badge.svg?token=7FDUCM547W)](https://codecov.io/gh/yueguobin/gns3-copilot)
-
-![GNS3](https://img.shields.io/badge/GNS3-2.2+-green.svg) 
-![Nornir](https://img.shields.io/badge/Nornir-3.5.0-red.svg) 
-![Netmiko](https://img.shields.io/badge/Netmiko-4.6.0-blue.svg) 
-![LangGraph](https://img.shields.io/badge/LangGraph-1.0.0-purple.svg) 
+[![PyPI version](https://img.shields.io/pypi/v/gns3-copilot)](https://pypi.org/project/gns3-copilot/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/gns3-copilot?style=flat-square)](https://pypi.org/project/gns3-copilot/)
 ![License](https://img.shields.io/badge/license-MIT-green.svg) 
-![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)
+[![platform](https://img.shields.io/badge/platform-linux%20%7C%20windows%20%7C%20macOS-lightgrey)](https://shields.io/)
 
 An AI-powered network automation assistant designed specifically for GNS3 network simulator, providing intelligent network device management and automated operations.
 
