@@ -2,13 +2,9 @@
 
 [![CI - QA & Testing](https://github.com/yueguobin/gns3-copilot/actions/workflows/ci.yaml/badge.svg)](https://github.com/yueguobin/gns3-copilot/actions/workflows/ci.yaml)
 [![CD - Production Release](https://github.com/yueguobin/gns3-copilot/actions/workflows/cd.yml/badge.svg?branch=Development)](https://github.com/yueguobin/gns3-copilot/actions/workflows/cd.yaml)
-[![PyPI version](https://img.shields.io/pypi/v/gns3-copilot.svg)](https://pypi.org/project/gns3-copilot/)
-[![Codecov](https://codecov.io/gh/yueguobin/gns3-copilot/branch/master/graph/badge.svg)](https://codecov.io/gh/yueguobin/gns3-copilot)
+[![codecov](https://codecov.io/gh/yueguobin/gns3-copilot/branch/Development/graph/badge.svg?token=7FDUCM547W)](https://codecov.io/gh/yueguobin/gns3-copilot)
 
-
-![Python](https://img.shields.io/badge/python-3.10+-blue.svg) 
 ![GNS3](https://img.shields.io/badge/GNS3-2.2+-green.svg) 
-![LangChain](https://img.shields.io/badge/LangChain-1.0.7-orange.svg) 
 ![Nornir](https://img.shields.io/badge/Nornir-3.5.0-red.svg) 
 ![Netmiko](https://img.shields.io/badge/Netmiko-4.6.0-blue.svg) 
 ![LangGraph](https://img.shields.io/badge/LangGraph-1.0.0-purple.svg) 
