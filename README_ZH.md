@@ -1,7 +1,7 @@
 # GNS3 Copilot
 
 [![CI - QA & Testing](https://github.com/yueguobin/gns3-copilot/actions/workflows/ci.yaml/badge.svg)](https://github.com/yueguobin/gns3-copilot/actions/workflows/ci.yaml)
-[![CD - Production Release](https://github.com/yueguobin/gns3-copilot/actions/workflows/cd.yml/badge.svg?branch=Development)](https://github.com/yueguobin/gns3-copilot/actions/workflows/cd.yaml)
+[![CD - Production Release](https://github.com/yueguobin/gns3-copilot/actions/workflows/cd.yaml/badge.svg)](https://github.com/yueguobin/gns3-copilot/actions/workflows/cd.yaml)
 [![codecov](https://codecov.io/gh/yueguobin/gns3-copilot/branch/Development/graph/badge.svg?token=7FDUCM547W)](https://codecov.io/gh/yueguobin/gns3-copilot)
 
 ![GNS3](https://img.shields.io/badge/GNS3-2.2+-green.svg) 
