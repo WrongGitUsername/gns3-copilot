@@ -1,10 +1,10 @@
 def test_setup():
-    # 这是一个临时测试，证明环境配置正确
+    # This is a temporary test to verify environment configuration is correct
     assert True
 
 
 def test_package_import():
-    """测试主包可以正常导入"""
+    """Test that main package can be imported normally"""
     import gns3_copilot
 
     assert gns3_copilot.__version__ is not None
@@ -16,29 +16,29 @@ def test_package_import():
 
 
 def test_main_module_import():
-    """测试主模块可以正常导入"""
+    """Test that main module can be imported normally"""
     from gns3_copilot.main import main
 
     assert callable(main)
 
 
 def test_app_module_import():
-    """测试应用模块可以正常导入"""
+    """Test that app module can be imported normally"""
     from gns3_copilot.app import main as app_main
 
     assert callable(app_main)
 
 
 def test_agent_module_import():
-    """测试代理模块可以正常导入"""
-    # 检查模块是否可以导入，而不是特定的类
+    """Test that agent module can be imported normally"""
+    # Check if module can be imported, not specific classes
     import gns3_copilot.agent.gns3_copilot
 
     assert gns3_copilot.agent.gns3_copilot is not None
 
 
 def test_gns3_client_module_import():
-    """测试GNS3客户端模块可以正常导入"""
+    """Test that GNS3 client module can be imported normally"""
     from gns3_copilot.gns3_client.custom_gns3fy import (
         Gns3Connector,
         Link,
@@ -55,7 +55,7 @@ def test_gns3_client_module_import():
 
 
 def test_tools_module_import():
-    """测试工具模块可以正常导入"""
+    """Test that tools module can be imported normally"""
     from gns3_copilot.tools_v2.gns3_create_link import GNS3LinkTool
     from gns3_copilot.tools_v2.gns3_create_node import GNS3CreateNodeTool
     from gns3_copilot.tools_v2.gns3_start_node import GNS3StartNodeTool
@@ -66,8 +66,8 @@ def test_tools_module_import():
 
 
 def test_ui_modules_import():
-    """测试UI模块可以正常导入"""
-    # 检查模块是否可以导入，而不是特定的函数
+    """Test that UI modules can be imported normally"""
+    # Check if modules can be imported, not specific functions
     import gns3_copilot.ui_model.chat
     import gns3_copilot.ui_model.help
     import gns3_copilot.ui_model.settings
