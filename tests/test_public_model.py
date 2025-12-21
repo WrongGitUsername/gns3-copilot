@@ -95,7 +95,7 @@ class TestOpenaiStt:
         assert result == "Hello world"
         mock_openai.assert_called_once_with(
             api_key="local-dummy",
-            base_url="http://127.0.0.1:8000/v1",  # Correct port
+            base_url="http://127.0.0.1:8000/v1",  # Correct port matching .env configuration
             timeout=60.0,
         )
 
