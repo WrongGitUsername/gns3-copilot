@@ -50,7 +50,7 @@ def speech_to_text(
     """
     config = get_stt_config()
 
-    # 确定具体类型，避免 Optional
+    # Determine specific type to avoid Optional
     f_model: str = model if model is not None else str(config["model"])
     f_response_format: Any = (
         response_format if response_format is not None else config["response_format"]
@@ -67,7 +67,7 @@ def speech_to_text(
     if not audio_data:
         raise ValueError("Audio data cannot be empty")
 
-    # 使用 IO[bytes] 统一 BytesIO 和 BinaryIO 的类型声明
+    # Use IO[bytes] to unify type declarations for BytesIO and BinaryIO
     audio_file: IO[bytes]
     file_name: str = "audio.wav"
 
@@ -103,11 +103,11 @@ def speech_to_text(
             timestamp_granularities=cast(Any, timestamp_granularities or NOT_GIVEN),
         )
 
-        # 显式处理响应类型，解决 unreachable 和 no-any-return
+        # Explicitly handle response type to resolve unreachable and no-any-return
         if isinstance(response, str):
             return response
 
-        # 对于 Pydantic 模型对象
+        # For Pydantic model objects
         if hasattr(response, "model_dump"):
             data = cast(dict[str, Any], response.model_dump())
             if f_response_format == "json":

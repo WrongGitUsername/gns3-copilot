@@ -216,9 +216,9 @@ class Gns3Connector:
         params: dict[str, Any] | None = None,
     ) -> requests.Response:
         """
-        执行 HTTP 操作并处理 GNS3 特有的错误逻辑。
+        Executes HTTP operations and handles GNS3-specific error logic.
         """
-        # 处理 JWT 认证
+        # Handle JWT authentication
         if (
             self.auth_type == "jwt"
             and not self.access_token
@@ -227,10 +227,10 @@ class Gns3Connector:
         ):
             self._authenticate_v3()
 
-        # 获取请求函数 (如 session.get, session.post)
+        # Get request function (e.g., session.get, session.post)
         caller = getattr(self.session, method.lower())
 
-        # 准备请求参数，避免多次重复调用 caller
+        # Prepare request parameters, avoiding multiple repeated calls to caller
         kwargs: dict[str, Any] = {
             "headers": headers,
             "params": params,
@@ -241,7 +241,7 @@ class Gns3Connector:
         elif json_data is not None:
             kwargs["json"] = json_data
 
-        # 执行请求
+        # Execute request
         _response: requests.Response = caller(url, **kwargs)
 
         self.api_calls += 1
@@ -249,35 +249,35 @@ class Gns3Connector:
         try:
             _response.raise_for_status()
         except HTTPError as e:
-            # 抛出经过增强处理后的错误
+            # Throw enhanced error
             raise self._extract_gns3_error(e) from e
 
         return _response
 
     def _extract_gns3_error(self, e: HTTPError) -> HTTPError:
         """
-        从 HTTPError 中提取 GNS3 特有的 JSON 错误信息。
-        如果无法解析，则返回原始错误。
+        Extract GNS3-specific JSON error information from HTTPError.
+        If parsing fails, return the original error.
         """
-        # e.response 可能为 None，需要显式检查
+        # e.response might be None, need explicit check
         response = e.response
         if response is None:
             return e
 
         try:
-            # 只有当 Content-Type 是 JSON 时才尝试解析
+            # Only attempt parsing when Content-Type is JSON
             if "application/json" in response.headers.get("Content-Type", "").lower():
                 error_json = response.json()
                 status = error_json.get("status", "Unknown Status")
                 message = error_json.get("message", "No message provided in JSON.")
-                # 构造一个更具描述性的新错误
+                # Construct a more descriptive new error
                 new_err = HTTPError(
                     f"{status}: {message} (Original {response.status_code} Error)",
                     response=response,
                 )
                 return new_err
         except Exception:
-            # 如果解析 JSON 失败，返回带原始文本的错误
+            # If JSON parsing fails, return error with original text
             return HTTPError(
                 f"Original Error: {str(e)}. GNS3 response text: {response.text}",
                 response=response,
@@ -432,12 +432,12 @@ class Gns3Connector:
 
         - `name` or `template_id`
         """
-        # 获取现有模板
+        # Get existing template
         _template = self.get_template(name=name, template_id=template_id)
-        # 类型检查：处理 get_template 可能返回 None 的情况
+        # Type check: handle case where get_template might return None
         if _template is None:
             raise ValueError(f"Template not found (name={name}, id={template_id})")
-        # 更新本地字典并发送请求
+        # Update local dictionary and send request
         _template.update(**kwargs)
 
         response = self.http_call(
@@ -445,7 +445,7 @@ class Gns3Connector:
             url=f"{self.base_url}/templates/{_template['template_id']}",
             json_data=_template,
         )
-        # 返回 JSON 并处理 Any 类型报错
+        # Return JSON and handle Any type errors
         return cast(dict[str, Any], response.json())
 
     def create_template(self, **kwargs: Any) -> dict[str, Any]:
@@ -460,25 +460,25 @@ class Gns3Connector:
         - `compute_id` by default is 'local'
         - `template_type`
         """
-        # 这里的 kwargs["name"] 可能会在运行时报 KeyError，如果想更严谨可以先 get
+        # kwargs["name"] might raise KeyError at runtime, for more robust code we can use get first
         template_name = kwargs.get("name")
         if not template_name:
             raise ValueError("Attribute 'name' is required to create a template")
 
-        # 检查模板是否已存在
+        # Check if template already exists
         _template = self.get_template(name=kwargs["name"])
         if _template:
             raise ValueError(f"Template already used: {kwargs['name']}")
 
-        # 设置默认值
+        # Set default values
         if "compute_id" not in kwargs:
             kwargs["compute_id"] = "local"
 
-        # 发送请求
+        # Send request
         response = self.http_call(
             "post", url=f"{self.base_url}/templates", json_data=kwargs
         )
-        # 返回并转换类型
+        # Return and convert type
         return cast(dict[str, Any], response.json())
 
     def delete_template(
@@ -493,16 +493,16 @@ class Gns3Connector:
 
         - `name` or `template_id`
         """
-        # 逻辑处理：如果只给了 name，需要先查出 template_id
+        # Logic handling: if only name is given, need to first get template_id
         if name and not template_id:
             _template = self.get_template(name=name)
-            # 类型收窄：检查 _template 是否为 None
+            # Type narrowing: check if _template is None
             if _template is None:
                 raise ValueError(f"Template with name '{name}' not found.")
 
             template_id = _template["template_id"]
 
-        # 最终检查：确保 template_id 此时一定有值
+        # Final check: ensure template_id has a value at this point
         if not template_id:
             raise ValueError(
                 "Must provide either a 'name' or 'template_id' to delete a template."
@@ -2060,12 +2060,12 @@ class Project:
         - `project_id`
         - `connector`
         """
-        # 确保数据已加载
+        # Ensure data is loaded
         if not self.nodes:
             self.get_nodes()
         if not self.links:
             self.get_links()
-        # 如果是 None，程序直接在这里报错，而不是往下走。
+        # If None, program errors here instead of continuing
         assert self.links is not None, "Links must be loaded"
         assert self.nodes is not None, "Nodes must be loaded"
 
@@ -2078,9 +2078,9 @@ class Project:
             _side_b = _l.nodes[1]
 
             try:
-                # 增加类型安全的查找逻辑
+                # Add type-safe lookup logic
                 _node_a = next(x for x in self.nodes if x.node_id == _side_a["node_id"])
-                # 确保获取的是 str，解决 [return-value] 报错
+                # Ensure getting str to resolve [return-value] error
                 _port_a = str(
                     next(
                         x["name"]
@@ -2100,7 +2100,7 @@ class Project:
                     )
                 )
 
-                # 确保名称不为 None
+                # Ensure name is not None
                 name_a = str(_node_a.name) if _node_a.name else "Unknown"
                 name_b = str(_node_b.name) if _node_b.name else "Unknown"
 
@@ -2113,7 +2113,7 @@ class Project:
                 _links_summary.append((name_a, _port_a, name_b, _port_b))
 
             except (StopIteration, KeyError, AttributeError):
-                # 预防列表推导式匹配不到数据时的错误
+                # Prevent errors when list comprehension can't match data
                 continue
         return _links_summary if not is_print else None
 
@@ -2605,12 +2605,12 @@ class Project:
 
         _url = f"{_conn.base_url}/projects/{_project_id}/drawings/{drawing_id}"
 
-        # 确保数据存在
+        # Ensure data exists
         if not self.drawings:
             self.get_drawings()
 
-        # 类型守卫：告知 Mypy self.drawings 现在是可迭代的 list
-        # 使用 or [] 配合 next 查找目标对象
+        # Type guard: inform Mypy that self.drawings is now an iterable list
+        # Use or [] with next to find target object
         current_drawing = next(
             (d for d in (self.drawings or []) if d.get("drawing_id") == drawing_id),
             None,
@@ -2619,15 +2619,15 @@ class Project:
         if current_drawing is None:
             raise ValueError(f"Drawing with ID {drawing_id} not found in project.")
 
-        # 如果参数为 None，则从当前对象中获取原始值
-        # 这样处理后，Mypy 就不会再对每个字段的列表推导式报错了
+        # If parameter is None, get original value from current object
+        # This way, Mypy won't report errors for list comprehensions of each field
         final_svg = svg if svg is not None else current_drawing.get("svg")
         final_locked = locked if locked is not None else current_drawing.get("locked")
         final_x = x if x is not None else current_drawing.get("x")
         final_y = y if y is not None else current_drawing.get("y")
         final_z = z if z is not None else current_drawing.get("z")
 
-        # 执行更新
+        # Execute update
         response = _conn.http_call(
             "put",
             _url,
@@ -2640,7 +2640,7 @@ class Project:
             },
         )
 
-        # 更新本地缓存
+        # Update local cache
         self.get_drawings()
 
         return cast(dict[str, Any], response.json())

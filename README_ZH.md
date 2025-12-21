@@ -187,6 +187,14 @@ gns3-copilot --help
 
 本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
 
+## Acknowledgements
+
+Special thanks to the following resources for their inspiration and technical foundation:
+
+* **Powered by 《网络工程师的 Python 之路》**
+* **Powered by 《网络工程师的 AI 之路》**
+
+
 ## 联系方式
 
 - 项目主页: https://github.com/yueguobin/gns3-copilot

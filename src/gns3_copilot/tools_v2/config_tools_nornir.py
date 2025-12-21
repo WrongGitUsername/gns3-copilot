@@ -92,7 +92,7 @@ class ExecuteMultipleDeviceConfigCommands(BaseTool):
 
     def _run(
         self,
-        tool_input: str,  # 或者是 Union[str, List[Any], Dict[str, Any]]
+        tool_input: str,  # or Union[str, List[Any], Dict[str, Any]]
         run_manager: CallbackManagerForToolRun | None = None,
     ) -> list[dict[str, Any]]:
         """

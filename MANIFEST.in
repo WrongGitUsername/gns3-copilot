@@ -8,8 +8,8 @@ include pyproject.toml
 recursive-include src/gns3_copilot *.py
 
 # Explicitly exclude the test/ directory (prevents test/ from being included)
-global-exclude test/*
-prune test/
+global-exclude tests/*
+prune tests/
 
 # Explicitly exclude the Architecture
 global-exclude Architecture/*

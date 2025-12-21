@@ -52,11 +52,11 @@ def text_to_speech_wav(
     """
     config = get_tts_config()
 
-    # 确保变量类型确定，避免 Optional 带来的后续麻烦
+    # Ensure variable types are determined to avoid issues with Optional
     final_model: str = model if model is not None else str(config["model"])
     final_voice: Any = (
         voice if voice is not None else config["voice"]
-    )  # voice SDK 类型较复杂，暂用 Any 或 str
+    )  # voice SDK type is complex, temporarily using Any or str
     final_speed: float = speed if speed is not None else float(config["speed"])
     final_api_key: str = api_key if api_key is not None else str(config["api_key"])
     final_base_url: str = base_url if base_url is not None else str(config["base_url"])
@@ -72,7 +72,7 @@ def text_to_speech_wav(
     if not (0.25 <= final_speed <= 4.0):
         raise ValueError("Error: Speed must be between 0.25 and 4.0.")
 
-    # 验证模型
+    # Validate model
     valid_models = ["tts-1", "tts-1-hd", "gpt-4o-mini-tts"]
     if final_model not in valid_models:
         raise ValueError(f"Error: Unsupported model '{final_model}'.")
@@ -81,16 +81,16 @@ def text_to_speech_wav(
         client = OpenAI(api_key=final_api_key, base_url=final_base_url)
         logger.info(f"Generating TTS: model={final_model}, voice={final_voice}")
 
-        # 显式传参，不使用字典解包 (**api_params)
-        # 这样 Mypy 能够直接核对类型，解决大量的 [arg-type] 错误
+        # Explicit parameter passing, not using dictionary unpacking (**api_params)
+        # This allows Mypy to directly check types, resolving many [arg-type] errors
 
-        # 注意：response_format 必须是 SDK 支持的字面量
+        # Note: response_format must be a literal supported by the SDK
         response = client.audio.speech.create(
             model=final_model,
             voice=final_voice,
             input=text,
             speed=final_speed,
-            response_format="wav",  # 显式字符串
+            response_format="wav",  # Explicit string
         )
 
         return response.content
@@ -102,13 +102,13 @@ def text_to_speech_wav(
 
 def get_duration(audio_bytes: bytes) -> float:
     """
-    使用 Python 内置 wave 模块计算 WAV 音频数据的时长（秒）。
+    Calculate the duration of WAV audio data in seconds using Python's built-in wave module.
     """
     try:
-        # 将字节流包装在 BytesIO 对象中，使其像文件一样可读
+        # Wrap the byte stream in a BytesIO object to make it readable like a file
         with io.BytesIO(audio_bytes) as bio:
             with wave.open(bio, "rb") as wav_f:
-                # 获取帧数和帧率（采样率）
+                # Get frame count and frame rate (sample rate)
                 n_frames = wav_f.getnframes()
                 frame_rate = wav_f.getframerate()
 

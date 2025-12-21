@@ -155,7 +155,7 @@ class GNS3CreateNodeTool(BaseTool):
                     }
 
             raw_version = os.getenv("API_VERSION")
-            api_version = int(raw_version) if raw_version else 2  # 确保是 int
+            api_version = int(raw_version) if raw_version else 2  # Ensure it's int
             server_url = os.getenv("GNS3_SERVER_URL")
 
             # Initialize Gns3Connector

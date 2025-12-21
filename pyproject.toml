@@ -205,11 +205,11 @@ exclude = [
     'test',
 ]
 
-# 极其重要：告诉 mypy 不要去分析没被直接引用的第三方库
+# Extremely important: Tell mypy not to analyze third-party libraries that are not directly referenced
 follow_imports = "silent"
 
 [[tool.mypy.overrides]]
-# 忽略没有提供类型文件的库
+# Ignore libraries that don't provide type stubs
 module = [
     "soundfile.*",
     "nornir.*",
@@ -237,7 +237,7 @@ exclude = [
 [tool.ruff]
 # Exclude paths and files from ruff checking
 exclude = [
-    "test/**",           # Recursively exclude entire test directory
+    "tests/**",           # Recursively exclude entire test directory
     "*.ipynb",           # Exclude all Jupyter Notebook files
     "build/",
     "dist/",

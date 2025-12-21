@@ -88,7 +88,7 @@ class GNS3TemplateTool(BaseTool):
 
             if api_version == 2:
                 gns3_server = Gns3Connector(url=server_url, api_version=api_version)
-            elif api_version == 3:  # 使用 elif 增强逻辑完备性
+            elif api_version == 3:  # Use elif to enhance logical completeness
                 gns3_server = Gns3Connector(
                     url=server_url,
                     user=os.getenv("GNS3_SERVER_USERNAME"),
