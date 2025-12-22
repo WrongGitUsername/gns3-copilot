@@ -1,5 +1,3 @@
-
-
 import copy
 import os
 from typing import Any
@@ -20,7 +18,7 @@ load_dotenv()
 example output:
 
 [('mylab', 'ff8e059c-c33d-47f4-bc11-c7dda8a1d500', 0, 0, 'closed'),
- ('q-learning-流量管理', '69d49a6a-ff7f-45dd-af1e-dc14aff600cc', 0, 0, 'closed'),
+ ('q-learning-traffic-management', '69d49a6a-ff7f-45dd-af1e-dc14aff600cc', 0, 0, 'closed'),
  ('network_ai', 'f2f7ed27-7aa3-4b11-a64c-da947a2c7210', 6, 8, 'opened'),
  ('test', '365dd3ff-cda9-447a-94da-3a6cef75fe77', 0, 0, 'closed'),
  ('Soft-RoCE learning', 'd1e4509e-64bd-4109-b954-266223959ee9', 0, 0, 'closed')]

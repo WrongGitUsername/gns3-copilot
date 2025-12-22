@@ -259,65 +259,65 @@ else:
         "recursion_limit": 28,
     }
 
-# --- 获取当前状态 ---
+# --- Get current state ---
 snapshot = agent.get_state(config)
 selected_p = snapshot.values.get("selected_project")
 
-# --- 逻辑分支：如果没有选择项目，显示项目卡片 ---
+# --- Logic branch: If no project is selected, display project cards ---
 if not selected_p:
     st.title("📂 GNS3 Copilot - Workspace Selection")
-    st.info("请选择一个已开启 (Opened) 的项目进入对话上下文。")
+    st.info("Please select an opened project to enter the conversation context.")
     
-    # 获取项目列表
+    # Get project list
     projects = GNS3ProjectList()._run().get("projects", [])
     
     if projects:
         cols = st.columns(3)
         for i, p in enumerate(projects):
-            # 解构项目元组，方便理解：名称, ID, 设备数, 链路数, 状态
+            # Destructure project tuple for clarity: name, ID, device count, link count, status
             name, p_id, dev_count, link_count, status = p
             
-            # 判断状态
+            # Check status
             is_opened = (status.lower() == "opened")
             
             with cols[i % 3]:
-                # 如果是关闭状态，可以使用带有背景颜色的容器或者不同的标题格式
+                # If closed status, use container with background color or different title format
                 with st.container(border=True):
-                    # 标题增加状态图标
+                    # Add status icon to title
                     status_icon = "🟢" if is_opened else "⚪"
                     st.markdown(f"### {status_icon} {name}")
                     st.caption(f"ID: {p_id[:8]}")
                     
-                    # 显示设备和链路信息
+                    # Display device and link information
                     st.write(f"🖥️ {dev_count} Devices | 🔗 {link_count} Links")
                     
-                    # 动态显示状态文字
+                    # Dynamic status text display
                     if is_opened:
                         st.success(f"Status: {status.upper()}")
                     else:
-                        st.warning(f"Status: {status.upper()} (不可用)")
+                        st.warning(f"Status: {status.upper()} (Unavailable)")
                     
-                    # --- 按钮逻辑修改 ---
-                    # 如果状态不是 opened，设置 disabled=True 
+                    # --- Button logic modification ---
+                    # If status is not opened, set disabled=True 
                     if st.button(
                         "Select Project" if is_opened else "Project Closed", 
                         key=f"btn_{p_id}", 
                         use_container_width=True,
-                        disabled=not is_opened, # 关键点：非 opened 状态下禁用按钮
+                        disabled=not is_opened, # Key point: disable button for non-opened status
                         type="primary" if is_opened else "secondary"
                     ):
-                        # 只有在按钮可用且被点击时才会执行
+                        # Only execute when button is available and clicked
                         agent.update_state(config, {"selected_project": p})
-                        st.success(f"项目 {name} 已选择！")
+                        st.success(f"Project {name} has been selected!")
                         st.rerun() 
     else:
-        st.error("GNS3 中未发现任何项目。")
-        if st.button("刷新列表"): st.rerun()
+        st.error("No projects found in GNS3.")
+        if st.button("Refresh List"): st.rerun()
 
 else:
-    # 顶部状态条逻辑保持不变
-    st.sidebar.success(f"✅ 当前项目: **{selected_p[0]}**")
-    if st.sidebar.button("切换项目 / 退出"):
+    # Top status bar logic remains unchanged
+    st.sidebar.success(f"✅ Current Project: **{selected_p[0]}**")
+    if st.sidebar.button("Switch Project / Exit"):
         agent.update_state(config, {"selected_project": None})
         st.rerun()
 
@@ -529,4 +529,3 @@ else:
             # print(state_history)
             # with open('state_history.txt', "a", encoding='utf-8') as f:
             #    f.write(f"{state_history}\n\n")
-    

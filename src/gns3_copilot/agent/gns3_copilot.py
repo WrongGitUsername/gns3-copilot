@@ -120,7 +120,7 @@ class MessagesState(TypedDict):
     # Optional conversation title
     conversation_title: str | None
 
-    # 存储人类选中的那个完整元组
+    # Store the complete tuple selected by the user
     selected_project: Tuple[str, str, int, int, str]
 
 # Define llm call  node
@@ -130,13 +130,13 @@ def llm_call(state: dict):
     current_prompt = load_system_prompt()
     # print(current_prompt)
     
-    # 获取之前存储的项目元组
+    # Get the previously stored project tuple
     selected_p = state.get("selected_project")
 
-    # 构造上下文消息
+    # Construct context messages
     context_messages = []
     if selected_p:
-        # 将元组信息转化为自然语言，告诉 LLM 用户选了哪个
+        # Convert tuple information to natural language to tell LLM which project user selected
         project_info = (
             "User has selected project: "
             f"Project_Name={selected_p[0]}, "
@@ -148,7 +148,7 @@ def llm_call(state: dict):
         context_messages.append(
             SystemMessage(content=f"Current Context: {project_info}"))
 
-    # 合并消息列表
+    # Merge message lists
     full_messages = [SystemMessage(content=current_prompt)] + context_messages + state["messages"]
     #print(full_messages)
     return {
@@ -268,8 +268,8 @@ def recursion_limit_continue(state: MessagesState) -> Literal["llm_call", END]:
         "llm_call" to continue processing, END to terminate conversation
 
     Logic:
-        - If last message is ToolMessage and steps >= 4: continue to LLM
-        - Otherwise: end conversation to prevent infinite loops
+        - If the last message is ToolMessage and steps >= 4: continue to LLM
+        - Otherwise: end the conversation to prevent infinite loops
     """
     last_message = state["messages"][-1]
     if isinstance(last_message, ToolMessage):
@@ -291,7 +291,7 @@ agent_builder.add_node("title_generator_node", generate_title)
 # Add edges to connect nodes
 agent_builder.add_edge(START, "llm_call")
 # Conditional routing after LLM response
-# Determines next step based on whether LLM needs to call tools or generate title
+# Determines the next step based on whether LLM needs to call tools or generate title
 agent_builder.add_conditional_edges(
     "llm_call",
     should_continue,
@@ -302,7 +302,7 @@ agent_builder.add_conditional_edges(
     },
 )
 # Conditional routing after tool execution
-# Prevents infinite recursion by checking remaining steps before continuings
+# Prevents infinite recursion by checking remaining steps before continuing
 agent_builder.add_conditional_edges(
     "tool_node",
     recursion_limit_continue,
@@ -338,7 +338,7 @@ def get_agent():
 
     The agent builder (`agent_builder`) and checkpointer are defined earlier in the file.
     By not passing them as parameters we avoid Streamlit cache invalidation issues
-    when the objects are recreated (even if they are logically identical).
+    when objects are recreated (even if they are logically identical).
     """
     return agent_builder.compile(checkpointer=get_checkpointer())
 
