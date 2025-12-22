@@ -483,7 +483,20 @@ class TestParseToolContent:
         
         # Mock parse_tool_content returning unserializable objects
         with patch('gns3_copilot.public_model.parse_tool_content.parse_tool_content') as mock_parse:
-            mock_parse.return_value = {"obj": UnserializableObject()}
+            # In Python 3.10, parse_tool_content is a function, not a module
+            # So we need to handle both cases
+            try:
+                mock_parse.return_value = {"obj": UnserializableObject()}
+            except AttributeError:
+                # Fallback for Python 3.10 where parse_tool_content is the function itself
+                with patch('gns3_copilot.public_model.parse_tool_content') as mock_parse_func:
+                    mock_parse_func.return_value = {"obj": UnserializableObject()}
+                    
+                    result = format_tool_response("test")
+                    parsed = json.loads(result)
+                    # Should fallback to raw format
+                    assert "raw" in parsed
+                    return
             
             result = format_tool_response("test")
             parsed = json.loads(result)
@@ -495,7 +508,22 @@ class TestParseToolContent:
         # This test is hard to mock properly as it requires mocking json.dumps multiple calls
         # We directly test final error handling path
         with patch('gns3_copilot.public_model.parse_tool_content.parse_tool_content') as mock_parse:
-            mock_parse.side_effect = Exception("Parse error")
+            # In Python 3.10, parse_tool_content is a function, not a module
+            # So we need to handle both cases
+            try:
+                mock_parse.side_effect = Exception("Parse error")
+            except AttributeError:
+                # Fallback for Python 3.10 where parse_tool_content is a function itself
+                with patch('gns3_copilot.public_model.parse_tool_content') as mock_parse_func:
+                    mock_parse_func.side_effect = Exception("Parse error")
+                    
+                    # Directly call format_tool_response, it will enter final exception handling branch
+                    result = format_tool_response("test")
+                    # Result should be valid JSON containing error info
+                    parsed = json.loads(result)
+                    assert "error" in parsed
+                    assert "Parse error" in parsed["error"]
+                    return
             
             # Directly call format_tool_response, it will enter final exception handling branch
             result = format_tool_response("test")
@@ -508,7 +536,21 @@ class TestParseToolContent:
         """Test general exception handling in formatting response"""
         # Mock parse_tool_content throwing non-TypeError/ValueError exceptions
         with patch('gns3_copilot.public_model.parse_tool_content.parse_tool_content') as mock_parse:
-            mock_parse.side_effect = RuntimeError("General error")
+            # In Python 3.10, parse_tool_content is a function, not a module
+            # So we need to handle both cases
+            try:
+                mock_parse.side_effect = RuntimeError("General error")
+            except AttributeError:
+                # Fallback for Python 3.10 where parse_tool_content is a function itself
+                with patch('gns3_copilot.public_model.parse_tool_content') as mock_parse_func:
+                    mock_parse_func.side_effect = RuntimeError("General error")
+                    
+                    result = format_tool_response("test")
+                    parsed = json.loads(result)
+                    # Should return error info
+                    assert "error" in parsed
+                    assert "General error" in parsed["error"]
+                    return
             
             result = format_tool_response("test")
             parsed = json.loads(result)
