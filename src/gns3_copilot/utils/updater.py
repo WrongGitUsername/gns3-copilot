@@ -1,4 +1,3 @@
-
 import sys
 import json
 import subprocess
@@ -7,7 +6,6 @@ from typing import Tuple
 from packaging.version import Version, InvalidVersion
 
 PYPI_URL = "https://pypi.org/pypi/gns3-copilot/json"
-
 
 def get_installed_version() -> str:
     from gns3_copilot import __version__
@@ -33,8 +31,9 @@ def is_update_available() -> Tuple[bool, str, str]:
 
 
 def run_update() -> Tuple[bool, str]:
+    """Update gns3-copilot from PyPI"""
     try:
-        subprocess.check_call(
+        result = subprocess.run(
             [
                 sys.executable,
                 "-m",
@@ -42,8 +41,22 @@ def run_update() -> Tuple[bool, str]:
                 "install",
                 "--upgrade",
                 "gns3-copilot",
-            ]
+            ],
+            capture_output=True,
+            text=True,
+            timeout=300  # 5 minute timeout
         )
-        return True, "Update completed successfully. Please restart GNS3 Copilot."
-    except subprocess.CalledProcessError as exc:
-        return False, f"pip failed: {exc}"
+        
+        if result.returncode == 0:
+            # Check if anything was actually upgraded
+            if "Successfully installed" in result.stdout or "Requirement already satisfied" in result.stdout:
+                return True, "✅ Update completed successfully. Please restart GNS3 Copilot to use the new version."
+            else:
+                return True, "✅ No updates needed. You're already on the latest version."
+        else:
+            return False, f"❌ Update failed:\n{result.stderr}"
+            
+    except subprocess.TimeoutExpired:
+        return False, "❌ Update timed out after 5 minutes. Please try again."
+    except Exception as e:
+        return False, f"❌ Unexpected error during update: {str(e)}"
