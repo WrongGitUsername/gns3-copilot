@@ -1,0 +1,317 @@
+StateSnapshot(
+values={
+    'messages': [
+        HumanMessage(
+            content='告诉我当前的拓扑。',
+            additional_kwargs={}, 
+            response_metadata={}), 
+        
+        AIMessage(
+            content='我来帮您查看当前的GNS3拓扑结构。', 
+            additional_kwargs={}, 
+            response_metadata={
+                'finish_reason': 'tool_calls', 
+                'model_name': 'deepseek-chat', 
+                'system_fingerprint': 'fp_eaab8d114b_prod0820_fp8_kvcache', 
+                'model_provider': 'deepseek'
+            }, 
+            id='lc_run--019b4616-72cc-7ad0-ac1f-c13a2d1aaed7', 
+            tool_calls=[
+                {'name': 'gns3_topology_reader', 
+                'args': {'tool_input': None}, 
+                'id': 'call_00_wljsKi7zyTGLp9C1eTEOjafN', 'type': 'tool_call'
+                }
+            ], 
+            usage_metadata={
+                'input_tokens': 3661, 
+                'output_tokens': 59, 
+                'total_tokens': 3720, 
+                'input_token_details': {'cache_read': 0}, 
+                'output_token_details': {}
+            }
+        ), 
+        ToolMessage(
+            content="{
+                'project_id': 'f2f7ed27-7aa3-4b11-a64c-da947a2c7210', 
+                'name': 'network_ai', 
+                'status': 'opened', 
+                'nodes': {
+                    'R-1': {
+                        'server': '127.0.0.1', 
+                        'name': 'R-1', 
+                        'node_id': 'dae0b5be-03aa-492d-939c-72f2bbe1d74a', 
+                        'console_port': 5012, 
+                        'console_type': 'telnet', 
+                        'type': 'qemu', 
+                        'ports': [
+                            {'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, 
+                            {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, 
+                            {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, 
+                            {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, 
+                            {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, 
+                            {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, 
+                            {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, 
+                            {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, 
+                            {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, 
+                            {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, 
+                            {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, 
+                            {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, 
+                            {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, 
+                            {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, 
+                            {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, 
+                            {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}
+                        ], 
+                        'x': -30, 
+                        'y': -405
+                    }, 
+                    'R-2': {
+                        'server': '127.0.0.1', 
+                        'name': 'R-2', 
+                        'node_id': '770c835c-83ae-42ce-a2b9-9a88fb4d2145', 
+                        'console_port': 5014, 
+                        'console_type': 'telnet', 
+                        'type': 'qemu', 
+                        'ports': [
+                            {'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, 
+                            {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, 
+                            {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, 
+                            {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, 
+                            {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, 
+                            {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, 
+                            {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, 
+                            {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, 
+                            {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, 
+                            {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, 
+                            {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, 
+                            {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, 
+                            {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, 
+                            {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, 
+                            {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, 
+                            {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}
+                            ], 
+                        'x': -30, 
+                        'y': -255
+                    }, 
+                    'R-3': {
+                        'server': '127.0.0.1', 
+                        'name': 'R-3', 
+                        'node_id': '5f875fef-f795-4f06-96b2-9c34a66a296d', 
+                        'console_port': 5016, 
+                        'console_type': 'telnet', 
+                        'type': 'qemu', 
+                        'ports': [
+                            {'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, 
+                            {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, 
+                            {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, 
+                            {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, 
+                            {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, 
+                            {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, 
+                            {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, 
+                            {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, 
+                            {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, 
+                            {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, 
+                            {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, 
+                            {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, 
+                            {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, 
+                            {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, 
+                            {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, 
+                            {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}
+                            ], 
+                        'x': -180, 
+                        'y': -30
+                    }, 
+                    'R-4': {
+                        'server': '127.0.0.1', 
+                        'name': 'R-4', 
+                        'node_id': 'ceb2e0f0-5c7e-48b2-b289-8db2ed92e5a7', 
+                        'console_port': 5018, 
+                        'console_type': 'telnet', 
+                        'type': 'qemu', 
+                        'ports': [
+                            {'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, 
+                            {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, 
+                            {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, 
+                            {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, 
+                            {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, 
+                            {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, 
+                            {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, 
+                            {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, 
+                            {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, 
+                            {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, 
+                            {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, 
+                            {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, 
+                            {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, 
+                            {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, 
+                            {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, 
+                            {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}
+                            ], 
+                        'x': 120, 
+                        'y': -30
+                    }, 
+                    'R-5': {
+                        'server': '127.0.0.1', 
+                        'name': 'R-5', 
+                        'node_id': '18dd23f5-fd10-49a8-8b1c-a0f741356a12', 
+                        'console_port': 5020, 
+                        'console_type': 'telnet', 
+                        'type': 'qemu', 
+                        'ports': [
+                            {'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, 
+                            {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, 
+                            {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, 
+                            {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, 
+                            {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, 
+                            {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, 
+                            {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, 
+                            {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, 
+                            {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, 
+                            {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, 
+                            {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, 
+                            {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, 
+                            {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, 
+                            {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, 
+                            {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, 
+                            {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}
+                            ], 
+                        'x': -30, 
+                        'y': 195
+                    }, 
+                    'R-6': {
+                        'server': '127.0.0.1', 
+                        'name': 'R-6', 
+                        'node_id': '320b1ee0-fc0e-47ac-a818-a9280a925bb6', 
+                        'console_port': 5022, 
+                        'console_type': 'telnet', 
+                        'type': 'qemu', 
+                        'ports': [
+                            {'name': 'Ge 0/0', 'short_name': 'Ge 0/0'}, 
+                            {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}, 
+                            {'name': 'Ge 0/2', 'short_name': 'Ge 0/2'}, 
+                            {'name': 'Ge 0/3', 'short_name': 'Ge 0/3'}, 
+                            {'name': 'Ge 0/4', 'short_name': 'Ge 0/4'}, 
+                            {'name': 'Ge 0/5', 'short_name': 'Ge 0/5'}, 
+                            {'name': 'Ge 0/6', 'short_name': 'Ge 0/6'}, 
+                            {'name': 'Ge 0/7', 'short_name': 'Ge 0/7'}, 
+                            {'name': 'Ge 0/8', 'short_name': 'Ge 0/8'}, 
+                            {'name': 'Ge 0/9', 'short_name': 'Ge 0/9'}, 
+                            {'name': 'Ge 0/10', 'short_name': 'Ge 0/10'}, 
+                            {'name': 'Ge 0/11', 'short_name': 'Ge 0/11'}, 
+                            {'name': 'Ge 0/12', 'short_name': 'Ge 0/12'}, 
+                            {'name': 'Ge 0/13', 'short_name': 'Ge 0/13'}, 
+                            {'name': 'Ge 0/14', 'short_name': 'Ge 0/14'}, 
+                            {'name': 'Ge 0/15', 'short_name': 'Ge 0/15'}
+                            ], 
+                        'x': -30, 
+                        'y': 345
+                    }
+                }, 
+                'links': [
+                    ('R-2', 'Ge 0/3', 'R-3', 'Ge 0/2'), 
+                    ('R-2', 'Ge 0/4', 'R-4', 'Ge 0/2'), 
+                    ('R-3', 'Ge 0/5', 'R-5', 'Ge 0/3'), 
+                    ('R-4', 'Ge 0/5', 'R-5', 'Ge 0/4'), 
+                    ('R-5', 'Ge 0/0', 'R-6', 'Ge 0/0'), 
+                    ('R-3', 'Ge 0/0', 'R-4', 'Ge 0/0'), 
+                    ('R-1', 'Ge 0/1', 'R-2', 'Ge 0/1'), 
+                    ('R-2', 'Ge 0/5', 'R-5', 'Ge 0/1')
+                    ]
+                }", 
+                id='7be6fd90-9825-456c-bd4e-42b169c85cb4', 
+                tool_call_id='call_00_wljsKi7zyTGLp9C1eTEOjafN'
+        ), 
+        AIMessage(
+            content='根据拓扑信息，当前GNS3项目 "network_ai" 中有以下拓扑结构：\n
+                \n
+                ## 项目信息\n
+                - **项目名称**: network_ai\n
+                - **项目ID**: f2f7ed27-7aa3-4b11-a64c-da947a2c7210\n
+                - **状态**: 已打开 (opened)\n
+                \n
+                ## 设备列表 (6台路由器)\n
+                1. **R-1** - 节点ID: dae0b5be-03aa-492d-939c-72f2bbe1d74a\n
+                - 控制台端口: 5012\n
+                    - 位置: (-30, -405)\n
+                        - 端口: Ge 0/0 到 Ge 0/15 (共16个端口)\n
+                        \n
+                2. **R-2** - 节点ID: 770c835c-83ae-42ce-a2b9-9a88fb4d2145\n
+                - 控制台端口: 5014\n
+                    - 位置: (-30,-255)\n
+                        - 端口: Ge 0/0 到 Ge 0/15 (共16个端口)\n
+                        \n
+                3. **R-3** - 节点ID: 5f875fef-f795-4f06-96b2-9c34a66a296d\n
+                - 控制台端口: 5016\n
+                    - 位置: (-180,-30)\n
+                        - 端口: Ge 0/0 到 Ge 0/15 (共16个端口)\n
+                        \n
+                4. **R-4** - 节点ID: ceb2e0f0-5c7e-48b2-b289-8db2ed92e5a7\n
+                - 控制台端口: 5018\n
+                    - 位置: (120,-30)\n
+                        - 端口: Ge 0/0 到 Ge 0/15 (共16个端口)\n
+                        \n
+                5. **R-5** - 节点ID: 18dd23f5-fd10-49a8-8b1c-a0f741356a12\n
+                - 控制台端口: 5020\n
+                    - 位置: (-30,195)\n
+                        - 端口: Ge 0/0 到 Ge 0/15 (共16个端口)\n
+                        \n
+                6. **R-6** - 节点ID: 320b1ee0-fc0e-47ac-a818-a9280a925bb6\n
+                - 控制台端口: 5022\n
+                    - 位置: (-30,345)\n
+                        - 端口: Ge 0/0 到 Ge 0/15 (共16个端口)\n
+                        \n
+                ## 连接拓扑 (8条链路)\n
+                1. **R-2 Ge 0/3** ↔ **R-3 Ge 0/2**\n
+                2. **R-2 Ge 0/4** ↔ **R-4 Ge 0/2**\n
+                3. **R-3 Ge 0/5** ↔ **R-5 Ge 0/3**\n
+                4. **R-4 Ge 0/5** ↔ **R-5 Ge 0/4**\n
+                5. **R-5 Ge 0/0** ↔ **R-6 Ge 0/0**\n
+                6. **R-3 Ge 0/0** ↔ **R-4 Ge 0/0**\n
+                7. **R-1 Ge 0/1** ↔ **R-2 Ge 0/1**\n
+                8. **R-2 Ge 0/5** ↔ **R-5 Ge 0/1**\n
+                \n
+                ## 拓扑结构分析\n
+                从连接关系可以看出：\n
+                - R-1 只连接到 R-2\n
+                - R-2 是核心节点，连接到 R-1、R-3、R-4、R-5\n- R-3 和 R-4 之间有直连，并且都连接到 R-5\n
+                - R-5 连接到 R-6\n
+                - R-6 只连接到 R-5\n
+                \n
+                这是一个典型的层次化网络拓扑，R-2 作为核心路由器，连接着其他所有路由器。', 
+            additional_kwargs={}, 
+            response_metadata={
+                'finish_reason': 'stop',
+                'model_name': 'deepseek-chat', 
+                'system_fingerprint': 'fp_eaab8d114b_prod0820_fp8_kvcache', 
+                'model_provider': 'deepseek'
+                }, 
+            id='lc_run--019b4616-80ec-7333-b213-60a5aefe3317', 
+            usage_metadata={
+                'input_tokens': 6658, 
+                'output_tokens': 884, 
+                'total_tokens': 7542, 
+                'input_token_details': {'cache_read': 3712}, 
+                'output_token_details': {}
+            }
+        )
+    ], 
+    'llm_calls': 2, 
+    'conversation_title': 'GNS3网络拓扑结构'
+    }, 
+    next=(), 
+    config={
+        'configurable': {
+            'thread_id': '8fa6fe70-b1be-4846-8b3c-0012179ac242', 
+            'checkpoint_ns': '', 
+            'checkpoint_id': '1f0df33f-6c9b-6ce3-8004-3a67addedb55'
+        }
+    }, 
+    metadata={'source': 'loop', 'step': 4, 'parents': {}, 'max_iterations': 50}, 
+    created_at='2025-12-22T12: 44: 32.522746+00: 00', 
+    parent_config={
+        'configurable': {
+            'thread_id': '8fa6fe70-b1be-4846-8b3c-0012179ac242', 
+            'checkpoint_ns': '', 
+            'checkpoint_id': '1f0df33f-5415-6cc6-8003-fbdebb15c906'
+        }
+    }, 
+    tasks=(), 
+    interrupts=())

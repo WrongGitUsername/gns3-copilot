@@ -1,6 +1,6 @@
 """
-This module provides a LangChain BaseTool to retrieve the topology of the
- currently open GNS3 project.
+This module provides a LangChain BaseTool to retrieve the topology of a
+ specific GNS3 project by project ID.
 """
 
 import copy
@@ -26,23 +26,25 @@ class GNS3TopologyTool(BaseTool):
 
     name: str = "gns3_topology_reader"
     description: str = """
-    Retrieves the topology of the currently open GNS3 project.
+    Retrieves the topology of a specific GNS3 project by project ID.
 
-    Input: Optional JSON string or dictionary specifying the GNS3 server URL (defaults to 'http://localhost:3080/').
+    Input: JSON string or dictionary containing:
+    - `project_id` (str, required): UUID of the specific GNS3 project to retrieve topology from.
+    Optional: server_url (defaults to environment variable GNS3_SERVER_URL).
 
     Output: A dictionary containing:
-    - `project_id` (str): UUID of the open project.
+    - `project_id` (str): UUID of the project.
     - `name` (str): Project name.
-    - `status` (str): Project status (e.g., 'opened').
+    - `status` (str): Project status (e.g., 'opened', 'closed').
     - `nodes` (dict): Dictionary with node names as keys and details as values, including:
     - `node_id` (str): Node UUID.
     - `ports` (list): List of port details (e.g., `{"name": "Gi0/0", "adapter_number": int, "port_number": int, ...}`).
     - Other fields like `console_port`, `type`, `x`, `y`.
     - `links` (list): List of link details (e.g., `[{"link_id": str, "nodes": list, ...}]`), empty if no links exist.
-    - If no project is open or found: `{}`.
+    - If project_id is not provided or invalid: `{"error": str}`.
     - If an error occurs: `{"error": str}` (e.g., `{"error": "Failed to retrieve topology: ..."}`).
 
-    Example Input: `None`
+    Example Input: `{"project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24"}`
 
     Example Output*:
     {
@@ -65,26 +67,31 @@ class GNS3TopologyTool(BaseTool):
     },
     "links": [('R-1', 'Ge 0/0', 'R-2', 'Ge 0/0'), ...]
     }
-    **Node**:
-    Requires a running GNS3 server at the specified URL and an open project.
+    **Note**:
+    Requires a running GNS3 server at the specified URL and a valid project_id.
     Use the ports field(e.g., name: "Gi0/0") to provide input for the create_gns3_link tool.
     """
 
-    def _run(self, tool_input: Any = None, run_manager: Any = None) -> dict:
+    def _run(self, tool_input: Any = None, run_manager: Any = None, project_id: str = None) -> dict:
         """
-        Synchronous method to retrieve the topology of the currently open GNS3 project.
+        Synchronous method to retrieve the topology of a specific GNS3 project.
 
         Args:
             tool_input : Input parameters, typically a dict or Pydantic model containing server_url.
             run_manager : Callback manager for tool run.
+            project_id : The UUID of the specific GNS3 project to retrieve topology from.
 
         Returns:
             dict: A dictionary containing the project ID, name, status, nodes, and links,
-                  or an empty dict if no projects are found or no project is open,
-                  or an error dictionary if an exception occurs.
+                  or an error dictionary if an exception occurs or project_id is not provided.
         """
 
         try:
+            # Validate project_id parameter
+            if not project_id:
+                logger.error("project_id parameter is required.")
+                return {"error": "project_id parameter is required. Please provide a valid project UUID."}
+
             api_version_str = os.getenv("API_VERSION")
             server_url = os.getenv("GNS3_SERVER_URL")
 
@@ -106,26 +113,9 @@ class GNS3TopologyTool(BaseTool):
                     f"Unsupported or missing API_VERSION: {api_version_str}"
                 )
 
-            projects = server.projects_summary(is_print=False)
-            print(projects)
-            # Check if any projects exist
-            if projects is None:
-                logger.warning("No projects found (projects is None).")
-                return {}
-
-            # Get the ID of the opened project
-            pro_id = None
-            for p in projects:
-                if p[4] == "opened":
-                    pro_id = p[1]
-                    break
-            print(pro_id)
-            if not pro_id:
-                logger.warning("No opened project found.")
-                return {}
-
-            project = Project(project_id=pro_id, connector=server)
-            print(project)
+            # Use the provided project_id directly
+            logger.info(f"Retrieving topology for project_id: {project_id}")
+            project = Project(project_id=project_id, connector=server)
             project.get()  # Load project details
 
             # Get topology JSON: includes nodes (devices), links, etc.
@@ -164,5 +154,16 @@ if __name__ == "__main__":
 
     # Test the tool
     tool = GNS3TopologyTool()
-    result = tool._run()
+    
+    # Example usage with project_id
+    # Replace with an actual project UUID from your GNS3 server
+    example_project_id = "f32ebf3d-ef8c-4910-b0d6-566ed828cd24"
+    
+    print("Testing GNS3TopologyTool with project_id...")
+    result = tool._run(project_id=example_project_id)
     pprint(result)
+    
+    # Test without project_id (should return error)
+    print("\nTesting without project_id (should return error)...")
+    error_result = tool._run()
+    pprint(error_result)

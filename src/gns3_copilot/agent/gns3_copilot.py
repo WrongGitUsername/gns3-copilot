@@ -19,7 +19,7 @@ solution for GNS3 environments.
 import operator
 import os
 import sqlite3
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Tuple
 
 import streamlit as st
 from dotenv import load_dotenv
@@ -30,7 +30,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.managed.is_last_step import RemainingSteps
 from typing_extensions import TypedDict
 
-from gns3_copilot.gns3_client import GNS3TopologyTool
+from gns3_copilot.gns3_client import GNS3TopologyTool, GNS3ProjectList
 from gns3_copilot.log_config import setup_logger
 from gns3_copilot.prompts import TITLE_PROMPT, load_system_prompt
 from gns3_copilot.tools_v2 import (
@@ -112,25 +112,49 @@ class MessagesState(TypedDict):
     """
 
     messages: Annotated[list[AnyMessage], operator.add]
+
     llm_calls: int
+
     remaining_steps: RemainingSteps
-    conversation_title: str | None  # Optional conversation title
 
+    # Optional conversation title
+    conversation_title: str | None
 
-# Define model node
+    # 存储人类选中的那个完整元组
+    selected_project: Tuple[str, str, int, int, str]
+
+# Define llm call  node
 def llm_call(state: dict):
     """LLM decides whether to call a tool or not"""
+    
     current_prompt = load_system_prompt()
     # print(current_prompt)
-    return {
-        "messages": [
-            model_with_tools.invoke(
-                [SystemMessage(content=current_prompt)] + state["messages"]
+    
+    # 获取之前存储的项目元组
+    selected_p = state.get("selected_project")
+
+    # 构造上下文消息
+    context_messages = []
+    if selected_p:
+        # 将元组信息转化为自然语言，告诉 LLM 用户选了哪个
+        project_info = (
+            "User has selected project: "
+            f"Project_Name={selected_p[0]}, "
+            f"Project_ID={selected_p[1]}, "
+            f"Device_Number={selected_p[2]}, "
+            f"Link_Number={selected_p[3]}, "
+            f"Status={selected_p[4]}"
             )
-        ],
+        context_messages.append(
+            SystemMessage(content=f"Current Context: {project_info}"))
+
+    # 合并消息列表
+    full_messages = [SystemMessage(content=current_prompt)] + context_messages + state["messages"]
+    #print(full_messages)
+    return {
+        "messages": [model_with_tools.invoke(full_messages)],
         "llm_calls": state.get("llm_calls", 0) + 1,
     }
-
 
 # Define generate title node
 def generate_title(state: MessagesState) -> dict:
@@ -182,7 +206,6 @@ def generate_title(state: MessagesState) -> dict:
     # Title already exists → no update needed
     return {}
 
-
 # Define tool node
 def tool_node(state: dict):
     """Performs the tool call"""
@@ -193,7 +216,6 @@ def tool_node(state: dict):
         observation = tool.invoke(tool_call["args"])
         result.append(ToolMessage(content=observation, tool_call_id=tool_call["id"]))
     return {"messages": result}
-
 
 # Routing logic after the LLM node
 def should_continue(
@@ -231,8 +253,7 @@ def should_continue(
     )
     return END
 
-
-# Routing logic after the tool node
+# Routing logic after the tool node, Check remaining_steps
 def recursion_limit_continue(state: MessagesState) -> Literal["llm_call", END]:
     """
     Routing logic after tool execution to prevent infinite recursion.
@@ -258,15 +279,14 @@ def recursion_limit_continue(state: MessagesState) -> Literal["llm_call", END]:
 
     return END
 
-
 # Build and compile the agent
 # Build workflow
 agent_builder = StateGraph(MessagesState)
 
 # Add nodes
 agent_builder.add_node("llm_call", llm_call)
-agent_builder.add_node("title_generator_node", generate_title)
 agent_builder.add_node("tool_node", tool_node)
+agent_builder.add_node("title_generator_node", generate_title)
 
 # Add edges to connect nodes
 agent_builder.add_edge(START, "llm_call")
@@ -297,7 +317,6 @@ agent_builder.add_edge("title_generator_node", END)
 # Add checkpointing
 LANGGRAPH_DB_PATH = "gns3_langgraph.db"
 
-
 @st.cache_resource(show_spinner="Initializing conversation persistence...")
 def get_checkpointer() -> SqliteSaver:
     """
@@ -311,7 +330,6 @@ def get_checkpointer() -> SqliteSaver:
     # SqliteSaver will create the necessary tables on first use
     return SqliteSaver(conn)
 
-
 # Compile the agent
 @st.cache_resource(show_spinner="Compiling LangGraph agent...")
 def get_agent():
@@ -324,10 +342,8 @@ def get_agent():
     """
     return agent_builder.compile(checkpointer=get_checkpointer())
 
-
 langgraph_checkpointer = get_checkpointer()  # Cached SqliteSaver instance
 agent = get_agent()  # Cached compiled LangGraph agent (with persistence)
-
 
 # Show the agent
 # graph_image_data = agent.get_graph(xray=True).draw_mermaid_png()

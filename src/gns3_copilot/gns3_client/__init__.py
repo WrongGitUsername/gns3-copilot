@@ -23,6 +23,7 @@ from .custom_gns3fy import (
     Project,
 )
 from .gns3_topology_reader import GNS3TopologyTool
+from .gns3_projects_list import GNS3ProjectList
 
 # Dynamic version management
 try:
@@ -53,4 +54,5 @@ __all__ = [
     "CONSOLE_TYPES",
     "LINK_TYPES",
     "GNS3TopologyTool",
+    "GNS3ProjectList",
 ]
