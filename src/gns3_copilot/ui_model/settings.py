@@ -337,68 +337,83 @@ def save_settings(settings: dict) -> None:
 
 
 def render_update_settings():
-
     settings = load_settings()
     current_value = settings.get("check_updates_on_startup", False)
-
     check_on_startup = st.checkbox(
         "Check for updates on startup",
         value=current_value,
     )
-
     if check_on_startup != current_value:
         settings["check_updates_on_startup"] = check_on_startup
         save_settings(settings)
-
+    
     if st.button("Check now for updates"):
         st.session_state.pop("dismiss_update", None)
+        st.session_state["check_updates"] = True  # Add this flag
+    
+    # Always check if we should run the update check/prompt
+    if st.session_state.get("check_updates") or st.session_state.get("updating"):
         check_and_prompt_update()
-
 
 def check_and_prompt_update():
     if st.session_state.get("dismiss_update"):
+        st.session_state.pop("check_updates", None)  # Clear the flag
         return
-
+    
+    # Check if update is in progress
+    if st.session_state.get("updating"):
+        perform_update()
+        st.session_state["updating"] = False
+        st.session_state["dismiss_update"] = True
+        st.session_state.pop("check_updates", None)  # Clear the flag
+        return
+    
     with st.spinner("Checking for updates..."):
         try:
             available, current, latest = is_update_available()
         except Exception:
             st.error("Unable to check for updates. Please check your internet connection.")
+            st.session_state.pop("check_updates", None)  # Clear the flag
             return
-
+    
     if not available:
         st.info(f"You are running the latest version ({current}).")
+        st.session_state.pop("check_updates", None)  # Clear the flag
         return
-
+    
     st.warning("Update available")
-
     st.markdown(
         f"""
         **Current version:** {current}  
         **Latest version:** {latest}
-
         Do you want to update to version **{latest}**?
         """
     )
-
+    
     col1, col2 = st.columns(2)
-
     with col1:
-        if st.button("Update", type="primary"):
-            perform_update()
-
+        if st.button("Update", type="primary", key="update_btn"):
+            st.session_state["updating"] = True
+            st.rerun()  # Force rerun to trigger update
     with col2:
-        if st.button("Cancel"):
+        if st.button("Cancel", key="cancel_btn"):
             st.session_state["dismiss_update"] = True
+            st.session_state.pop("check_updates", None)  # Clear the flag
             st.rerun()
-
 
 def perform_update():
     with st.spinner("Updating GNS3 Copilot..."):
         success, message = run_update()
-
+    
     if success:
         st.success(message)
+        st.warning("⚠️ **Please restart the application to use the new version.**")
+        st.markdown("""
+        **To restart:**
+        1. Close this browser tab
+        2. Stop the Streamlit process (Ctrl+C in terminal)
+        3. Run `gns3-copilot` again
+        """)
     else:
         st.error(message)
 
