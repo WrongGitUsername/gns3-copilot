@@ -91,17 +91,17 @@ class GNS3TopologyTool(BaseTool):
             if api_version_str == "2":
                 server = Gns3Connector(
                     url=server_url,
-                    api_version=int(api_version_str),  # 强制转换为 int
+                    api_version=int(api_version_str),  # Force convert to int
                 )
             elif api_version_str == "3":
                 server = Gns3Connector(
                     url=server_url,
                     user=os.getenv("GNS3_SERVER_USERNAME"),
                     cred=os.getenv("GNS3_SERVER_PASSWORD"),
-                    api_version=int(api_version_str),  # 强制转换为 int
+                    api_version=int(api_version_str),  # Force convert to int
                 )
             else:
-                # 兜底处理：如果 API_VERSION 既不是 2 也不是 3
+                # Fallback handling: if API_VERSION is neither 2 nor 3
                 raise ValueError(
                     f"Unsupported or missing API_VERSION: {api_version_str}"
                 )

@@ -172,6 +172,13 @@ GNS3 Copilot configuration is managed through a Streamlit interface, with all se
 
 This project uses MIT License - see [LICENSE](LICENSE) file for details.
 
+## Acknowledgements
+
+Special thanks to the following resources for their inspiration and technical foundation:
+
+* **Powered by 《网络工程师的 Python 之路》**
+* **Powered by 《网络工程师的 AI 之路》**
+
 ## Contact
 
 - Project Homepage: https://github.com/yueguobin/gns3-copilot

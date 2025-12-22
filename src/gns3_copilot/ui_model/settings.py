@@ -184,7 +184,7 @@ def load_config_from_env() -> None:
 
         # Special handling for VOICE (boolean)
         if st_key == "VOICE":
-            # 确保 default_value 是字符串后再进行处理
+            # Ensure default_value is a string before processing
             voice_str = str(default_value).lower().strip()
 
             if voice_str not in (
@@ -203,12 +203,12 @@ def load_config_from_env() -> None:
                 )
                 voice_str = "false"
 
-            # 直接计算布尔值并存入 session_state
+            # Directly calculate boolean value and store in session_state
             is_enabled: bool = voice_str in ("true", "1", "yes", "on")
             st.session_state[st_key] = is_enabled
 
             logger.debug("Loaded config: %s = %s", st_key, is_enabled)
-            continue  # 重要：处理完布尔类型后跳过本次循环，防止被最后的通用赋值覆盖
+            continue  # Important: Skip this loop after processing boolean type to prevent override by the final generic assignment
 
         # Special handling for TTS configuration
         if st_key == "TTS_MODEL" and default_value not in TTS_MODELS:

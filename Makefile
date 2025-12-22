@@ -18,8 +18,8 @@ install:
 
 # Code style check and auto-formatting
 lint:
-	ruff check . --fix
-	ruff format .
+	ruff check src/ --fix
+	ruff format src/
 
 # Type checking
 type-check:
