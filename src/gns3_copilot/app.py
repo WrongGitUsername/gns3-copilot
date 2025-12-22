@@ -104,9 +104,8 @@ def render_startup_update_result():
     
     if status == "available":
         st.warning(
-            f"🆕 **Update available:** {result['current']} → {result['latest']}\n\n"
+            f"⚠️ **Update available:** {result['current']} → {result['latest']}\n\n"
             "Go to **Settings → GNS3 Copilot Updates** to update.",
-            icon="⚠️"
         )
     elif status == "up_to_date":
         # Show success message briefly
