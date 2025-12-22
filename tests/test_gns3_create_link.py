@@ -118,9 +118,18 @@ class TestGNS3LinkToolInputValidation:
                 }
             ]
         }
-        result = tool._run(json.dumps(input_data))
-        assert "error" in result[0]
-        assert "Missing required fields in link definition 0" in result[0]["error"]
+        # Add environment variables to allow validation to proceed
+        with patch.dict(os.environ, {
+            "GNS3_SERVER_URL": "http://localhost:3080"
+        }):
+            with patch('gns3_copilot.tools_v2.gns3_create_link.Gns3Connector') as mock_connector_class:
+                # Mock connector to prevent actual connection
+                mock_connector = Mock()
+                mock_connector_class.return_value = mock_connector
+                
+                result = tool._run(json.dumps(input_data))
+                assert "error" in result[0]
+                assert "Missing required fields in link definition 0" in result[0]["error"]
 
     def test_link_with_none_values(self):
         """Test link definition with None values"""
@@ -136,9 +145,18 @@ class TestGNS3LinkToolInputValidation:
                 }
             ]
         }
-        result = tool._run(json.dumps(input_data))
-        assert "error" in result[0]
-        assert "Missing required fields in link definition 0" in result[0]["error"]
+        # Add environment variables to allow validation to proceed
+        with patch.dict(os.environ, {
+            "GNS3_SERVER_URL": "http://localhost:3080"
+        }):
+            with patch('gns3_copilot.tools_v2.gns3_create_link.Gns3Connector') as mock_connector_class:
+                # Mock connector to prevent actual connection
+                mock_connector = Mock()
+                mock_connector_class.return_value = mock_connector
+                
+                result = tool._run(json.dumps(input_data))
+                assert "error" in result[0]
+                assert "Missing required fields in link definition 0" in result[0]["error"]
 
     def test_link_with_empty_strings(self):
         """Test link definition with empty strings"""
@@ -154,9 +172,18 @@ class TestGNS3LinkToolInputValidation:
                 }
             ]
         }
-        result = tool._run(json.dumps(input_data))
-        assert "error" in result[0]
-        assert "Missing required fields in link definition 0" in result[0]["error"]
+        # Add environment variables to allow validation to proceed
+        with patch.dict(os.environ, {
+            "GNS3_SERVER_URL": "http://localhost:3080"
+        }):
+            with patch('gns3_copilot.tools_v2.gns3_create_link.Gns3Connector') as mock_connector_class:
+                # Mock connector to prevent actual connection
+                mock_connector = Mock()
+                mock_connector_class.return_value = mock_connector
+                
+                result = tool._run(json.dumps(input_data))
+                assert "error" in result[0]
+                assert "Missing required fields in link definition 0" in result[0]["error"]
 
 
 class TestGNS3LinkToolAPIVersionHandling:
@@ -1021,10 +1048,19 @@ class TestGNS3LinkToolEdgeCases:
             ]
         }
         
-        # This should be caught by validation
-        result = tool._run(json.dumps(input_data))
-        assert "error" in result[0]
-        assert "Missing required fields" in result[0]["error"]
+        # Add environment variables to allow validation to proceed
+        with patch.dict(os.environ, {
+            "GNS3_SERVER_URL": "http://localhost:3080"
+        }):
+            with patch('gns3_copilot.tools_v2.gns3_create_link.Gns3Connector') as mock_connector_class:
+                # Mock connector to prevent actual connection
+                mock_connector = Mock()
+                mock_connector_class.return_value = mock_connector
+                
+                # This should be caught by validation
+                result = tool._run(json.dumps(input_data))
+                assert "error" in result[0]
+                assert "Missing required fields" in result[0]["error"]
 
 
 class TestGNS3LinkToolIntegration:
