@@ -268,7 +268,10 @@ selected_p = snapshot.values.get("selected_project")
 
 # --- Logic branch: If no project is selected, display project cards ---
 if not selected_p:
-    st.markdown('<p style="font-size: 32px; font-weight: bold;">GNS3 Copilot - Workspace Selection</p>', unsafe_allow_html=True)
+    st.markdown(
+        '<p style="font-size: 32px; font-weight: bold;">GNS3 Copilot - Workspace Selection</p>',
+        unsafe_allow_html=True,
+    )
     st.info("Please select an opened project to enter the conversation context.")
 
     # Get project list
