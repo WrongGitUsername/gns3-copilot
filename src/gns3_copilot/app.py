@@ -5,13 +5,8 @@ Main application module that initializes and runs the Streamlit-based web interf
 with navigation between settings, chat, and help pages.
 """
 
-
-import json
 import streamlit as st
-from pathlib import Path
-from gns3_copilot.utils.updater import is_update_available
-
-SETTINGS_FILE = Path.home() / ".config" / "gns3-copilot" / "settings.json"
+from gns3_copilot.utils.updater import is_update_available, save_skipped_version, load_skipped_version
 
 NAV_PAGES = [
     "ui_model/settings.py",
@@ -36,17 +31,6 @@ and GNS3 Copilot will respond accordingly.
 **Note:** This is a prototype version. For more information,
 visit the [GNS3 Copilot GitHub Repository](https://github.com/yueguobin/gns3-copilot).
 """
-
-
-def _load_startup_setting() -> bool:
-    """Load the check_updates_on_startup setting from config file."""
-    if SETTINGS_FILE.exists():
-        try:
-            data = json.loads(SETTINGS_FILE.read_text())
-            return bool(data.get("check_updates_on_startup"))
-        except Exception:
-            return False
-    return False
 
 
 def perform_update_check():
@@ -74,8 +58,6 @@ def perform_update_check():
 
 def check_and_display_updates():
     """Check for updates and display results - runs once on startup."""
-    if not _load_startup_setting():
-        return
     
     # Skip if already checked in this session
     if "startup_update_checked" in st.session_state:
@@ -92,42 +74,70 @@ def check_and_display_updates():
     # Force a rerun to display the result
     st.rerun()
 
-
 def render_startup_update_result():
     """Display the startup update check result if available."""
     result = st.session_state.get("startup_update_result")
-    
     if not result:
         return
-    
+
     status = result.get("status")
-    
+
+    # Update available
     if status == "available":
+        latest = result["latest"]
+
+        # Session dismiss
+        if st.session_state.get("_update_dismissed"):
+            return
+
+        # Persistent skip
+        skipped_version = st.session_state.get("skipped_update_version")
+        if skipped_version == latest:
+            return
+
+        # Render warning FIRST
         st.warning(
-            f"⚠️ **Update available:** {result['current']} → {result['latest']}\n\n"
-            "Go to **Settings → GNS3 Copilot Updates** to update.",
+            f"⚠️ **Update available:** {result['current']} → {latest}\n\n"
+            "Go to **Settings → GNS3 Copilot Updates** to update."
         )
+
+        # Render actions BELOW the warning
+        col1, col2 = st.columns(2)
+
+        with col1:
+            if st.button("Dismiss", key="dismiss_update"):
+                st.session_state["_update_dismissed"] = True
+                st.rerun()
+
+        with col2:
+            if st.button("Skip this version", key="skip_update"):
+                st.session_state["skipped_update_version"] = latest
+                save_skipped_version(latest)
+                st.rerun()
+
+    # Up to date
     elif status == "up_to_date":
-        # Show success message briefly
-        if not st.session_state.get("_up_to_date_dismissed"):
-            st.success(
-                f"✅ You're using the latest version ({result['current']})",
-            )
-            # Add a dismiss button
-            if st.button("Dismiss", key="dismiss_update_msg"):
-                st.session_state["_up_to_date_dismissed"] = True
-                st.rerun()
+        if st.session_state.get("_up_to_date_dismissed"):
+            return
+
+        st.success(f"✅ You're using the latest version ({result['current']})")
+
+        if st.button("Dismiss", key="dismiss_uptodate"):
+            st.session_state["_up_to_date_dismissed"] = True
+            st.rerun()
+
+    # Error encountered
     elif status == "error":
-        if not st.session_state.get("_error_dismissed"):
-            st.error(
-                f"❌ Update check failed: {result.get('error', 'Unknown error')}",
+        if st.session_state.get("_error_dismissed"):
+            return
 
-            )
-            # Add a dismiss button
-            if st.button("Dismiss", key="dismiss_error_msg"):
-                st.session_state["_error_dismissed"] = True
-                st.rerun()
+        st.error(
+            f"❌ Update check failed: {result.get('error', 'Unknown error')}"
+        )
 
+        if st.button("Dismiss", key="dismiss_error"):
+            st.session_state["_error_dismissed"] = True
+            st.rerun()
 
 def render_sidebar_about() -> None:
     """Render the About section in the sidebar."""
@@ -145,6 +155,9 @@ def main() -> None:
         initial_sidebar_state="expanded",
     )
     
+    if "skipped_update_version" not in st.session_state:
+        st.session_state["skipped_update_version"] = load_skipped_version()
+        
     # Check for updates on startup (blocking, runs once)
     check_and_display_updates()
     
