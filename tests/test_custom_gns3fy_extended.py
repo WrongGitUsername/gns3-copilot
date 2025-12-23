@@ -1,6 +1,118 @@
 """
 Extended test suite for custom_gns3fy module
 Focuses on achieving high test coverage by testing untested methods and edge cases
+
+Test Coverage:
+1. TestGns3ConnectorExtended
+   - Initialization tests:
+     * Missing URL validation
+     * Session creation with JWT token
+     * Session creation without authentication
+     * V3 authentication with exception
+     * Token expiration check (no token)
+   - Template management:
+     * Template summary (print and return modes)
+     * Get templates list
+     * Get template by ID
+     * Get template by name (found/not found)
+     * Update template (success/not found)
+     * Create template (success/missing name/already exists)
+     * Delete template by name/ID (not found/missing params)
+   - Compute images:
+     * Get compute images
+     * Upload compute image (success/file not found)
+   - Compute ports:
+     * Get compute ports
+   - HTTP call tests:
+     * Call with data and json
+     * Call with neither data nor json
+
+2. TestNodeExtended
+   - Field validators:
+     * Valid node types (docker, vpcs, qemu, dynamips)
+     * Invalid node type
+     * Valid console types (telnet, vnc, http, none)
+     * Invalid console type
+     * Valid status (started, stopped, suspended)
+     * Invalid status
+   - Link management:
+     * Get node links
+     * Start/stop/reload (v2 and v3 APIs)
+     * Node operations failure handling
+   - Lifecycle operations:
+     * Node reload (v2)
+     * Suspend operation
+     * Update node properties
+     * Node creation (success/already created/missing template)
+     * File operations (get/write)
+   - Project methods:
+     * Get nodes list (via Project)
+     * Nodes inventory generation
+   - Multiple start/stop/reload operations
+
+3. TestLinkExtended
+   - Field validators:
+     * Valid link types (ethernet, serial)
+     * Invalid link type
+     * Suspend parameter handling
+     * Filters parameter handling
+   - Link operations:
+     * Create link (success)
+     * Update link (suspend and filters)
+
+4. TestProjectExtended
+   - Project management:
+     * Status validation (opened, closed)
+     * Create project (success/missing name)
+     * Get project by name
+     * Close project
+     * Open project
+     * Get project statistics
+     * File operations (get/write)
+   - Node management:
+     * Get nodes
+     * Get links
+     * Start/stop/reload/suspend all nodes
+   - Inventory management:
+     * Nodes inventory
+     * Links summary
+   - Search operations:
+     * Search node (by name/node_id/not found)
+     * Get node (by name/ID/missing params)
+     * Search link (by link_id/not found)
+     * Get link
+   - Snapshot management:
+     * Get snapshots
+     * Search snapshot (by name/snapshot_id/not found)
+     * Get snapshot (by name/ID/missing params)
+   - Drawing management:
+     * Get drawings
+   - Get specific drawing
+   - Update drawing (not found)
+   - Delete drawing
+   - Node creation/link creation (via Project)
+   - Delete link/snapshot
+   - Restore snapshot
+
+5. TestVerifyDecoratorExtended
+   - Decorator validation:
+     * Node without ID or name
+     * Link without ID
+     * Node name search with multiple results (mock iteration handling)
+   - HTTP call mocking:
+     * Mock HTTP call for node name search
+
+6. TestErrorHandlingExtended
+   - HTTP call variations:
+     * Call with both data and json_data
+     * Call with neither data nor json
+   - API version handling:
+     * Initialization with v2 and v3 APIs
+   - Error extraction:
+     * No response object
+     * JSON parsing exception
+
+Total Test Cases: 70+
 """
 
 import io

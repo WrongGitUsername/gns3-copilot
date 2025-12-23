@@ -188,3 +188,4 @@ test/session_metadata.sqlite
 .env.bak
 .pypirc
 .clinerules
+.clinerules_test

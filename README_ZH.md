@@ -4,7 +4,7 @@
 [![CD - Production Release](https://github.com/yueguobin/gns3-copilot/actions/workflows/cd.yaml/badge.svg)](https://github.com/yueguobin/gns3-copilot/actions/workflows/cd.yaml)
 [![codecov](https://codecov.io/gh/yueguobin/gns3-copilot/branch/Development/graph/badge.svg?token=7FDUCM547W)](https://codecov.io/gh/yueguobin/gns3-copilot)
 [![PyPI version](https://img.shields.io/pypi/v/gns3-copilot)](https://pypi.org/project/gns3-copilot/)
-[![PyPI downloads](https://img.shields.io/pypi/dm/gns3-copilot?style=flat-square)](https://pypi.org/project/gns3-copilot/)
+[![PyPI downloads](https://static.pepy.tech/badge/gns3-copilot)](https://pepy.tech/project/gns3-copilot)
 ![License](https://img.shields.io/badge/license-MIT-green.svg) 
 [![platform](https://img.shields.io/badge/platform-linux%20%7C%20windows%20%7C%20macOS-lightgrey)](https://shields.io/)
 
@@ -81,6 +81,14 @@ GNS3 Copilot 是一个强大的网络自动化工具，集成了多种AI模型�
     
     - 一旦所有步骤成功完成并验证，最终结果将交付给用户。
 
+## 🤝 参与贡献
+我们非常欢迎来自社区的贡献！为了保障项目代码的稳定性，请遵循以下分支管理策略：
+
+- 目标分支：请始终将您的 Pull Request (PR) 提交至 Development 分支（切勿直接提交至 master）。
+
+- 功能分支：为每个新功能或修复创建独立分支：git checkout -b feature/您的功能名称 Development。
+
+- 协作流程：Fork 仓库 -> 创建分支 -> 提交改动 -> 推送代码 -> 发起指向 Development 分支的 Pull Request。
 
 ## 安装指南
 

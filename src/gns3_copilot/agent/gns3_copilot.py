@@ -112,22 +112,51 @@ class MessagesState(TypedDict):
     """
 
     messages: Annotated[list[AnyMessage], operator.add]
+
     llm_calls: int
+
     remaining_steps: RemainingSteps
-    conversation_title: str | None  # Optional conversation title
+
+    # Optional conversation title
+    conversation_title: str | None
+
+    # Store the complete tuple selected by the user
+    selected_project: tuple[str, str, int, int, str]
 
 
-# Define model node
+# Define llm call  node
 def llm_call(state: dict):
     """LLM decides whether to call a tool or not"""
+
     current_prompt = load_system_prompt()
     # print(current_prompt)
+
+    # Get the previously stored project tuple
+    selected_p = state.get("selected_project")
+
+    # Construct context messages
+    context_messages = []
+    if selected_p:
+        # Convert tuple information to natural language to tell LLM which project user selected
+        project_info = (
+            "User has selected project: "
+            f"Project_Name={selected_p[0]}, "
+            f"Project_ID={selected_p[1]}, "
+            f"Device_Number={selected_p[2]}, "
+            f"Link_Number={selected_p[3]}, "
+            f"Status={selected_p[4]}"
+        )
+        context_messages.append(
+            SystemMessage(content=f"Current Context: {project_info}")
+        )
+
+    # Merge message lists
+    full_messages = (
+        [SystemMessage(content=current_prompt)] + context_messages + state["messages"]
+    )
+    # print(full_messages)
     return {
-        "messages": [
-            model_with_tools.invoke(
-                [SystemMessage(content=current_prompt)] + state["messages"]
-            )
-        ],
+        "messages": [model_with_tools.invoke(full_messages)],
         "llm_calls": state.get("llm_calls", 0) + 1,
     }
 
@@ -232,7 +261,7 @@ def should_continue(
     return END
 
 
-# Routing logic after the tool node
+# Routing logic after the tool node, Check remaining_steps
 def recursion_limit_continue(state: MessagesState) -> Literal["llm_call", END]:
     """
     Routing logic after tool execution to prevent infinite recursion.
@@ -247,8 +276,8 @@ def recursion_limit_continue(state: MessagesState) -> Literal["llm_call", END]:
         "llm_call" to continue processing, END to terminate conversation
 
     Logic:
-        - If last message is ToolMessage and steps >= 4: continue to LLM
-        - Otherwise: end conversation to prevent infinite loops
+        - If the last message is ToolMessage and steps >= 4: continue to LLM
+        - Otherwise: end the conversation to prevent infinite loops
     """
     last_message = state["messages"][-1]
     if isinstance(last_message, ToolMessage):
@@ -265,13 +294,13 @@ agent_builder = StateGraph(MessagesState)
 
 # Add nodes
 agent_builder.add_node("llm_call", llm_call)
-agent_builder.add_node("title_generator_node", generate_title)
 agent_builder.add_node("tool_node", tool_node)
+agent_builder.add_node("title_generator_node", generate_title)
 
 # Add edges to connect nodes
 agent_builder.add_edge(START, "llm_call")
 # Conditional routing after LLM response
-# Determines next step based on whether LLM needs to call tools or generate title
+# Determines the next step based on whether LLM needs to call tools or generate title
 agent_builder.add_conditional_edges(
     "llm_call",
     should_continue,
@@ -282,7 +311,7 @@ agent_builder.add_conditional_edges(
     },
 )
 # Conditional routing after tool execution
-# Prevents infinite recursion by checking remaining steps before continuings
+# Prevents infinite recursion by checking remaining steps before continuing
 agent_builder.add_conditional_edges(
     "tool_node",
     recursion_limit_continue,
@@ -320,14 +349,13 @@ def get_agent():
 
     The agent builder (`agent_builder`) and checkpointer are defined earlier in the file.
     By not passing them as parameters we avoid Streamlit cache invalidation issues
-    when the objects are recreated (even if they are logically identical).
+    when objects are recreated (even if they are logically identical).
     """
     return agent_builder.compile(checkpointer=get_checkpointer())
 
 
 langgraph_checkpointer = get_checkpointer()  # Cached SqliteSaver instance
 agent = get_agent()  # Cached compiled LangGraph agent (with persistence)
-
 
 # Show the agent
 # graph_image_data = agent.get_graph(xray=True).draw_mermaid_png()

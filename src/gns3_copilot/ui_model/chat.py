@@ -38,6 +38,7 @@ from dotenv import load_dotenv
 from langchain.messages import AIMessage, HumanMessage, ToolMessage
 
 from gns3_copilot.agent import agent, langgraph_checkpointer
+from gns3_copilot.gns3_client import GNS3ProjectList
 from gns3_copilot.log_config import setup_logger
 from gns3_copilot.public_model import (
     format_tool_response,
@@ -109,9 +110,9 @@ if "thread_id" not in st.session_state:
 current_thread_id = st.session_state["thread_id"]
 
 # streamlit UI
-st.set_page_config(page_title="GNS3 Copilot", layout="wide")
+st.set_page_config(page_title="GNS3 Copilot")  # layout="wide"
 
-# siderbar info
+# Sidebar info
 with st.sidebar:
     thread_ids = list_thread_ids(langgraph_checkpointer)
 
@@ -261,211 +262,293 @@ else:
         "recursion_limit": 28,
     }
 
-# Configure chat_input based on switch
-if VOICE_ENABLED:
-    prompt = st.chat_input(
-        "Say or record something...",
-        accept_audio=True,
-        audio_sample_rate=24000,
+# --- Get current state ---
+snapshot = agent.get_state(config)
+selected_p = snapshot.values.get("selected_project")
+
+# --- Logic branch: If no project is selected, display project cards ---
+if not selected_p:
+    st.markdown(
+        '<p style="font-size: 32px; font-weight: bold;">GNS3 Copilot - Workspace Selection</p>',
+        unsafe_allow_html=True,
     )
-else:
-    # When voice is disabled, do not enable accept_audio attribute
-    prompt = st.chat_input("Type your message here...")
+    st.info("Please select an opened project to enter the conversation context.")
 
-# Handle input
-if prompt:
-    user_text = ""
+    # Get project list
+    projects = GNS3ProjectList()._run().get("projects", [])
 
-    if VOICE_ENABLED:
-        # Mode A: prompt is an object (containing .text and .audio)
-        if prompt.audio:
-            user_text = speech_to_text(prompt.audio)
+    # Pre-filter all projects in "opened" status
+    opened_projects = [p for p in projects if p[4].lower() == "opened"]
+    # If there's only one opened project, directly select it and skip UI rendering
+    if len(opened_projects) == 1:
+        p = opened_projects[0]
+        agent.update_state(config, {"selected_project": p})
+        # Record a log or brief prompt for debugging convenience
+        st.toast(f"Automatically selecting project: {p[0]}")
+        st.rerun()
 
-        # If voice is not converted to text, or user directly types
-        if not user_text:
-            user_text = prompt.text
+    # st.title("GNS3 Copilot - Workspace Selection")
+    # st.info("Please select an opened project to enter the conversation context.")
+    if projects:
+        cols = st.columns([1, 1])
+        for i, p in enumerate(projects):
+            # Destructure project tuple for clarity: name, ID, device count, link count, status
+            name, p_id, dev_count, link_count, status = p
+
+            # Check status
+            is_opened = status.lower() == "opened"
+
+            with cols[i % 2]:
+                # If closed status, use container with background color or different title format
+                with st.container(border=True):
+                    # Add status icon to title
+                    status_icon = "🟢" if is_opened else "⚪"
+                    st.markdown(f"###### {status_icon} {name}")
+                    st.caption(f"ID: {p_id[:8]}")
+
+                    # Display device and link information
+                    st.write(f"{dev_count} Devices | {link_count} Links")
+
+                    # Dynamic status text display
+                    if is_opened:
+                        st.success(f"Status: {status.upper()}")
+                    else:
+                        st.warning(f"Status: {status.upper()} (Unavailable)")
+
+                    # --- Button logic modification ---
+                    # If status is not opened, set disabled=True
+                    if st.button(
+                        "Select Project" if is_opened else "Project Closed",
+                        key=f"btn_{p_id}",
+                        use_container_width=True,
+                        disabled=not is_opened,  # Key point: disable button for non-opened status
+                        type="primary" if is_opened else "secondary",
+                    ):
+                        # Only execute when button is available and clicked
+                        agent.update_state(config, {"selected_project": p})
+                        st.success(f"Project {name} has been selected!")
+                        st.rerun()
     else:
-        # Mode B: prompt is directly a string
-        user_text = prompt
+        st.error("No projects found in GNS3.")
+        if st.button("Refresh List"):
+            st.rerun()
 
-    # 3. Final check and run
-    if not user_text or user_text.strip() == "":
-        st.stop()
+else:
+    # Top status bar logic remains unchanged
+    st.sidebar.success(f"Current Project: **{selected_p[0]}**")
+    if st.sidebar.button("Switch Project / Exit"):
+        agent.update_state(config, {"selected_project": None})
+        st.rerun()
 
-    # Display user message in chat message container
-    with st.chat_message("user"):
-        st.markdown(user_text)
+    # Configure chat_input based on switch
+    if VOICE_ENABLED:
+        prompt = st.chat_input(
+            "Say or record something...",
+            accept_audio=True,
+            audio_sample_rate=24000,
+        )
+    else:
+        # When voice is disabled, do not enable accept_audio attribute
+        prompt = st.chat_input("Type your message here...")
 
-    # Display assistant response in chat message container
-    with st.chat_message("assistant"):
-        active_text_placeholder = st.empty()
-        current_text_chunk = ""
-        # Core aggregation state: only stores currently streaming tool information
-        # Structure: {'id': str, 'name': str, 'args_string': str} or None
-        current_tool_state = None
+    # Handle input
+    if prompt:
+        user_text = ""
 
-        # TTS local switch for message control
-        tts_played = False
-        # Initialize audio_bytes variable
-        audio_bytes = None
+        if VOICE_ENABLED:
+            # Mode A: prompt is an object (containing .text and .audio)
+            if prompt.audio:
+                user_text = speech_to_text(prompt.audio)
 
-        # Stream the agent response
-        for chunk in agent.stream(
-            {
-                "messages": [HumanMessage(content=user_text)],
-            },
-            config=config,
-            stream_mode="messages",
-        ):
-            for msg in chunk:
-                # with open('log.txt', "a", encoding='utf-8') as f:
-                #    f.write(f"{msg}\n\n")
+            # If voice is not converted to text, or user directly types
+            if not user_text:
+                user_text = prompt.text
+        else:
+            # Mode B: prompt is directly a string
+            user_text = prompt
 
-                if isinstance(msg, AIMessage):
-                    # adapted for gemini
-                    # Check if content is a list and safely extract the first text element
-                    if (
-                        isinstance(msg.content, list)
-                        and msg.content
-                        and "text" in msg.content[0]
-                    ):
-                        actual_text = msg.content[0]["text"]
-                        # Now actual_text is the clean text you need
-                        current_text_chunk += actual_text
-                        active_text_placeholder.markdown(
-                            current_text_chunk, unsafe_allow_html=True
+        # 3. Final check and run
+        if not user_text or user_text.strip() == "":
+            st.stop()
+
+        # Display user message in chat message container
+        with st.chat_message("user"):
+            st.markdown(user_text)
+
+        # Display assistant response in chat message container
+        with st.chat_message("assistant"):
+            active_text_placeholder = st.empty()
+            current_text_chunk = ""
+            # Core aggregation state: only stores currently streaming tool information
+            # Structure: {'id': str, 'name': str, 'args_string': str} or None
+            current_tool_state = None
+
+            # TTS local switch for message control
+            tts_played = False
+            # Initialize audio_bytes variable
+            audio_bytes = None
+
+            # Stream the agent response
+            for chunk in agent.stream(
+                {
+                    "messages": [HumanMessage(content=user_text)],
+                },
+                config=config,
+                stream_mode="messages",
+            ):
+                for msg in chunk:
+                    # with open('log.txt', "a", encoding='utf-8') as f:
+                    #    f.write(f"{msg}\n\n")
+
+                    if isinstance(msg, AIMessage):
+                        # adapted for gemini
+                        # Check if content is a list and safely extract the first text element
+                        if (
+                            isinstance(msg.content, list)
+                            and msg.content
+                            and "text" in msg.content[0]
+                        ):
+                            actual_text = msg.content[0]["text"]
+                            # Now actual_text is the clean text you need
+                            current_text_chunk += actual_text
+                            active_text_placeholder.markdown(
+                                current_text_chunk, unsafe_allow_html=True
+                            )
+
+                        elif isinstance(msg.content, str):
+                            current_text_chunk += str(msg.content)
+                            active_text_placeholder.markdown(
+                                current_text_chunk, unsafe_allow_html=True
+                            )
+
+                        # Determine if text message (i.e., msg.content) reception is complete
+                        is_text_ending = (
+                            # Case 1: Tool call starts
+                            msg.tool_calls
+                            or
+                            # Case 2: End metadata received
+                            msg.response_metadata.get("finish_reason")
+                            in ["tool_calls", "stop"]
                         )
+                        if (
+                            is_text_ending
+                            and not tts_played
+                            and current_text_chunk.strip()
+                            and VOICE_ENABLED
+                        ):
+                            # Play once in a round of AIMessage/ToolMessage
+                            tts_played = True
+                            # Text_to_speech
+                            try:
+                                with st.spinner("Generating voice..."):
+                                    audio_bytes = text_to_speech_wav(current_text_chunk)
+                                    st.audio(
+                                        audio_bytes, format="audio/mp3", autoplay=True
+                                    )
+                            except Exception as e:
+                                logger.error("TTS Error: %", e)
+                                st.error(f"TTS Error: {e}")
 
-                    elif isinstance(msg.content, str):
-                        current_text_chunk += str(msg.content)
-                        active_text_placeholder.markdown(
-                            current_text_chunk, unsafe_allow_html=True
-                        )
+                        # Get metadata (ID and name) from tool_calls
+                        if msg.tool_calls:
+                            for tool in msg.tool_calls:
+                                tool_id = tool.get("id")
+                                # Only when ID is not empty, consider it as the start of a new tool call
+                                if tool_id:
+                                    # Initialize current tool state (this is the only time to get ID)
+                                    # Note: only one tool can be called at a time
+                                    current_tool_state = {
+                                        "id": tool_id,
+                                        "name": tool.get("name", "UNKNOWN_TOOL"),
+                                        "args_string": "",
+                                    }
 
-                    # Determine if text message (i.e., msg.content) reception is complete
-                    is_text_ending = (
-                        # Case 1: Tool call starts
-                        msg.tool_calls
-                        or
-                        # Case 2: End metadata received
-                        msg.response_metadata.get("finish_reason")
-                        in ["tool_calls", "stop"]
-                    )
-                    if (
-                        is_text_ending
-                        and not tts_played
-                        and current_text_chunk.strip()
-                        and VOICE_ENABLED
-                    ):
-                        # Play once in a round of AIMessage/ToolMessage
-                        tts_played = True
-                        # Text_to_speech
-                        try:
-                            with st.spinner("Generating voice..."):
-                                audio_bytes = text_to_speech_wav(current_text_chunk)
-                                st.audio(audio_bytes, format="audio/mp3", autoplay=True)
-                        except Exception as e:
-                            logger.error("TTS Error: %", e)
-                            st.error(f"TTS Error: {e}")
+                        # Concatenate parameter strings from tool_call_chunk
+                        if hasattr(msg, "tool_call_chunks") and msg.tool_call_chunks:
+                            if current_tool_state:
+                                tool_data = current_tool_state
 
-                    # Get metadata (ID and name) from tool_calls
-                    if msg.tool_calls:
-                        for tool in msg.tool_calls:
-                            tool_id = tool.get("id")
-                            # Only when ID is not empty, consider it as the start of a new tool call
-                            if tool_id:
-                                # Initialize current tool state (this is the only time to get ID)
-                                # Note: only one tool can be called at a time
-                                current_tool_state = {
-                                    "id": tool_id,
-                                    "name": tool.get("name", "UNKNOWN_TOOL"),
-                                    "args_string": "",
+                                for chunk_update in msg.tool_call_chunks:
+                                    args_chunk = chunk_update.get("args", "")
+
+                                    # Core: string concatenation
+                                    if isinstance(args_chunk, str):
+                                        tool_data["args_string"] += args_chunk
+
+                        # Determine if the tool_calls_chunks output is complete and
+                        # display the st.expander() for tool_calls
+                        if msg.response_metadata.get(
+                            "finish_reason"
+                        ) == "tool_calls" or (
+                            msg.response_metadata.get("finish_reason") == "STOP"
+                            and current_tool_state is not None
+                        ):
+                            tool_data = current_tool_state
+                            # Parse complete parameter string
+                            parsed_args: dict[str, Any] = {}
+                            try:
+                                parsed_args = json.loads(tool_data["args_string"])
+                            except json.JSONDecodeError:
+                                parsed_args = {
+                                    "error": "JSON parse failed after stream complete."
                                 }
 
-                    # Concatenate parameter strings from tool_call_chunk
-                    if hasattr(msg, "tool_call_chunks") and msg.tool_call_chunks:
-                        if current_tool_state:
-                            tool_data = current_tool_state
+                            # Serialize the tool_input value in parsed_args to a JSON array
+                            # for expansion when using st.json
+                            try:
+                                command_list = json.loads(parsed_args["tool_input"])
+                                parsed_args["tool_input"] = command_list
+                            except (json.JSONDecodeError, KeyError, TypeError):
+                                pass
 
-                            for chunk_update in msg.tool_call_chunks:
-                                args_chunk = chunk_update.get("args", "")
-
-                                # Core: string concatenation
-                                if isinstance(args_chunk, str):
-                                    tool_data["args_string"] += args_chunk
-
-                    # Determine if the tool_calls_chunks output is complete and
-                    # display the st.expander() for tool_calls
-                    if msg.response_metadata.get("finish_reason") == "tool_calls" or (
-                        msg.response_metadata.get("finish_reason") == "STOP"
-                        and current_tool_state is not None
-                    ):
-                        tool_data = current_tool_state
-                        # Parse complete parameter string
-                        parsed_args: dict[str, Any] = {}
-                        try:
-                            parsed_args = json.loads(tool_data["args_string"])
-                        except json.JSONDecodeError:
-                            parsed_args = {
-                                "error": "JSON parse failed after stream complete."
+                            # Build the final display structure that meets your requirements
+                            display_tool_call = {
+                                "name": tool_data["name"],
+                                "id": tool_data["id"],
+                                # Inject tool_input structure
+                                "args": parsed_args,
+                                "type": tool_data.get(
+                                    "type", "tool_call"
+                                ),  # Maintain completeness
                             }
+                            # Update Call Expander, display final parameters (collapsed)
+                            with st.expander(
+                                f"**Tool Call:** {tool_data['name']} `call_id: {tool_data['id']}`",
+                                expanded=False,
+                            ):
+                                # Use the final complete structure
+                                st.json(display_tool_call, expanded=False)
 
-                        # Serialize the tool_input value in parsed_args to a JSON array
-                        # for expansion when using st.json
-                        try:
-                            command_list = json.loads(parsed_args["tool_input"])
-                            parsed_args["tool_input"] = command_list
-                        except (json.JSONDecodeError, KeyError, TypeError):
-                            pass
+                    if isinstance(msg, ToolMessage):
+                        # Wait for audio playback to complete before returning ToolMessage to LLM
+                        if VOICE_ENABLED and audio_bytes:
+                            sleep(get_duration(audio_bytes))
 
-                        # Build the final display structure that meets your requirements
-                        display_tool_call = {
-                            "name": tool_data["name"],
-                            "id": tool_data["id"],
-                            # Inject tool_input structure
-                            "args": parsed_args,
-                            "type": tool_data.get(
-                                "type", "tool_call"
-                            ),  # Maintain completeness
-                        }
-                        # Update Call Expander, display final parameters (collapsed)
+                        # Clear state after completion, ready to receive next tool call
+                        current_tool_state = None
+
+                        content_pretty = format_tool_response(msg.content)
+
                         with st.expander(
-                            f"**Tool Call:** {tool_data['name']} `call_id: {tool_data['id']}`",
+                            f"**Tool Response** `call_id: {msg.tool_call_id}`",
                             expanded=False,
                         ):
-                            # Use the final complete structure
-                            st.json(display_tool_call, expanded=False)
+                            st.json(json.loads(content_pretty), expanded=False)
 
-                if isinstance(msg, ToolMessage):
-                    # Wait for audio playback to complete before returning ToolMessage to LLM
-                    if VOICE_ENABLED and audio_bytes:
-                        sleep(get_duration(audio_bytes))
+                        active_text_placeholder = st.empty()
+                        current_text_chunk = ""
+                        # After a round of AIMessage/ToolMessage, reset tts_played switch, next round of AIMessage/ToolMessage can generate TTS again
+                        tts_played = False
 
-                    # Clear state after completion, ready to receive next tool call
-                    current_tool_state = None
+        # After the interaction, update the session state with the latest StateSnapshot
+        state_history = agent.get_state(config)
 
-                    content_pretty = format_tool_response(msg.content)
-
-                    with st.expander(
-                        f"**Tool Response** `call_id: {msg.tool_call_id}`",
-                        expanded=False,
-                    ):
-                        st.json(json.loads(content_pretty), expanded=False)
-
-                    active_text_placeholder = st.empty()
-                    current_text_chunk = ""
-                    # After a round of AIMessage/ToolMessage, reset tts_played switch, next round of AIMessage/ToolMessage can generate TTS again
-                    tts_played = False
-
-    # After the interaction, update the session state with the latest StateSnapshot
-    state_history = agent.get_state(config)
-
-    # Avoid updating if state_history is empty
-    if not state_history[0]:
-        pass
-    else:
-        # Update session state
-        st.session_state["state_history"] = state_history
-        # print(state_history)
-        # with open('state_history.txt', "a", encoding='utf-8') as f:
-        #    f.write(f"{state_history}\n\n")
+        # Avoid updating if state_history is empty
+        if not state_history[0]:
+            pass
+        else:
+            # Update session state
+            st.session_state["state_history"] = state_history
+            # print(state_history)
+            # with open('state_history.txt', "a", encoding='utf-8') as f:
+            #    f.write(f"{state_history}\n\n")

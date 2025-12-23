@@ -1,7 +1,65 @@
 """
 Tests for prompts module.
+Contains test cases for prompt loading and management functionality.
 
-Comprehensive tests for prompt loading and management functionality.
+Test Coverage:
+1. TestPromptLoaderBase
+   - Successful base prompt loading
+   - Base prompt loading with import error handling
+   - Base prompt loading with attribute error (missing SYSTEM_PROMPT)
+
+2. TestRegularLevelPromptLoader
+   - Loading A1 level regular prompt with ENGLISH_LEVEL env var
+   - Loading all available English levels (A1, A2, B1, B2, C1, C2)
+   - Invalid English level fallback to base_prompt
+   - None level handling
+   - Empty string level handling
+   - Case insensitive level handling (a1, A1, a1)
+   - Whitespace handling in level strings
+   - Import error fallback to base_prompt
+   - Attribute error fallback to base_prompt
+
+3. TestVoiceLevelPromptLoader
+   - Loading A1 level voice prompt with VOICE env var
+   - Loading generic voice prompt
+   - Loading all available voice levels (A1, A2, B1, B2, C1, C2)
+   - None level handling
+   - Complete fallback chain for voice prompts (level-specific -> generic -> base)
+   - Level-specific AttributeError with fallback
+   - Generic AttributeError with fallback
+   - Level-specific ImportError with fallback to generic
+
+4. TestVoiceEnabledCheck
+   - Various true values for VOICE env var (true, TRUE, True, 1, yes, YES, on, ON)
+   - Various false values for VOICE env var (false, FALSE, False, 0, no, NO, off, OFF, '')
+   - Default voice enabled value (False)
+   - Whitespace handling in VOICE env var
+
+5. TestLoadSystemPrompt
+   - Loading system prompt in regular mode
+   - Loading system prompt in voice mode
+   - Loading system prompt without environment variables (fallback to base_prompt)
+   - Loading system prompt with level parameter
+   - Loading voice prompt with level parameter
+
+6. TestPromptConstants
+   - ENGLISH_LEVEL_PROMPT_MAP completeness (A1, A2, B1, B2, C1, C2, NORMAL PROMPT)
+   - VOICE_LEVEL_PROMPT_MAP completeness (A1, A2, B1, B2, C1, C2)
+   - TITLE_PROMPT existence and validation
+   - Voice prompt constants existence (vocie_prompt.SYSTEM_PROMPT)
+
+7. TestModuleImports
+   - Importing main functions from prompts module
+   - __all__ exports validation
+
+8. TestEdgeCases
+   - Invalid ENGLISH_LEVEL environment variable
+   - Level normalization edge cases (a1, A1, whitespace, newline, tab)
+
+9. TestFixtures
+   - Environment variable cleanup after tests
+
+Total Test Cases: 30+
 """
 
 import os

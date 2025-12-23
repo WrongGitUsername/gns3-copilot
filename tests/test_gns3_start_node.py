@@ -1,6 +1,73 @@
 """
 Tests for gns3_start_node module.
 Contains comprehensive test cases for GNS3StartNodeTool functionality.
+
+Test Coverage:
+1. TestShowProgressBar
+   - Basic progress bar functionality
+   - Progress bar with single node
+   - Progress bar with multiple nodes
+   - Custom interval testing
+
+2. TestGNS3StartNodeToolInitialization
+   - Tool name and description validation
+   - Tool inheritance from BaseTool
+   - Tool attributes verification (name, description, _run method)
+
+3. TestGNS3StartNodeToolInputValidation
+   - Empty input handling
+   - Invalid JSON input handling
+   - Missing project_id handling
+   - Missing node_ids handling
+   - Empty project_id handling
+   - Empty node_ids handling
+   - node_ids not a list handling
+   - node_ids is None handling
+   - Valid minimal input validation
+   - Valid multiple nodes input validation
+
+4. TestGNS3StartNodeToolAPIVersionHandling
+   - API version 2 initialization with Basic Auth
+   - API version 3 initialization with JWT authentication
+   - Unsupported API version handling
+   - Default API version (v2) when not specified
+   - Empty API version string handling
+
+5. TestGNS3StartNodeToolSuccessScenarios
+   - Single node startup
+   - Multiple nodes startup
+   - Node with None name handling
+   - Node with None status handling
+
+6. TestGNS3StartNodeToolErrorHandling
+   - Connector initialization exception handling
+   - Missing GNS3_SERVER_URL environment variable
+
+7. TestGNS3StartNodeToolEdgeCases
+   - Unicode node IDs handling (Chinese characters)
+   - Large number of nodes (100 nodes)
+   - Progress bar duration calculation with many nodes
+
+8. TestGNS3StartNodeToolIntegration
+   - Complete workflow with realistic data (UUIDs, multiple nodes)
+   - JSON parsing edge cases (extra whitespace, extra fields)
+
+9. TestGNS3StartNodeToolProgressBarCalculation
+   - Progress bar duration calculation for single node
+   - Progress bar duration calculation for multiple nodes
+   - Formula: base_duration (140s) + 10s * (node_count - 1)
+
+10. TestGNS3StartNodeToolReturnFormat
+    - Return format structure validation
+    - Error return format validation
+
+11. TestGNS3StartNodeToolPerformance
+    - Performance with large dataset (100 nodes)
+
+12. TestGNS3StartNodeToolConcurrency
+    - Thread safety testing with multiple concurrent calls
+
+Total Test Cases: 30+
 """
 
 import json

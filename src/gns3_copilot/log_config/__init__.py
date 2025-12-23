@@ -14,11 +14,10 @@ from .logging_config import (
 )
 
 # Dynamic version management
-__version__: str = "unknown"
 try:
     from importlib.metadata import version
 
-    __version__ = str(version("gns3-copilot"))
+    __version__ = version("gns3-copilot")
 except Exception:
     __version__ = "unknown"
 

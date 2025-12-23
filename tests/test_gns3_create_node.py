@@ -1,6 +1,68 @@
 """
 Tests for gns3_create_node module.
 Contains comprehensive test cases for GNS3CreateNodeTool functionality.
+
+Test Coverage:
+1. TestGNS3CreateNodeToolInitialization
+   - Tool name and description validation
+   - Tool inheritance from BaseTool
+   - Tool attributes verification (name, description, _run method)
+
+2. TestGNS3CreateNodeToolInputValidation
+   - Empty input handling
+   - Invalid JSON input handling
+   - Missing project_id handling
+   - Empty nodes array handling
+   - Nodes not an array handling
+   - Missing nodes field handling
+   - Node definition missing required fields (template_id, x, y)
+   - Node definition with invalid coordinates
+   - Node definition not a dictionary
+   - Node definition with None values
+   - Node definition with empty string template_id
+
+3. TestGNS3CreateNodeToolAPIVersionHandling
+   - API version 2 initialization with Basic Auth
+   - API version 3 initialization with JWT authentication
+   - Unsupported API version handling
+   - Default API version (v2) when not specified
+
+4. TestGNS3CreateNodeToolSuccessScenarios
+   - Single node creation success
+   - Multiple nodes creation success
+   - Negative coordinates handling
+   - Float coordinates handling
+
+5. TestGNS3CreateNodeToolErrorHandling
+   - Node creation exception handling
+   - Connector initialization exception handling
+   - Node.get() exception handling
+
+6. TestGNS3CreateNodeToolMixedSuccessFailure
+   - Mixed successful and failed node creations (e.g., 2 success, 1 failure)
+
+7. TestGNS3CreateNodeToolEdgeCases
+   - Unicode template IDs handling
+   - Very long IDs (1000+ characters)
+   - Special characters in IDs
+   - Large number of nodes (100 nodes)
+   - Zero coordinates
+   - Very large coordinates (±999999)
+
+8. TestGNS3CreateNodeToolIntegration
+   - Complete workflow with realistic data (UUID project/template IDs)
+   - JSON parsing edge cases (extra whitespace, extra fields)
+
+9. TestGNS3CreateNodeToolLogging
+   - Logging messages on successful operations
+   - Logging messages on failed operations
+   - Logging messages for multiple nodes
+
+10. TestGNS3CreateNodeToolEnvironmentVariables
+    - Missing GNS3_SERVER_URL environment variable
+    - Unsupported API version from environment
+
+Total Test Cases: 40+
 """
 
 import json

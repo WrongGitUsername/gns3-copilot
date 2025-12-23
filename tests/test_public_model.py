@@ -1,6 +1,82 @@
 """
 Tests for public_model module.
 Contains test cases for openai_stt.py, openai_tts.py, parse_tool_content.py
+
+Test Coverage:
+1. TestOpenaiStt (OpenAI STT Module)
+   - Getting default STT configuration
+   - Getting STT configuration from environment variables (STT_API_KEY, STT_BASE_URL, etc.)
+   - Empty audio data validation
+   - Bytes array input handling
+   - File object input handling
+   - String response format handling
+   - Large file size validation (25MB limit)
+   - API call error handling
+   - Simplified speech to text function (speech_to_text_simple)
+   - Default GNS3 prompt validation
+
+2. TestOpenaiTts (OpenAI TTS Module)
+   - Getting default TTS configuration
+   - Getting TTS configuration from environment variables (TTS_API_KEY, TTS_BASE_URL, etc.)
+   - Empty text validation
+   - Whitespace-only text validation
+   - Text length validation (4096 character limit)
+   - Speed validation (0.25 - 4.0 range)
+   - Invalid model validation
+   - Successful text to speech conversion
+   - Text to speech with custom parameters (model, voice, speed, api_key, base_url)
+   - API call error handling
+   - Getting valid WAV file duration
+   - Getting invalid audio data duration
+   - Getting empty audio data duration
+
+3. TestParseToolContent (Parse Tool Content Module)
+   - None input handling
+   - Dictionary input handling
+   - List input handling
+   - JSON string parsing
+   - Python literal string parsing (dict and list)
+   - Primitive type string parsing (string, number, boolean)
+   - Empty string handling
+   - Whitespace string handling
+   - Empty dictionary string handling
+   - Invalid string fallback to raw format
+   - Invalid string in strict mode (raises ValueError)
+   - Invalid string without fallback (returns error)
+   - Primitive types (int, bool, float, string)
+   - Unsupported type fallback handling
+   - Unsupported type in strict mode (raises TypeError)
+   - Unsupported type without fallback
+   - Formatting dictionary response
+   - Formatting string response
+   - Formatting None response
+   - Formatting invalid response
+   - Formatting with custom indent
+   - Serialization error handling
+   - Double exception handling
+   - General exception handling
+   - Strict mode error message validation
+
+4. TestPublicModelIntegration (Integration Tests)
+   - STT and TTS workflow (speech to text, text to speech, parse, format)
+   - Comprehensive parse_tool_content testing with various inputs
+
+5. TestGetGns3DevicePort (GNS3 Device Port Module)
+   - Successful device port info retrieval
+   - Device not found handling
+   - Device missing console_port handling
+   - Empty topology handling
+   - None topology handling
+   - Exception handling
+
+6. TestPublicModelInit (public_model Module __init__.py)
+   - Version existence validation
+   - __all__ export list validation
+   - Imported functions existence and callable validation
+   - Version fallback mechanism testing
+   - _test_parse_tool_content function testing
+
+Total Test Cases: 70+
 """
 
 import io

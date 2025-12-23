@@ -57,18 +57,21 @@ class ExecuteMultipleDeviceCommands(BaseTool):
     name: str = "execute_multiple_device_commands"
     description: str = """
     Executes display (show) commands on multiple devices in the current GNS3 topology.
-    Input should be a JSON array containing device names and their respective commands to execute.
+    Input should be a JSON object containing project_id and device configurations.
     Example input:
-        [
-            {
-                "device_name": "R-1",
-                "commands": ["show version", "show ip interface brief"]
-            },
-            {
-                "device_name": "R-2",
-                "commands": ["show version", "show ip ospf neighbor"]
-            }
-        ]
+        {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "R-1",
+                    "commands": ["show version", "show ip interface brief"]
+                },
+                {
+                    "device_name": "R-2",
+                    "commands": ["show version", "show ip ospf neighbor"]
+                }
+            ]
+        }
     Returns a list of dictionaries, each containing the device name and command outputs.
 
     **Do NOT use this tool for any configuration commands (such as 'configure terminal').**
@@ -80,10 +83,10 @@ class ExecuteMultipleDeviceCommands(BaseTool):
         run_manager: CallbackManagerForToolRun | None = None,
     ) -> list[dict[str, Any]]:
         """
-        Executes display commands on multiple devices in the current GNS3 topology.
+        Executes display commands on multiple devices in current GNS3 topology.
 
         Args:
-            tool_input (str): A JSON string containing a list of device commands to
+            tool_input (str): A JSON string containing project_id and device commands to
             execute.
 
         Returns:
@@ -92,7 +95,7 @@ class ExecuteMultipleDeviceCommands(BaseTool):
         """
 
         # Validate input
-        device_configs_list = self._validate_tool_input(tool_input)
+        device_configs_list, project_id = self._validate_tool_input(tool_input)
         if (
             isinstance(device_configs_list, list)
             and len(device_configs_list) > 0
@@ -105,7 +108,9 @@ class ExecuteMultipleDeviceCommands(BaseTool):
 
         # Prepare device hosts data
         try:
-            hosts_data = self._prepare_device_hosts_data(device_configs_list)
+            hosts_data = self._prepare_device_hosts_data(
+                device_configs_list, project_id
+            )
         except ValueError as e:
             logger.error("Failed to prepare device hosts data: %s", e)
             return [{"error": str(e)}]
@@ -183,53 +188,97 @@ class ExecuteMultipleDeviceCommands(BaseTool):
 
     def _validate_tool_input(
         self, tool_input: str | bytes | list[Any] | dict[str, Any]
-    ) -> list[dict[str, Any]]:
+    ) -> tuple[list[dict[str, Any]], str | None]:
         """
-        Validate device display command input, handling both JSON string
-        and already parsed Python object inputs from different LLM providers.
+        Validate device display command input, handling both new and legacy input formats.
+        Supports new format with project_id and device_configs, as well as legacy array format.
 
         Args:
             tool_input: The input received from the LangChain/LangGraph tool call.
+
+        Returns:
+            Tuple containing (device_configs_list, project_id) or (error_list, None)
         """
 
-        device_configs_list = None
+        parsed_input = None
 
         # Compatibility Check and Parsing ---
         # Check if the input is a string (or bytes) which needs to be parsed.
         if isinstance(tool_input, (str, bytes, bytearray)):
             # Handle models (like potentially DeepSeek) that return a raw JSON string.
             try:
-                device_configs_list = json.loads(tool_input)
+                parsed_input = json.loads(tool_input)
                 logger.info("Successfully parsed tool input from JSON string.")
             except json.JSONDecodeError as e:
                 logger.error("Invalid JSON string received as tool input: %s", e)
-                return [{"error": f"Invalid JSON string input from model: {e}"}]
+                return ([{"error": f"Invalid JSON string input from model: {e}"}], None)
         else:
             # Handle standard models (like GPT/OpenAI) where the framework
             # has already parsed the JSON into a Python object (dict or list).
-            device_configs_list = tool_input
+            parsed_input = tool_input
             logger.info(
-                "Using tool input directly as type: %s", {type(tool_input).__name__}
+                "Using tool input directly as type: %s", type(parsed_input).__name__
             )
 
-        # Core Business Logic Validation ---
-        # Check if the final object is the expected Python list type.
-        if not isinstance(device_configs_list, list):
-            # If the result of parsing/direct use is not a list, raise an error.
+        # Handle new format: {"project_id": "...", "device_configs": [...]}
+        if isinstance(parsed_input, dict):
+            project_id = parsed_input.get("project_id")
+            device_configs = parsed_input.get("device_configs")
+
+            # Validate project_id
+            if not project_id:
+                error_msg = "Missing required 'project_id' field in input"
+                logger.error(error_msg)
+                return ([{"error": error_msg}], None)
+
+            if not self._validate_project_id(project_id):
+                error_msg = (
+                    f"Invalid project_id format: {project_id}. Expected UUID format."
+                )
+                logger.error(error_msg)
+                return ([{"error": error_msg}], None)
+
+            # Validate device_configs
+            if not isinstance(device_configs, list):
+                error_msg = "'device_configs' must be an array"
+                logger.error(error_msg)
+                return ([{"error": error_msg}], None)
+
+            if not device_configs:
+                logger.warning("Device configs list is empty.")
+                return [], project_id
+
+            return device_configs, project_id
+
+        # Handle legacy format: [...]
+        elif isinstance(parsed_input, list):
+            logger.warning(
+                "Using legacy input format without project_id. Please use new format with project_id."
+            )
+            return parsed_input, None
+
+        else:
             error_msg = (
-                "Tool input must result in a JSON array/Python list,"
-                f" but got {type(device_configs_list).__name__}"
+                "Tool input must be a JSON object with 'project_id' and 'device_configs' fields, "
+                f"or a legacy JSON array, but got {type(parsed_input).__name__}"
             )
             logger.error(error_msg)
-            return [{"error": error_msg}]
+            return ([{"error": error_msg}], None)
 
-        # Further validation (e.g., ensuring the list is not empty)
-        if not device_configs_list:
-            logger.warning("Tool input list is empty.")
-            # Decide whether to return an error based on business requirements
-            return []
+    def _validate_project_id(self, project_id: str) -> bool:
+        """
+        Validate project_id format (UUID).
 
-        return device_configs_list
+        Args:
+            project_id: The project ID to validate
+
+        Returns:
+            True if valid UUID format, False otherwise
+        """
+        import re
+
+        uuid_pattern = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+        return bool(re.match(uuid_pattern, project_id, re.IGNORECASE))
 
     def _configs_map(
         self, device_config_list: list[dict[str, Any]]
@@ -244,7 +293,7 @@ class ExecuteMultipleDeviceCommands(BaseTool):
         return device_configs_map
 
     def _prepare_device_hosts_data(
-        self, device_config_list: list[dict[str, Any]]
+        self, device_config_list: list[dict[str, Any]], project_id: str | None = None
     ) -> dict[str, dict[str, Any]]:
         """Prepare device hosts data from topology information."""
         # Extract device names list
@@ -252,18 +301,24 @@ class ExecuteMultipleDeviceCommands(BaseTool):
             device_config["device_name"] for device_config in device_config_list
         ]
 
-        # Get device port information
-        hosts_data = get_device_ports_from_topology(device_names)
+        # Get device port information with project_id
+        hosts_data = get_device_ports_from_topology(device_names, project_id)
 
         if not hosts_data:
-            raise ValueError(
-                "Failed to get device information from topology or no valid devices found"
+            error_msg = (
+                f"Failed to get device information from topology or no valid devices found. "
+                f"Project ID: {project_id}, Devices: {device_names}"
             )
+            raise ValueError(error_msg)
 
         # Check for missing devices
         missing_devices = set(device_names) - set(hosts_data.keys())
         if missing_devices:
-            logger.warning("Some devices not found in topology: %s", missing_devices)
+            logger.warning(
+                "Some devices not found in topology (Project ID: %s): %s",
+                project_id or "default",
+                missing_devices,
+            )
 
         return hosts_data
 
@@ -347,26 +402,29 @@ class ExecuteMultipleDeviceCommands(BaseTool):
 
 
 if __name__ == "__main__":
-    # Example usage
+    # Example usage with new format
     device_commands = json.dumps(
-        [
-            {
-                "device_name": "R-2",
-                "commands": ["show version", "show ip interface brief"],
-            },
-            {
-                "device_name": "R-1",
-                "commands": ["show version", "show ip interface brief"],
-            },
-            {
-                "device_name": "SW-1",
-                "commands": ["show version", "show ip interface brief"],
-            },
-            {
-                "device_name": "SW-2",
-                "commands": ["show version", "show ip interface brief"],
-            },
-        ]
+        {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "R-2",
+                    "commands": ["show version", "show ip interface brief"],
+                },
+                {
+                    "device_name": "R-1",
+                    "commands": ["show version", "show ip interface brief"],
+                },
+                {
+                    "device_name": "SW-1",
+                    "commands": ["show version", "show ip interface brief"],
+                },
+                {
+                    "device_name": "SW-2",
+                    "commands": ["show version", "show ip interface brief"],
+                },
+            ],
+        }
     )
 
     exe_cmd = ExecuteMultipleDeviceCommands()

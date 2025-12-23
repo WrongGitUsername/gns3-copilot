@@ -12,12 +12,14 @@ logger = setup_tool_logger("get_gns3_device_port")
 
 def get_device_ports_from_topology(
     device_names: list[str],
+    project_id: str | None = None,
 ) -> dict[str, dict[str, Any]]:
     """
     Get device connection information from GNS3 topology
 
     Args:
         device_names: List of device names to look up
+        project_id: UUID of the specific GNS3 project to retrieve topology from
 
     Returns:
         Dictionary mapping device names to their connection data:
@@ -32,7 +34,7 @@ def get_device_ports_from_topology(
     try:
         # Get topology information
         topo = GNS3TopologyTool()
-        topology = topo._run()
+        topology = topo._run(project_id=project_id)
 
         # Dynamically build hosts_data from topology
         hosts_data: dict[str, dict[str, Any]] = {}
