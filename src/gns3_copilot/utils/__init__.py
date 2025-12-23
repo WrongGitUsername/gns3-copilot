@@ -13,7 +13,12 @@ Author: WrongGitUsername
 """
 
 # Import main utility functions
-from .updater import get_installed_version, get_latest_version, is_update_available, run_update
+from .updater import (
+    get_installed_version,
+    get_latest_version,
+    is_update_available,
+    run_update,
+)
 
 # Dynamic version management
 try:
@@ -38,7 +43,7 @@ __url__ = "https://github.com/yueguobin/gns3-copilot"
 # Export main utility functions
 __all__ = [
     "get_installed_version",
-    "get_latest_version", 
+    "get_latest_version",
     "is_update_available",
     "run_update",
 ]

@@ -1,6 +1,74 @@
 """
 Tests for vpcs_tools_telnetlib3 module.
 Contains comprehensive test cases for VPCSMultiCommands functionality.
+
+Test Coverage:
+1. TestVPCSMultiCommandsInitialization
+   - Tool name and description validation
+   - Tool inheritance from BaseTool
+   - Required tool attributes (name, description, _run, _connect_and_execute_commands)
+
+2. TestVPCSMultiCommandsInputValidation
+   - Empty input handling
+   - Invalid JSON input handling
+   - Non-array JSON input validation
+   - Empty array input handling
+   - Missing device_name validation (KeyError)
+   - Missing commands validation (KeyError)
+   - Empty commands array handling
+   - Commands not an array handling
+   - Command group not a dictionary (TypeError)
+
+3. TestVPCSMultiCommandsEnvironmentVariables
+   - Default GNS3 server host (127.0.0.1)
+   - Custom GNS3 server host from GNS3_SERVER_HOST environment variable
+
+4. TestVPCSMultiCommandsSuccessScenarios
+   - Single device single command execution
+   - Single device multiple commands execution
+   - Multiple devices multiple commands execution
+   - Custom host connection with GNS3_SERVER_HOST
+
+5. TestVPCSMultiCommandsErrorHandling
+   - Device not found in topology
+   - Telnet connection exception
+   - Telnet.open() exception
+   - Telnet.expect() exception
+   - Mixed success and failure scenarios
+
+6. TestVPCSMultiCommandsThreading
+   - Concurrent execution of multiple devices (3 devices)
+   - Thread safety with multiple concurrent connections to same device
+
+7. TestVPCSMultiCommandsEdgeCases
+   - Unicode commands handling
+   - Very long commands (1000 characters)
+   - Special characters in commands
+   - Large number of devices (50 devices)
+   - Large number of commands per device (20 commands)
+   - Empty output from device
+   - Binary output from device
+
+8. TestVPCSMultiCommandsIntegration
+   - Complete workflow with realistic data (IP configuration, ping, save)
+   - JSON parsing edge cases (extra whitespace, additional fields)
+
+9. TestVPCSMultiCommandsLogging
+   - Logging messages on successful operations
+   - Logging messages on failed operations
+
+10. TestVPCSMultiCommandsTelnetInteraction
+    - Telnet initialization sequence (4 newlines, expect, command)
+    - Timing between commands (0.5s initial delays, 5s command delays)
+    - Command encoding (ASCII)
+    - Output decoding (UTF-8)
+
+11. TestVPCSMultiCommandsInternalMethod
+    - Direct testing of _connect_and_execute_commands method
+    - Device not found scenario in internal method
+    - Telnet exception handling in internal method
+
+Total Test Cases: 40+
 """
 
 import json

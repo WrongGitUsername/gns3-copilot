@@ -1,7 +1,49 @@
 """
 Tests for log_config module.
+Contains test cases for logging configuration functionality.
 
-Simple and focused tests to achieve 90%+ coverage.
+Test Coverage:
+1. TestSetupLogger
+   - Basic logger setup with default levels
+   - Logger with custom console and file levels
+   - Logger with custom log file path
+   - No duplicate handlers prevention
+   - Directory creation for log files
+
+2. TestGetLogger
+   - Getting existing logger
+   - Creating new logger
+   - Logger singleton behavior
+
+3. TestConfigurePackageLogging
+   - Package logging configuration with custom level
+   - Default logging level (INFO)
+   - Package logger level verification
+
+4. TestSetupToolLogger
+   - Tool logger with predefined config
+   - Tool logger without predefined config
+   - Tool logger with same name as config entry
+
+5. TestLoggerConfigs
+   - LOGGER_CONFIGS structure validation
+   - Required fields verification (console_level, file_level)
+   - Expected tools existence check (app, chat, settings, device_config)
+
+6. TestEdgeCases
+   - Empty logger name handling
+   - Permission error handling for log files
+
+7. TestVersionHandling
+   - Successful version retrieval from metadata
+   - Version fallback on import error
+   - __version__ attribute verification
+
+8. TestFixtures
+   - Logger cleanup after tests
+   - Test logger management
+
+Total Test Cases: 20+
 """
 
 import logging

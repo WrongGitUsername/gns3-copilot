@@ -1,6 +1,62 @@
 """
 Tests for gns3_create_link module.
 Contains comprehensive test cases for GNS3LinkTool functionality.
+
+Test Coverage:
+1. TestGNS3LinkToolInitialization
+   - Tool name and description validation
+   - Tool inheritance from BaseTool
+   - Tool attributes verification (name, description, _run method)
+
+2. TestGNS3LinkToolInputValidation
+   - Empty input handling
+   - Invalid JSON input handling
+   - Missing project_id handling
+   - Empty links array handling
+   - Links not an array handling
+   - Missing links field handling
+   - Link definition missing required fields (node_id1, port1, node_id2, port2)
+   - Link definition with None values
+   - Link definition with empty strings
+
+3. TestGNS3LinkToolAPIVersionHandling
+   - API version 2 initialization with Basic Auth
+   - API version 3 initialization with JWT authentication
+   - Unsupported API version handling
+   - Default API version (v2) when not specified
+
+4. TestGNS3LinkToolSuccessScenarios
+   - Single link creation success
+   - Multiple links creation success
+   - Port search with specific adapter and port numbers
+
+5. TestGNS3LinkToolErrorHandling
+   - Node not found error handling
+   - Port not found error handling
+   - Node without ports array handling
+   - Link creation exception handling
+   - Connector initialization exception handling
+   - Node retrieval exception handling
+
+6. TestGNS3LinkToolMixedSuccessFailure
+   - Mixed successful and failed link creations (e.g., 2 success, 1 failure)
+
+7. TestGNS3LinkToolEdgeCases
+   - Unicode port names handling
+   - Very long port names (1000+ characters)
+   - Special characters in IDs
+   - Large number of links (100 links)
+   - Empty string values in input
+
+8. TestGNS3LinkToolIntegration
+   - Complete workflow with realistic data (UUID project/Node IDs)
+   - JSON parsing edge cases (extra whitespace, extra fields)
+
+9. TestGNS3LinkToolLogging
+   - Logging messages on successful operations
+   - Logging messages on failed operations
+
+Total Test Cases: 40+
 """
 
 import json

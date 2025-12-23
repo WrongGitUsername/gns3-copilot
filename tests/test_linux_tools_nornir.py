@@ -1,6 +1,64 @@
 """
 Tests for linux_tools_nornir module.
 Contains test cases for LinuxTelnetBatchTool tool.
+
+Test Coverage:
+1. TestLinuxTelnetBatchTool
+   - Tool name and description validation
+   - Input validation (_validate_tool_input):
+     * Valid JSON string and list inputs
+     * Invalid JSON string handling
+     * Non-list input validation
+     * Empty list handling
+   - Config mapping (_configs_map):
+     * Creating device to commands mapping
+     * Empty list handling
+   - Device hosts data preparation (_prepare_device_hosts_data):
+     * Successful data preparation with groups forced to linux_telnet
+     * Empty result handling
+     * Missing devices handling
+   - Nornir initialization (_initialize_nornir):
+     * Successful initialization with threaded runner
+     * Initialization failure handling
+   - Linux telnet login (_linux_telnet_login):
+     * Login with login prompt detection
+     * Already logged in scenario
+     * Login failure handling
+   - Device command execution (_run_all_device_configs_with_single_retry):
+     * Successful command execution
+     * No commands scenario
+     * Exception handling
+   - Task result processing (_process_task_results):
+     * Successful task results with command output
+     * Failed task results
+     * Device not in topology scenarios
+     * Login failure handling
+   - Main run method (_run):
+     * Successful execution with login and commands
+     * Missing credentials handling (LINUX_TELNET_USERNAME/PASSWORD)
+     * Invalid input handling
+     * Device hosts data failure
+     * Nornir init failure
+     * Execution exception handling
+     * List input support
+
+2. TestEdgeCasesAndErrorHandling
+   - Empty commands for a device
+   - Malformed device config (missing required fields)
+   - None tool input handling
+   - Numeric tool input handling
+   - Environment variables handling and groups_data usage
+   - Large number of devices (100 devices) handling
+   - Linux-specific safety description content validation
+   - Credentials configured check
+
+3. TestIntegrationScenarios
+   - Mixed success and failure results (login failures)
+   - Concurrent execution simulation (threaded runner with 10 workers)
+   - Linux command restrictions validation
+   - Nornir configuration for Linux Telnet verification
+
+Total Test Cases: 35+
 """
 
 import json
@@ -53,33 +111,33 @@ class TestLinuxTelnetBatchTool:
     def test_validate_tool_input_valid_json_string(self):
         """Test validation with valid JSON string"""
         result = self.tool._validate_tool_input(self.valid_input_json)
-        assert result == self.valid_input
+        assert result == (self.valid_input, None)
 
     def test_validate_tool_input_valid_list(self):
         """Test validation with valid Python list"""
         result = self.tool._validate_tool_input(json.dumps(self.valid_input))
-        assert result == self.valid_input
+        assert result == (self.valid_input, None)
 
     def test_validate_tool_input_invalid_json_string(self):
         """Test validation with invalid JSON string"""
         invalid_json = '{"device_name": "debian01", "commands": ["cmd1"'  # Missing closing bracket
         result = self.tool._validate_tool_input(invalid_json)
-        assert len(result) == 1
-        assert "error" in result[0]
-        assert "Invalid JSON input" in result[0]["error"]
+        assert len(result) == 2  # Now returns (error_list, None)
+        assert "error" in result[0][0]
+        assert "Invalid JSON string input from model" in result[0][0]["error"]
 
     def test_validate_tool_input_not_a_list(self):
         """Test validation when input is not a list"""
         not_a_list = {"device_name": "debian01", "commands": ["cmd1"]}
         result = self.tool._validate_tool_input(json.dumps(not_a_list))
-        assert len(result) == 1
-        assert "error" in result[0]
-        assert "must be a JSON array" in result[0]["error"]
+        assert len(result) == 2  # Now returns (error_list, None)
+        assert "error" in result[0][0]
+        assert "Missing required 'project_id' field in input" in result[0][0]["error"]
 
     def test_validate_tool_input_empty_list(self):
         """Test validation with empty list"""
         result = self.tool._validate_tool_input(json.dumps([]))
-        assert result == []
+        assert result == ([], None)
 
     # Test _configs_map method
     def test_configs_map(self):
@@ -133,7 +191,7 @@ class TestLinuxTelnetBatchTool:
             }
         }
         assert result == expected_return
-        mock_get_ports.assert_called_once_with(["debian01", "ubuntu01"])
+        mock_get_ports.assert_called_once_with(["debian01", "ubuntu01"], None)
 
     @patch('gns3_copilot.tools_v2.linux_tools_nornir.get_device_ports_from_topology')
     def test_prepare_device_hosts_data_empty_result(self, mock_get_ports):
@@ -472,7 +530,7 @@ class TestLinuxTelnetBatchTool:
         assert len(result) == 2
         assert all(r["status"] == "success" for r in result)
         
-        mock_get_ports.assert_called_once_with(["debian01", "ubuntu01"])
+        mock_get_ports.assert_called_once_with(["debian01", "ubuntu01"], None)
         mock_init_nornir.assert_called_once()
         assert mock_nornir.run.call_count == 2  # Once for login, once for commands
 
@@ -499,7 +557,7 @@ class TestLinuxTelnetBatchTool:
         
         assert len(result) == 1
         assert "error" in result[0]
-        assert "Invalid JSON input" in result[0]["error"]
+        assert "Invalid JSON string input from model" in result[0]["error"]
         mock_get_ports.assert_not_called()
 
     @patch('gns3_copilot.tools_v2.linux_tools_nornir.get_device_ports_from_topology')
@@ -658,16 +716,16 @@ class TestEdgeCasesAndErrorHandling:
     def test_none_tool_input(self):
         """Test with None tool input"""
         result = self.tool._validate_tool_input(json.dumps(None))
-        assert len(result) == 1
-        assert "error" in result[0]
-        assert "must be a JSON array" in result[0]["error"]
+        assert len(result) == 2  # Now returns (error_list, None)
+        assert "error" in result[0][0]
+        assert "Tool input must be a JSON object with 'project_id' and 'device_configs' fields" in result[0][0]["error"]
 
     def test_numeric_tool_input(self):
         """Test with numeric tool input"""
         result = self.tool._validate_tool_input(json.dumps(123))
-        assert len(result) == 1
-        assert "error" in result[0]
-        assert "must be a JSON array" in result[0]["error"]
+        assert len(result) == 2  # Now returns (error_list, None)
+        assert "error" in result[0][0]
+        assert "Tool input must be a JSON object with 'project_id' and 'device_configs' fields" in result[0][0]["error"]
 
     def test_environment_variables_handling(self):
         """Test that environment variables are properly used"""
@@ -724,10 +782,10 @@ class TestEdgeCasesAndErrorHandling:
         
         # Test validation can handle it
         result = self.tool._validate_tool_input(json.dumps(large_input))
-        assert len(result) == 100
+        assert len(result[0]) == 100  # Now returns (device_list, None)
         
         # Test configs map creation
-        configs_map = self.tool._configs_map(result)
+        configs_map = self.tool._configs_map(result[0])
         assert len(configs_map) == 100
         assert "debian50" in configs_map
         assert len(configs_map["debian50"]) == 2

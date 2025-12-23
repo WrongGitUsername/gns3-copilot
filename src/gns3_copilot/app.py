@@ -50,7 +50,7 @@ def _load_startup_setting() -> bool:
     return False
 
 
-def perform_update_check():
+def perform_update_check() -> dict[str, str]:
     """Perform the actual update check synchronously."""
     try:
         available, current, latest = is_update_available()
@@ -62,7 +62,7 @@ def perform_update_check():
         return {"status": "error", "error": str(e)}
 
 
-def check_and_display_updates():
+def check_and_display_updates() -> None:
     """Check for updates and display results - runs once on startup."""
     if not _load_startup_setting():
         return
@@ -75,7 +75,7 @@ def check_and_display_updates():
     st.session_state["startup_update_checked"] = True
 
     # Perform the check with a spinner
-    with st.spinner("🔄 Checking for updates..."):
+    with st.spinner("Checking for updates..."):
         result = perform_update_check()
         st.session_state["startup_update_result"] = result
 
@@ -83,7 +83,7 @@ def check_and_display_updates():
     st.rerun()
 
 
-def render_startup_update_result():
+def render_startup_update_result() -> None:
     """Display the startup update check result if available."""
     result = st.session_state.get("startup_update_result")
 
@@ -94,14 +94,14 @@ def render_startup_update_result():
 
     if status == "available":
         st.warning(
-            f"⚠️ **Update available:** {result['current']} → {result['latest']}\n\n"
+            f"**Update available:** {result['current']} → {result['latest']}\n\n"
             "Go to **Settings → GNS3 Copilot Updates** to update.",
         )
     elif status == "up_to_date":
         # Show success message briefly
         if not st.session_state.get("_up_to_date_dismissed"):
             st.success(
-                f"✅ You're using the latest version ({result['current']})",
+                f"You're using the latest version ({result['current']})",
             )
             # Add a dismiss button
             if st.button("Dismiss", key="dismiss_update_msg"):
@@ -110,7 +110,7 @@ def render_startup_update_result():
     elif status == "error":
         if not st.session_state.get("_error_dismissed"):
             st.error(
-                f"❌ Update check failed: {result.get('error', 'Unknown error')}",
+                f"Update check failed: {result.get('error', 'Unknown error')}",
             )
             # Add a dismiss button
             if st.button("Dismiss", key="dismiss_error_msg"):

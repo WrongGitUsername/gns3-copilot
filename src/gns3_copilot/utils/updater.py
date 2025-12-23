@@ -16,8 +16,11 @@ def get_installed_version() -> str:
 
 def get_latest_version() -> str:
     with urllib.request.urlopen(PYPI_URL, timeout=5) as response:
-        data = json.loads(response.read().decode())
-        return data["info"]["version"]
+        response_text = response.read().decode()
+        data: dict = json.loads(response_text)
+        info: dict = data["info"]
+        version: str = info["version"]
+        return version
 
 
 def is_update_available() -> tuple[bool, str, str]:
@@ -35,7 +38,7 @@ def is_update_available() -> tuple[bool, str, str]:
 def run_update() -> tuple[bool, str]:
     """Update gns3-copilot from PyPI"""
     try:
-        result = subprocess.run(
+        result: subprocess.CompletedProcess[str] = subprocess.run(
             [
                 sys.executable,
                 "-m",
@@ -55,19 +58,20 @@ def run_update() -> tuple[bool, str]:
                 "Successfully installed" in result.stdout
                 or "Requirement already satisfied" in result.stdout
             ):
-                return (
-                    True,
-                    "✅ Update completed successfully. Please restart GNS3 Copilot to use the new version.",
-                )
+                success_message: str = "Update completed successfully. Please restart GNS3 Copilot to use the new version."
+                return True, success_message
             else:
-                return (
-                    True,
-                    "✅ No updates needed. You're already on the latest version.",
+                no_update_message: str = (
+                    "No updates needed. You're already on the latest version."
                 )
+                return True, no_update_message
         else:
-            return False, f"❌ Update failed:\n{result.stderr}"
+            error_message: str = f"Update failed:\n{result.stderr}"
+            return False, error_message
 
     except subprocess.TimeoutExpired:
-        return False, "❌ Update timed out after 5 minutes. Please try again."
+        timeout_message: str = "Update timed out after 5 minutes. Please try again."
+        return False, timeout_message
     except Exception as e:
-        return False, f"❌ Unexpected error during update: {str(e)}"
+        exception_message: str = f"Unexpected error during update: {str(e)}"
+        return False, exception_message

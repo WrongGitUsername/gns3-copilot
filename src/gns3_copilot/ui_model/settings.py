@@ -17,6 +17,7 @@ Key Features:
 import json
 import os
 from pathlib import Path
+from typing import Any
 
 import requests
 import streamlit as st
@@ -325,21 +326,22 @@ def save_config_to_env() -> None:
     st.success("Configuration successfully saved to the .env file!")
 
 
-def load_settings() -> dict:
+def load_settings() -> dict[Any, Any]:
     if SETTINGS_FILE.exists():
         try:
-            return json.loads(SETTINGS_FILE.read_text())
+            result = json.loads(SETTINGS_FILE.read_text())
+            return result if isinstance(result, dict) else {}
         except Exception:
             return {}
     return {}
 
 
-def save_settings(settings: dict) -> None:
+def save_settings(settings: dict[Any, Any]) -> None:
     SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
     SETTINGS_FILE.write_text(json.dumps(settings, indent=2))
 
 
-def render_update_settings():
+def render_update_settings() -> None:
     settings = load_settings()
     current_value = settings.get("check_updates_on_startup", False)
     check_on_startup = st.checkbox(
@@ -359,7 +361,7 @@ def render_update_settings():
         check_and_prompt_update()
 
 
-def check_and_prompt_update():
+def check_and_prompt_update() -> None:
     if st.session_state.get("dismiss_update"):
         st.session_state.pop("check_updates", None)  # Clear the flag
         return
@@ -408,7 +410,7 @@ def check_and_prompt_update():
             st.rerun()
 
 
-def perform_update():
+def perform_update() -> None:
     with st.spinner("Updating GNS3 Copilot..."):
         success, message = run_update()
 

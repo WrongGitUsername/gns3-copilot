@@ -12,7 +12,7 @@ logger = setup_tool_logger("get_gns3_device_port")
 
 def get_device_ports_from_topology(
     device_names: list[str],
-    project_id: str = None,
+    project_id: str | None = None,
 ) -> dict[str, dict[str, Any]]:
     """
     Get device connection information from GNS3 topology

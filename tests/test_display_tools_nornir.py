@@ -1,6 +1,60 @@
 """
 Tests for display_tools_nornir module.
 Contains test cases for ExecuteMultipleDeviceCommands tool.
+
+Test Coverage:
+1. TestExecuteMultipleDeviceCommands
+   - Tool name and description validation
+   - Input validation (_validate_tool_input):
+     * Valid JSON string and list inputs
+     * Invalid JSON string handling
+     * Non-list input validation
+     * Empty list handling
+     * Bytes and bytearray input conversion
+   - Config mapping (_configs_map):
+     * Creating device to commands mapping
+     * Empty list handling
+   - Device hosts data preparation (_prepare_device_hosts_data):
+     * Successful data preparation
+     * Empty result handling
+     * Missing devices handling
+   - Nornir initialization (_initialize_nornir):
+     * Successful initialization
+     * Initialization failure handling
+   - Task result processing (_process_task_results):
+     * Successful task results
+     * Failed task results
+     * Device not in topology scenarios
+     * Device not in task results scenarios
+   - Device command execution (_run_all_device_configs_with_single_retry):
+     * Successful execution
+     * No commands scenario
+     * Retry success scenario (netmiko_multiline error handling)
+     * Retry failure scenario
+   - Main run method (_run):
+     * Successful execution
+     * Invalid input handling
+     * Device hosts data failure
+     * Nornir init failure
+     * Execution exception handling
+     * List input support
+
+2. TestEdgeCasesAndErrorHandling
+   - Empty commands for a device
+   - Malformed device config (missing required fields)
+   - None tool input handling
+   - Numeric tool input handling
+   - Environment variables handling and groups_data usage
+   - Large number of devices (100 devices) handling
+   - Read-only safety description validation
+
+3. TestIntegrationScenarios
+   - Mixed success and failure results scenario
+   - Concurrent execution simulation (threaded runner with 10 workers)
+   - Display command safety validation (read-only operation warnings)
+   - Netmiko retry logic for Cisco IOSv L2 prompt detection issues
+
+Total Test Cases: 35+
 """
 
 import json
@@ -52,45 +106,45 @@ class TestExecuteMultipleDeviceCommands:
     def test_validate_tool_input_valid_json_string(self):
         """Test validation with valid JSON string"""
         result = self.tool._validate_tool_input(self.valid_input_json)
-        assert result == self.valid_input
+        assert result == (self.valid_input, None)
 
     def test_validate_tool_input_valid_list(self):
         """Test validation with valid Python list"""
         result = self.tool._validate_tool_input(self.valid_input)
-        assert result == self.valid_input
+        assert result == (self.valid_input, None)
 
     def test_validate_tool_input_invalid_json_string(self):
         """Test validation with invalid JSON string"""
         invalid_json = '{"device_name": "R-1", "commands": ["cmd1"'  # Missing closing bracket
         result = self.tool._validate_tool_input(invalid_json)
-        assert len(result) == 1
-        assert "error" in result[0]
-        assert "Invalid JSON string input from model" in result[0]["error"]
+        assert len(result) == 2  # Now returns (error_list, None)
+        assert "error" in result[0][0]
+        assert "Invalid JSON string input from model" in result[0][0]["error"]
 
     def test_validate_tool_input_not_a_list(self):
         """Test validation when input is not a list"""
         not_a_list = {"device_name": "R-1", "commands": ["cmd1"]}
         result = self.tool._validate_tool_input(not_a_list)
-        assert len(result) == 1
-        assert "error" in result[0]
-        assert "must result in a JSON array/Python list" in result[0]["error"]
+        assert len(result) == 2  # Now returns (error_list, None)
+        assert "error" in result[0][0]
+        assert "Missing required 'project_id' field in input" in result[0][0]["error"]
 
     def test_validate_tool_input_empty_list(self):
         """Test validation with empty list"""
         result = self.tool._validate_tool_input([])
-        assert result == []
+        assert result == ([], None)
 
     def test_validate_tool_input_bytes(self):
         """Test validation with bytes input"""
         bytes_input = self.valid_input_json.encode('utf-8')
         result = self.tool._validate_tool_input(bytes_input)
-        assert result == self.valid_input
+        assert result == (self.valid_input, None)
 
     def test_validate_tool_input_bytearray(self):
         """Test validation with bytearray input"""
         bytearray_input = bytearray(self.valid_input_json.encode('utf-8'))
         result = self.tool._validate_tool_input(bytearray_input)
-        assert result == self.valid_input
+        assert result == (self.valid_input, None)
 
     # Test _configs_map method
     def test_configs_map(self):
@@ -131,7 +185,7 @@ class TestExecuteMultipleDeviceCommands:
         
         result = self.tool._prepare_device_hosts_data(self.valid_input)
         assert result == mock_ports_return
-        mock_get_ports.assert_called_once_with(["R-1", "R-2"])
+        mock_get_ports.assert_called_once_with(["R-1", "R-2"], None)
 
     @patch('gns3_copilot.tools_v2.display_tools_nornir.get_device_ports_from_topology')
     def test_prepare_device_hosts_data_empty_result(self, mock_get_ports):
@@ -413,7 +467,7 @@ class TestExecuteMultipleDeviceCommands:
         assert len(result) == 2
         assert all(r["status"] == "success" for r in result)
         
-        mock_get_ports.assert_called_once_with(["R-1", "R-2"])
+        mock_get_ports.assert_called_once_with(["R-1", "R-2"], None)
         mock_init_nornir.assert_called_once()
         mock_nornir.run.assert_called_once()
 
@@ -571,16 +625,16 @@ class TestEdgeCasesAndErrorHandling:
     def test_none_tool_input(self):
         """Test with None tool input"""
         result = self.tool._validate_tool_input(None)
-        assert len(result) == 1
-        assert "error" in result[0]
-        assert "must result in a JSON array/Python list" in result[0]["error"]
+        assert len(result) == 2  # Now returns (error_list, None)
+        assert "error" in result[0][0]
+        assert "Tool input must be a JSON object with 'project_id' and 'device_configs' fields" in result[0][0]["error"]
 
     def test_numeric_tool_input(self):
         """Test with numeric tool input"""
         result = self.tool._validate_tool_input(123)
-        assert len(result) == 1
-        assert "error" in result[0]
-        assert "must result in a JSON array/Python list" in result[0]["error"]
+        assert len(result) == 2  # Now returns (error_list, None)
+        assert "error" in result[0][0]
+        assert "Tool input must be a JSON object with 'project_id' and 'device_configs' fields" in result[0][0]["error"]
 
     def test_environment_variables_handling(self):
         """Test that environment variables are properly used"""
@@ -635,7 +689,7 @@ class TestEdgeCasesAndErrorHandling:
         
         # Test validation can handle it
         result = self.tool._validate_tool_input(large_input)
-        assert len(result) == 100
+        assert len(result[0]) == 100  # Now returns (device_list, None)
         
         # Test configs map creation
         configs_map = self.tool._configs_map(large_input)

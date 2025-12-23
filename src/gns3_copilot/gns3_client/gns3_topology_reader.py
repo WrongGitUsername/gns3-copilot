@@ -73,7 +73,10 @@ class GNS3TopologyTool(BaseTool):
     """
 
     def _run(
-        self, tool_input: Any = None, run_manager: Any = None, project_id: str = None
+        self,
+        tool_input: Any = None,
+        run_manager: Any = None,
+        project_id: str | None = None,
     ) -> dict:
         """
         Synchronous method to retrieve the topology of a specific GNS3 project.

@@ -1,6 +1,70 @@
 """
 Tests for gns3_get_node_temp module.
 Contains comprehensive test cases for GNS3TemplateTool functionality.
+
+Test Coverage:
+1. TestGNS3TemplateToolInitialization
+   - Tool name and description validation
+   - Tool inheritance from BaseTool
+   - Tool attributes verification (name, description, _run method)
+
+2. TestGNS3TemplateToolAPIVersionHandling
+   - API version 2 initialization with Basic Auth
+   - API version 3 initialization with JWT authentication
+   - Unsupported API version handling
+   - Default API version (v2) when not specified
+   - Empty API version string handling
+
+3. TestGNS3TemplateToolSuccessScenarios
+   - Single template retrieval success
+   - Multiple templates retrieval success
+   - Empty templates list handling
+   - Template with missing fields (name, template_id, template_type)
+   - Template with None values handling
+
+4. TestGNS3TemplateToolErrorHandling
+   - Connector initialization exception handling
+   - get_templates() call exception handling
+   - Network connection error handling
+   - Timeout error handling
+   - Missing GNS3_SERVER_URL environment variable
+
+5. TestGNS3TemplateToolEdgeCases
+   - Unicode template names handling (Chinese, Cyrillic)
+   - Very large templates list (1000+ templates)
+   - Special characters in template IDs
+   - Various template types (qemu, docker, virtualbox, vmware, iou)
+
+6. TestGNS3TemplateToolInputHandling
+   - Empty string input handling
+   - Whitespace-only input handling
+   - None input handling
+
+7. TestGNS3TemplateToolLogging
+   - Logging messages on successful operations
+   - Logging messages on failed operations
+   - Logging with large number of templates
+
+8. TestGNS3TemplateToolEnvironmentVariables
+   - Custom server URL handling
+   - Secure server URL with authentication
+   - API version 3 with authentication credentials
+
+9. TestGNS3TemplateToolIntegration
+   - Complete workflow with realistic data (UUIDs, various categories)
+   - Tool input parameter ignored verification
+
+10. TestGNS3TemplateToolReturnFormat
+    - Return format structure validation
+    - Error return format validation
+
+11. TestGNS3TemplateToolPerformance
+    - Performance with large dataset (10000 templates)
+
+12. TestGNS3TemplateToolConcurrency
+    - Thread safety testing with multiple concurrent calls
+
+Total Test Cases: 35+
 """
 
 import json

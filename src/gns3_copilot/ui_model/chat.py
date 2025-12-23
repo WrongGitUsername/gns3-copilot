@@ -268,7 +268,7 @@ selected_p = snapshot.values.get("selected_project")
 
 # --- Logic branch: If no project is selected, display project cards ---
 if not selected_p:
-    st.title("📂 GNS3 Copilot - Workspace Selection")
+    st.title("GNS3 Copilot - Workspace Selection")
     st.info("Please select an opened project to enter the conversation context.")
 
     # Get project list
@@ -281,11 +281,11 @@ if not selected_p:
         p = opened_projects[0]
         agent.update_state(config, {"selected_project": p})
         # Record a log or brief prompt for debugging convenience
-        st.toast(f"Automatically selecting project: {p[0]}") 
+        st.toast(f"Automatically selecting project: {p[0]}")
         st.rerun()
 
-    #st.title("📂 GNS3 Copilot - Workspace Selection")
-    #st.info("Please select an opened project to enter the conversation context.")
+    # st.title("GNS3 Copilot - Workspace Selection")
+    # st.info("Please select an opened project to enter the conversation context.")
     if projects:
         cols = st.columns(3)
         for i, p in enumerate(projects):
@@ -300,11 +300,11 @@ if not selected_p:
                 with st.container(border=True):
                     # Add status icon to title
                     status_icon = "🟢" if is_opened else "⚪"
-                    st.markdown(f"### {status_icon} {name}")
+                    st.markdown(f"#### {status_icon} {name}")
                     st.caption(f"ID: {p_id[:8]}")
 
                     # Display device and link information
-                    st.write(f"🖥️ {dev_count} Devices | 🔗 {link_count} Links")
+                    st.write(f"{dev_count} Devices | {link_count} Links")
 
                     # Dynamic status text display
                     if is_opened:
@@ -332,7 +332,7 @@ if not selected_p:
 
 else:
     # Top status bar logic remains unchanged
-    st.sidebar.success(f"✅ Current Project: **{selected_p[0]}**")
+    st.sidebar.success(f"Current Project: **{selected_p[0]}**")
     if st.sidebar.button("Switch Project / Exit"):
         agent.update_state(config, {"selected_project": None})
         st.rerun()

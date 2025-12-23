@@ -220,7 +220,7 @@ class ExecuteMultipleDeviceConfigCommands(BaseTool):
                 logger.info("Successfully parsed tool input from JSON string.")
             except json.JSONDecodeError as e:
                 logger.error("Invalid JSON string received as tool input: %s", e)
-                return [{"error": f"Invalid JSON string input from model: {e}"}, None]
+                return ([{"error": f"Invalid JSON string input from model: {e}"}], None)
         else:
             # Handle standard models (like GPT/OpenAI) where the framework
             # has already parsed the JSON into a Python object (dict or list).
@@ -238,20 +238,20 @@ class ExecuteMultipleDeviceConfigCommands(BaseTool):
             if not project_id:
                 error_msg = "Missing required 'project_id' field in input"
                 logger.error(error_msg)
-                return [{"error": error_msg}, None]
+                return ([{"error": error_msg}], None)
 
             if not self._validate_project_id(project_id):
                 error_msg = (
                     f"Invalid project_id format: {project_id}. Expected UUID format."
                 )
                 logger.error(error_msg)
-                return [{"error": error_msg}, None]
+                return ([{"error": error_msg}], None)
 
             # Validate device_configs
             if not isinstance(device_configs, list):
                 error_msg = "'device_configs' must be an array"
                 logger.error(error_msg)
-                return [{"error": error_msg}, None]
+                return ([{"error": error_msg}], None)
 
             if not device_configs:
                 logger.warning("Device configs list is empty.")
@@ -272,7 +272,7 @@ class ExecuteMultipleDeviceConfigCommands(BaseTool):
                 f"or a legacy JSON array, but got {type(parsed_input).__name__}"
             )
             logger.error(error_msg)
-            return [{"error": error_msg}, None]
+            return ([{"error": error_msg}], None)
 
     def _validate_project_id(self, project_id: str) -> bool:
         """
