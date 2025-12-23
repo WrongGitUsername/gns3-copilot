@@ -2,10 +2,30 @@ import sys
 import json
 import subprocess
 import urllib.request
+from pathlib import Path
 from typing import Tuple
 from packaging.version import Version, InvalidVersion
 
 PYPI_URL = "https://pypi.org/pypi/gns3-copilot/json"
+PACKAGE_ROOT = Path(__file__).resolve().parent.parent
+UI_MODEL_DIR = PACKAGE_ROOT / "ui_model"
+UPDATE_STATE_FILE = UI_MODEL_DIR / "update_state.json"
+
+
+def save_skipped_version(version: str) -> None:
+    UI_MODEL_DIR.mkdir(parents=True, exist_ok=True)
+    data = {"skipped_version": version}
+    UPDATE_STATE_FILE.write_text(json.dumps(data))
+
+
+def load_skipped_version() -> str | None:
+    if not UPDATE_STATE_FILE.exists():
+        return None
+    try:
+        data = json.loads(UPDATE_STATE_FILE.read_text())
+        return data.get("skipped_version")
+    except Exception:
+        return None
 
 def get_installed_version() -> str:
     from gns3_copilot import __version__
