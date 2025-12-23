@@ -4,7 +4,7 @@
 [![CD - Production Release](https://github.com/yueguobin/gns3-copilot/actions/workflows/cd.yaml/badge.svg)](https://github.com/yueguobin/gns3-copilot/actions/workflows/cd.yaml)
 [![codecov](https://codecov.io/gh/yueguobin/gns3-copilot/branch/Development/graph/badge.svg?token=7FDUCM547W)](https://codecov.io/gh/yueguobin/gns3-copilot)
 [![PyPI version](https://img.shields.io/pypi/v/gns3-copilot)](https://pypi.org/project/gns3-copilot/)
-[![PyPI downloads](https://img.shields.io/pypi/dm/gns3-copilot?style=flat-square)](https://pypi.org/project/gns3-copilot/)
+[![PyPI downloads](https://static.pepy.tech/badge/gns3-copilot)](https://pepy.tech/project/gns3-copilot)
 ![License](https://img.shields.io/badge/license-MIT-green.svg) 
 [![platform](https://img.shields.io/badge/platform-linux%20%7C%20windows%20%7C%20macOS-lightgrey)](https://shields.io/)
 
