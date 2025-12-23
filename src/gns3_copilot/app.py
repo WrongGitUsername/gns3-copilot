@@ -5,11 +5,12 @@ Main application module that initializes and runs the Streamlit-based web interf
 with navigation between settings, chat, and help pages.
 """
 
-
 import json
-import streamlit as st
 from pathlib import Path
-from gns3_copilot.utils.updater import is_update_available
+
+import streamlit as st
+
+from gns3_copilot.utils import is_update_available
 
 SETTINGS_FILE = Path.home() / ".config" / "gns3-copilot" / "settings.json"
 
@@ -54,41 +55,30 @@ def perform_update_check():
     try:
         available, current, latest = is_update_available()
         if available:
-            return {
-                "status": "available",
-                "current": current,
-                "latest": latest
-            }
+            return {"status": "available", "current": current, "latest": latest}
         else:
-            return {
-                "status": "up_to_date",
-                "current": current,
-                "latest": latest
-            }
+            return {"status": "up_to_date", "current": current, "latest": latest}
     except Exception as e:
-        return {
-            "status": "error",
-            "error": str(e)
-        }
+        return {"status": "error", "error": str(e)}
 
 
 def check_and_display_updates():
     """Check for updates and display results - runs once on startup."""
     if not _load_startup_setting():
         return
-    
+
     # Skip if already checked in this session
     if "startup_update_checked" in st.session_state:
         return
-    
+
     # Mark as checked immediately to prevent re-running
     st.session_state["startup_update_checked"] = True
-    
+
     # Perform the check with a spinner
     with st.spinner("🔄 Checking for updates..."):
         result = perform_update_check()
         st.session_state["startup_update_result"] = result
-    
+
     # Force a rerun to display the result
     st.rerun()
 
@@ -96,12 +86,12 @@ def check_and_display_updates():
 def render_startup_update_result():
     """Display the startup update check result if available."""
     result = st.session_state.get("startup_update_result")
-    
+
     if not result:
         return
-    
+
     status = result.get("status")
-    
+
     if status == "available":
         st.warning(
             f"⚠️ **Update available:** {result['current']} → {result['latest']}\n\n"
@@ -121,7 +111,6 @@ def render_startup_update_result():
         if not st.session_state.get("_error_dismissed"):
             st.error(
                 f"❌ Update check failed: {result.get('error', 'Unknown error')}",
-
             )
             # Add a dismiss button
             if st.button("Dismiss", key="dismiss_error_msg"):
@@ -144,13 +133,13 @@ def main() -> None:
         layout="centered",
         initial_sidebar_state="expanded",
     )
-    
+
     # Check for updates on startup (blocking, runs once)
     check_and_display_updates()
-    
+
     # Display update result at the top
     render_startup_update_result()
-    
+
     # Prevent the app from crashing if a page path is missing
     try:
         pg = st.navigation(NAV_PAGES, position="sidebar")
@@ -159,7 +148,7 @@ def main() -> None:
         st.error("Failed to initialize application navigation.")
         st.exception(exc)
         st.stop()
-    
+
     # Render sidebar content
     render_sidebar_about()
 

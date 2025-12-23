@@ -1,11 +1,10 @@
-import copy
 import os
 from typing import Any
 
 from dotenv import load_dotenv
 from langchain.tools import BaseTool
 
-from gns3_copilot.gns3_client import Gns3Connector, Project
+from gns3_copilot.gns3_client import Gns3Connector
 from gns3_copilot.log_config import setup_tool_logger
 
 # Configure logging
@@ -22,13 +21,15 @@ example output:
  ('network_ai', 'f2f7ed27-7aa3-4b11-a64c-da947a2c7210', 6, 8, 'opened'),
  ('test', '365dd3ff-cda9-447a-94da-3a6cef75fe77', 0, 0, 'closed'),
  ('Soft-RoCE learning', 'd1e4509e-64bd-4109-b954-266223959ee9', 0, 0, 'closed')]
- 
+
 """
+
+
 class GNS3ProjectList(BaseTool):
     name: str = "list_gns3_projects"
     description: str = """
     Retrieves a list of all GNS3 projects with their details.
-    Returns a dictionary containing a list of project information including name, 
+    Returns a dictionary containing a list of project information including name,
     project_name, project_id, nodes count, links count, and status.
     Example output:
         {

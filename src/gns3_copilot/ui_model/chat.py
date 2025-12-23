@@ -37,8 +37,8 @@ import streamlit as st
 from dotenv import load_dotenv
 from langchain.messages import AIMessage, HumanMessage, ToolMessage
 
-from gns3_copilot.gns3_client import GNS3ProjectList
 from gns3_copilot.agent import agent, langgraph_checkpointer
+from gns3_copilot.gns3_client import GNS3ProjectList
 from gns3_copilot.log_config import setup_logger
 from gns3_copilot.public_model import (
     format_tool_response,
@@ -53,6 +53,7 @@ load_dotenv()
 # Voice functionality global switch
 # os.getenv returns a string, recommend converting to bool to avoid errors
 VOICE_ENABLED = os.getenv("VOICE", "false").lower() == "true"
+
 
 # get all thread_id from checkpoint database.
 def list_thread_ids(checkpointer: Any) -> list[str]:
@@ -76,6 +77,7 @@ def list_thread_ids(checkpointer: Any) -> list[str]:
         logger.debug("Error listing thread IDs (table may not exist): %s", e)
         return []
 
+
 def new_session() -> None:
     """
     Create a new chat session by generating a unique thread ID and resetting session state.
@@ -98,6 +100,7 @@ def new_session() -> None:
     # Reset the dropdown menu to the first option ("(Please select session)", None)
     st.session_state["session_select"] = session_options[0]
     logger.debug("New Session created with thread_id= %s", new_tid)
+
 
 # Initialize session state for thread ID
 if "thread_id" not in st.session_state:
@@ -267,19 +270,31 @@ selected_p = snapshot.values.get("selected_project")
 if not selected_p:
     st.title("📂 GNS3 Copilot - Workspace Selection")
     st.info("Please select an opened project to enter the conversation context.")
-    
+
     # Get project list
     projects = GNS3ProjectList()._run().get("projects", [])
-    
+
+    # Pre-filter all projects in "opened" status
+    opened_projects = [p for p in projects if p[4].lower() == "opened"]
+    # If there's only one opened project, directly select it and skip UI rendering
+    if len(opened_projects) == 1:
+        p = opened_projects[0]
+        agent.update_state(config, {"selected_project": p})
+        # Record a log or brief prompt for debugging convenience
+        st.toast(f"Automatically selecting project: {p[0]}") 
+        st.rerun()
+
+    #st.title("📂 GNS3 Copilot - Workspace Selection")
+    #st.info("Please select an opened project to enter the conversation context.")
     if projects:
         cols = st.columns(3)
         for i, p in enumerate(projects):
             # Destructure project tuple for clarity: name, ID, device count, link count, status
             name, p_id, dev_count, link_count, status = p
-            
+
             # Check status
-            is_opened = (status.lower() == "opened")
-            
+            is_opened = status.lower() == "opened"
+
             with cols[i % 3]:
                 # If closed status, use container with background color or different title format
                 with st.container(border=True):
@@ -287,32 +302,33 @@ if not selected_p:
                     status_icon = "🟢" if is_opened else "⚪"
                     st.markdown(f"### {status_icon} {name}")
                     st.caption(f"ID: {p_id[:8]}")
-                    
+
                     # Display device and link information
                     st.write(f"🖥️ {dev_count} Devices | 🔗 {link_count} Links")
-                    
+
                     # Dynamic status text display
                     if is_opened:
                         st.success(f"Status: {status.upper()}")
                     else:
                         st.warning(f"Status: {status.upper()} (Unavailable)")
-                    
+
                     # --- Button logic modification ---
-                    # If status is not opened, set disabled=True 
+                    # If status is not opened, set disabled=True
                     if st.button(
-                        "Select Project" if is_opened else "Project Closed", 
-                        key=f"btn_{p_id}", 
+                        "Select Project" if is_opened else "Project Closed",
+                        key=f"btn_{p_id}",
                         use_container_width=True,
-                        disabled=not is_opened, # Key point: disable button for non-opened status
-                        type="primary" if is_opened else "secondary"
+                        disabled=not is_opened,  # Key point: disable button for non-opened status
+                        type="primary" if is_opened else "secondary",
                     ):
                         # Only execute when button is available and clicked
                         agent.update_state(config, {"selected_project": p})
                         st.success(f"Project {name} has been selected!")
-                        st.rerun() 
+                        st.rerun()
     else:
         st.error("No projects found in GNS3.")
-        if st.button("Refresh List"): st.rerun()
+        if st.button("Refresh List"):
+            st.rerun()
 
 else:
     # Top status bar logic remains unchanged
@@ -331,31 +347,31 @@ else:
     else:
         # When voice is disabled, do not enable accept_audio attribute
         prompt = st.chat_input("Type your message here...")
-    
+
     # Handle input
     if prompt:
         user_text = ""
-    
+
         if VOICE_ENABLED:
             # Mode A: prompt is an object (containing .text and .audio)
             if prompt.audio:
                 user_text = speech_to_text(prompt.audio)
-    
+
             # If voice is not converted to text, or user directly types
             if not user_text:
                 user_text = prompt.text
         else:
             # Mode B: prompt is directly a string
             user_text = prompt
-    
+
         # 3. Final check and run
         if not user_text or user_text.strip() == "":
             st.stop()
-    
+
         # Display user message in chat message container
         with st.chat_message("user"):
             st.markdown(user_text)
-    
+
         # Display assistant response in chat message container
         with st.chat_message("assistant"):
             active_text_placeholder = st.empty()
@@ -363,12 +379,12 @@ else:
             # Core aggregation state: only stores currently streaming tool information
             # Structure: {'id': str, 'name': str, 'args_string': str} or None
             current_tool_state = None
-    
+
             # TTS local switch for message control
             tts_played = False
             # Initialize audio_bytes variable
             audio_bytes = None
-    
+
             # Stream the agent response
             for chunk in agent.stream(
                 {
@@ -380,7 +396,7 @@ else:
                 for msg in chunk:
                     # with open('log.txt', "a", encoding='utf-8') as f:
                     #    f.write(f"{msg}\n\n")
-    
+
                     if isinstance(msg, AIMessage):
                         # adapted for gemini
                         # Check if content is a list and safely extract the first text element
@@ -395,13 +411,13 @@ else:
                             active_text_placeholder.markdown(
                                 current_text_chunk, unsafe_allow_html=True
                             )
-    
+
                         elif isinstance(msg.content, str):
                             current_text_chunk += str(msg.content)
                             active_text_placeholder.markdown(
                                 current_text_chunk, unsafe_allow_html=True
                             )
-    
+
                         # Determine if text message (i.e., msg.content) reception is complete
                         is_text_ending = (
                             # Case 1: Tool call starts
@@ -423,11 +439,13 @@ else:
                             try:
                                 with st.spinner("Generating voice..."):
                                     audio_bytes = text_to_speech_wav(current_text_chunk)
-                                    st.audio(audio_bytes, format="audio/mp3", autoplay=True)
+                                    st.audio(
+                                        audio_bytes, format="audio/mp3", autoplay=True
+                                    )
                             except Exception as e:
                                 logger.error("TTS Error: %", e)
                                 st.error(f"TTS Error: {e}")
-    
+
                         # Get metadata (ID and name) from tool_calls
                         if msg.tool_calls:
                             for tool in msg.tool_calls:
@@ -441,22 +459,24 @@ else:
                                         "name": tool.get("name", "UNKNOWN_TOOL"),
                                         "args_string": "",
                                     }
-    
+
                         # Concatenate parameter strings from tool_call_chunk
                         if hasattr(msg, "tool_call_chunks") and msg.tool_call_chunks:
                             if current_tool_state:
                                 tool_data = current_tool_state
-    
+
                                 for chunk_update in msg.tool_call_chunks:
                                     args_chunk = chunk_update.get("args", "")
-    
+
                                     # Core: string concatenation
                                     if isinstance(args_chunk, str):
                                         tool_data["args_string"] += args_chunk
-    
+
                         # Determine if the tool_calls_chunks output is complete and
                         # display the st.expander() for tool_calls
-                        if msg.response_metadata.get("finish_reason") == "tool_calls" or (
+                        if msg.response_metadata.get(
+                            "finish_reason"
+                        ) == "tool_calls" or (
                             msg.response_metadata.get("finish_reason") == "STOP"
                             and current_tool_state is not None
                         ):
@@ -469,7 +489,7 @@ else:
                                 parsed_args = {
                                     "error": "JSON parse failed after stream complete."
                                 }
-    
+
                             # Serialize the tool_input value in parsed_args to a JSON array
                             # for expansion when using st.json
                             try:
@@ -477,7 +497,7 @@ else:
                                 parsed_args["tool_input"] = command_list
                             except (json.JSONDecodeError, KeyError, TypeError):
                                 pass
-                            
+
                             # Build the final display structure that meets your requirements
                             display_tool_call = {
                                 "name": tool_data["name"],
@@ -495,31 +515,31 @@ else:
                             ):
                                 # Use the final complete structure
                                 st.json(display_tool_call, expanded=False)
-    
+
                     if isinstance(msg, ToolMessage):
                         # Wait for audio playback to complete before returning ToolMessage to LLM
                         if VOICE_ENABLED and audio_bytes:
                             sleep(get_duration(audio_bytes))
-    
+
                         # Clear state after completion, ready to receive next tool call
                         current_tool_state = None
-    
+
                         content_pretty = format_tool_response(msg.content)
-    
+
                         with st.expander(
                             f"**Tool Response** `call_id: {msg.tool_call_id}`",
                             expanded=False,
                         ):
                             st.json(json.loads(content_pretty), expanded=False)
-    
+
                         active_text_placeholder = st.empty()
                         current_text_chunk = ""
                         # After a round of AIMessage/ToolMessage, reset tts_played switch, next round of AIMessage/ToolMessage can generate TTS again
                         tts_played = False
-    
+
         # After the interaction, update the session state with the latest StateSnapshot
         state_history = agent.get_state(config)
-    
+
         # Avoid updating if state_history is empty
         if not state_history[0]:
             pass

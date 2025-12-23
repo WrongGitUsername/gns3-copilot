@@ -22,8 +22,8 @@ from .custom_gns3fy import (
     Node,
     Project,
 )
-from .gns3_topology_reader import GNS3TopologyTool
 from .gns3_projects_list import GNS3ProjectList
+from .gns3_topology_reader import GNS3TopologyTool
 
 # Dynamic version management
 try:

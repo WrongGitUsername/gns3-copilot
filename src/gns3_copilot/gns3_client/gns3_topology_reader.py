@@ -72,7 +72,9 @@ class GNS3TopologyTool(BaseTool):
     Use the ports field(e.g., name: "Gi0/0") to provide input for the create_gns3_link tool.
     """
 
-    def _run(self, tool_input: Any = None, run_manager: Any = None, project_id: str = None) -> dict:
+    def _run(
+        self, tool_input: Any = None, run_manager: Any = None, project_id: str = None
+    ) -> dict:
         """
         Synchronous method to retrieve the topology of a specific GNS3 project.
 
@@ -90,7 +92,9 @@ class GNS3TopologyTool(BaseTool):
             # Validate project_id parameter
             if not project_id:
                 logger.error("project_id parameter is required.")
-                return {"error": "project_id parameter is required. Please provide a valid project UUID."}
+                return {
+                    "error": "project_id parameter is required. Please provide a valid project UUID."
+                }
 
             api_version_str = os.getenv("API_VERSION")
             server_url = os.getenv("GNS3_SERVER_URL")
@@ -154,15 +158,15 @@ if __name__ == "__main__":
 
     # Test the tool
     tool = GNS3TopologyTool()
-    
+
     # Example usage with project_id
     # Replace with an actual project UUID from your GNS3 server
     example_project_id = "f32ebf3d-ef8c-4910-b0d6-566ed828cd24"
-    
+
     print("Testing GNS3TopologyTool with project_id...")
     result = tool._run(project_id=example_project_id)
     pprint(result)
-    
+
     # Test without project_id (should return error)
     print("\nTesting without project_id (should return error)...")
     error_result = tool._run()

@@ -142,7 +142,9 @@ class LinuxTelnetBatchTool(BaseTool):
 
         # Prepare device hosts data
         try:
-            hosts_data = self._prepare_device_hosts_data(device_configs_list, project_id)
+            hosts_data = self._prepare_device_hosts_data(
+                device_configs_list, project_id
+            )
         except ValueError as e:
             logger.error("Failed to prepare device hosts data: %s", e)
             return [{"error": str(e)}]
@@ -300,7 +302,7 @@ class LinuxTelnetBatchTool(BaseTool):
 
         Args:
             tool_input: The input received from the LangChain/LangGraph tool call.
-        
+
         Returns:
             Tuple containing (device_configs_list, project_id) or (error_list, None)
         """
@@ -329,35 +331,39 @@ class LinuxTelnetBatchTool(BaseTool):
         if isinstance(parsed_input, dict):
             project_id = parsed_input.get("project_id")
             device_configs = parsed_input.get("device_configs")
-            
+
             # Validate project_id
             if not project_id:
                 error_msg = "Missing required 'project_id' field in input"
                 logger.error(error_msg)
                 return [{"error": error_msg}, None]
-            
+
             if not self._validate_project_id(project_id):
-                error_msg = f"Invalid project_id format: {project_id}. Expected UUID format."
+                error_msg = (
+                    f"Invalid project_id format: {project_id}. Expected UUID format."
+                )
                 logger.error(error_msg)
                 return [{"error": error_msg}, None]
-            
+
             # Validate device_configs
             if not isinstance(device_configs, list):
                 error_msg = "'device_configs' must be an array"
                 logger.error(error_msg)
                 return [{"error": error_msg}, None]
-            
+
             if not device_configs:
                 logger.warning("Device configs list is empty.")
                 return [], project_id
-            
+
             return device_configs, project_id
-        
+
         # Handle legacy format: [...]
         elif isinstance(parsed_input, list):
-            logger.warning("Using legacy input format without project_id. Please use new format with project_id.")
+            logger.warning(
+                "Using legacy input format without project_id. Please use new format with project_id."
+            )
             return parsed_input, None
-        
+
         else:
             error_msg = (
                 "Tool input must be a JSON object with 'project_id' and 'device_configs' fields, "
@@ -369,15 +375,16 @@ class LinuxTelnetBatchTool(BaseTool):
     def _validate_project_id(self, project_id: str) -> bool:
         """
         Validate project_id format (UUID).
-        
+
         Args:
             project_id: The project ID to validate
-            
+
         Returns:
             True if valid UUID format, False otherwise
         """
         import re
-        uuid_pattern = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+
+        uuid_pattern = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
         return bool(re.match(uuid_pattern, project_id, re.IGNORECASE))
 
     def _configs_map(
@@ -410,7 +417,7 @@ class LinuxTelnetBatchTool(BaseTool):
                 f"Project ID: {project_id}, Devices: {device_names}"
             )
             raise ValueError(error_msg)
-        
+
         # Force all devices to use linux_telnet group (compatible with generic_telnet)
         for _, _host_info in hosts_data.items():
             _host_info["groups"] = ["linux_telnet"]
@@ -419,8 +426,9 @@ class LinuxTelnetBatchTool(BaseTool):
         missing_devices = set(device_names) - set(hosts_data.keys())
         if missing_devices:
             logger.warning(
-                "Some devices not found in topology (Project ID: %s): %s", 
-                project_id or "default", missing_devices
+                "Some devices not found in topology (Project ID: %s): %s",
+                project_id or "default",
+                missing_devices,
             )
 
         return hosts_data
@@ -562,7 +570,7 @@ if __name__ == "__main__":
                         'find /etc -name "*.conf" | head -10',
                     ],
                 },
-            ]
+            ],
         }
     )
 

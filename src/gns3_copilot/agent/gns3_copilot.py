@@ -19,7 +19,7 @@ solution for GNS3 environments.
 import operator
 import os
 import sqlite3
-from typing import Annotated, Literal, Tuple
+from typing import Annotated, Literal
 
 import streamlit as st
 from dotenv import load_dotenv
@@ -30,7 +30,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.managed.is_last_step import RemainingSteps
 from typing_extensions import TypedDict
 
-from gns3_copilot.gns3_client import GNS3TopologyTool, GNS3ProjectList
+from gns3_copilot.gns3_client import GNS3TopologyTool
 from gns3_copilot.log_config import setup_logger
 from gns3_copilot.prompts import TITLE_PROMPT, load_system_prompt
 from gns3_copilot.tools_v2 import (
@@ -121,15 +121,16 @@ class MessagesState(TypedDict):
     conversation_title: str | None
 
     # Store the complete tuple selected by the user
-    selected_project: Tuple[str, str, int, int, str]
+    selected_project: tuple[str, str, int, int, str]
+
 
 # Define llm call  node
 def llm_call(state: dict):
     """LLM decides whether to call a tool or not"""
-    
+
     current_prompt = load_system_prompt()
     # print(current_prompt)
-    
+
     # Get the previously stored project tuple
     selected_p = state.get("selected_project")
 
@@ -144,17 +145,21 @@ def llm_call(state: dict):
             f"Device_Number={selected_p[2]}, "
             f"Link_Number={selected_p[3]}, "
             f"Status={selected_p[4]}"
-            )
+        )
         context_messages.append(
-            SystemMessage(content=f"Current Context: {project_info}"))
+            SystemMessage(content=f"Current Context: {project_info}")
+        )
 
     # Merge message lists
-    full_messages = [SystemMessage(content=current_prompt)] + context_messages + state["messages"]
-    #print(full_messages)
+    full_messages = (
+        [SystemMessage(content=current_prompt)] + context_messages + state["messages"]
+    )
+    # print(full_messages)
     return {
         "messages": [model_with_tools.invoke(full_messages)],
         "llm_calls": state.get("llm_calls", 0) + 1,
     }
+
 
 # Define generate title node
 def generate_title(state: MessagesState) -> dict:
@@ -206,6 +211,7 @@ def generate_title(state: MessagesState) -> dict:
     # Title already exists → no update needed
     return {}
 
+
 # Define tool node
 def tool_node(state: dict):
     """Performs the tool call"""
@@ -216,6 +222,7 @@ def tool_node(state: dict):
         observation = tool.invoke(tool_call["args"])
         result.append(ToolMessage(content=observation, tool_call_id=tool_call["id"]))
     return {"messages": result}
+
 
 # Routing logic after the LLM node
 def should_continue(
@@ -253,6 +260,7 @@ def should_continue(
     )
     return END
 
+
 # Routing logic after the tool node, Check remaining_steps
 def recursion_limit_continue(state: MessagesState) -> Literal["llm_call", END]:
     """
@@ -278,6 +286,7 @@ def recursion_limit_continue(state: MessagesState) -> Literal["llm_call", END]:
         return "llm_call"
 
     return END
+
 
 # Build and compile the agent
 # Build workflow
@@ -317,6 +326,7 @@ agent_builder.add_edge("title_generator_node", END)
 # Add checkpointing
 LANGGRAPH_DB_PATH = "gns3_langgraph.db"
 
+
 @st.cache_resource(show_spinner="Initializing conversation persistence...")
 def get_checkpointer() -> SqliteSaver:
     """
@@ -330,6 +340,7 @@ def get_checkpointer() -> SqliteSaver:
     # SqliteSaver will create the necessary tables on first use
     return SqliteSaver(conn)
 
+
 # Compile the agent
 @st.cache_resource(show_spinner="Compiling LangGraph agent...")
 def get_agent():
@@ -341,6 +352,7 @@ def get_agent():
     when objects are recreated (even if they are logically identical).
     """
     return agent_builder.compile(checkpointer=get_checkpointer())
+
 
 langgraph_checkpointer = get_checkpointer()  # Cached SqliteSaver instance
 agent = get_agent()  # Cached compiled LangGraph agent (with persistence)

@@ -14,15 +14,17 @@ Key Features:
 - Streamlit UI components for interactive configuration
 """
 
-import os
 import json
+import os
+from pathlib import Path
+
 import requests
 import streamlit as st
-from pathlib import Path
 from dotenv import find_dotenv, load_dotenv, set_key
 from requests.exceptions import RequestException
+
 from gns3_copilot.log_config import setup_logger
-from gns3_copilot.utils.updater import (is_update_available, run_update)
+from gns3_copilot.utils.updater import is_update_available, run_update
 
 SETTINGS_FILE = Path.home() / ".config" / "gns3-copilot" / "settings.json"
 
@@ -322,6 +324,7 @@ def save_config_to_env() -> None:
     )
     st.success("Configuration successfully saved to the .env file!")
 
+
 def load_settings() -> dict:
     if SETTINGS_FILE.exists():
         try:
@@ -346,20 +349,21 @@ def render_update_settings():
     if check_on_startup != current_value:
         settings["check_updates_on_startup"] = check_on_startup
         save_settings(settings)
-    
+
     if st.button("Check now for updates"):
         st.session_state.pop("dismiss_update", None)
         st.session_state["check_updates"] = True  # Add this flag
-    
+
     # Always check if we should run the update check/prompt
     if st.session_state.get("check_updates") or st.session_state.get("updating"):
         check_and_prompt_update()
+
 
 def check_and_prompt_update():
     if st.session_state.get("dismiss_update"):
         st.session_state.pop("check_updates", None)  # Clear the flag
         return
-    
+
     # Check if update is in progress
     if st.session_state.get("updating"):
         perform_update()
@@ -367,29 +371,31 @@ def check_and_prompt_update():
         st.session_state["dismiss_update"] = True
         st.session_state.pop("check_updates", None)  # Clear the flag
         return
-    
+
     with st.spinner("Checking for updates..."):
         try:
             available, current, latest = is_update_available()
         except Exception:
-            st.error("Unable to check for updates. Please check your internet connection.")
+            st.error(
+                "Unable to check for updates. Please check your internet connection."
+            )
             st.session_state.pop("check_updates", None)  # Clear the flag
             return
-    
+
     if not available:
         st.info(f"You are running the latest version ({current}).")
         st.session_state.pop("check_updates", None)  # Clear the flag
         return
-    
+
     st.warning("Update available")
     st.markdown(
         f"""
-        **Current version:** {current}  
+        **Current version:** {current}
         **Latest version:** {latest}
         Do you want to update to version **{latest}**?
         """
     )
-    
+
     col1, col2 = st.columns(2)
     with col1:
         if st.button("Update", type="primary", key="update_btn"):
@@ -401,10 +407,11 @@ def check_and_prompt_update():
             st.session_state.pop("check_updates", None)  # Clear the flag
             st.rerun()
 
+
 def perform_update():
     with st.spinner("Updating GNS3 Copilot..."):
         success, message = run_update()
-    
+
     if success:
         st.success(message)
         st.warning("⚠️ **Please restart the application to use the new version.**")
@@ -416,6 +423,7 @@ def perform_update():
         """)
     else:
         st.error(message)
+
 
 def check_gns3_api() -> None:
     """
@@ -489,9 +497,9 @@ else:
 st.title("GNS3 Copilot Settings")
 st.info(f"Configuration file path: **{ENV_FILE_PATH}**")
 
-with st.expander("GNS3 Copilot Updates", expanded=True):   
+with st.expander("GNS3 Copilot Updates", expanded=True):
     render_update_settings()
-    
+
 with st.expander("GNS3 API Settings", expanded=True):
     # GNS3 Server address/API point
     col1, col2 = st.columns([1, 2])
