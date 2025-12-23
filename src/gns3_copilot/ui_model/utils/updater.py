@@ -95,8 +95,9 @@ def load_skipped_version() -> str:
     """Load the skipped update version from settings file."""
     try:
         if SETTINGS_FILE.exists():
-            settings = json.loads(SETTINGS_FILE.read_text())
-            return settings.get("skipped_update_version", "")
+            settings: dict[str, str] = json.loads(SETTINGS_FILE.read_text())
+            skipped = settings.get("skipped_update_version", "")
+            return skipped if isinstance(skipped, str) else ""
     except Exception:
         pass
     return ""
