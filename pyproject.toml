@@ -120,7 +120,8 @@ packages = [
     "gns3_copilot.prompts",
     "gns3_copilot.public_model",
     "gns3_copilot.tools_v2",
-    "gns3_copilot.ui_model"
+    "gns3_copilot.ui_model",
+    "gns3_copilot.utils"
 ]
 include-package-data = false
 
