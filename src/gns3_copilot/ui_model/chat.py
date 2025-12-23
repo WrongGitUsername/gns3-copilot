@@ -112,7 +112,7 @@ current_thread_id = st.session_state["thread_id"]
 # streamlit UI
 st.set_page_config(page_title="GNS3 Copilot")  # layout="wide"
 
-# siderbar info
+# Sidebar info
 with st.sidebar:
     thread_ids = list_thread_ids(langgraph_checkpointer)
 

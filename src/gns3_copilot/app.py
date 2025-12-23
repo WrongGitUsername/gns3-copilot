@@ -7,6 +7,7 @@ with navigation between settings, chat, and help pages.
 
 import streamlit as st
 
+from gns3_copilot.ui_model.styles import get_styles
 from gns3_copilot.ui_model.utils import (
     check_startup_updates,
     render_sidebar_about,
@@ -28,6 +29,9 @@ def main() -> None:
         layout="centered",
         initial_sidebar_state="expanded",
     )
+
+    # Apply centralized CSS styles
+    st.markdown(get_styles(), unsafe_allow_html=True)
 
     # Check for updates on startup (blocking, runs once)
     check_startup_updates()
