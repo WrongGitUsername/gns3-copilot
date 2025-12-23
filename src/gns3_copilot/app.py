@@ -20,7 +20,6 @@ NAV_PAGES = [
     "ui_model/help.py",
 ]
 
-
 def main() -> None:
     """Main application entry point."""
     # Set page metadata early to ensure consistent layout
