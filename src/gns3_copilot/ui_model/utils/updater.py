@@ -42,10 +42,12 @@ import json
 import subprocess
 import sys
 import urllib.request
+from pathlib import Path
 
 from packaging.version import InvalidVersion, Version
 
 PYPI_URL = "https://pypi.org/pypi/gns3-copilot/json"
+SETTINGS_FILE = Path.home() / ".config" / "gns3-copilot" / "settings.json"
 
 
 def get_installed_version() -> str:
@@ -73,6 +75,31 @@ def is_update_available() -> tuple[bool, str, str]:
         return Version(latest) > Version(current), current, latest
     except InvalidVersion:
         return False, current, latest
+
+
+def save_skipped_version(version: str) -> None:
+    """Save the skipped update version to settings file."""
+    SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        if SETTINGS_FILE.exists():
+            settings = json.loads(SETTINGS_FILE.read_text())
+        else:
+            settings = {}
+        settings["skipped_update_version"] = version
+        SETTINGS_FILE.write_text(json.dumps(settings, indent=2))
+    except Exception:
+        pass
+
+
+def load_skipped_version() -> str:
+    """Load the skipped update version from settings file."""
+    try:
+        if SETTINGS_FILE.exists():
+            settings = json.loads(SETTINGS_FILE.read_text())
+            return settings.get("skipped_update_version", "")
+    except Exception:
+        pass
+    return ""
 
 
 def run_update() -> tuple[bool, str]:

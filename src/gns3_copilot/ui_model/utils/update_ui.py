@@ -52,7 +52,12 @@ from typing import Any
 
 import streamlit as st
 
-from gns3_copilot.ui_model.utils.updater import is_update_available, run_update
+from gns3_copilot.ui_model.utils.updater import (
+    is_update_available,
+    load_skipped_version,
+    run_update,
+    save_skipped_version,
+)
 
 SETTINGS_FILE = Path.home() / ".config" / "gns3-copilot" / "settings.json"
 
@@ -89,6 +94,10 @@ def check_and_display_updates() -> None:
     if "startup_update_checked" in st.session_state:
         return
 
+    # Initialize skipped_update_version in session state
+    if "skipped_update_version" not in st.session_state:
+        st.session_state["skipped_update_version"] = load_skipped_version()
+
     # Mark as checked immediately to prevent re-running
     st.session_state["startup_update_checked"] = True
 
@@ -110,17 +119,62 @@ def render_startup_update_result() -> None:
 
     status = result.get("status")
 
+    # Update available
     if status == "available":
-        with st.status("Update Available", state="complete", expanded=False):
-            st.write(f"Current version: {result['current']}")
-            st.write(f"Latest version: {result['latest']}")
-            st.info("Go to **Settings → GNS3 Copilot Updates** to update.")
+        latest = result["latest"]
+
+        # Session dismiss
+        if st.session_state.get("_update_dismissed"):
+            return
+
+        # Persistent skip
+        skipped_version = st.session_state.get("skipped_update_version")
+        if skipped_version == latest:
+            return
+
+        # Render warning FIRST
+        st.warning(
+            f"⚠️ **Update available:** {result['current']} → {latest}\n\n"
+            "Go to **Settings → GNS3 Copilot Updates** to update."
+        )
+
+        # Render actions BELOW the warning
+        col1, col2 = st.columns(2)
+
+        with col1:
+            if st.button("Dismiss", key="dismiss_update"):
+                st.session_state["_update_dismissed"] = True
+                st.rerun()
+
+        with col2:
+            if st.button("Skip this version", key="skip_update"):
+                st.session_state["skipped_update_version"] = latest
+                save_skipped_version(latest)
+                st.rerun()
+
+    # Up to date
     elif status == "up_to_date":
-        with st.status("Up to Date", state="complete", expanded=False):
-            st.write(f"You're using the latest version ({result['current']})")
+        if st.session_state.get("_up_to_date_dismissed"):
+            return
+
+        st.success(f"✅ You're using the latest version ({result['current']})")
+
+        if st.button("Dismiss", key="dismiss_uptodate"):
+            st.session_state["_up_to_date_dismissed"] = True
+            st.rerun()
+
+    # Error encountered
     elif status == "error":
-        with st.status("Update Check Failed", state="error", expanded=False):
-            st.write(f"Error: {result.get('error', 'Unknown error')}")
+        if st.session_state.get("_error_dismissed"):
+            return
+
+        st.error(
+            f"❌ Update check failed: {result.get('error', 'Unknown error')}"
+        )
+
+        if st.button("Dismiss", key="dismiss_error"):
+            st.session_state["_error_dismissed"] = True
+            st.rerun()
 
 
 def check_startup_updates() -> None:
