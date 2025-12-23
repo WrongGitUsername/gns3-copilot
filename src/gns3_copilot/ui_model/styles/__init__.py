@@ -5,7 +5,7 @@ from pathlib import Path
 
 def get_styles() -> str:
     """Read and return all CSS styles wrapped in style tags.
-    
+
     Returns:
         str: CSS content from main.css file wrapped in <style> tags,
              or empty string if file doesn't exist.
