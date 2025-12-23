@@ -80,6 +80,16 @@ The process operates in a closed-loop structure, ensuring reliability and self-c
     
     - Once all steps are successfully completed and verified, the final result is delivered to the user.
 
+## 🤝 Contributing
+
+We welcome contributions from the community! To keep the project stable, please follow our branching strategy:
+
+- **Target Branch**: Always submit your Pull Requests to the `Development` branch (not `master`).
+
+- **Feature Branches**: Create a new branch for each feature or bug fix: `git checkout -b feature/your-feature-name Development`.
+
+- **Workflow**: Fork -> Branch -> Commit -> Push -> Pull Request to `Development`.
+
 
 ## Installation Guide
 
