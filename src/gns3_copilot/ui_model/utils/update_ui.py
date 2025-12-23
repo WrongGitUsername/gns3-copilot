@@ -168,9 +168,7 @@ def render_startup_update_result() -> None:
         if st.session_state.get("_error_dismissed"):
             return
 
-        st.error(
-            f"❌ Update check failed: {result.get('error', 'Unknown error')}"
-        )
+        st.error(f"❌ Update check failed: {result.get('error', 'Unknown error')}")
 
         if st.button("Dismiss", key="dismiss_error"):
             st.session_state["_error_dismissed"] = True
