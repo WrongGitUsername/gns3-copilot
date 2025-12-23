@@ -1,3 +1,43 @@
+"""
+Core Update Logic Module for GNS3 Copilot.
+
+This module provides the core functionality for checking and updating the
+GNS3 Copilot application from PyPI. It includes version comparison,
+update availability checking, and the update installation process.
+
+This module is platform-agnostic and doesn't depend on Streamlit, making it
+suitable for reuse in different contexts (CLI, web UI, automated scripts).
+
+Key Functions:
+    get_installed_version(): Retrieve the currently installed version
+    get_latest_version(): Fetch the latest version from PyPI
+    is_update_available(): Compare versions and check for updates
+    run_update(): Execute the update process using pip
+
+Constants:
+    PYPI_URL: PyPI API endpoint for version information
+
+Error Handling:
+    - Network timeout: 5-second timeout for PyPI API requests
+    - Invalid version: Handles version parsing errors gracefully
+    - Subprocess timeout: 5-minute timeout for pip update process
+    - Update failures: Returns descriptive error messages
+
+Example:
+    Check for updates programmatically:
+        from gns3_copilot.ui_model.utils.updater import (
+            is_update_available,
+            run_update,
+        )
+
+        available, current, latest = is_update_available()
+        if available:
+            print(f"Update available: {current} -> {latest}")
+            success, message = run_update()
+            if success:
+                print(message)
+"""
+
 import json
 import subprocess
 import sys

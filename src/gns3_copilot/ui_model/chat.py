@@ -110,7 +110,7 @@ if "thread_id" not in st.session_state:
 current_thread_id = st.session_state["thread_id"]
 
 # streamlit UI
-st.set_page_config(page_title="GNS3 Copilot", layout="wide")
+st.set_page_config(page_title="GNS3 Copilot")  # layout="wide"
 
 # siderbar info
 with st.sidebar:
@@ -287,7 +287,7 @@ if not selected_p:
     # st.title("GNS3 Copilot - Workspace Selection")
     # st.info("Please select an opened project to enter the conversation context.")
     if projects:
-        cols = st.columns(3)
+        cols = st.columns([1, 1])
         for i, p in enumerate(projects):
             # Destructure project tuple for clarity: name, ID, device count, link count, status
             name, p_id, dev_count, link_count, status = p
@@ -295,12 +295,12 @@ if not selected_p:
             # Check status
             is_opened = status.lower() == "opened"
 
-            with cols[i % 3]:
+            with cols[i % 2]:
                 # If closed status, use container with background color or different title format
                 with st.container(border=True):
                     # Add status icon to title
                     status_icon = "🟢" if is_opened else "⚪"
-                    st.markdown(f"#### {status_icon} {name}")
+                    st.markdown(f"###### {status_icon} {name}")
                     st.caption(f"ID: {p_id[:8]}")
 
                     # Display device and link information

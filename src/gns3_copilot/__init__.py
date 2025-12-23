@@ -11,14 +11,6 @@ try:
     from importlib.metadata import version
 
     __version__ = str(version("gns3-copilot"))
-except ImportError:
-    # Fallback for Python < 3.8
-    try:
-        import pkg_resources
-
-        __version__ = str(pkg_resources.get_distribution("gns3-copilot").version)
-    except Exception:
-        __version__ = "unknown"
 except Exception:
     __version__ = "unknown"
 
