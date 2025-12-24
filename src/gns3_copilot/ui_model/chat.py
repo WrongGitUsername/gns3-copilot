@@ -32,7 +32,7 @@ import os
 import uuid
 from time import sleep
 from typing import Any
-
+import time
 import streamlit as st
 from dotenv import load_dotenv
 from langchain.messages import AIMessage, HumanMessage, ToolMessage
@@ -262,42 +262,43 @@ else:
         "recursion_limit": 28,
     }
 
-# --- Get current state ---
+# Confirmm the project selection / project id 
+if st.session_state.get("show_selection_message"):
+    msg_data = st.session_state["show_selection_message"]
+    st.success(f"✅ Project {msg_data['name']} has been selected! Project ID: {msg_data['id']} ")
+    
+    # Clear the message so it only shows once
+    del st.session_state["show_selection_message"]
+
+# Get current state snapshot
 snapshot = agent.get_state(config)
 selected_p = snapshot.values.get("selected_project")
-
-# --- Logic branch: If no project is selected, display project cards ---
+# Check if we just clicked 'Switch' to prevent auto-reselection
+if "selected_p_override" in st.session_state and st.session_state["selected_p_override"] is None:
+    selected_p = None
+# If no project is selected, display project cards
 if not selected_p:
     st.markdown(
         '<p style="font-size: 32px; font-weight: bold;">GNS3 Copilot - Workspace Selection</p>',
         unsafe_allow_html=True,
     )
     st.info("Please select an opened project to enter the conversation context.")
-
     # Get project list
     projects = GNS3ProjectList()._run().get("projects", [])
-
-    # Pre-filter all projects in "opened" status
     opened_projects = [p for p in projects if p[4].lower() == "opened"]
-    # If there's only one opened project, directly select it and skip UI rendering
-    if len(opened_projects) == 1:
+    # Only auto-select if not in "Switching Mode"
+    if len(opened_projects) == 1 and st.session_state.get("selected_p_override", "active") != "switching":
         p = opened_projects[0]
         agent.update_state(config, {"selected_project": p})
-        # Record a log or brief prompt for debugging convenience
         st.toast(f"Automatically selecting project: {p[0]}")
         st.rerun()
-
-    # st.title("GNS3 Copilot - Workspace Selection")
-    # st.info("Please select an opened project to enter the conversation context.")
     if projects:
         cols = st.columns([1, 1])
         for i, p in enumerate(projects):
             # Destructure project tuple for clarity: name, ID, device count, link count, status
             name, p_id, dev_count, link_count, status = p
-
             # Check status
             is_opened = status.lower() == "opened"
-
             with cols[i % 2]:
                 # If closed status, use container with background color or different title format
                 with st.container(border=True):
@@ -305,39 +306,46 @@ if not selected_p:
                     status_icon = "🟢" if is_opened else "⚪"
                     st.markdown(f"###### {status_icon} {name}")
                     st.caption(f"ID: {p_id[:8]}")
-
                     # Display device and link information
                     st.write(f"{dev_count} Devices | {link_count} Links")
-
                     # Dynamic status text display
                     if is_opened:
                         st.success(f"Status: {status.upper()}")
                     else:
                         st.warning(f"Status: {status.upper()} (Unavailable)")
-
-                    # --- Button logic modification ---
-                    # If status is not opened, set disabled=True
+                    # Button logic modification
                     if st.button(
                         "Select Project" if is_opened else "Project Closed",
                         key=f"btn_{p_id}",
                         use_container_width=True,
-                        disabled=not is_opened,  # Key point: disable button for non-opened status
+                        disabled=not is_opened,
                         type="primary" if is_opened else "secondary",
                     ):
-                        # Only execute when button is available and clicked
+                        # Store selection message in session state
+                        st.session_state["show_selection_message"] = {
+                            "name": name,
+                            "id": p_id
+                        }
+                        # Update agent state
                         agent.update_state(config, {"selected_project": p})
-                        st.success(f"Project {name} has been selected!")
+                        # Clear the switching flag so auto-selection works next time
+                        st.session_state["selected_p_override"] = "active"
                         st.rerun()
     else:
         st.error("No projects found in GNS3.")
-        if st.button("Refresh List"):
-            st.rerun()
+    if st.button("Refresh List"):
+        st.rerun()
+
 
 else:
-    # Top status bar logic remains unchanged
+
+    # Top status bar logic
     st.sidebar.success(f"Current Project: **{selected_p[0]}**")
     if st.sidebar.button("Switch Project / Exit"):
+        # Update the agent state
         agent.update_state(config, {"selected_project": None})
+        # Set the override flag to "switching"
+        st.session_state["selected_p_override"] = "switching"
         st.rerun()
 
     # Configure chat_input based on switch
@@ -549,6 +557,3 @@ else:
         else:
             # Update session state
             st.session_state["state_history"] = state_history
-            # print(state_history)
-            # with open('state_history.txt', "a", encoding='utf-8') as f:
-            #    f.write(f"{state_history}\n\n")
