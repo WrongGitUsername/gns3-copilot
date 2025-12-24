@@ -110,7 +110,11 @@ if "thread_id" not in st.session_state:
 current_thread_id = st.session_state["thread_id"]
 
 # streamlit UI
-st.set_page_config(page_title="GNS3 Copilot")  # layout="wide"
+st.set_page_config(
+    page_title="GNS3 Copilot",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)  # layout="wide"
 
 # Sidebar info
 with st.sidebar:
@@ -167,83 +171,6 @@ with st.sidebar:
             {"configurable": {"thread_id": selected_thread_id}}
         )
 
-# StateSnapshot state exapmle test/langgraph_checkpoint.json file
-# Display previous messages from state history
-if st.session_state.get("state_history") is not None:
-    # StateSnapshot values dictionary
-    values_dict = st.session_state["state_history"].values
-    message_to_render = values_dict.get("messages", [])
-
-    # Track current open assistant message block
-    current_assistant_block = None
-
-    # StateSnapshot values messages list
-    for message_object in message_to_render:
-        # Handle different message types
-        if isinstance(message_object, HumanMessage):
-            # Close any open assistant chat message block before starting a new user message
-            if current_assistant_block is not None:
-                current_assistant_block.__exit__(None, None, None)
-                current_assistant_block = None
-            # UserMessage
-            with st.chat_message("user"):
-                st.markdown(message_object.content)
-
-        elif isinstance(message_object, (AIMessage, ToolMessage)):
-            # Open a new assistant chat message block if none is open
-            if current_assistant_block is None:
-                current_assistant_block = st.chat_message("assistant")
-                current_assistant_block.__enter__()
-
-            # Handle AIMessage with tool_calls
-            if isinstance(message_object, AIMessage):
-                # AIMessage content
-                # adapted for gemini
-                # Check if content is a list and safely extract the first text element
-                if (
-                    isinstance(message_object.content, list)
-                    and message_object.content
-                    and "text" in message_object.content[0]
-                ):
-                    st.markdown(message_object.content[0]["text"])
-                # Plain string content
-                elif isinstance(message_object.content, str):
-                    st.markdown(message_object.content)
-                # AIMessage tool_calls
-                if (
-                    isinstance(message_object.tool_calls, list)
-                    and message_object.tool_calls
-                ):
-                    for tool in message_object.tool_calls:
-                        tool_id = tool.get("id", "UNKNOWN_ID")
-                        tool_name = tool.get("name", "UNKNOWN_TOOL")
-                        tool_args = tool.get("args", {})
-                        # Display tool call details
-                        with st.expander(
-                            f"**Tool Call:** {tool_name} `call_id: {tool_id}`",
-                            expanded=False,
-                        ):
-                            st.json(
-                                {
-                                    "name": tool_name,
-                                    "id": tool_id,
-                                    "args": tool_args,
-                                    "type": "tool_call",
-                                },
-                                expanded=True,
-                            )
-            # Handle ToolMessage
-            if isinstance(message_object, ToolMessage):
-                content_pretty = format_tool_response(message_object.content)
-                with st.expander(
-                    f"**Tool Response** `call_id: {message_object.tool_call_id}`",
-                    expanded=False,
-                ):
-                    st.json(json.loads(content_pretty), expanded=2)
-
-    # Close any remaining open assistant chat message block
-    if current_assistant_block is not None:
-        current_assistant_block.__exit__(None, None, None)
 
 # Unique thread ID for each session
 # If a session is selected, continue the conversation using its thread ID;
@@ -266,128 +193,228 @@ else:
 snapshot = agent.get_state(config)
 selected_p = snapshot.values.get("selected_project")
 
-# --- Logic branch: If no project is selected, display project cards ---
-if not selected_p:
-    st.markdown(
-        '<p style="font-size: 32px; font-weight: bold;">GNS3 Copilot - Workspace Selection</p>',
-        unsafe_allow_html=True,
-    )
-    st.info("Please select an opened project to enter the conversation context.")
+layout_col1, layout_col2 = st.columns([3, 7], gap="medium")
 
-    # Get project list
-    projects = GNS3ProjectList()._run().get("projects", [])
+with layout_col1:
+    history_container = st.container(height=800)  # 高度根据屏幕调整，留出底部空间
+    with history_container:
+        # StateSnapshot state example test/langgraph_checkpoint.json file
+        # Display previous messages from state history
+        if st.session_state.get("state_history") is not None:
+            # StateSnapshot values dictionary
+            values_dict = st.session_state["state_history"].values
+            message_to_render = values_dict.get("messages", [])
+    
+            # Track current open assistant message block
+            current_assistant_block = None
+    
+            # StateSnapshot values messages list
+            for message_object in message_to_render:
+                # Handle different message types
+                if isinstance(message_object, HumanMessage):
+                    # Close any open assistant chat message block before starting a new user message
+                    if current_assistant_block is not None:
+                        current_assistant_block.__exit__(None, None, None)
+                        current_assistant_block = None
+                    # UserMessage
+                    with st.chat_message("user"):
+                        st.markdown(message_object.content)
+    
+                elif isinstance(message_object, (AIMessage, ToolMessage)):
+                    # Open a new assistant chat message block if none is open
+                    if current_assistant_block is None:
+                        current_assistant_block = st.chat_message("assistant")
+                        current_assistant_block.__enter__()
+    
+                    # Handle AIMessage with tool_calls
+                    if isinstance(message_object, AIMessage):
+                        # AIMessage content
+                        # adapted for gemini
+                        # Check if content is a list and safely extract the first text element
+                        if (
+                            isinstance(message_object.content, list)
+                            and message_object.content
+                            and "text" in message_object.content[0]
+                        ):
+                            st.markdown(message_object.content[0]["text"])
+                        # Plain string content
+                        elif isinstance(message_object.content, str):
+                            st.markdown(message_object.content)
+                        # AIMessage tool_calls
+                        if (
+                            isinstance(message_object.tool_calls, list)
+                            and message_object.tool_calls
+                        ):
+                            for tool in message_object.tool_calls:
+                                tool_id = tool.get("id", "UNKNOWN_ID")
+                                tool_name = tool.get("name", "UNKNOWN_TOOL")
+                                tool_args = tool.get("args", {})
+                                # Display tool call details
+                                with st.expander(
+                                    f"**Tool Call:** {tool_name} `call_id: {tool_id}`",
+                                    expanded=False,
+                                ):
+                                    st.json(
+                                        {
+                                            "name": tool_name,
+                                            "id": tool_id,
+                                            "args": tool_args,
+                                            "type": "tool_call",
+                                        },
+                                        expanded=True,
+                                    )
+                    # Handle ToolMessage
+                    if isinstance(message_object, ToolMessage):
+                        content_pretty = format_tool_response(message_object.content)
+                        with st.expander(
+                            f"**Tool Response** `call_id: {message_object.tool_call_id}`",
+                            expanded=False,
+                        ):
+                            st.json(json.loads(content_pretty), expanded=2)
+    
+            # Close any remaining open assistant chat message block
+            if current_assistant_block is not None:
+                current_assistant_block.__exit__(None, None, None)
+    
+    # --- Logic branch: If no project is selected, display project cards ---
+    if not selected_p:
+        st.markdown(
+            '<p style="font-size: 32px; font-weight: bold;">GNS3 Copilot - Workspace Selection</p>',
+            unsafe_allow_html=True,
+        )
+        st.info("Please select an opened project to enter the conversation context.")
 
-    # Pre-filter all projects in "opened" status
-    opened_projects = [p for p in projects if p[4].lower() == "opened"]
-    # If there's only one opened project, directly select it and skip UI rendering
-    if len(opened_projects) == 1:
-        p = opened_projects[0]
-        agent.update_state(config, {"selected_project": p})
-        # Record a log or brief prompt for debugging convenience
-        st.toast(f"Automatically selecting project: {p[0]}")
-        st.rerun()
+        # Get project list
+        projects = GNS3ProjectList()._run().get("projects", [])
 
-    # st.title("GNS3 Copilot - Workspace Selection")
-    # st.info("Please select an opened project to enter the conversation context.")
-    if projects:
-        cols = st.columns([1, 1])
-        for i, p in enumerate(projects):
-            # Destructure project tuple for clarity: name, ID, device count, link count, status
-            name, p_id, dev_count, link_count, status = p
-
-            # Check status
-            is_opened = status.lower() == "opened"
-
-            with cols[i % 2]:
-                # If closed status, use container with background color or different title format
-                with st.container(border=True):
-                    # Add status icon to title
-                    status_icon = "🟢" if is_opened else "⚪"
-                    st.markdown(f"###### {status_icon} {name}")
-                    st.caption(f"ID: {p_id[:8]}")
-
-                    # Display device and link information
-                    st.write(f"{dev_count} Devices | {link_count} Links")
-
-                    # Dynamic status text display
-                    if is_opened:
-                        st.success(f"Status: {status.upper()}")
-                    else:
-                        st.warning(f"Status: {status.upper()} (Unavailable)")
-
-                    # --- Button logic modification ---
-                    # If status is not opened, set disabled=True
-                    if st.button(
-                        "Select Project" if is_opened else "Project Closed",
-                        key=f"btn_{p_id}",
-                        use_container_width=True,
-                        disabled=not is_opened,  # Key point: disable button for non-opened status
-                        type="primary" if is_opened else "secondary",
-                    ):
-                        # Only execute when button is available and clicked
-                        agent.update_state(config, {"selected_project": p})
-                        st.success(f"Project {name} has been selected!")
-                        st.rerun()
-    else:
-        st.error("No projects found in GNS3.")
-        if st.button("Refresh List"):
+        # Pre-filter all projects in "opened" status
+        opened_projects = [p for p in projects if p[4].lower() == "opened"]
+        # If there's only one opened project, directly select it and skip UI rendering
+        if len(opened_projects) == 1:
+            p = opened_projects[0]
+            agent.update_state(config, {"selected_project": p})
+            # Record a log or brief prompt for debugging convenience
+            st.toast(f"Automatically selecting project: {p[0]}")
             st.rerun()
 
-else:
-    # Top status bar logic remains unchanged
-    st.sidebar.success(f"Current Project: **{selected_p[0]}**")
-    if st.sidebar.button("Switch Project / Exit"):
-        agent.update_state(config, {"selected_project": None})
-        st.rerun()
+        # st.title("GNS3 Copilot - Workspace Selection")
+        # st.info("Please select an opened project to enter the conversation context.")
+        if projects:
+            cols = st.columns([1, 1])
+            for i, p in enumerate(projects):
+                # Destructure project tuple for clarity: name, ID, device count, link count, status
+                name, p_id, dev_count, link_count, status = p
 
-    # Configure chat_input based on switch
-    if VOICE_ENABLED:
-        prompt = st.chat_input(
-            "Say or record something...",
-            accept_audio=True,
-            audio_sample_rate=24000,
-        )
-    else:
-        # When voice is disabled, do not enable accept_audio attribute
-        prompt = st.chat_input("Type your message here...")
+                # Check status
+                is_opened = status.lower() == "opened"
 
-    # Handle input
-    if prompt:
-        user_text = ""
+                with cols[i % 2]:
+                    # If closed status, use container with background color or different title format
+                    with st.container(border=True):
+                        # Add status icon to title
+                        status_icon = "🟢" if is_opened else "⚪"
+                        st.markdown(f"###### {status_icon} {name}")
+                        st.caption(f"ID: {p_id[:8]}")
 
-        if VOICE_ENABLED:
-            # Mode A: prompt is an object (containing .text and .audio)
-            if prompt.audio:
-                user_text = speech_to_text(prompt.audio)
+                        # Display device and link information
+                        st.write(f"{dev_count} Devices | {link_count} Links")
 
-            # If voice is not converted to text, or user directly types
-            if not user_text:
-                user_text = prompt.text
+                        # Dynamic status text display
+                        if is_opened:
+                            st.success(f"Status: {status.upper()}")
+                        else:
+                            st.warning(f"Status: {status.upper()} (Unavailable)")
+
+                        # --- Button logic modification ---
+                        # If status is not opened, set disabled=True
+                        if st.button(
+                            "Select Project" if is_opened else "Project Closed",
+                            key=f"btn_{p_id}",
+                            use_container_width=True,
+                            disabled=not is_opened,  # Key point: disable button for non-opened status
+                            type="primary" if is_opened else "secondary",
+                        ):
+                            # Only execute when button is available and clicked
+                            agent.update_state(config, {"selected_project": p})
+                            st.success(f"Project {name} has been selected!")
+                            st.rerun()
         else:
-            # Mode B: prompt is directly a string
-            user_text = prompt
+            st.error("No projects found in GNS3.")
+            if st.button("Refresh List"):
+                st.rerun()
 
-        # 3. Final check and run
-        if not user_text or user_text.strip() == "":
-            st.stop()
+    else:
+        # Top status bar logic remains unchanged
+        st.sidebar.success(f"Current Project: **{selected_p[0]}**")
+        if st.sidebar.button("Switch Project / Exit"):
+            agent.update_state(config, {"selected_project": None})
+            st.rerun()
 
+
+with layout_col2:
+    # 从选中的项目中提取 project_id
+    if selected_p:
+        project_id = selected_p[1]  # selected_p 是元组: (name, p_id, dev_count, link_count, status)
+        gns3_server_url = os.getenv("GNS3_SERVER_URL", "http://127.0.0.1:3080/")
+        iframe_url = f"{gns3_server_url}/static/web-ui/server/1/project/{project_id}"
+        #st.components.v1.iframe(iframe_url, height=800, scrolling=True)
+
+        # 🎯 关键修复：使用 container 包裹 iframe
+        with st.container():
+            st.components.v1.iframe(
+                iframe_url, 
+                height=800, 
+                scrolling=True,
+                width=None  # 让它自动适应容器宽度
+            )
+
+# Configure chat_input based on switch
+if VOICE_ENABLED:
+    prompt = st.chat_input(
+        "Say or record something...",
+        accept_audio=True,
+        audio_sample_rate=24000,
+        #width=500,
+    )
+else:
+    # When voice is disabled, do not enable accept_audio attribute
+    prompt = st.chat_input(
+        "Type your message here...",
+        #width=500
+    )
+# Handle input
+if prompt:
+    user_text = ""
+    if VOICE_ENABLED:
+        # Mode A: prompt is an object (containing .text and .audio)
+        if prompt.audio:
+            user_text = speech_to_text(prompt.audio)
+        # If voice is not converted to text, or user directly types
+        if not user_text:
+            user_text = prompt.text
+    else:
+        # Mode B: prompt is directly a string
+        user_text = prompt
+    # 3. Final check and run
+    if not user_text or user_text.strip() == "":
+        st.stop()
+    
+    with history_container:
         # Display user message in chat message container
         with st.chat_message("user"):
             st.markdown(user_text)
-
-        # Display assistant response in chat message container
+    with history_container:
+    # Display assistant response in chat message container
         with st.chat_message("assistant"):
             active_text_placeholder = st.empty()
             current_text_chunk = ""
             # Core aggregation state: only stores currently streaming tool information
             # Structure: {'id': str, 'name': str, 'args_string': str} or None
             current_tool_state = None
-
             # TTS local switch for message control
             tts_played = False
             # Initialize audio_bytes variable
             audio_bytes = None
-
             # Stream the agent response
             for chunk in agent.stream(
                 {
@@ -399,7 +426,6 @@ else:
                 for msg in chunk:
                     # with open('log.txt', "a", encoding='utf-8') as f:
                     #    f.write(f"{msg}\n\n")
-
                     if isinstance(msg, AIMessage):
                         # adapted for gemini
                         # Check if content is a list and safely extract the first text element
@@ -414,13 +440,11 @@ else:
                             active_text_placeholder.markdown(
                                 current_text_chunk, unsafe_allow_html=True
                             )
-
                         elif isinstance(msg.content, str):
                             current_text_chunk += str(msg.content)
                             active_text_placeholder.markdown(
                                 current_text_chunk, unsafe_allow_html=True
                             )
-
                         # Determine if text message (i.e., msg.content) reception is complete
                         is_text_ending = (
                             # Case 1: Tool call starts
@@ -448,7 +472,6 @@ else:
                             except Exception as e:
                                 logger.error("TTS Error: %", e)
                                 st.error(f"TTS Error: {e}")
-
                         # Get metadata (ID and name) from tool_calls
                         if msg.tool_calls:
                             for tool in msg.tool_calls:
@@ -462,19 +485,15 @@ else:
                                         "name": tool.get("name", "UNKNOWN_TOOL"),
                                         "args_string": "",
                                     }
-
                         # Concatenate parameter strings from tool_call_chunk
                         if hasattr(msg, "tool_call_chunks") and msg.tool_call_chunks:
                             if current_tool_state:
                                 tool_data = current_tool_state
-
                                 for chunk_update in msg.tool_call_chunks:
                                     args_chunk = chunk_update.get("args", "")
-
                                     # Core: string concatenation
                                     if isinstance(args_chunk, str):
                                         tool_data["args_string"] += args_chunk
-
                         # Determine if the tool_calls_chunks output is complete and
                         # display the st.expander() for tool_calls
                         if msg.response_metadata.get(
@@ -492,7 +511,6 @@ else:
                                 parsed_args = {
                                     "error": "JSON parse failed after stream complete."
                                 }
-
                             # Serialize the tool_input value in parsed_args to a JSON array
                             # for expansion when using st.json
                             try:
@@ -500,7 +518,6 @@ else:
                                 parsed_args["tool_input"] = command_list
                             except (json.JSONDecodeError, KeyError, TypeError):
                                 pass
-
                             # Build the final display structure that meets your requirements
                             display_tool_call = {
                                 "name": tool_data["name"],
@@ -518,31 +535,24 @@ else:
                             ):
                                 # Use the final complete structure
                                 st.json(display_tool_call, expanded=False)
-
                     if isinstance(msg, ToolMessage):
                         # Wait for audio playback to complete before returning ToolMessage to LLM
                         if VOICE_ENABLED and audio_bytes:
                             sleep(get_duration(audio_bytes))
-
                         # Clear state after completion, ready to receive next tool call
                         current_tool_state = None
-
                         content_pretty = format_tool_response(msg.content)
-
                         with st.expander(
                             f"**Tool Response** `call_id: {msg.tool_call_id}`",
                             expanded=False,
                         ):
                             st.json(json.loads(content_pretty), expanded=False)
-
                         active_text_placeholder = st.empty()
                         current_text_chunk = ""
                         # After a round of AIMessage/ToolMessage, reset tts_played switch, next round of AIMessage/ToolMessage can generate TTS again
                         tts_played = False
-
         # After the interaction, update the session state with the latest StateSnapshot
         state_history = agent.get_state(config)
-
         # Avoid updating if state_history is empty
         if not state_history[0]:
             pass
