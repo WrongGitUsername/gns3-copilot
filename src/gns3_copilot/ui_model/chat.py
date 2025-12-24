@@ -47,6 +47,7 @@ from gns3_copilot.public_model import (
     text_to_speech_wav,
 )
 
+
 logger = setup_logger("chat")
 load_dotenv()
 
@@ -54,6 +55,12 @@ load_dotenv()
 # os.getenv returns a string, recommend converting to bool to avoid errors
 VOICE_ENABLED = os.getenv("VOICE", "false").lower() == "true"
 
+# streamlit UI
+st.set_page_config(
+    page_title="GNS3 Copilot",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)  # layout="wide"
 
 # get all thread_id from checkpoint database.
 def list_thread_ids(checkpointer: Any) -> list[str]:
@@ -108,13 +115,6 @@ if "thread_id" not in st.session_state:
     st.session_state["thread_id"] = str(uuid.uuid4())
 
 current_thread_id = st.session_state["thread_id"]
-
-# streamlit UI
-st.set_page_config(
-    page_title="GNS3 Copilot",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)  # layout="wide"
 
 # Sidebar info
 with st.sidebar:
@@ -365,7 +365,7 @@ with layout_col2:
                 iframe_url, 
                 height=800, 
                 scrolling=True,
-                width=None  # 让它自动适应容器宽度
+                #width=None  # 让它自动适应容器宽度
             )
 
 # Configure chat_input based on switch
