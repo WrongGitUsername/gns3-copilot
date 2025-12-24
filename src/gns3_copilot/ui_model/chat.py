@@ -32,9 +32,11 @@ import os
 import uuid
 from time import sleep
 from typing import Any
+
 import streamlit as st
 from dotenv import load_dotenv
 from langchain.messages import AIMessage, HumanMessage, ToolMessage
+
 from gns3_copilot.agent import agent, langgraph_checkpointer
 from gns3_copilot.gns3_client import GNS3ProjectList
 from gns3_copilot.log_config import setup_logger
@@ -260,11 +262,13 @@ else:
         "recursion_limit": 28,
     }
 
-# Confirmm the project selection / project id 
+# Confirmm the project selection / project id
 if st.session_state.get("show_selection_message"):
     msg_data = st.session_state["show_selection_message"]
-    st.success(f"✅ Project {msg_data['name']} has been selected! Project ID: {msg_data['id']} ")
-    
+    st.success(
+        f"✅ Project {msg_data['name']} has been selected! Project ID: {msg_data['id']} "
+    )
+
     # Clear the message so it only shows once
     del st.session_state["show_selection_message"]
 
@@ -272,7 +276,10 @@ if st.session_state.get("show_selection_message"):
 snapshot = agent.get_state(config)
 selected_p = snapshot.values.get("selected_project")
 # Check if we just clicked 'Switch' to prevent auto-reselection
-if "selected_p_override" in st.session_state and st.session_state["selected_p_override"] is None:
+if (
+    "selected_p_override" in st.session_state
+    and st.session_state["selected_p_override"] is None
+):
     selected_p = None
 # If no project is selected, display project cards
 if not selected_p:
@@ -285,7 +292,10 @@ if not selected_p:
     projects = GNS3ProjectList()._run().get("projects", [])
     opened_projects = [p for p in projects if p[4].lower() == "opened"]
     # Only auto-select if not in "Switching Mode"
-    if len(opened_projects) == 1 and st.session_state.get("selected_p_override", "active") != "switching":
+    if (
+        len(opened_projects) == 1
+        and st.session_state.get("selected_p_override", "active") != "switching"
+    ):
         p = opened_projects[0]
         agent.update_state(config, {"selected_project": p})
         st.toast(f"Automatically selecting project: {p[0]}")
@@ -322,7 +332,7 @@ if not selected_p:
                         # Store selection message in session state
                         st.session_state["show_selection_message"] = {
                             "name": name,
-                            "id": p_id
+                            "id": p_id,
                         }
                         # Update agent state
                         agent.update_state(config, {"selected_project": p})
@@ -336,7 +346,6 @@ if not selected_p:
 
 
 else:
-
     # Top status bar logic
     st.sidebar.success(f"Current Project: **{selected_p[0]}**")
     if st.sidebar.button("Switch Project / Exit"):

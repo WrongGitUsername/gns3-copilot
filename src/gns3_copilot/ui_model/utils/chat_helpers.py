@@ -54,7 +54,7 @@ def list_thread_ids(checkpointer: Any) -> list[str]:
             "SELECT DISTINCT thread_id FROM checkpoints ORDER BY rowid DESC"
         ).fetchall()
         return [r[0] for r in res]
-    except Exception as e:
+    except Exception:
         # Table might not exist yet, return empty list
         return []
 
@@ -72,7 +72,7 @@ def create_session_options(
     Returns:
         List of (title, thread_id) tuples. First element is a placeholder.
     """
-    options = [("(Please select session)", None)]
+    options: list[tuple[str, str | None]] = [("(Please select session)", None)]
 
     for thread_id in thread_ids:
         checkpoint = checkpointer.get({"configurable": {"thread_id": thread_id}})
@@ -112,8 +112,8 @@ def extract_message_text(content: Any) -> str:
     Returns:
         Extracted text as string.
     """
-    if isinstance(content, list) and content and "text" in content[0]:
-        return content[0]["text"]
+    if isinstance(content, list) and content and isinstance(content[0], dict) and "text" in content[0]:
+        return str(content[0]["text"])
     return str(content) if isinstance(content, str) else ""
 
 
@@ -185,7 +185,7 @@ def render_message_history(messages: list) -> None:
 
 
 def render_project_card(
-    project: tuple, col, agent: Any, config: dict
+    project: tuple, col: Any, agent: Any, config: dict
 ) -> None:
     """
     Render a single project selection card.
@@ -254,7 +254,7 @@ def render_project_selection_ui(
 
 
 def handle_text_message(
-    msg: AIMessage, placeholder, current_text: str
+    msg: AIMessage, placeholder: Any, current_text: str
 ) -> tuple[str, bool]:
     """
     Handle text streaming from AIMessage.
@@ -321,7 +321,7 @@ def handle_tool_call_chunk(msg: AIMessage, tool_state: dict) -> None:
             tool_state["args_string"] += args_chunk
 
 
-def handle_tool_call_complete(msg: AIMessage, tool_state: dict) -> None:
+def handle_tool_call_complete(msg: AIMessage, tool_state: dict[str, Any]) -> None:
     """
     Handle completion of a tool call and display.
 
@@ -357,7 +357,7 @@ def handle_tool_call_complete(msg: AIMessage, tool_state: dict) -> None:
 
 def handle_tool_response(
     msg: ToolMessage,
-    placeholder,
+    placeholder: Any,
     audio_bytes: bytes | None,
     voice_enabled: bool,
 ) -> tuple[bytes | None, str]:
@@ -448,11 +448,9 @@ def process_chat_stream(
                         handle_tool_call_chunk(msg, current_tool_state)
 
                     # Handle tool call completion
-                    if (
-                        msg.response_metadata.get("finish_reason") == "tool_calls"
-                        or (
+                    if current_tool_state is not None and (
+                        msg.response_metadata.get("finish_reason") == "tool_calls" or (
                             msg.response_metadata.get("finish_reason") == "STOP"
-                            and current_tool_state is not None
                         )
                     ):
                         handle_tool_call_complete(msg, current_tool_state)
