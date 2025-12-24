@@ -112,7 +112,12 @@ def extract_message_text(content: Any) -> str:
     Returns:
         Extracted text as string.
     """
-    if isinstance(content, list) and content and isinstance(content[0], dict) and "text" in content[0]:
+    if (
+        isinstance(content, list)
+        and content
+        and isinstance(content[0], dict)
+        and "text" in content[0]
+    ):
         return str(content[0]["text"])
     return str(content) if isinstance(content, str) else ""
 
@@ -184,9 +189,7 @@ def render_message_history(messages: list) -> None:
         current_assistant_block.__exit__(None, None, None)
 
 
-def render_project_card(
-    project: tuple, col: Any, agent: Any, config: dict
-) -> None:
+def render_project_card(project: tuple, col: Any, agent: Any, config: dict) -> None:
     """
     Render a single project selection card.
 
@@ -223,9 +226,7 @@ def render_project_card(
                 st.rerun()
 
 
-def render_project_selection_ui(
-    projects: list, agent: Any, config: dict
-) -> None:
+def render_project_selection_ui(projects: list, agent: Any, config: dict) -> None:
     """
     Render project selection interface cards.
 
@@ -449,9 +450,8 @@ def process_chat_stream(
 
                     # Handle tool call completion
                     if current_tool_state is not None and (
-                        msg.response_metadata.get("finish_reason") == "tool_calls" or (
-                            msg.response_metadata.get("finish_reason") == "STOP"
-                        )
+                        msg.response_metadata.get("finish_reason") == "tool_calls"
+                        or (msg.response_metadata.get("finish_reason") == "STOP")
                     ):
                         handle_tool_call_complete(msg, current_tool_state)
 
