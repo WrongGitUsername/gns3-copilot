@@ -55,3 +55,24 @@ iframe[title="st.iframe"] {
 [data-testid="stVerticalBlock"] > [style*="flex-direction: column"] {
     gap: 0.5rem !important;
 }
+
+/* ============================================
+   Maximize Main Container Width
+   ============================================ */
+
+/* Set main container to max width */
+[data-testid="stMainBlockContainer"] {
+    max-width: 100% !important;
+    padding: 1rem;
+}
+
+/* Adjust vertical block width */
+[data-testid="stVerticalBlock"] {
+    max-width: 100% !important;
+}
+
+/* Remove any width restrictions on columns */
+[data-testid="column"] {
+    min-width: 0 !important;
+    flex: 1 1 0 !important;
+}
