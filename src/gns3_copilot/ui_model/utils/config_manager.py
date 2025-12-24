@@ -216,13 +216,33 @@ def load_config_from_env() -> None:
             continue  # Important: Skip this loop after processing boolean type to prevent override by the final generic assignment
 
         # Special handling for TTS configuration
-        if st_key == "TTS_MODEL" and default_value not in TTS_MODELS:
-            logger.warning("Unsupported TTS_MODEL %s, setting to empty", default_value)
-            default_value = ""
+        if st_key == "TTS_MODEL":
+            # Only validate TTS_MODEL when voice features are enabled
+            voice_enabled = os.getenv("VOICE", "false").lower() in (
+                "true",
+                "1",
+                "yes",
+                "on",
+            )
+            if voice_enabled and default_value not in TTS_MODELS:
+                logger.warning(
+                    "Unsupported TTS_MODEL %s, setting to empty", default_value
+                )
+                default_value = ""
 
-        if st_key == "TTS_VOICE" and default_value not in TTS_VOICES:
-            logger.warning("Unsupported TTS_VOICE %s, setting to empty", default_value)
-            default_value = ""
+        if st_key == "TTS_VOICE":
+            # Only validate TTS_VOICE when voice features are enabled
+            voice_enabled = os.getenv("VOICE", "false").lower() in (
+                "true",
+                "1",
+                "yes",
+                "on",
+            )
+            if voice_enabled and default_value not in TTS_VOICES:
+                logger.warning(
+                    "Unsupported TTS_VOICE %s, setting to empty", default_value
+                )
+                default_value = ""
 
         if st_key == "TTS_SPEED":
             try:
@@ -241,18 +261,34 @@ def load_config_from_env() -> None:
                 default_value = "1.0"
 
         # Special handling for STT configuration
-        if st_key == "STT_MODEL" and default_value not in STT_MODELS:
-            logger.warning("Unsupported STT_MODEL %s, setting to empty", default_value)
-            default_value = ""
-
-        if (
-            st_key == "STT_RESPONSE_FORMAT"
-            and default_value not in STT_RESPONSE_FORMATS
-        ):
-            logger.warning(
-                "Unsupported STT_RESPONSE_FORMAT %s, setting to empty", default_value
+        if st_key == "STT_MODEL":
+            # Only validate STT_MODEL when voice features are enabled
+            voice_enabled = os.getenv("VOICE", "false").lower() in (
+                "true",
+                "1",
+                "yes",
+                "on",
             )
-            default_value = ""
+            if voice_enabled and default_value not in STT_MODELS:
+                logger.warning(
+                    "Unsupported STT_MODEL %s, setting to empty", default_value
+                )
+                default_value = ""
+
+        if st_key == "STT_RESPONSE_FORMAT":
+            # Only validate STT_RESPONSE_FORMAT when voice features are enabled
+            voice_enabled = os.getenv("VOICE", "false").lower() in (
+                "true",
+                "1",
+                "yes",
+                "on",
+            )
+            if voice_enabled and default_value not in STT_RESPONSE_FORMATS:
+                logger.warning(
+                    "Unsupported STT_RESPONSE_FORMAT %s, setting to empty",
+                    default_value,
+                )
+                default_value = ""
 
         if st_key == "STT_TEMPERATURE":
             try:
