@@ -189,3 +189,4 @@ test/session_metadata.sqlite
 .pypirc
 .clinerules
 .clinerules_test
+docs/manual_testing_guide.md
