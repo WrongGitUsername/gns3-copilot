@@ -32,11 +32,9 @@ import os
 import uuid
 from time import sleep
 from typing import Any
-import time
 import streamlit as st
 from dotenv import load_dotenv
 from langchain.messages import AIMessage, HumanMessage, ToolMessage
-
 from gns3_copilot.agent import agent, langgraph_checkpointer
 from gns3_copilot.gns3_client import GNS3ProjectList
 from gns3_copilot.log_config import setup_logger
