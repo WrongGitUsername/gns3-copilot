@@ -316,6 +316,52 @@ def load_config_from_env() -> None:
     logger.info("Configuration loading completed")
 
 
+def get_config() -> dict:
+    """Get current configuration as a dictionary.
+
+    Returns:
+        dict: Configuration dictionary organized by category (e.g., gns3, model, voice).
+    """
+    config = {
+        "gns3": {
+            "host": st.session_state.get("GNS3_SERVER_HOST", ""),
+            "url": st.session_state.get("GNS3_SERVER_URL", "http://127.0.0.1:3080"),
+            "api_version": st.session_state.get("API_VERSION", "2"),
+            "username": st.session_state.get("GNS3_SERVER_USERNAME", ""),
+            "password": st.session_state.get("GNS3_SERVER_PASSWORD", ""),
+        },
+        "model": {
+            "provider": st.session_state.get("MODE_PROVIDER", ""),
+            "name": st.session_state.get("MODEL_NAME", ""),
+            "api_key": st.session_state.get("MODEL_API_KEY", ""),
+            "base_url": st.session_state.get("BASE_URL", ""),
+            "temperature": st.session_state.get("TEMPERATURE", "0.0"),
+        },
+        "voice": {
+            "enabled": st.session_state.get("VOICE", False),
+            "tts_api_key": st.session_state.get("TTS_API_KEY", ""),
+            "tts_base_url": st.session_state.get("TTS_BASE_URL", ""),
+            "tts_model": st.session_state.get("TTS_MODEL", ""),
+            "tts_voice": st.session_state.get("TTS_VOICE", ""),
+            "tts_speed": st.session_state.get("TTS_SPEED", "1.0"),
+            "stt_api_key": st.session_state.get("STT_API_KEY", ""),
+            "stt_base_url": st.session_state.get("STT_BASE_URL", ""),
+            "stt_model": st.session_state.get("STT_MODEL", ""),
+            "stt_language": st.session_state.get("STT_LANGUAGE", ""),
+            "stt_temperature": st.session_state.get("STT_TEMPERATURE", "0.0"),
+            "stt_response_format": st.session_state.get("STT_RESPONSE_FORMAT", ""),
+        },
+        "linux": {
+            "telnet_username": st.session_state.get("LINUX_TELNET_USERNAME", ""),
+            "telnet_password": st.session_state.get("LINUX_TELNET_PASSWORD", ""),
+        },
+        "prompt": {
+            "english_level": st.session_state.get("ENGLISH_LEVEL", ""),
+        },
+    }
+    return config
+
+
 def save_config_to_env() -> None:
     """Save the current session state to the .env file."""
     # Prevent saving if the .env file path is invalid
