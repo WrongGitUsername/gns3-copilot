@@ -21,12 +21,10 @@ and configure the application for optimal functionality.
 
 import streamlit as st
 
-st.title("GNS3 Copilot Configuration Guide")
-
+st.title("GNS3 Copilot Configuration Guide", text_alignment="center")
 tab1_en, tab2_zh = st.tabs(["Help", "帮助"])
 
 with tab1_en:
-    st.title("GNS3 Copilot Configuration Guide")
 
     st.header("🔧 GNS3 Server Configuration")
     st.markdown("""
@@ -81,7 +79,6 @@ Model API Key: sk-or-v1-xxxxxxxxx
     """)
 
 with tab2_zh:
-    st.title("GNS3 Copilot 配置指南")
 
     st.header("🔧 GNS3 服务器配置")
     st.markdown("""

@@ -34,7 +34,7 @@ logger = setup_logger("settings")
 
 
 # Streamlit UI
-st.title("GNS3 Copilot Settings")
+st.title("Settings", text_alignment="center")
 
 with st.container(
     width=800, 

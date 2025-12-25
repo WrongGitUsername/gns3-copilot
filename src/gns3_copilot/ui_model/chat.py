@@ -119,6 +119,14 @@ if "thread_id" not in st.session_state:
     # If thread_id is not in session_state, create and save a new one
     st.session_state["thread_id"] = str(uuid.uuid4())
 
+# 初始化 iframe URL 模式（项目页 vs 登录页）
+if 'gns3_url_mode' not in st.session_state:
+    st.session_state.gns3_url_mode = 'project' 
+
+# 初始化 iframe 缩放比例
+if "zoom_scale_topology" not in st.session_state:
+    st.session_state.zoom_scale_topology = 0.8
+
 current_thread_id = st.session_state["thread_id"]
 
 # Sidebar info
@@ -147,6 +155,29 @@ with st.sidebar:
             save_config_to_env()
         except Exception as e:
             logger.error("Failed to update CONTAINER_HEIGHT: %s", e)
+    
+    # Get current zoom scale from session state
+    current_zoom = st.session_state.get("zoom_scale_topology")
+    if current_zoom is None:
+        current_zoom = 0.8
+
+    new_zoom = st.slider(
+        "Zoom Scale",
+        min_value=0.5,
+        max_value=1.0,
+        value=current_zoom,
+        step=0.05,
+        help="Adjust the zoom scale for GNS3 topology view"
+    )
+
+    # If the zoom changed, update session state and save to .env file
+    if new_zoom != current_zoom:
+        st.session_state["zoom_scale_topology"] = new_zoom
+        try:
+            from gns3_copilot.ui_model.utils import save_config_to_env
+            save_config_to_env()
+        except Exception as e:
+            logger.error("Failed to update ZOOM_SCALE_TOPOLOGY: %s", e)
     
     st.markdown("---")
     
@@ -229,6 +260,7 @@ selected_p = snapshot.values.get("selected_project")
 if not selected_p:
     st.title("GNS3 Copilot - Workspace Selection")
     st.info("Please select an opened project to enter the conversation context.")
+
     # Get project list
     projects = GNS3ProjectList()._run().get("projects", [])
     # Pre-filter all projects in "opened" status
@@ -240,6 +272,7 @@ if not selected_p:
         # Record a log or brief prompt for debugging convenience
         st.toast(f"Automatically selecting project: {p[0]}")
         st.rerun()
+
     # st.title("GNS3 Copilot - Workspace Selection")
     # st.info("Please select an opened project to enter the conversation context.")
     if projects:
@@ -287,6 +320,7 @@ else:
         agent.update_state(config, {"selected_project": None})
         st.rerun()
 
+st.title("Workspace", text_alignment="center")
 
 layout_col1, layout_col2 = st.columns([3, 7], gap="medium")
 
@@ -349,7 +383,7 @@ with layout_col1:
                                 tool_args = tool.get("args", {})
                                 # Display tool call details
                                 with st.expander(
-                                    f"**Tool Call:** {tool_name} `call_id: {tool_id}`",
+                                    f"**Tool Call:** `{tool_name}`",
                                     expanded=False,
                                 ):
                                     st.json(
@@ -365,7 +399,7 @@ with layout_col1:
                     if isinstance(message_object, ToolMessage):
                         content_pretty = format_tool_response(message_object.content)
                         with st.expander(
-                            f"**Tool Response** `call_id: {message_object.tool_call_id}`",
+                            f"**Tool Response**",
                             expanded=False,
                         ):
                             st.json(json.loads(content_pretty), expanded=2)
@@ -384,9 +418,12 @@ with layout_col2:
         # Get API version and construct appropriate iframe URL
         api_version = st.session_state.get("API_VERSION", "2")
         if api_version == "3":
-            # API v3 uses 'controller' instead of 'server'
-            iframe_url = f"{gns3_server_url}/static/web-ui/controller/1/project/{project_id}"
-            #iframe_url = f"{gns3_server_url}"
+            if st.session_state.gns3_url_mode == 'login':
+                # API v3 login page
+                iframe_url = f"{gns3_server_url}"
+            else:
+                # API v3 uses 'controller' instead of 'server'
+                iframe_url = f"{gns3_server_url}/static/web-ui/controller/1/project/{project_id}"
         else:
             # API v2 uses 'server' (default behavior)
             iframe_url = f"{gns3_server_url}/static/web-ui/server/1/project/{project_id}"
@@ -399,7 +436,7 @@ with layout_col2:
         )
         with iframe_container:
             # 设置缩放比例 (0.7 = 70%, 0.8 = 80%, 0.9 = 90%)
-            zoom_scale = 0.8  # 缩放到80%，你可以调整为0.7-0.9之间
+            zoom_scale = st.session_state.zoom_scale_topology  # 缩放到80%，你可以调整为0.7-0.9之间
             
             iframe_width = 2000
             iframe_height = 1000
@@ -608,7 +645,7 @@ with chat_input_center:
                                 }
                                 # Update Call Expander, display final parameters (collapsed)
                                 with st.expander(
-                                    f"**Tool Call:** {tool_data['name']} `call_id: {tool_data['id']}`",
+                                    f"**Tool Call:** `{tool_data['name']}`",
                                     expanded=False,
                                 ):
                                     # Use the final complete structure
@@ -621,7 +658,7 @@ with chat_input_center:
                             current_tool_state = None
                             content_pretty = format_tool_response(msg.content)
                             with st.expander(
-                                f"**Tool Response** `call_id: {msg.tool_call_id}`",
+                                f"**Tool Response**",
                                 expanded=False,
                             ):
                                 st.json(json.loads(content_pretty), expanded=False)
@@ -642,7 +679,12 @@ with chat_input_center:
                 #    f.write(f"{state_history}\n\n")
 
 with chat_input_right:
-    st.empty()
+    if st.button(
+        "🔄 GNS3 Login" if st.session_state.gns3_url_mode == 'project' else "🔙 Project Topology",
+        help="Switch between GNS3 Login and project topology. If the page is not displayed, please click me"
+    ):
+        st.session_state.gns3_url_mode = 'login' if st.session_state.gns3_url_mode == 'project' else 'project'
+        st.rerun()
 
 with chat_input_left:
     st.empty()
