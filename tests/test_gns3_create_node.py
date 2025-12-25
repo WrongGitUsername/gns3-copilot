@@ -356,12 +356,11 @@ class TestGNS3CreateNodeToolAPIVersionHandling:
         assert "error" in result
         assert "Failed to process node creation request" in result["error"]
 
-    @patch('dotenv.load_dotenv')
     @patch.dict(os.environ, {
         "GNS3_SERVER_URL": "http://localhost:3080"
-    }, clear=False)
+    }, clear=True)
     @patch('gns3_copilot.tools_v2.gns3_create_node.Gns3Connector')
-    def test_default_api_version(self, mock_connector_class, mock_load_dotenv):
+    def test_default_api_version(self, mock_connector_class):
         """Test default API version when not specified"""
         tool = GNS3CreateNodeTool()
 
@@ -389,11 +388,11 @@ class TestGNS3CreateNodeToolAPIVersionHandling:
 
             result = tool._run(json.dumps(input_data))
 
-            # Verify connector was created with default API version 3
+            # Verify connector was created with default API version 2
             assert mock_connector_class.called
             call_args = mock_connector_class.call_args
             assert call_args[1]['url'] == "http://localhost:3080"
-            assert call_args[1]['api_version'] == 3
+            assert call_args[1]['api_version'] == 2
 
 
 class TestGNS3CreateNodeToolSuccessScenarios:

@@ -373,12 +373,11 @@ class TestGNS3LinkToolAPIVersionHandling:
         # The actual error comes from int() conversion failure, not the custom error message
         assert "invalid literal for int()" in result[0]["error"]
 
-    @patch('dotenv.load_dotenv')
     @patch.dict(os.environ, {
         "GNS3_SERVER_URL": "http://localhost:3080"
-    }, clear=False)
+    }, clear=True)
     @patch('gns3_copilot.tools_v2.gns3_create_link.Gns3Connector')
-    def test_default_api_version(self, mock_connector_class, mock_load_dotenv):
+    def test_default_api_version(self, mock_connector_class):
         """Test default API version when not specified"""
         tool = GNS3LinkTool()
 
@@ -416,11 +415,11 @@ class TestGNS3LinkToolAPIVersionHandling:
 
             result = tool._run(json.dumps(input_data))
 
-            # Verify connector was created with default API version 3
+            # Verify connector was created with default API version 2
             assert mock_connector_class.called
             call_args = mock_connector_class.call_args
             assert call_args[1]['url'] == "http://localhost:3080"
-            assert call_args[1]['api_version'] == 3
+            assert call_args[1]['api_version'] == 2
 
 
 class TestGNS3LinkToolSuccessScenarios:

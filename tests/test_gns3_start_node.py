@@ -367,14 +367,13 @@ class TestGNS3StartNodeToolAPIVersionHandling:
         # The error message comes from int() conversion failure
         assert "invalid literal" in result["error"]
 
-    @patch('dotenv.load_dotenv')
     @patch.dict(os.environ, {
         "GNS3_SERVER_URL": "http://localhost:3080"
-    }, clear=False)
+    }, clear=True)
     @patch('gns3_copilot.tools_v2.gns3_start_node.Gns3Connector')
     @patch('gns3_copilot.tools_v2.gns3_start_node.Node')
     @patch('gns3_copilot.tools_v2.gns3_start_node.show_progress_bar')
-    def test_default_api_version(self, mock_progress, mock_node_class, mock_connector_class, mock_load_dotenv):
+    def test_default_api_version(self, mock_progress, mock_node_class, mock_connector_class):
         """Test default API version when not specified"""
         tool = GNS3StartNodeTool()
 
@@ -396,11 +395,11 @@ class TestGNS3StartNodeToolAPIVersionHandling:
 
         result = tool._run(json.dumps(input_data))
 
-        # Verify connector was created with default API version 3
+        # Verify connector was created with default API version 2
         assert mock_connector_class.called
         call_args = mock_connector_class.call_args
         assert call_args[1]['url'] == "http://localhost:3080"
-        assert call_args[1]['api_version'] == 3
+        assert call_args[1]['api_version'] == 2
 
     @patch.dict(os.environ, {
         "API_VERSION": "",
