@@ -16,6 +16,7 @@ Configuration Categories:
     - Voice (TTS): API key, model, voice, base URL, speed settings
     - Voice (STT): API key, model, language, base URL, temperature, response format
     - Other: Linux console credentials, English proficiency level
+    - UI Settings: Container height, zoom scale for topology view
 
 Constants:
     CONFIG_MAP: Mapping between Streamlit widget keys and .env variable names
@@ -85,6 +86,7 @@ CONFIG_MAP = {
     "ENGLISH_LEVEL": "ENGLISH_LEVEL",
     # UI Configuration
     "CONTAINER_HEIGHT": "CONTAINER_HEIGHT",
+    "zoom_scale_topology": "ZOOM_SCALE_TOPOLOGY",
 }
 
 # Example list of supported providers (used for validation during loading)
@@ -352,6 +354,30 @@ def load_config_from_env() -> None:
                 )
                 st.session_state[st_key] = 1200
                 logger.debug("Loaded config: %s = %s", st_key, 1200)
+            continue  # Skip the generic assignment below
+
+        # Special handling for zoom_scale_topology (UI setting)
+        if st_key == "zoom_scale_topology":
+            try:
+                zoom_float = float(default_value) if default_value else 0.8
+                if not (0.5 <= zoom_float <= 1.0):
+                    logger.debug(
+                        "Invalid zoom_scale_topology value: %s, setting to default 0.8",
+                        default_value,
+                    )
+                    zoom_float = 0.8
+                # Store as float for slider
+                st.session_state[st_key] = zoom_float
+                logger.debug("Loaded config: %s = %s", st_key, zoom_float)
+            except ValueError:
+                logger.debug(
+                    "Invalid zoom_scale_topology value: %s, setting to default 0.8",
+                    default_value,
+                )
+                st.session_state[st_key] = 0.8
+                logger.debug("Loaded config: %s = %s", st_key, 0.8)
+            continue  # Skip the generic assignment below
+
         else:
             # Always set the value from .env file to session_state
             # This ensures persistent configuration takes precedence
