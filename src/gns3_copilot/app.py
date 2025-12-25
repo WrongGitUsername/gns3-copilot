@@ -10,13 +10,13 @@ import streamlit as st
 from gns3_copilot.ui_model.styles import get_styles
 from gns3_copilot.ui_model.utils import (
     check_startup_updates,
+    load_config_from_env,
     render_sidebar_about,
     render_startup_update_result,
 )
 
 NAV_PAGES = [
     "ui_model/chat.py",
-    "ui_model/workspace.py",
     "ui_model/settings.py",
     "ui_model/help.py",
 ]
@@ -30,6 +30,10 @@ def main() -> None:
         layout="centered",
         initial_sidebar_state="expanded",
     )
+
+    # Load configuration from .env file into session state
+    # This ensures all pages have access to the configuration
+    load_config_from_env()
 
     # Apply centralized CSS styles
     st.markdown(get_styles(), unsafe_allow_html=True)

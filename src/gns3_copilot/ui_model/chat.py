@@ -28,13 +28,11 @@ Note: Requires proper configuration of GNS3 server and API credentials.
 """
 
 import json
-import os
 import uuid
 from time import sleep
 from typing import Any
 
 import streamlit as st
-from dotenv import load_dotenv
 from langchain.messages import AIMessage, HumanMessage, ToolMessage
 
 from gns3_copilot.agent import agent, langgraph_checkpointer
@@ -49,11 +47,6 @@ from gns3_copilot.public_model import (
 
 
 logger = setup_logger("chat")
-load_dotenv()
-
-# Voice functionality global switch
-# os.getenv returns a string, recommend converting to bool to avoid errors
-VOICE_ENABLED = os.getenv("VOICE", "false").lower() == "true"
 
 # streamlit UI
 st.set_page_config(
@@ -62,7 +55,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )  # layout="wide"
 
-# 注入 CSS 以调整固定高度容器中聊天消息的内边距
+# Inject CSS to adjust padding for chat messages in fixed-height containers
 st.html("""
 <style>
 [data-testid="stVerticalBlockBorderWrapper"] .stChatMessage {
@@ -130,6 +123,33 @@ current_thread_id = st.session_state["thread_id"]
 
 # Sidebar info
 with st.sidebar:
+    # Get current container height from session state or default to 1200
+    current_height = st.session_state.get("CONTAINER_HEIGHT")
+    if current_height is None or not isinstance(current_height, int):
+        current_height = 1200
+    
+    # Note: We don't use key parameter here to avoid automatic session_state management
+    new_height = st.slider(
+        "Page Height (px)",
+        min_value=300,
+        max_value=1500,
+        value=current_height,
+        step=50,
+        help="Adjust the height for chat and GNS3 view"
+    )
+    
+    # If the height changed, update session state and save to .env file
+    if new_height != current_height:
+        st.session_state["CONTAINER_HEIGHT"] = new_height
+        # Save to .env file using the centralized save function
+        try:
+            from gns3_copilot.ui_model.utils import save_config_to_env
+            save_config_to_env()
+        except Exception as e:
+            logger.error("Failed to update CONTAINER_HEIGHT: %s", e)
+    
+    st.markdown("---")
+    
     thread_ids = list_thread_ids(langgraph_checkpointer)
 
     # Display name/value are title and id
@@ -205,13 +225,76 @@ else:
 snapshot = agent.get_state(config)
 selected_p = snapshot.values.get("selected_project")
 
+# --- Logic branch: If no project is selected, display project cards ---
+if not selected_p:
+    st.title("GNS3 Copilot - Workspace Selection")
+    st.info("Please select an opened project to enter the conversation context.")
+    # Get project list
+    projects = GNS3ProjectList()._run().get("projects", [])
+    # Pre-filter all projects in "opened" status
+    opened_projects = [p for p in projects if p[4].lower() == "opened"]
+    # If there's only one opened project, directly select it and skip UI rendering
+    if len(opened_projects) == 1:
+        p = opened_projects[0]
+        agent.update_state(config, {"selected_project": p})
+        # Record a log or brief prompt for debugging convenience
+        st.toast(f"Automatically selecting project: {p[0]}")
+        st.rerun()
+    # st.title("GNS3 Copilot - Workspace Selection")
+    # st.info("Please select an opened project to enter the conversation context.")
+    if projects:
+        cols = st.columns([1, 1])
+        for i, p in enumerate(projects):
+            # Destructure project tuple for clarity: name, ID, device count, link count, status
+            name, p_id, dev_count, link_count, status = p
+            # Check status
+            is_opened = status.lower() == "opened"
+            with cols[i % 2]:
+                # If closed status, use container with background color or different title format
+                with st.container(border=True):
+                    # Add status icon to title
+                    status_icon = "🟢" if is_opened else "⚪"
+                    st.markdown(f"###### {status_icon} {name}")
+                    st.caption(f"ID: {p_id[:8]}")
+                    # Display device and link information
+                    st.write(f"{dev_count} Devices | {link_count} Links")
+                    # Dynamic status text display
+                    if is_opened:
+                        st.success(f"Status: {status.upper()}")
+                    else:
+                        st.warning(f"Status: {status.upper()} (Unavailable)")
+                    # --- Button logic modification ---
+                    # If status is not opened, set disabled=True
+                    if st.button(
+                        "Select Project" if is_opened else "Project Closed",
+                        key=f"btn_{p_id}",
+                        use_container_width=True,
+                        disabled=not is_opened,  # Key point: disable button for non-opened status
+                        type="primary" if is_opened else "secondary",
+                    ):
+                        # Only execute when button is available and clicked
+                        agent.update_state(config, {"selected_project": p})
+                        st.success(f"Project {name} has been selected!")
+                        st.rerun()
+    else:
+        st.error("No projects found in GNS3.")
+        if st.button("Refresh List"):
+            st.rerun()
+else:
+    # Top status bar logic remains unchanged
+    st.sidebar.success(f"Current Project: **{selected_p[0]}**")
+    if st.sidebar.button("Switch Project / Exit"):
+        agent.update_state(config, {"selected_project": None})
+        st.rerun()
+
+
 layout_col1, layout_col2 = st.columns([3, 7], gap="medium")
 
 with layout_col1:
     history_container = st.container(
-        height=1200, 
+        height=st.session_state.CONTAINER_HEIGHT,
         border=False,
-        )  # 高度根据屏幕调整，留出底部空间
+    )
     with history_container:
         # StateSnapshot state example test/langgraph_checkpoint.json file
         # Display previous messages from state history
@@ -290,132 +373,81 @@ with layout_col1:
             # Close any remaining open assistant chat message block
             if current_assistant_block is not None:
                 current_assistant_block.__exit__(None, None, None)
-    
-    # --- Logic branch: If no project is selected, display project cards ---
-    if not selected_p:
-        st.markdown(
-            '<p style="font-size: 32px; font-weight: bold;">GNS3 Copilot - Workspace Selection</p>',
-            unsafe_allow_html=True,
-        )
-        st.info("Please select an opened project to enter the conversation context.")
-
-        # Get project list
-        projects = GNS3ProjectList()._run().get("projects", [])
-
-        # Pre-filter all projects in "opened" status
-        opened_projects = [p for p in projects if p[4].lower() == "opened"]
-        # If there's only one opened project, directly select it and skip UI rendering
-        if len(opened_projects) == 1:
-            p = opened_projects[0]
-            agent.update_state(config, {"selected_project": p})
-            # Record a log or brief prompt for debugging convenience
-            st.toast(f"Automatically selecting project: {p[0]}")
-            st.rerun()
-
-        # st.title("GNS3 Copilot - Workspace Selection")
-        # st.info("Please select an opened project to enter the conversation context.")
-        if projects:
-            cols = st.columns([1, 1])
-            for i, p in enumerate(projects):
-                # Destructure project tuple for clarity: name, ID, device count, link count, status
-                name, p_id, dev_count, link_count, status = p
-
-                # Check status
-                is_opened = status.lower() == "opened"
-
-                with cols[i % 2]:
-                    # If closed status, use container with background color or different title format
-                    with st.container(border=True):
-                        # Add status icon to title
-                        status_icon = "🟢" if is_opened else "⚪"
-                        st.markdown(f"###### {status_icon} {name}")
-                        st.caption(f"ID: {p_id[:8]}")
-
-                        # Display device and link information
-                        st.write(f"{dev_count} Devices | {link_count} Links")
-
-                        # Dynamic status text display
-                        if is_opened:
-                            st.success(f"Status: {status.upper()}")
-                        else:
-                            st.warning(f"Status: {status.upper()} (Unavailable)")
-
-                        # --- Button logic modification ---
-                        # If status is not opened, set disabled=True
-                        if st.button(
-                            "Select Project" if is_opened else "Project Closed",
-                            key=f"btn_{p_id}",
-                            use_container_width=True,
-                            disabled=not is_opened,  # Key point: disable button for non-opened status
-                            type="primary" if is_opened else "secondary",
-                        ):
-                            # Only execute when button is available and clicked
-                            agent.update_state(config, {"selected_project": p})
-                            st.success(f"Project {name} has been selected!")
-                            st.rerun()
-        else:
-            st.error("No projects found in GNS3.")
-            if st.button("Refresh List"):
-                st.rerun()
-
-    else:
-        # Top status bar logic remains unchanged
-        st.sidebar.success(f"Current Project: **{selected_p[0]}**")
-        if st.sidebar.button("Switch Project / Exit"):
-            agent.update_state(config, {"selected_project": None})
-            st.rerun()
-
 
 with layout_col2:
-    # 从选中的项目中提取 project_id
+    # Extract project_id from the selected project
     if selected_p:
-        project_id = selected_p[1]  # selected_p 是元组: (name, p_id, dev_count, link_count, status)
-        gns3_server_url = os.getenv("GNS3_SERVER_URL", "http://127.0.0.1:3080/")
-        iframe_url = f"{gns3_server_url}/static/web-ui/server/1/project/{project_id}"
+        project_id = selected_p[1]  # selected_p is a tuple: (name, p_id, dev_count, link_count, status)
+        # Get GNS3 server URL from session_state (loaded from .env file)
+        gns3_server_url = st.session_state.get("GNS3_SERVER_URL", "http://127.0.0.1:3080/")
+        
+        # Get API version and construct appropriate iframe URL
+        api_version = st.session_state.get("API_VERSION", "2")
+        if api_version == "3":
+            # API v3 uses 'controller' instead of 'server'
+            iframe_url = f"{gns3_server_url}/static/web-ui/controller/1/project/{project_id}"
+            #iframe_url = f"{gns3_server_url}"
+        else:
+            # API v2 uses 'server' (default behavior)
+            iframe_url = f"{gns3_server_url}/static/web-ui/server/1/project/{project_id}"
         
         iframe_container = st.container(
-            height=1200,
-            horizontal_alignment="center",
+            height=st.session_state.CONTAINER_HEIGHT,
+            #horizontal_alignment="center",
             vertical_alignment="center",
             border=False,
         )
         with iframe_container:
-            # 使用 st.markdown 实现响应式 iframe
-            # 通过 CSS calc() 和 vw 单位动态计算缩放比例
-            # layout_col2 占屏幕宽度的 60%，即 60vw
-            # 原始 iframe 宽度为 2100px，高度为 1000px
-            # 缩放比例 = 60vw / 2100px
-            # 容器高度 = 1000px * 缩放比例 = 60vw / 2.1
+            # 设置缩放比例 (0.7 = 70%, 0.8 = 80%, 0.9 = 90%)
+            zoom_scale = 0.8  # 缩放到80%，你可以调整为0.7-0.9之间
+            
+            iframe_width = 2000
+            iframe_height = 1000
+            
             iframe_html = f"""
-    <div style="width: 100%; height: calc(60vw / 2.1); overflow: auto; position: relative;">
-        <iframe 
-            src="{iframe_url}" 
-            style="
-                width: 2000px;
-                height: 1000px;
-                border: none;
-                transform: scale(calc(65vw / 2000px));
-                transform-origin: top left;
-            "
-            scrolling="yes"
-            allowfullscreen
-        ></iframe>
-    </div>
-    """
-            # Render the iframe HTML inside the container
+            <style>
+                .iframe-scroll-container {{
+                    width: 100%;
+                    height: {st.session_state.CONTAINER_HEIGHT};  /* 可根据需要调整，或使用 70vh */
+                    overflow: auto;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    background: #f9f9f9;
+                }}
+                
+                .iframe-scroll-container iframe {{
+                    width: {iframe_width}px;
+                    height: {iframe_height}px;
+                    border: none;
+                    display: block;
+                    /* 使用zoom而非transform，保持坐标系正确 */
+                    zoom: {zoom_scale};
+                    /* 或者使用这种写法 */
+                    /* zoom: 80%; */
+                }}
+            </style>
+            
+            <div class="iframe-scroll-container">
+                <iframe 
+                    src="{iframe_url}"
+                    loading="lazy"
+                    allowfullscreen
+                    title="Embedded Content"
+                ></iframe>
+            </div>
+            """
+            
             st.markdown(iframe_html, unsafe_allow_html=True)
-
-st.divider()
+#st.divider()
 
 chat_input_left, chat_input_center, chat_input_right = st.columns([1, 1, 1])
-
-with chat_input_left:
-    st.empty()
 
 with chat_input_center:
 
     # Configure chat_input based on switch
-    if VOICE_ENABLED:
+    # Get voice enabled setting from session_state (loaded from .env file)
+    voice_enabled = st.session_state.get("VOICE", False)
+    if voice_enabled:
         prompt = st.chat_input(
             "Say or record something...",
             accept_audio=True,
@@ -431,7 +463,7 @@ with chat_input_center:
     # Handle input
     if prompt:
         user_text = ""
-        if VOICE_ENABLED:
+        if voice_enabled:
             # Mode A: prompt is an object (containing .text and .audio)
             if prompt.audio:
                 user_text = speech_to_text(prompt.audio)
@@ -504,7 +536,7 @@ with chat_input_center:
                                 is_text_ending
                                 and not tts_played
                                 and current_text_chunk.strip()
-                                and VOICE_ENABLED
+                                and voice_enabled
                             ):
                                 # Play once in a round of AIMessage/ToolMessage
                                 tts_played = True
@@ -583,7 +615,7 @@ with chat_input_center:
                                     st.json(display_tool_call, expanded=False)
                         if isinstance(msg, ToolMessage):
                             # Wait for audio playback to complete before returning ToolMessage to LLM
-                            if VOICE_ENABLED and audio_bytes:
+                            if voice_enabled and audio_bytes:
                                 sleep(get_duration(audio_bytes))
                             # Clear state after completion, ready to receive next tool call
                             current_tool_state = None
@@ -610,4 +642,7 @@ with chat_input_center:
                 #    f.write(f"{state_history}\n\n")
 
 with chat_input_right:
+    st.empty()
+
+with chat_input_left:
     st.empty()

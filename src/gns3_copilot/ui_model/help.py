@@ -21,6 +21,8 @@ and configure the application for optimal functionality.
 
 import streamlit as st
 
+st.title("GNS3 Copilot Configuration Guide")
+
 tab1_en, tab2_zh = st.tabs(["Help", "帮助"])
 
 with tab1_en:

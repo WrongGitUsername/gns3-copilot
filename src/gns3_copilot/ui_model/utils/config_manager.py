@@ -83,6 +83,8 @@ CONFIG_MAP = {
     "LINUX_TELNET_PASSWORD": "LINUX_TELNET_PASSWORD",
     # Prompt Configuration
     "ENGLISH_LEVEL": "ENGLISH_LEVEL",
+    # UI Configuration
+    "CONTAINER_HEIGHT": "CONTAINER_HEIGHT",
 }
 
 # Example list of supported providers (used for validation during loading)
@@ -147,7 +149,20 @@ if not ENV_FILE_PATH or not os.path.exists(ENV_FILE_PATH):
 
 
 def load_config_from_env() -> None:
-    """Load configuration from the .env file and initialize st.session_state."""
+    """Load configuration from the .env file and initialize st.session_state.
+    
+    This function loads configuration items from the .env file only once,
+    on the first call. This allows users to modify settings in the UI without
+    being overwritten by the .env file until they explicitly save.
+    
+    The function uses a marker `_config_loaded` in session_state to track
+    whether configuration has been initialized.
+    """
+    # Check if configuration has already been loaded
+    if st.session_state.get("_config_loaded", False):
+        logger.debug("Configuration already loaded, skipping reload")
+        return
+    
     # Only attempt to load if the path is valid and the file exists
     logger.info("Starting to load configuration from .env file")
     if ENV_FILE_PATH and os.path.exists(ENV_FILE_PATH):
@@ -163,10 +178,21 @@ def load_config_from_env() -> None:
         env_value = os.getenv(env_key)
         default_value = env_value if env_value is not None else ""
 
-        # Special handling for API_VERSION (kept consistent)
+        # Special handling for GNS3 Server settings
+        if st_key in ("GNS3_SERVER_HOST", "GNS3_SERVER_URL"):
+            # Explicitly set the value in session_state
+            st.session_state[st_key] = default_value
+            logger.debug("Loaded config: %s = %s", st_key, default_value)
+            continue  # Skip the generic assignment below
+
+        # Special handling for API_VERSION
         if st_key == "API_VERSION":
-            # Ensure the default value is either "2" or "3"
+            # Ensure the value is either "2" or "3"
             default_value = "2" if default_value not in ["2", "3"] else default_value
+            # Explicitly set the value in session_state
+            st.session_state[st_key] = default_value
+            logger.debug("Loaded config: %s = %s", st_key, default_value)
+            continue  # Skip the generic assignment below
 
         # Special handling for MODE_PROVIDER (updated key name)
         if st_key == "MODE_PROVIDER":
@@ -306,60 +332,39 @@ def load_config_from_env() -> None:
                 )
                 default_value = "0.0"
 
-        # Set the value in session state
-        st.session_state[st_key] = default_value
-        logger.debug(
-            "Loaded config: %s = %s",
-            st_key,
-            "[HIDDEN]" if "PASSWORD" in st_key or "KEY" in st_key else default_value,
-        )
+        # Special handling for CONTAINER_HEIGHT (UI setting)
+        if st_key == "CONTAINER_HEIGHT":
+            try:
+                height_int = int(default_value) if default_value else 1200
+                if not (300 <= height_int <= 1500):
+                    logger.debug(
+                        "Invalid CONTAINER_HEIGHT value: %s, setting to default 1200",
+                        default_value,
+                    )
+                    height_int = 1200
+                # Store as integer for slider
+                st.session_state[st_key] = height_int
+                logger.debug("Loaded config: %s = %s", st_key, height_int)
+            except ValueError:
+                logger.debug(
+                    "Invalid CONTAINER_HEIGHT value: %s, setting to default 1200",
+                    default_value,
+                )
+                st.session_state[st_key] = 1200
+                logger.debug("Loaded config: %s = %s", st_key, 1200)
+        else:
+            # Always set the value from .env file to session_state
+            # This ensures persistent configuration takes precedence
+            st.session_state[st_key] = default_value
+            logger.debug(
+                "Loaded config: %s = %s",
+                st_key,
+                "[HIDDEN]" if "PASSWORD" in st_key or "KEY" in st_key else default_value,
+            )
+    
+    # Mark configuration as loaded to prevent re-loading on subsequent calls
+    st.session_state["_config_loaded"] = True
     logger.info("Configuration loading completed")
-
-
-def get_config() -> dict:
-    """Get current configuration as a dictionary.
-
-    Returns:
-        dict: Configuration dictionary organized by category (e.g., gns3, model, voice).
-    """
-    config = {
-        "gns3": {
-            "host": st.session_state.get("GNS3_SERVER_HOST", ""),
-            "url": st.session_state.get("GNS3_SERVER_URL", "http://127.0.0.1:3080"),
-            "api_version": st.session_state.get("API_VERSION", "2"),
-            "username": st.session_state.get("GNS3_SERVER_USERNAME", ""),
-            "password": st.session_state.get("GNS3_SERVER_PASSWORD", ""),
-        },
-        "model": {
-            "provider": st.session_state.get("MODE_PROVIDER", ""),
-            "name": st.session_state.get("MODEL_NAME", ""),
-            "api_key": st.session_state.get("MODEL_API_KEY", ""),
-            "base_url": st.session_state.get("BASE_URL", ""),
-            "temperature": st.session_state.get("TEMPERATURE", "0.0"),
-        },
-        "voice": {
-            "enabled": st.session_state.get("VOICE", False),
-            "tts_api_key": st.session_state.get("TTS_API_KEY", ""),
-            "tts_base_url": st.session_state.get("TTS_BASE_URL", ""),
-            "tts_model": st.session_state.get("TTS_MODEL", ""),
-            "tts_voice": st.session_state.get("TTS_VOICE", ""),
-            "tts_speed": st.session_state.get("TTS_SPEED", "1.0"),
-            "stt_api_key": st.session_state.get("STT_API_KEY", ""),
-            "stt_base_url": st.session_state.get("STT_BASE_URL", ""),
-            "stt_model": st.session_state.get("STT_MODEL", ""),
-            "stt_language": st.session_state.get("STT_LANGUAGE", ""),
-            "stt_temperature": st.session_state.get("STT_TEMPERATURE", "0.0"),
-            "stt_response_format": st.session_state.get("STT_RESPONSE_FORMAT", ""),
-        },
-        "linux": {
-            "telnet_username": st.session_state.get("LINUX_TELNET_USERNAME", ""),
-            "telnet_password": st.session_state.get("LINUX_TELNET_PASSWORD", ""),
-        },
-        "prompt": {
-            "english_level": st.session_state.get("ENGLISH_LEVEL", ""),
-        },
-    }
-    return config
 
 
 def save_config_to_env() -> None:
