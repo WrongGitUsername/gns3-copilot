@@ -19,7 +19,7 @@ def show_iframe(project_id: str) -> None:
     """
     # Get GNS3 server URL from environment variable
     gns3_server_url = os.getenv("GNS3_SERVER_URL", "http://127.0.0.1:3080/")
-    
+
     # Get API version and construct appropriate iframe URL
     api_version = os.getenv("API_VERSION", "2")
     if api_version == "3":

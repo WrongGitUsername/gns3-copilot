@@ -25,7 +25,6 @@ st.title("GNS3 Copilot Configuration Guide", text_alignment="center")
 tab1_en, tab2_zh = st.tabs(["Help", "帮助"])
 
 with tab1_en:
-
     st.header("🔧 GNS3 Server Configuration")
     st.markdown("""
     - **GNS3 Server Host** (Required) - GNS3 server address, e.g., 127.0.0.1
@@ -79,7 +78,6 @@ Model API Key: sk-or-v1-xxxxxxxxx
     """)
 
 with tab2_zh:
-
     st.header("🔧 GNS3 服务器配置")
     st.markdown("""
     - **GNS3 Server Host** (必填) - GNS3服务器地址，如：127.0.0.1

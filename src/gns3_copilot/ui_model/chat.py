@@ -45,14 +45,11 @@ from gns3_copilot.public_model import (
     text_to_speech_wav,
 )
 
-
 logger = setup_logger("chat")
 
 # streamlit UI
 st.set_page_config(
-    page_title="GNS3 Copilot",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    page_title="GNS3 Copilot", layout="wide", initial_sidebar_state="expanded"
 )  # layout="wide"
 
 # Inject CSS to adjust padding for chat messages in fixed-height containers
@@ -64,7 +61,6 @@ st.html("""
 }
 </style>
 """)
-
 
 
 # get all thread_id from checkpoint database.
@@ -120,8 +116,8 @@ if "thread_id" not in st.session_state:
     st.session_state["thread_id"] = str(uuid.uuid4())
 
 # 初始化 iframe URL 模式（项目页 vs 登录页）
-if 'gns3_url_mode' not in st.session_state:
-    st.session_state.gns3_url_mode = 'project' 
+if "gns3_url_mode" not in st.session_state:
+    st.session_state.gns3_url_mode = "project"
 
 # 初始化 iframe 缩放比例
 if "zoom_scale_topology" not in st.session_state:
@@ -139,7 +135,7 @@ with st.sidebar:
     current_height = st.session_state.get("CONTAINER_HEIGHT")
     if current_height is None or not isinstance(current_height, int):
         current_height = 1200
-    
+
     # Note: We don't use key parameter here to avoid automatic session_state management
     new_height = st.slider(
         "Page Height (px)",
@@ -147,19 +143,20 @@ with st.sidebar:
         max_value=1500,
         value=current_height,
         step=50,
-        help="Adjust the height for chat and GNS3 view"
+        help="Adjust the height for chat and GNS3 view",
     )
-    
+
     # If the height changed, update session state and save to .env file
     if new_height != current_height:
         st.session_state["CONTAINER_HEIGHT"] = new_height
         # Save to .env file using the centralized save function
         try:
             from gns3_copilot.ui_model.utils import save_config_to_env
+
             save_config_to_env()
         except Exception as e:
             logger.error("Failed to update CONTAINER_HEIGHT: %s", e)
-    
+
     # Get current zoom scale from session state
     current_zoom = st.session_state.get("zoom_scale_topology")
     if current_zoom is None:
@@ -171,7 +168,7 @@ with st.sidebar:
         max_value=1.0,
         value=current_zoom,
         step=0.05,
-        help="Adjust the zoom scale for GNS3 topology view"
+        help="Adjust the zoom scale for GNS3 topology view",
     )
 
     # If the zoom changed, update session state and save to .env file
@@ -179,12 +176,13 @@ with st.sidebar:
         st.session_state["zoom_scale_topology"] = new_zoom
         try:
             from gns3_copilot.ui_model.utils import save_config_to_env
+
             save_config_to_env()
         except Exception as e:
             logger.error("Failed to update ZOOM_SCALE_TOPOLOGY: %s", e)
-    
+
     st.markdown("---")
-    
+
     thread_ids = list_thread_ids(langgraph_checkpointer)
 
     # Display name/value are title and id
@@ -423,9 +421,11 @@ if selected_p:
                                         )
                         # Handle ToolMessage
                         if isinstance(message_object, ToolMessage):
-                            content_pretty = format_tool_response(message_object.content)
+                            content_pretty = format_tool_response(
+                                message_object.content
+                            )
                             with st.expander(
-                                f"**Tool Response**",
+                                "**Tool Response**",
                                 expanded=False,
                             ):
                                 st.json(json.loads(content_pretty), expanded=2)
@@ -436,36 +436,46 @@ if selected_p:
 
     with layout_col2:
         # Extract project_id from the selected project
-        project_id = selected_p[1]  # selected_p is a tuple: (name, p_id, dev_count, link_count, status)
+        project_id = selected_p[
+            1
+        ]  # selected_p is a tuple: (name, p_id, dev_count, link_count, status)
         # Get GNS3 server URL from session_state (loaded from .env file)
-        gns3_server_url = st.session_state.get("GNS3_SERVER_URL", "http://127.0.0.1:3080/")
-        
+        gns3_server_url = st.session_state.get(
+            "GNS3_SERVER_URL", "http://127.0.0.1:3080/"
+        )
+
         # Get API version and construct appropriate iframe URL
         api_version = st.session_state.get("API_VERSION", "2")
         if api_version == "3":
-            if st.session_state.gns3_url_mode == 'login':
+            if st.session_state.gns3_url_mode == "login":
                 # API v3 login page
                 iframe_url = f"{gns3_server_url}"
             else:
                 # API v3 uses 'controller' instead of 'server'
-                iframe_url = f"{gns3_server_url}/static/web-ui/controller/1/project/{project_id}"
+                iframe_url = (
+                    f"{gns3_server_url}/static/web-ui/controller/1/project/{project_id}"
+                )
         else:
             # API v2 uses 'server' (default behavior)
-            iframe_url = f"{gns3_server_url}/static/web-ui/server/1/project/{project_id}"
-        
+            iframe_url = (
+                f"{gns3_server_url}/static/web-ui/server/1/project/{project_id}"
+            )
+
         iframe_container = st.container(
             height=st.session_state.CONTAINER_HEIGHT,
-            #horizontal_alignment="center",
+            # horizontal_alignment="center",
             vertical_alignment="center",
             border=False,
         )
         with iframe_container:
             # 设置缩放比例 (0.7 = 70%, 0.8 = 80%, 0.9 = 90%)
-            zoom_scale = st.session_state.zoom_scale_topology  # 缩放到80%，你可以调整为0.7-0.9之间
-            
+            zoom_scale = (
+                st.session_state.zoom_scale_topology
+            )  # 缩放到80%，你可以调整为0.7-0.9之间
+
             iframe_width = 2000
             iframe_height = 1000
-            
+
             iframe_html = f"""
             <style>
                 .iframe-scroll-container {{
@@ -476,7 +486,7 @@ if selected_p:
                     border-radius: 4px;
                     background: #f9f9f9;
                 }}
-                
+
                 .iframe-scroll-container iframe {{
                     width: {iframe_width}px;
                     height: {iframe_height}px;
@@ -488,9 +498,9 @@ if selected_p:
                     /* zoom: 80%; */
                 }}
             </style>
-            
+
             <div class="iframe-scroll-container">
-                <iframe 
+                <iframe
                     src="{iframe_url}"
                     loading="lazy"
                     allowfullscreen
@@ -498,10 +508,10 @@ if selected_p:
                 ></iframe>
             </div>
             """
-            
+
             st.markdown(iframe_html, unsafe_allow_html=True)
 
-    #st.divider()
+    # st.divider()
 
     chat_input_left, chat_input_center, chat_input_right = st.columns([1, 1, 1])
 
@@ -514,13 +524,13 @@ if selected_p:
                 "Say or record something...",
                 accept_audio=True,
                 audio_sample_rate=24000,
-                #width=600,
+                # width=600,
             )
         else:
             # When voice is disabled, do not enable accept_audio attribute
             prompt = st.chat_input(
                 "Type your message here...",
-                #width=600
+                # width=600
             )
         # Handle input
         if prompt:
@@ -538,19 +548,19 @@ if selected_p:
             # 3. Final check and run
             if not user_text or user_text.strip() == "":
                 st.stop()
-            
+
             with history_container:
                 # Display user message in chat message container
                 with st.chat_message("user"):
                     st.markdown(user_text)
-            
+
             # Migrate temp selected project to agent state for new sessions
             if not selected_thread_id and st.session_state.get("temp_selected_project"):
                 temp_project = st.session_state["temp_selected_project"]
                 agent.update_state(config, {"selected_project": temp_project})
                 # Don't clear temp_selected_project immediately
                 # It will be cleared after rerun when selected_p is retrieved from agent state
-            
+
             with history_container:
                 # Display assistant response in chat message container
                 with st.chat_message("assistant"):
@@ -613,9 +623,13 @@ if selected_p:
                                     # Text_to_speech
                                     try:
                                         with st.spinner("Generating voice..."):
-                                            audio_bytes = text_to_speech_wav(current_text_chunk)
+                                            audio_bytes = text_to_speech_wav(
+                                                current_text_chunk
+                                            )
                                             st.audio(
-                                                audio_bytes, format="audio/mp3", autoplay=True
+                                                audio_bytes,
+                                                format="audio/mp3",
+                                                autoplay=True,
                                             )
                                     except Exception as e:
                                         logger.error("TTS Error: %", e)
@@ -630,11 +644,16 @@ if selected_p:
                                             # Note: only one tool can be called at a time
                                             current_tool_state = {
                                                 "id": tool_id,
-                                                "name": tool.get("name", "UNKNOWN_TOOL"),
+                                                "name": tool.get(
+                                                    "name", "UNKNOWN_TOOL"
+                                                ),
                                                 "args_string": "",
                                             }
                                 # Concatenate parameter strings from tool_call_chunk
-                                if hasattr(msg, "tool_call_chunks") and msg.tool_call_chunks:
+                                if (
+                                    hasattr(msg, "tool_call_chunks")
+                                    and msg.tool_call_chunks
+                                ):
                                     if current_tool_state:
                                         tool_data = current_tool_state
                                         for chunk_update in msg.tool_call_chunks:
@@ -654,7 +673,9 @@ if selected_p:
                                     # Parse complete parameter string
                                     parsed_args: dict[str, Any] = {}
                                     try:
-                                        parsed_args = json.loads(tool_data["args_string"])
+                                        parsed_args = json.loads(
+                                            tool_data["args_string"]
+                                        )
                                     except json.JSONDecodeError:
                                         parsed_args = {
                                             "error": "JSON parse failed after stream complete."
@@ -662,7 +683,9 @@ if selected_p:
                                     # Serialize the tool_input value in parsed_args to a JSON array
                                     # for expansion when using st.json
                                     try:
-                                        command_list = json.loads(parsed_args["tool_input"])
+                                        command_list = json.loads(
+                                            parsed_args["tool_input"]
+                                        )
                                         parsed_args["tool_input"] = command_list
                                     except (json.JSONDecodeError, KeyError, TypeError):
                                         pass
@@ -691,7 +714,7 @@ if selected_p:
                                 current_tool_state = None
                                 content_pretty = format_tool_response(msg.content)
                                 with st.expander(
-                                    f"**Tool Response**",
+                                    "**Tool Response**",
                                     expanded=False,
                                 ):
                                     st.json(json.loads(content_pretty), expanded=False)
@@ -713,10 +736,14 @@ if selected_p:
 
     with chat_input_right:
         if st.button(
-            "🔄 GNS3 Login" if st.session_state.gns3_url_mode == 'project' else "🔙 Project Topology",
-            help="Switch between GNS3 Login and project topology. If the page is not displayed, please click me"
+            "🔄 GNS3 Login"
+            if st.session_state.gns3_url_mode == "project"
+            else "🔙 Project Topology",
+            help="Switch between GNS3 Login and project topology. If the page is not displayed, please click me",
         ):
-            st.session_state.gns3_url_mode = 'login' if st.session_state.gns3_url_mode == 'project' else 'project'
+            st.session_state.gns3_url_mode = (
+                "login" if st.session_state.gns3_url_mode == "project" else "project"
+            )
             st.rerun()
 
     with chat_input_left:

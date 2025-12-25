@@ -36,11 +36,7 @@ logger = setup_logger("settings")
 # Streamlit UI
 st.title("Settings", text_alignment="center")
 
-with st.container(
-    width=800, 
-    horizontal_alignment="center",
-    vertical_alignment="top"
-):
+with st.container(width=800, horizontal_alignment="center", vertical_alignment="top"):
     st.info(f"Configuration file path: **{ENV_FILE_PATH}**")
 
     with st.expander("GNS3 Copilot Updates", expanded=True):
@@ -218,7 +214,9 @@ with st.container(
                 )
             with col2:
                 tts_model = st.session_state.get("TTS_MODEL", "")
-                tts_model_index = TTS_MODELS.index(tts_model) + 1 if tts_model in TTS_MODELS else 0
+                tts_model_index = (
+                    TTS_MODELS.index(tts_model) + 1 if tts_model in TTS_MODELS else 0
+                )
                 st.selectbox(
                     "TTS Model",
                     options=[""] + TTS_MODELS,
@@ -233,7 +231,9 @@ with st.container(
                 )
             with col3:
                 tts_voice = st.session_state.get("TTS_VOICE", "")
-                tts_voice_index = TTS_VOICES.index(tts_voice) + 1 if tts_voice in TTS_VOICES else 0
+                tts_voice_index = (
+                    TTS_VOICES.index(tts_voice) + 1 if tts_voice in TTS_VOICES else 0
+                )
                 st.selectbox(
                     "TTS Voice",
                     options=[""] + TTS_VOICES,
@@ -301,7 +301,9 @@ with st.container(
                 )
             with col2:
                 stt_model = st.session_state.get("STT_MODEL", "")
-                stt_model_index = STT_MODELS.index(stt_model) + 1 if stt_model in STT_MODELS else 0
+                stt_model_index = (
+                    STT_MODELS.index(stt_model) + 1 if stt_model in STT_MODELS else 0
+                )
                 st.selectbox(
                     "STT Model",
                     options=[""] + STT_MODELS,
@@ -363,7 +365,11 @@ with st.container(
                 )
             with col3:
                 stt_format = st.session_state.get("STT_RESPONSE_FORMAT", "")
-                stt_format_index = STT_RESPONSE_FORMATS.index(stt_format) + 1 if stt_format in STT_RESPONSE_FORMATS else 0
+                stt_format_index = (
+                    STT_RESPONSE_FORMATS.index(stt_format) + 1
+                    if stt_format in STT_RESPONSE_FORMATS
+                    else 0
+                )
                 st.selectbox(
                     "STT Response Format",
                     options=[""] + STT_RESPONSE_FORMATS,
@@ -385,7 +391,9 @@ with st.container(
     with st.expander("Other Settings", expanded=True):
         english_levels = ["Normal Prompt", "A1", "A2", "B1", "B2", "C1", "C2"]
         eng_level = st.session_state.get("ENGLISH_LEVEL", "Normal Prompt")
-        eng_level_index = english_levels.index(eng_level) if eng_level in english_levels else 0
+        eng_level_index = (
+            english_levels.index(eng_level) if eng_level in english_levels else 0
+        )
         st.selectbox(
             "English Level",
             options=english_levels,

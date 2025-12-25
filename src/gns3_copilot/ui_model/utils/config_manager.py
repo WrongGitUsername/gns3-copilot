@@ -152,11 +152,11 @@ if not ENV_FILE_PATH or not os.path.exists(ENV_FILE_PATH):
 
 def load_config_from_env() -> None:
     """Load configuration from the .env file and initialize st.session_state.
-    
+
     This function loads configuration items from the .env file only once,
     on the first call. This allows users to modify settings in the UI without
     being overwritten by the .env file until they explicitly save.
-    
+
     The function uses a marker `_config_loaded` in session_state to track
     whether configuration has been initialized.
     """
@@ -164,7 +164,7 @@ def load_config_from_env() -> None:
     if st.session_state.get("_config_loaded", False):
         logger.debug("Configuration already loaded, skipping reload")
         return
-    
+
     # Only attempt to load if the path is valid and the file exists
     logger.info("Starting to load configuration from .env file")
     if ENV_FILE_PATH and os.path.exists(ENV_FILE_PATH):
@@ -385,9 +385,11 @@ def load_config_from_env() -> None:
             logger.debug(
                 "Loaded config: %s = %s",
                 st_key,
-                "[HIDDEN]" if "PASSWORD" in st_key or "KEY" in st_key else default_value,
+                "[HIDDEN]"
+                if "PASSWORD" in st_key or "KEY" in st_key
+                else default_value,
             )
-    
+
     # Mark configuration as loaded to prevent re-loading on subsequent calls
     st.session_state["_config_loaded"] = True
     logger.info("Configuration loading completed")
