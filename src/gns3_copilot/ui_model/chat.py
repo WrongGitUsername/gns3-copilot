@@ -267,13 +267,15 @@ else:
 if not selected_p:
     st.title("GNS3 Copilot - Workspace Selection")
     st.info("Please select an opened project to enter the conversation context.")
-
     # Get project list
     projects = GNS3ProjectList()._run().get("projects", [])
     # Pre-filter all projects in "opened" status
     opened_projects = [p for p in projects if p[4].lower() == "opened"]
-    # If there's only one opened project, directly select it and skip UI rendering
-    if len(opened_projects) == 1:
+    # Only auto-select if not in "Switching Mode"
+    if (
+        len(opened_projects) == 1
+        and st.session_state.get("selected_p_override", "active") != "switching"
+    ):
         p = opened_projects[0]
         if selected_thread_id:
             # Historical session: update agent state
@@ -284,9 +286,6 @@ if not selected_p:
         # Record a log or brief prompt for debugging convenience
         st.toast(f"Automatically selecting project: {p[0]}")
         st.rerun()
-
-    # st.title("GNS3 Copilot - Workspace Selection")
-    # st.info("Please select an opened project to enter the conversation context.")
     if projects:
         cols = st.columns([1, 1])
         for i, p in enumerate(projects):
@@ -314,7 +313,7 @@ if not selected_p:
                         "Select Project" if is_opened else "Project Closed",
                         key=f"btn_{p_id}",
                         use_container_width=True,
-                        disabled=not is_opened,  # Key point: disable button for non-opened status
+                        disabled=not is_opened,
                         type="primary" if is_opened else "secondary",
                     ):
                         # Only execute when button is available and clicked
@@ -331,7 +330,7 @@ if not selected_p:
         if st.button("Refresh List"):
             st.rerun()
 else:
-    # Top status bar logic remains unchanged
+    # Top status bar logic
     st.sidebar.success(f"Current Project: **{selected_p[0]}**")
     if st.sidebar.button("Switch Project / Exit"):
         if selected_thread_id:
