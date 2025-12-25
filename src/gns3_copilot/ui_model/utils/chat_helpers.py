@@ -24,8 +24,8 @@ import json
 from typing import Any, cast
 
 import streamlit as st
-from streamlit.delta_generator import DeltaGenerator
 from langchain.messages import AIMessage, HumanMessage, ToolMessage
+from streamlit.delta_generator import DeltaGenerator
 
 from gns3_copilot.public_model import (
     format_tool_response,
@@ -191,7 +191,9 @@ def render_message_history(messages: list) -> None:
         current_assistant_block.__exit__(None, None, None)
 
 
-def render_project_card(project: tuple, col: DeltaGenerator, agent: Any, config: dict) -> None:
+def render_project_card(
+    project: tuple, col: DeltaGenerator, agent: Any, config: dict
+) -> None:
     """
     Render a single project selection card.
 

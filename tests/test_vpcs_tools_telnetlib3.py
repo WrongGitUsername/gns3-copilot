@@ -1052,10 +1052,12 @@ class TestVPCSMultiCommandsLogging:
 class TestVPCSMultiCommandsTelnetInteraction:
     """Test cases for specific telnet interaction details"""
 
+    @patch('dotenv.load_dotenv')
+    @patch.dict(os.environ, {}, clear=True)
     @patch('gns3_copilot.tools_v2.vpcs_tools_telnetlib3.get_device_ports_from_topology')
     @patch('gns3_copilot.tools_v2.vpcs_tools_telnetlib3.Telnet')
     @patch('gns3_copilot.tools_v2.vpcs_tools_telnetlib3.sleep')
-    def test_telnet_initialization_sequence(self, mock_sleep, mock_telnet_class, mock_get_ports):
+    def test_telnet_initialization_sequence(self, mock_sleep, mock_telnet_class, mock_get_ports, mock_load_dotenv):
         """Test telnet initialization sequence"""
         tool = VPCSMultiCommands()
         
@@ -1085,7 +1087,7 @@ class TestVPCSMultiCommandsTelnetInteraction:
         
         # Verify initialization sequence (4 newlines and expect)
         write_calls = mock_telnet.write.call_args_list
-        assert len(write_calls) >= 5  # 4 newlines + 1 command
+        assert len(write_calls) == 5  # 4 newlines + 1 command
         
         # Verify first 4 calls are newlines for initialization
         for i in range(4):
@@ -1095,8 +1097,16 @@ class TestVPCSMultiCommandsTelnetInteraction:
         command_call = write_calls[4]
         assert command_call[0][0] == b"ip 10.0.0.1/24\n"
         
-        # Verify expect was called for PC prompt
-        mock_telnet.expect.assert_called_with([rb"PC\d+>"])
+        # Verify sleep calls: 4 sleeps after newlines + 1 sleep after command = 5 total
+        assert mock_sleep.call_count == 5
+        sleep_calls = [call[0][0] for call in mock_sleep.call_args_list]
+        assert sleep_calls[:4] == [0.5, 0.5, 0.5, 0.5]  # Initialization delays
+        assert sleep_calls[4] == 5  # Command execution delay
+        
+        # Verify expect was called for PC prompt (1 init + 1 command = 2 calls)
+        assert mock_telnet.expect.call_count == 2
+        call_args = mock_telnet.expect.call_args
+        assert call_args[0][0] == [rb"PC\d+>"]
         
         # Verify telnet was closed
         mock_telnet.close.assert_called_once()
@@ -1129,13 +1139,13 @@ class TestVPCSMultiCommandsTelnetInteraction:
         
         tool._run(json.dumps(input_data))
         
-        # Verify sleep was called for timing
-        assert mock_sleep.call_count >= 6  # 4*0.5s for init + 2*5s for commands
+        # Verify sleep was called for timing: 4 init sleeps + 2 command sleeps = 6 total
+        assert mock_sleep.call_count == 6
         
         # Verify sleep durations
         sleep_calls = [call[0][0] for call in mock_sleep.call_args_list]
-        assert sleep_calls.count(0.5) >= 4  # Initial delays
-        assert sleep_calls.count(5) >= 2    # Command execution delays
+        assert sleep_calls.count(0.5) == 4  # Initial delays
+        assert sleep_calls.count(5) == 2    # Command execution delays
 
     @patch('gns3_copilot.tools_v2.vpcs_tools_telnetlib3.get_device_ports_from_topology')
     @patch('gns3_copilot.tools_v2.vpcs_tools_telnetlib3.Telnet')

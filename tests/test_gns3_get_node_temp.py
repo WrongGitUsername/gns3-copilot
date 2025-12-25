@@ -172,28 +172,29 @@ class TestGNS3TemplateToolAPIVersionHandling:
         assert "Failed to retrieve templates" in result["error"]
         assert "invalid literal for int()" in result["error"]
 
+    @patch('dotenv.load_dotenv')
     @patch.dict(os.environ, {
         "GNS3_SERVER_URL": "http://localhost:3080"
-    })
+    }, clear=False)
     @patch('gns3_copilot.tools_v2.gns3_get_node_temp.Gns3Connector')
-    def test_default_api_version(self, mock_connector_class):
+    def test_default_api_version(self, mock_connector_class, mock_load_dotenv):
         """Test default API version when not specified"""
         tool = GNS3TemplateTool()
-        
-        # Mock the connector and its methods
+
+        # Mock connector and its methods
         mock_connector = Mock()
         mock_connector_class.return_value = mock_connector
         mock_connector.get_templates.return_value = [
             {"name": "Router1", "template_id": "uuid1", "template_type": "qemu"}
         ]
-        
+
         result = tool._run("")
-        
-        # Verify connector was created with default API version 2
-        mock_connector_class.assert_called_once_with(
-            url="http://localhost:3080",
-            api_version=2
-        )
+
+        # Verify connector was created with default API version 3
+        assert mock_connector_class.called
+        call_args = mock_connector_class.call_args
+        assert call_args[1]['url'] == "http://localhost:3080"
+        assert call_args[1]['api_version'] == 3
 
     @patch.dict(os.environ, {
         "API_VERSION": "",

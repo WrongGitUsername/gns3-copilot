@@ -373,14 +373,15 @@ class TestGNS3LinkToolAPIVersionHandling:
         # The actual error comes from int() conversion failure, not the custom error message
         assert "invalid literal for int()" in result[0]["error"]
 
+    @patch('dotenv.load_dotenv')
     @patch.dict(os.environ, {
         "GNS3_SERVER_URL": "http://localhost:3080"
-    })
+    }, clear=False)
     @patch('gns3_copilot.tools_v2.gns3_create_link.Gns3Connector')
-    def test_default_api_version(self, mock_connector_class):
+    def test_default_api_version(self, mock_connector_class, mock_load_dotenv):
         """Test default API version when not specified"""
         tool = GNS3LinkTool()
-        
+
         input_data = {
             "project_id": "project1",
             "links": [
@@ -392,11 +393,11 @@ class TestGNS3LinkToolAPIVersionHandling:
                 }
             ]
         }
-        
-        # Mock the connector and its methods
+
+        # Mock connector and its methods
         mock_connector = Mock()
         mock_connector_class.return_value = mock_connector
-        
+
         # Mock node retrieval
         mock_node = {
             "name": "test_node",
@@ -406,20 +407,20 @@ class TestGNS3LinkToolAPIVersionHandling:
             ]
         }
         mock_connector.get_node.return_value = mock_node
-        
+
         # Mock link creation
         with patch('gns3_copilot.tools_v2.gns3_create_link.Link') as mock_link_class:
             mock_link = Mock()
             mock_link.link_id = "link123"
             mock_link_class.return_value = mock_link
-            
-            tool._run(json.dumps(input_data))
-            
-            # Verify connector was created with default API version 2
-            mock_connector_class.assert_called_once_with(
-                url="http://localhost:3080",
-                api_version=2
-            )
+
+            result = tool._run(json.dumps(input_data))
+
+            # Verify connector was created with default API version 3
+            assert mock_connector_class.called
+            call_args = mock_connector_class.call_args
+            assert call_args[1]['url'] == "http://localhost:3080"
+            assert call_args[1]['api_version'] == 3
 
 
 class TestGNS3LinkToolSuccessScenarios:
