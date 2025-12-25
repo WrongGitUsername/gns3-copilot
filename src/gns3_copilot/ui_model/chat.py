@@ -548,8 +548,8 @@ if selected_p:
             if not selected_thread_id and st.session_state.get("temp_selected_project"):
                 temp_project = st.session_state["temp_selected_project"]
                 agent.update_state(config, {"selected_project": temp_project})
-                # Clear temp storage after migration
-                st.session_state["temp_selected_project"] = None
+                # Don't clear temp_selected_project immediately
+                # It will be cleared after rerun when selected_p is retrieved from agent state
             
             with history_container:
                 # Display assistant response in chat message container
