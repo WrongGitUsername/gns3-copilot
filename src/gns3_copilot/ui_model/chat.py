@@ -127,6 +127,10 @@ if 'gns3_url_mode' not in st.session_state:
 if "zoom_scale_topology" not in st.session_state:
     st.session_state.zoom_scale_topology = 0.8
 
+# Initialize temp_selected_project for new sessions
+if "temp_selected_project" not in st.session_state:
+    st.session_state["temp_selected_project"] = None
+
 current_thread_id = st.session_state["thread_id"]
 
 # Sidebar info
@@ -253,8 +257,13 @@ else:
     }
 
 # --- Get current state ---
-snapshot = agent.get_state(config)
-selected_p = snapshot.values.get("selected_project")
+if selected_thread_id:
+    # Historical session: get from agent state
+    snapshot = agent.get_state(config)
+    selected_p = snapshot.values.get("selected_project")
+else:
+    # New session: get from temp storage
+    selected_p = st.session_state.get("temp_selected_project")
 
 # --- Logic branch: If no project is selected, display project cards ---
 if not selected_p:
@@ -268,7 +277,12 @@ if not selected_p:
     # If there's only one opened project, directly select it and skip UI rendering
     if len(opened_projects) == 1:
         p = opened_projects[0]
-        agent.update_state(config, {"selected_project": p})
+        if selected_thread_id:
+            # Historical session: update agent state
+            agent.update_state(config, {"selected_project": p})
+        else:
+            # New session: store in temp storage
+            st.session_state["temp_selected_project"] = p
         # Record a log or brief prompt for debugging convenience
         st.toast(f"Automatically selecting project: {p[0]}")
         st.rerun()
@@ -306,7 +320,12 @@ if not selected_p:
                         type="primary" if is_opened else "secondary",
                     ):
                         # Only execute when button is available and clicked
-                        agent.update_state(config, {"selected_project": p})
+                        if selected_thread_id:
+                            # Historical session: update agent state
+                            agent.update_state(config, {"selected_project": p})
+                        else:
+                            # New session: store in temp storage
+                            st.session_state["temp_selected_project"] = p
                         st.success(f"Project {name} has been selected!")
                         st.rerun()
     else:
@@ -317,7 +336,12 @@ else:
     # Top status bar logic remains unchanged
     st.sidebar.success(f"Current Project: **{selected_p[0]}**")
     if st.sidebar.button("Switch Project / Exit"):
-        agent.update_state(config, {"selected_project": None})
+        if selected_thread_id:
+            # Historical session: update agent state
+            agent.update_state(config, {"selected_project": None})
+        else:
+            # New session: clear temp storage
+            st.session_state["temp_selected_project"] = None
         st.rerun()
 
 st.title("Workspace", text_alignment="center")
@@ -518,6 +542,14 @@ with chat_input_center:
             # Display user message in chat message container
             with st.chat_message("user"):
                 st.markdown(user_text)
+        
+        # Migrate temp selected project to agent state for new sessions
+        if not selected_thread_id and st.session_state.get("temp_selected_project"):
+            temp_project = st.session_state["temp_selected_project"]
+            agent.update_state(config, {"selected_project": temp_project})
+            # Clear temp storage after migration
+            st.session_state["temp_selected_project"] = None
+        
         with history_container:
         # Display assistant response in chat message container
             with st.chat_message("assistant"):
