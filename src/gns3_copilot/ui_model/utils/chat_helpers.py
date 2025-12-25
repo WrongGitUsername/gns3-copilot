@@ -21,10 +21,11 @@ Functions:
 """
 
 import json
-from typing import Any
+from typing import Any, cast
 
 import streamlit as st
 from langchain.messages import AIMessage, HumanMessage, ToolMessage
+from streamlit.delta_generator import DeltaGenerator
 
 from gns3_copilot.public_model import (
     format_tool_response,
@@ -112,14 +113,15 @@ def extract_message_text(content: Any) -> str:
     Returns:
         Extracted text as string.
     """
-    if (
-        isinstance(content, list)
-        and content
-        and isinstance(content[0], dict)
-        and "text" in content[0]
-    ):
-        return str(content[0]["text"])
-    return str(content) if isinstance(content, str) else ""
+    if isinstance(content, list) and content:
+        first_item = content[0]
+        if isinstance(first_item, dict) and "text" in first_item:
+            return cast(str, first_item["text"])
+    if isinstance(content, str):
+        return content
+    if content is not None:
+        return str(content)
+    return ""
 
 
 def render_message_history(messages: list) -> None:
@@ -189,7 +191,9 @@ def render_message_history(messages: list) -> None:
         current_assistant_block.__exit__(None, None, None)
 
 
-def render_project_card(project: tuple, col: Any, agent: Any, config: dict) -> None:
+def render_project_card(
+    project: tuple, col: DeltaGenerator, agent: Any, config: dict
+) -> None:
     """
     Render a single project selection card.
 
@@ -255,7 +259,7 @@ def render_project_selection_ui(projects: list, agent: Any, config: dict) -> Non
 
 
 def handle_text_message(
-    msg: AIMessage, placeholder: Any, current_text: str
+    msg: AIMessage, placeholder: DeltaGenerator, current_text: str
 ) -> tuple[str, bool]:
     """
     Handle text streaming from AIMessage.
@@ -305,7 +309,7 @@ def handle_tool_call_start(msg: AIMessage) -> dict[str, Any] | None:
     }
 
 
-def handle_tool_call_chunk(msg: AIMessage, tool_state: dict) -> None:
+def handle_tool_call_chunk(msg: AIMessage, tool_state: dict[str, Any]) -> None:
     """
     Handle streaming tool call chunks.
 
@@ -358,7 +362,7 @@ def handle_tool_call_complete(msg: AIMessage, tool_state: dict[str, Any]) -> Non
 
 def handle_tool_response(
     msg: ToolMessage,
-    placeholder: Any,
+    placeholder: DeltaGenerator,
     audio_bytes: bytes | None,
     voice_enabled: bool,
 ) -> tuple[bytes | None, str]:
@@ -449,11 +453,12 @@ def process_chat_stream(
                         handle_tool_call_chunk(msg, current_tool_state)
 
                     # Handle tool call completion
-                    if current_tool_state is not None and (
-                        msg.response_metadata.get("finish_reason") == "tool_calls"
-                        or (msg.response_metadata.get("finish_reason") == "STOP")
+                    if msg.response_metadata.get("finish_reason") == "tool_calls" or (
+                        msg.response_metadata.get("finish_reason") == "STOP"
+                        and current_tool_state is not None
                     ):
-                        handle_tool_call_complete(msg, current_tool_state)
+                        if current_tool_state is not None:
+                            handle_tool_call_complete(msg, current_tool_state)
 
                 if isinstance(msg, ToolMessage):
                     audio_bytes, current_text_chunk = handle_tool_response(

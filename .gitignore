@@ -187,6 +187,3 @@ log/*
 test/session_metadata.sqlite
 .env.bak
 .pypirc
-.clinerules
-.clinerules_test
-docs/manual_testing_guide.md

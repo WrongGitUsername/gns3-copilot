@@ -16,6 +16,7 @@ Configuration Categories:
     - Voice (TTS): API key, model, voice, base URL, speed settings
     - Voice (STT): API key, model, language, base URL, temperature, response format
     - Other: Linux console credentials, English proficiency level
+    - UI Settings: Container height, zoom scale for topology view
 
 Constants:
     CONFIG_MAP: Mapping between Streamlit widget keys and .env variable names
@@ -83,6 +84,9 @@ CONFIG_MAP = {
     "LINUX_TELNET_PASSWORD": "LINUX_TELNET_PASSWORD",
     # Prompt Configuration
     "ENGLISH_LEVEL": "ENGLISH_LEVEL",
+    # UI Configuration
+    "CONTAINER_HEIGHT": "CONTAINER_HEIGHT",
+    "zoom_scale_topology": "ZOOM_SCALE_TOPOLOGY",
 }
 
 # Example list of supported providers (used for validation during loading)
@@ -147,7 +151,20 @@ if not ENV_FILE_PATH or not os.path.exists(ENV_FILE_PATH):
 
 
 def load_config_from_env() -> None:
-    """Load configuration from the .env file and initialize st.session_state."""
+    """Load configuration from the .env file and initialize st.session_state.
+
+    This function loads configuration items from the .env file only once,
+    on the first call. This allows users to modify settings in the UI without
+    being overwritten by the .env file until they explicitly save.
+
+    The function uses a marker `_config_loaded` in session_state to track
+    whether configuration has been initialized.
+    """
+    # Check if configuration has already been loaded
+    if st.session_state.get("_config_loaded", False):
+        logger.debug("Configuration already loaded, skipping reload")
+        return
+
     # Only attempt to load if the path is valid and the file exists
     logger.info("Starting to load configuration from .env file")
     if ENV_FILE_PATH and os.path.exists(ENV_FILE_PATH):
@@ -163,10 +180,21 @@ def load_config_from_env() -> None:
         env_value = os.getenv(env_key)
         default_value = env_value if env_value is not None else ""
 
-        # Special handling for API_VERSION (kept consistent)
+        # Special handling for GNS3 Server settings
+        if st_key in ("GNS3_SERVER_HOST", "GNS3_SERVER_URL"):
+            # Explicitly set the value in session_state
+            st.session_state[st_key] = default_value
+            logger.debug("Loaded config: %s = %s", st_key, default_value)
+            continue  # Skip the generic assignment below
+
+        # Special handling for API_VERSION
         if st_key == "API_VERSION":
-            # Ensure the default value is either "2" or "3"
+            # Ensure the value is either "2" or "3"
             default_value = "2" if default_value not in ["2", "3"] else default_value
+            # Explicitly set the value in session_state
+            st.session_state[st_key] = default_value
+            logger.debug("Loaded config: %s = %s", st_key, default_value)
+            continue  # Skip the generic assignment below
 
         # Special handling for MODE_PROVIDER (updated key name)
         if st_key == "MODE_PROVIDER":
@@ -306,13 +334,64 @@ def load_config_from_env() -> None:
                 )
                 default_value = "0.0"
 
-        # Set the value in session state
-        st.session_state[st_key] = default_value
-        logger.debug(
-            "Loaded config: %s = %s",
-            st_key,
-            "[HIDDEN]" if "PASSWORD" in st_key or "KEY" in st_key else default_value,
-        )
+        # Special handling for CONTAINER_HEIGHT (UI setting)
+        if st_key == "CONTAINER_HEIGHT":
+            try:
+                height_int = int(default_value) if default_value else 1200
+                if not (300 <= height_int <= 1500):
+                    logger.debug(
+                        "Invalid CONTAINER_HEIGHT value: %s, setting to default 1200",
+                        default_value,
+                    )
+                    height_int = 1200
+                # Store as integer for slider
+                st.session_state[st_key] = height_int
+                logger.debug("Loaded config: %s = %s", st_key, height_int)
+            except ValueError:
+                logger.debug(
+                    "Invalid CONTAINER_HEIGHT value: %s, setting to default 1200",
+                    default_value,
+                )
+                st.session_state[st_key] = 1200
+                logger.debug("Loaded config: %s = %s", st_key, 1200)
+            continue  # Skip the generic assignment below
+
+        # Special handling for zoom_scale_topology (UI setting)
+        if st_key == "zoom_scale_topology":
+            try:
+                zoom_float = float(default_value) if default_value else 0.8
+                if not (0.5 <= zoom_float <= 1.0):
+                    logger.debug(
+                        "Invalid zoom_scale_topology value: %s, setting to default 0.8",
+                        default_value,
+                    )
+                    zoom_float = 0.8
+                # Store as float for slider
+                st.session_state[st_key] = zoom_float
+                logger.debug("Loaded config: %s = %s", st_key, zoom_float)
+            except ValueError:
+                logger.debug(
+                    "Invalid zoom_scale_topology value: %s, setting to default 0.8",
+                    default_value,
+                )
+                st.session_state[st_key] = 0.8
+                logger.debug("Loaded config: %s = %s", st_key, 0.8)
+            continue  # Skip the generic assignment below
+
+        else:
+            # Always set the value from .env file to session_state
+            # This ensures persistent configuration takes precedence
+            st.session_state[st_key] = default_value
+            logger.debug(
+                "Loaded config: %s = %s",
+                st_key,
+                "[HIDDEN]"
+                if "PASSWORD" in st_key or "KEY" in st_key
+                else default_value,
+            )
+
+    # Mark configuration as loaded to prevent re-loading on subsequent calls
+    st.session_state["_config_loaded"] = True
     logger.info("Configuration loading completed")
 
 
