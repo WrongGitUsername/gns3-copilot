@@ -35,7 +35,7 @@ from typing import Any
 import streamlit as st
 from langchain.messages import AIMessage, HumanMessage, ToolMessage
 
-from gns3_copilot.agent import agent, langgraph_checkpointer
+from gns3_copilot.agent import agent, langgraph_checkpointer, list_thread_ids
 from gns3_copilot.gns3_client import (
     GNS3ProjectCreate,
     GNS3ProjectList,
@@ -66,29 +66,6 @@ st.html("""
 }
 </style>
 """)
-
-
-# get all thread_id from checkpoint database.
-def list_thread_ids(checkpointer: Any) -> list[str]:
-    """
-    Get all unique thread IDs from LangGraph checkpoint database.
-
-    Args:
-        checkpointer: LangGraph checkpointer instance.
-
-    Returns:
-        list: List of unique thread IDs ordered by most recent activity.
-              Returns empty list on error or if table doesn't exist.
-    """
-    try:
-        res = checkpointer.conn.execute(
-            "SELECT DISTINCT thread_id FROM checkpoints ORDER BY rowid DESC"
-        ).fetchall()
-        return [r[0] for r in res]
-    except Exception as e:
-        # Table might not exist yet, return empty list
-        logger.debug("Error listing thread IDs (table may not exist): %s", e)
-        return []
 
 
 def new_session() -> None:
