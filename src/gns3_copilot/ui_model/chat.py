@@ -36,7 +36,11 @@ import streamlit as st
 from langchain.messages import AIMessage, HumanMessage, ToolMessage
 
 from gns3_copilot.agent import agent, langgraph_checkpointer
-from gns3_copilot.gns3_client import GNS3ProjectList, GNS3ProjectOpen
+from gns3_copilot.gns3_client import (
+    GNS3ProjectCreate,
+    GNS3ProjectList,
+    GNS3ProjectOpen,
+)
 from gns3_copilot.log_config import setup_logger
 from gns3_copilot.public_model import (
     format_tool_response,
@@ -264,8 +268,60 @@ else:
 if not selected_p:
     st.title("GNS3 Copilot - Workspace Selection")
     st.info(
-        "Please select a project to enter the conversation context. Closed projects can be opened directly."
+        "Please select a project to enter the conversation context. Closed projects can be opened directly.",
+        width=800,
     )
+
+    # Create New Project expander
+    with st.expander("Create New Project", expanded=False, width=800):
+        new_name = st.text_input("Project Name", placeholder="Enter project name...")
+
+        # Advanced options
+        with st.expander("Advanced Options", expanded=False):
+            auto_start = st.checkbox("Auto start project", value=False)
+            auto_close = st.checkbox("Auto close on disconnect", value=False)
+            auto_open = st.checkbox("Auto open on GNS3 start", value=False)
+            col_width, col_height = st.columns(2)
+            with col_width:
+                scene_width = st.number_input(
+                    "Scene Width", value=2000, min_value=500, max_value=5000
+                )
+            with col_height:
+                scene_height = st.number_input(
+                    "Scene Height", value=1000, min_value=500, max_value=5000
+                )
+
+        col_create, col_cancel = st.columns(2)
+        with col_create:
+            if st.button("Create", type="primary", key="btn_create_project"):
+                if new_name and new_name.strip():
+                    # Build project parameters
+                    params = {"name": new_name.strip()}
+                    if auto_start:
+                        params["auto_start"] = True
+                    if auto_close:
+                        params["auto_close"] = True
+                    if auto_open:
+                        params["auto_open"] = True
+                    params["scene_width"] = scene_width
+                    params["scene_height"] = scene_height
+
+                    # Call GNS3ProjectCreate tool
+                    create_tool = GNS3ProjectCreate()
+                    result = create_tool._run(params)
+
+                    if result.get("success"):
+                        st.success(f"Project '{new_name}' created successfully!")
+                        sleep(1)
+                        st.rerun()
+                    else:
+                        st.error(f"Failed to create project: {result.get('error')}")
+                else:
+                    st.warning("Please enter a project name.")
+        with col_cancel:
+            if st.button("Clear", key="btn_clear_project"):
+                st.rerun()
+
     # Get project list
     projects = GNS3ProjectList()._run().get("projects", [])
     if projects:
