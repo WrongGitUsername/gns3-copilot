@@ -273,9 +273,16 @@ def update_documentation(doc_updates: Dict) -> Dict[str, str]:
         # Find and update section
         if section:
             # Define common section name mappings for README files
+            # Map canonical section name to possible variations (without markdown prefixes)
             section_mappings = {
-                "Core Features": ["Core Features", "Features", "### Core Features", "### Features"],
-                "核心功能": ["核心功能", "功能列表", "### 核心功能", "### 功能列表"],
+                "Core Features": [
+                    "Core Features", 
+                    "Features"
+                ],
+                "核心功能": [
+                    "核心功能", 
+                    "功能列表"
+                ],
             }
             
             # Get possible section names
