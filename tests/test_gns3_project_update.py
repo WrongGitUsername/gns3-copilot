@@ -111,6 +111,13 @@ class TestGNS3ProjectUpdateSuccess:
         mock_project.auto_open = False
         mock_project.scene_width = 2000
         mock_project.scene_height = 1000
+        
+        # Make update() actually modify the mock's attributes
+        def update_side_effect(**kwargs):
+            for key, value in kwargs.items():
+                setattr(mock_project, key, value)
+        
+        mock_project.update.side_effect = update_side_effect
         mock_project_class.return_value = mock_project
         
         tool = GNS3ProjectUpdate()
@@ -151,6 +158,13 @@ class TestGNS3ProjectUpdateSuccess:
         mock_project.status = "opened"
         mock_project.path = "/path/to/v3_project"
         mock_project.auto_start = False
+        
+        # Make update() actually modify the mock's attributes
+        def update_side_effect(**kwargs):
+            for key, value in kwargs.items():
+                setattr(mock_project, key, value)
+        
+        mock_project.update.side_effect = update_side_effect
         mock_project_class.return_value = mock_project
         
         tool = GNS3ProjectUpdate()
@@ -184,6 +198,13 @@ class TestGNS3ProjectUpdateSuccess:
         mock_project.status = "opened"
         mock_project.path = "/path/to/test"
         mock_project.auto_start = False
+        
+        # Make update() actually modify the mock's attributes
+        def update_side_effect(**kwargs):
+            for key, value in kwargs.items():
+                setattr(mock_project, key, value)
+        
+        mock_project.update.side_effect = update_side_effect
         mock_project_class.return_value = mock_project
         
         tool = GNS3ProjectUpdate()
@@ -224,6 +245,13 @@ class TestGNS3ProjectUpdateSuccess:
         mock_project.scene_width = 2000
         mock_project.scene_height = 1000
         mock_project.show_grid = False
+        
+        # Make update() actually modify the mock's attributes
+        def update_side_effect(**kwargs):
+            for key, value in kwargs.items():
+                setattr(mock_project, key, value)
+        
+        mock_project.update.side_effect = update_side_effect
         mock_project_class.return_value = mock_project
         
         tool = GNS3ProjectUpdate()
@@ -261,6 +289,13 @@ class TestGNS3ProjectUpdateSuccess:
         mock_project.auto_start = False
         mock_project.auto_close = False
         mock_project.scene_width = 2000
+        
+        # Make update() actually modify the mock's attributes
+        def update_side_effect(**kwargs):
+            for key, value in kwargs.items():
+                setattr(mock_project, key, value)
+        
+        mock_project.update.side_effect = update_side_effect
         mock_project_class.return_value = mock_project
         
         tool = GNS3ProjectUpdate()
@@ -295,6 +330,13 @@ class TestGNS3ProjectUpdateSuccess:
         mock_project.status = "opened"
         mock_project.path = "/path/to/test_project"
         mock_project.auto_start = False
+        
+        # Make update() actually modify the mock's attributes
+        def update_side_effect(**kwargs):
+            for key, value in kwargs.items():
+                setattr(mock_project, key, value)
+        
+        mock_project.update.side_effect = update_side_effect
         mock_project_class.return_value = mock_project
         
         tool = GNS3ProjectUpdate()
@@ -366,6 +408,13 @@ class TestGNS3ProjectUpdateInputValidation:
             mock_project.status = "opened"
             mock_project.path = "/path/to/test"
             mock_project.auto_start = False
+            
+            # Make update() actually modify the mock's attributes
+            def update_side_effect(**kwargs):
+                for key, value in kwargs.items():
+                    setattr(mock_project, key, value)
+            
+            mock_project.update.side_effect = update_side_effect
             mock_project_class.return_value = mock_project
             
             tool = GNS3ProjectUpdate()
@@ -396,6 +445,13 @@ class TestGNS3ProjectUpdateInputValidation:
             mock_project.status = "opened"
             mock_project.path = "/path/to/test"
             mock_project.auto_start = False
+            
+            # Make update() actually modify the mock's attributes
+            def update_side_effect(**kwargs):
+                for key, value in kwargs.items():
+                    setattr(mock_project, key, value)
+            
+            mock_project.update.side_effect = update_side_effect
             mock_project_class.return_value = mock_project
             
             tool = GNS3ProjectUpdate()
@@ -426,6 +482,13 @@ class TestGNS3ProjectUpdateInputValidation:
             mock_project.status = "opened"
             mock_project.path = "/path/to/test"
             mock_project.auto_start = False
+            
+            # Make update() actually modify the mock's attributes
+            def update_side_effect(**kwargs):
+                for key, value in kwargs.items():
+                    setattr(mock_project, key, value)
+            
+            mock_project.update.side_effect = update_side_effect
             mock_project_class.return_value = mock_project
             
             tool = GNS3ProjectUpdate()
@@ -1009,6 +1072,13 @@ class TestGNS3ProjectUpdateReturnFormat:
         mock_project.auto_start = False
         mock_project.auto_close = False
         mock_project.auto_open = False
+        
+        # Make update() actually modify the mock's attributes
+        def update_side_effect(**kwargs):
+            for key, value in kwargs.items():
+                setattr(mock_project, key, value)
+        
+        mock_project.update.side_effect = update_side_effect
         mock_project_class.return_value = mock_project
         
         tool = GNS3ProjectUpdate()
@@ -1046,6 +1116,13 @@ class TestGNS3ProjectUpdateReturnFormat:
         mock_project.status = "opened"
         mock_project.path = "/path/to/test"
         mock_project.auto_start = False
+        
+        # Make update() actually modify the mock's attributes
+        def update_side_effect(**kwargs):
+            for key, value in kwargs.items():
+                setattr(mock_project, key, value)
+        
+        mock_project.update.side_effect = update_side_effect
         mock_project_class.return_value = mock_project
         
         tool = GNS3ProjectUpdate()
