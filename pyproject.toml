@@ -240,6 +240,7 @@ exclude = [
     ".venv/",
     ".eggs/",
     "*.egg-info/",
+    "scripts/**",
 ]
 
 # Allow line length to match black's setting
