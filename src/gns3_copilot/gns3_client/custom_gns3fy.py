@@ -2037,6 +2037,7 @@ class Project:
                         "console_type": _n.console_type,
                         "type": _n.node_type,
                         "ports": _n.ports,
+                        "status": _n.status,
                         # "template": _n.template,
                         "x": _n.x,
                         "y": _n.y,
