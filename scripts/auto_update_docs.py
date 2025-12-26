@@ -50,6 +50,32 @@ def get_changed_files(base_ref: str = 'origin/Development') -> List[str]:
         return []
 
 
+def get_relevant_files(changed_files: List[str]) -> Tuple[List[str], str]:
+    """Get relevant files based on mode"""
+    if PR_NUMBER:
+        # GitHub Actions mode: only source code changes
+        relevant = [f for f in changed_files if f.startswith('src/')]
+        change_type = "source code"
+    else:
+        # Local mode: all project files
+        supported_dirs = [
+            'src/',
+            'docs/',
+            'scripts/',
+            '.github/',
+            'tests/',
+        ]
+        supported_files = ['pyproject.toml', 'Makefile', 'LICENSE']
+        
+        relevant = []
+        for f in changed_files:
+            if f.startswith(tuple(supported_dirs)) or f in supported_files:
+                relevant.append(f)
+        change_type = "project changes"
+    
+    return relevant, change_type
+
+
 def get_diff_content(base_ref: str = 'origin/Development') -> str:
     """Get git diff content"""
     try:
@@ -424,13 +450,13 @@ def main():
     print(f"  Files: {', '.join(changed_files[:5])}...")
     print()
     
-    # Filter relevant files
-    relevant_files = [f for f in changed_files if f.startswith('src/')]
+    # Filter relevant files based on mode
+    relevant_files, change_type = get_relevant_files(changed_files)
     if not relevant_files:
-        print("No source code changes detected. Exiting.")
+        print(f"No {change_type} detected. Exiting.")
         return 0
     
-    print(f"✓ Found {len(relevant_files)} source code changes")
+    print(f"✓ Found {len(relevant_files)} {change_type}")
     print()
     
     # Two modes: Local (create PR) vs GitHub Actions (update docs)
