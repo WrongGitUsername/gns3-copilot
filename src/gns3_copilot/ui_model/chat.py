@@ -36,7 +36,7 @@ import streamlit as st
 from langchain.messages import AIMessage, HumanMessage, ToolMessage
 
 from gns3_copilot.agent import agent, langgraph_checkpointer
-from gns3_copilot.gns3_client import GNS3ProjectList
+from gns3_copilot.gns3_client import GNS3ProjectList, GNS3ProjectOpen
 from gns3_copilot.log_config import setup_logger
 from gns3_copilot.public_model import (
     format_tool_response,
@@ -44,6 +44,7 @@ from gns3_copilot.public_model import (
     speech_to_text,
     text_to_speech_wav,
 )
+from gns3_copilot.ui_model.utils import save_config_to_env
 
 logger = setup_logger("chat")
 
@@ -151,8 +152,6 @@ with st.sidebar:
         st.session_state["CONTAINER_HEIGHT"] = new_height
         # Save to .env file using the centralized save function
         try:
-            from gns3_copilot.ui_model.utils import save_config_to_env
-
             save_config_to_env()
         except Exception as e:
             logger.error("Failed to update CONTAINER_HEIGHT: %s", e)
@@ -175,8 +174,6 @@ with st.sidebar:
     if new_zoom != current_zoom:
         st.session_state["zoom_scale_topology"] = new_zoom
         try:
-            from gns3_copilot.ui_model.utils import save_config_to_env
-
             save_config_to_env()
         except Exception as e:
             logger.error("Failed to update ZOOM_SCALE_TOPOLOGY: %s", e)
@@ -266,28 +263,13 @@ else:
 # --- Logic branch: If no project is selected, display project cards ---
 if not selected_p:
     st.title("GNS3 Copilot - Workspace Selection")
-    st.info("Please select an opened project to enter the conversation context.")
+    st.info(
+        "Please select a project to enter the conversation context. Closed projects can be opened directly."
+    )
     # Get project list
     projects = GNS3ProjectList()._run().get("projects", [])
-    # Pre-filter all projects in "opened" status
-    opened_projects = [p for p in projects if p[4].lower() == "opened"]
-    # Only auto-select if not in "Switching Mode"
-    if (
-        len(opened_projects) == 1
-        and st.session_state.get("selected_p_override", "active") != "switching"
-    ):
-        p = opened_projects[0]
-        if selected_thread_id:
-            # Historical session: update agent state
-            agent.update_state(config, {"selected_project": p})
-        else:
-            # New session: store in temp storage
-            st.session_state["temp_selected_project"] = p
-        # Record a log or brief prompt for debugging convenience
-        st.toast(f"Automatically selecting project: {p[0]}")
-        st.rerun()
     if projects:
-        cols = st.columns([1, 1])
+        cols = st.columns([1, 1], width=800)
         for i, p in enumerate(projects):
             # Destructure project tuple for clarity: name, ID, device count, link count, status
             name, p_id, dev_count, link_count, status = p
@@ -295,7 +277,7 @@ if not selected_p:
             is_opened = status.lower() == "opened"
             with cols[i % 2]:
                 # If closed status, use container with background color or different title format
-                with st.container(border=True):
+                with st.container(border=True, width=400):
                     # Add status icon to title
                     status_icon = "🟢" if is_opened else "⚪"
                     st.markdown(f"###### {status_icon} {name}")
@@ -307,24 +289,66 @@ if not selected_p:
                         st.success(f"Status: {status.upper()}")
                     else:
                         st.warning(f"Status: {status.upper()} (Unavailable)")
-                    # --- Button logic modification ---
-                    # If status is not opened, set disabled=True
-                    if st.button(
-                        "Select Project" if is_opened else "Project Closed",
-                        key=f"btn_{p_id}",
-                        use_container_width=True,
-                        disabled=not is_opened,
-                        type="primary" if is_opened else "secondary",
-                    ):
-                        # Only execute when button is available and clicked
-                        if selected_thread_id:
-                            # Historical session: update agent state
-                            agent.update_state(config, {"selected_project": p})
-                        else:
-                            # New session: store in temp storage
-                            st.session_state["temp_selected_project"] = p
-                        st.success(f"Project {name} has been selected!")
-                        st.rerun()
+                    # --- Button logic ---
+                    # Show different buttons based on project status
+                    if is_opened:
+                        # Opened project: show Select Project and Close Project buttons
+                        col_btn1, col_btn2 = st.columns(2)
+                        with col_btn1:
+                            if st.button(
+                                "Select Project",
+                                key=f"btn_select_{p_id}",
+                                use_container_width=True,
+                                type="primary",
+                            ):
+                                if selected_thread_id:
+                                    # Historical session: update agent state
+                                    agent.update_state(config, {"selected_project": p})
+                                else:
+                                    # New session: store in temp storage
+                                    st.session_state["temp_selected_project"] = p
+                                st.success(f"Project {name} has been selected!")
+                                st.rerun()
+                        with col_btn2:
+                            if st.button(
+                                "Close Project",
+                                key=f"btn_close_{p_id}",
+                                use_container_width=True,
+                                type="secondary",
+                            ):
+                                close_tool = GNS3ProjectOpen()
+                                result = close_tool._run(
+                                    {"project_id": p_id, "close": True}
+                                )
+
+                                if result.get("success"):
+                                    st.success(f"Project {name} closed successfully!")
+                                    # Wait a moment and refresh to update project status
+                                    sleep(1)
+                                    st.rerun()
+                                else:
+                                    st.error(
+                                        f"Failed to close project {name}: {result.get('error', 'Unknown error')}"
+                                    )
+                    else:
+                        # Closed project: show Open Project button
+                        if st.button(
+                            "Open Project",
+                            key=f"btn_open_{p_id}",
+                            use_container_width=True,
+                            type="secondary",
+                        ):
+                            open_tool = GNS3ProjectOpen()
+                            result = open_tool._run({"project_id": p_id, "open": True})
+                            if result.get("success"):
+                                st.success(f"Project {name} opened successfully!")
+                                # Wait a moment and refresh to update project status
+                                sleep(1)
+                                st.rerun()
+                            else:
+                                st.error(
+                                    f"Failed to open project {name}: {result.get('error', 'Unknown error')}"
+                                )
     else:
         st.error("No projects found in GNS3.")
         if st.button("Refresh List"):
