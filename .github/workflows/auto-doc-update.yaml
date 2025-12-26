@@ -1,0 +1,75 @@
+name: Automatic Documentation Update
+
+on:
+  pull_request:
+    branches: [ Development ]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  auto-update-docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }} # Use GITHUB_TOKEN for commits
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Only install required dependencies for the script
+          pip install requests
+      
+      - name: Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git fetch origin Development
+      
+      - name: Run Documentation Update Script
+        env:
+          # Zhipu AI Configuration
+          ZHIPU_API_KEY: ${{ secrets.ZHIPU_API_KEY }}
+          ZHIPU_MODEL: ${{ secrets.ZHIPU_MODEL || 'glm-4-flash' }}
+          
+          # GitHub Configuration
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          python scripts/auto_update_docs.py
+      
+      - name: Push Changes
+        if: success()
+        run: |
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "No changes to push"
+          else
+            echo "Pushing documentation updates..."
+            git push
+          fi
+      
+      - name: Summary
+        run: |
+          echo "## 📚 Documentation Update Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The automatic documentation update workflow has completed." >> $GITHUB_STEP_SUMMARY
+          echo "Check the logs above for details on what was updated." >> $GITHUB_STEP_SUMMARY
