@@ -4,6 +4,7 @@ GNS3 Copilot Agent Package
 This package contains the main GNS3 Copilot agent implementation for network automation tasks.
 """
 
+from .checkpoint_utils import list_thread_ids
 from .gns3_copilot import agent, langgraph_checkpointer
 
 # Dynamic version management
@@ -21,4 +22,5 @@ __url__ = "https://github.com/yueguobin/gns3-copilot"
 __all__ = [
     "agent",
     "langgraph_checkpointer",
+    "list_thread_ids",
 ]
