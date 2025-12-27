@@ -120,14 +120,16 @@ def speech_to_text(
         if hasattr(response, "model_dump"):
             data = cast(dict[str, Any], response.model_dump())
             if f_response_format == "json":
-                result = str(data.get("text", ""))
+                result: str | dict[str, Any] = str(data.get("text", ""))
             else:
                 result = data
         else:
             result = str(response)
 
         # Log result
-        logger.info("STT result: %s", result[:500] if isinstance(result, str) else result)
+        logger.info(
+            "STT result: %s", result[:500] if isinstance(result, str) else result
+        )
 
         return result
 

@@ -7,6 +7,7 @@ eliminating duplicate logging setup code across modules.
 
 import logging
 import os
+from logging.handlers import TimedRotatingFileHandler
 
 
 def setup_logger(
@@ -44,7 +45,14 @@ def setup_logger(
         if log_dir and not os.path.exists(log_dir):
             os.makedirs(log_dir, exist_ok=True)
 
-        file_handler = logging.FileHandler(log_file, mode="a", encoding="utf-8")
+        # Configure file handler with timed rotation (every 7 days)
+        file_handler = TimedRotatingFileHandler(
+            log_file,
+            when="D",  # Rotate daily
+            interval=7,  # Every 7 days
+            backupCount=5,  # Keep 5 backup files
+            encoding="utf-8",
+        )
         file_handler.setLevel(file_level)
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
@@ -100,36 +108,18 @@ def configure_package_logging(level: int = logging.INFO) -> None:
         package_logger.addHandler(console_handler)
 
 
-# Predefined logging configurations
-LOGGER_CONFIGS = {
-    "device_config": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
-    "display_tools": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
-    "gns3_topology": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
-    "gns3_create_node": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
-    "gns3_create_link": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
-    "gns3_start_node": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
-    "gns3_template": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
-    "config_tools_nornir": {
-        "console_level": logging.ERROR,
-        "file_level": logging.DEBUG,
-    },
-    "display_tools_nornir": {
-        "console_level": logging.ERROR,
-        "file_level": logging.DEBUG,
-    },
-    "static_server": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
-    "services_manager": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
-    "vpcs_multi_commands": {
-        "console_level": logging.ERROR,
-        "file_level": logging.DEBUG,
-    },
-    "linux_tools_nornir": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
-    "app": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
-    "settings": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
-    "chat": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
-    "prompt_loader": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
-    "whisper_stt": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
-    "openai_tts": {"console_level": logging.ERROR, "file_level": logging.DEBUG},
+# Default logger configuration for all modules
+DEFAULT_LOGGER_CONFIG = {
+    "console_level": logging.ERROR,
+    "file_level": logging.DEBUG,
+}
+
+# Predefined logging configurations for modules that need special settings
+# Most modules will use DEFAULT_LOGGER_CONFIG, so only list exceptions here
+LOGGER_CONFIGS: dict[str, dict[str, int]] = {
+    # Add modules with special configurations here
+    # Example:
+    # "special_module": {"console_level": logging.INFO, "file_level": logging.DEBUG},
 }
 
 
@@ -138,8 +128,9 @@ def setup_tool_logger(tool_name: str, config_name: str | None = None) -> logging
     Set up logger for specific tool using predefined configuration.
 
     Args:
-        tool_name (str): Tool name
-        config_name (str, optional): Configuration name, defaults to tool_name
+        tool_name (str): Tool name (used for log file name)
+        config_name (str, optional): Configuration name to look up in LOGGER_CONFIGS,
+                                     defaults to tool_name. If not found, uses DEFAULT_LOGGER_CONFIG.
 
     Returns:
         logging.Logger: Configured logger instance
@@ -147,11 +138,14 @@ def setup_tool_logger(tool_name: str, config_name: str | None = None) -> logging
     if config_name is None:
         config_name = tool_name
 
-    config = LOGGER_CONFIGS.get(config_name, {})
+    # Get configuration, fall back to default if not found
+    config = LOGGER_CONFIGS.get(config_name, DEFAULT_LOGGER_CONFIG)
 
     return setup_logger(
         name=tool_name,
         log_file=f"log/{tool_name}.log",
-        console_level=config.get("console_level", logging.ERROR),
-        file_level=config.get("file_level", logging.DEBUG),
+        console_level=config.get(
+            "console_level", DEFAULT_LOGGER_CONFIG["console_level"]
+        ),
+        file_level=config.get("file_level", DEFAULT_LOGGER_CONFIG["file_level"]),
     )
