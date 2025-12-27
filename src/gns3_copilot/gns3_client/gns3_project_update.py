@@ -1,3 +1,4 @@
+import json
 import os
 from typing import Any
 
@@ -82,6 +83,9 @@ class GNS3ProjectUpdate(BaseTool):
         Returns:
             Dictionary with operation result and updated project details
         """
+        # Log received input
+        logger.info("Received input: %s", tool_input)
+
         try:
             # Validate input
             if not tool_input:
@@ -222,13 +226,19 @@ class GNS3ProjectUpdate(BaseTool):
                 if value is not None:
                     project_details[field] = value
 
-            # Return success with project details
-            return {
+            # Prepare result
+            result = {
                 "success": True,
                 "project": project_details,
                 "updated_fields": updated_fields,
                 "message": f"Project '{project.name}' updated successfully",
             }
+
+            # Log result
+            logger.info("Project update result: %s", result)
+
+            # Return success with project details
+            return result
 
         except ValueError as e:
             logger.error("Validation error updating GNS3 project: %s", str(e))

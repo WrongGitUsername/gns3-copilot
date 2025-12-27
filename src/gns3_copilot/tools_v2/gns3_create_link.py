@@ -90,6 +90,9 @@ class GNS3LinkTool(BaseTool):
         Returns:
             list: A list containing dictionaries with created link details or error messages.
         """
+        # Log received input
+        logger.info("Received input: %s", tool_input)
+
         try:
             # Parse input JSON
             input_data = json.loads(tool_input)

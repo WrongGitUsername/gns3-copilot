@@ -81,19 +81,32 @@ def parse_tool_content(
         >>> parse_tool_content(None)
         {}
     """
+    # Log received input parameters
+    content_preview = (
+        f"{str(content)[:200]}..."
+        if isinstance(content, str) and len(content) > 200
+        else str(content) if not isinstance(content, (dict, list)) else f"<{type(content).__name__}>"
+    )
+    logger.info(
+        "Received parameters: fallback_to_raw=%s, strict_mode=%s, content=%s",
+        fallback_to_raw,
+        strict_mode,
+        content_preview,
+    )
+
     # Handle None input
     if content is None:
-        logger.debug("Content is None, returning empty dict")
+        logger.info("Content is None, returning empty dict")
         return {}
 
     # Handle dictionary objects (already parsed)
     if isinstance(content, dict):
-        logger.debug("Content is already a dictionary, returning as-is")
+        logger.info("Content is already a dictionary, returning as-is")
         return content
 
     # Handle list objects (JSON arrays)
     if isinstance(content, list):
-        logger.debug("Content is already a list, returning as-is")
+        logger.info("Content is already a list, returning as-is")
         return content
 
     # Handle primitive types that are JSON serializable
@@ -102,14 +115,14 @@ def parse_tool_content(
         if isinstance(content, str):
             # Empty string handling
             if not content.strip():
-                logger.debug("Content is empty or whitespace, returning empty dict")
+                logger.info("Content is empty or whitespace, returning empty dict")
                 return {}
 
             s = content.strip()
 
             # Handle empty dictionary case
             if s == "{}":
-                logger.debug("Content is empty dictionary, returning empty dict")
+                logger.info("Content is empty dictionary, returning empty dict")
                 return {}
 
             logger.debug(
@@ -122,7 +135,7 @@ def parse_tool_content(
             # (higher priority as many tools return Python format strings)
             try:
                 result = ast.literal_eval(s)
-                logger.debug("Successfully parsed as Python literal")
+                logger.info("Successfully parsed as Python literal: %s", str(result)[:200] if isinstance(result, str) else result)
                 return result
             except (ValueError, SyntaxError) as e:
                 logger.debug("Failed to parse as Python literal: %s", e)
@@ -130,7 +143,7 @@ def parse_tool_content(
             # Try to parse as JSON
             try:
                 result = json.loads(s)
-                logger.debug("Successfully parsed as JSON")
+                logger.info("Successfully parsed as JSON: %s", result)
                 return result
             except json.JSONDecodeError as e:
                 logger.debug("Failed to parse as JSON: %s", e)
@@ -145,11 +158,12 @@ def parse_tool_content(
                 raise ValueError("%s. Content: %s", error_msg, s)
 
             if fallback_to_raw:
-                logger.debug("Returning raw content as fallback")
+                logger.info("Returning raw content as fallback")
                 return {"raw": s}
+            logger.info("Returning error: %s", error_msg)
             return {"error": error_msg}
         # For non-string primitives (int, float, bool), return as-is
-        logger.debug(
+        logger.info(
             "Content is a primitive type %s, returning as-is", type(content).__name__
         )
         return content
@@ -165,8 +179,9 @@ def parse_tool_content(
         raise TypeError(error_msg)
 
     if fallback_to_raw:
-        logger.debug("Returning raw content as fallback")
+        logger.info("Returning raw content as fallback")
         return {"raw": str(content)}
+    logger.info("Returning error: %s", error_msg)
     return {"error": error_msg}
 
 

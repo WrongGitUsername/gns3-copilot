@@ -107,6 +107,9 @@ class LinuxTelnetBatchTool(BaseTool):
             List[Dict[str, Any]]: A list of dictionaries containing device names and
             command outputs.
         """
+        # Log received input
+        logger.info("Received input: %s", tool_input)
+
         if not os.getenv("LINUX_TELNET_USERNAME") or not os.getenv(
             "LINUX_TELNET_PASSWORD"
         ):

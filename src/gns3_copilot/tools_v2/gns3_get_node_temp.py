@@ -117,8 +117,14 @@ class GNS3TemplateTool(BaseTool):
                 json.dumps(template_info, indent=2, ensure_ascii=False),
             )
 
-            # Return JSON-formatted result
-            return {"templates": template_info}
+            # Return JSON-formatted result with full logging
+            result = {"templates": template_info}
+            logger.info(
+                "Template retrieval completed. Total templates: %d. Result: %s",
+                len(template_info),
+                json.dumps(result, indent=2, ensure_ascii=False),
+            )
+            return result
 
         except Exception as e:
             logger.error(

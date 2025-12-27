@@ -31,10 +31,17 @@ def get_device_ports_from_topology(
         }
         Devices that don't exist or missing console_port will not be included
     """
+    # Log received parameters
+    logger.info("Called with device_names=%s, project_id=%s", device_names, project_id)
+
     try:
         # Get topology information
         topo = GNS3TopologyTool()
         topology = topo._run(project_id=project_id)
+
+        # Log topology data
+        logger.debug("Topology data retrieved: %s", topology)
+        logger.info("Retrieved topology with %d nodes", len(topology.get("nodes", {})))
 
         # Dynamically build hosts_data from topology
         hosts_data: dict[str, dict[str, Any]] = {}
@@ -59,6 +66,10 @@ def get_device_ports_from_topology(
                 "port": node_info["console_port"],
                 "groups": ["cisco_IOSv_telnet"],
             }
+
+        # Log final result
+        logger.debug("Returning hosts_data: %s", hosts_data)
+        logger.info("Returning %d device port mappings", len(hosts_data))
 
         return hosts_data
 

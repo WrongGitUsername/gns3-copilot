@@ -132,6 +132,9 @@ class VPCSMultiCommands(BaseTool):
     ) -> list[dict[str, Any]]:
         """Main method to execute multi-device multi-commands"""
 
+        # Log received input
+        logger.info("Received input: %s", tool_input)
+
         try:
             cmd_groups = json.loads(tool_input)
             if not isinstance(cmd_groups, list):

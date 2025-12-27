@@ -50,6 +50,15 @@ def text_to_speech_wav(
     """
     Convert text to speech audio in WAV format using OpenAI TTS API.
     """
+    # Log received input parameters (excluding sensitive data)
+    logger.info(
+        "Received parameters: model=%s, voice=%s, speed=%s, base_url=%s, text_length=%d",
+        model or "default",
+        voice or "default",
+        speed,
+        base_url or "default",
+        len(text),
+    )
     config = get_tts_config()
 
     # Ensure variable types are determined to avoid issues with Optional
@@ -93,7 +102,16 @@ def text_to_speech_wav(
             response_format="wav",  # Explicit string
         )
 
-        return response.content
+        audio_bytes = response.content
+
+        # Log result
+        logger.info(
+            "TTS result generated successfully, audio_size=%d bytes (%.2f MB)",
+            len(audio_bytes),
+            len(audio_bytes) / (1024 * 1024),
+        )
+
+        return audio_bytes
 
     except Exception as e:
         logger.error(f"TTS processing failed: {e}")

@@ -1,3 +1,4 @@
+import json
 import os
 from typing import Any
 
@@ -62,6 +63,9 @@ class GNS3ProjectCreate(BaseTool):
         Returns:
             Dictionary with operation result and project details
         """
+        # Log received input
+        logger.info("Received input: %s", tool_input)
+
         try:
             # Validate input
             if not tool_input or "name" not in tool_input:
@@ -153,8 +157,8 @@ class GNS3ProjectCreate(BaseTool):
                 project.project_id,
             )
 
-            # Return success with project details
-            return {
+            # Prepare result
+            result = {
                 "success": True,
                 "project": {
                     "project_id": project.project_id,
@@ -164,6 +168,12 @@ class GNS3ProjectCreate(BaseTool):
                 },
                 "message": f"Project '{project.name}' created successfully",
             }
+
+            # Log result
+            logger.info("Project creation result: %s", result)
+
+            # Return success with project details
+            return result
 
         except ValueError as e:
             logger.error("Validation error creating GNS3 project: %s", str(e))

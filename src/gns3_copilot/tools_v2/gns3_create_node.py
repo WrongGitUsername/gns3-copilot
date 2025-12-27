@@ -114,6 +114,9 @@ class GNS3CreateNodeTool(BaseTool):
         Returns:
             dict: A dictionary with creation results for all nodes or an error message.
         """
+        # Log received input
+        logger.info("Received input: %s", tool_input)
+
         try:
             # Parse input JSON
             input_data = json.loads(tool_input)

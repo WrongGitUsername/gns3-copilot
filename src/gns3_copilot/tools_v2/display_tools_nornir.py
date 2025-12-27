@@ -93,6 +93,8 @@ class ExecuteMultipleDeviceCommands(BaseTool):
             List[Dict[str, Any]]: A list of dictionaries containing device names and
             command outputs.
         """
+        # Log received input
+        logger.info("Received input: %s", tool_input)
 
         # Validate input
         device_configs_list, project_id = self._validate_tool_input(tool_input)

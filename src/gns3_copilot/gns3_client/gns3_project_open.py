@@ -1,3 +1,4 @@
+import json
 import os
 from typing import Any
 
@@ -75,6 +76,9 @@ class GNS3ProjectOpen(BaseTool):
         Returns:
             Dictionary with operation result and project details
         """
+        # Log received input
+        logger.info("Received input: %s", tool_input)
+
         try:
             # Validate input
             if not tool_input or "project_id" not in tool_input:
@@ -158,8 +162,8 @@ class GNS3ProjectOpen(BaseTool):
                 operation = "close"
                 action_message = "closed"
 
-            # Return success with project details
-            return {
+            # Prepare result
+            result = {
                 "success": True,
                 "operation": operation,
                 "project": {
@@ -169,6 +173,12 @@ class GNS3ProjectOpen(BaseTool):
                 },
                 "message": f"Project '{project.name}' {action_message} successfully",
             }
+
+            # Log result
+            logger.info("Project operation result: %s", result)
+
+            # Return success with project details
+            return result
 
         except Exception as e:
             logger.error("Error operating on GNS3 project: %s", str(e))
