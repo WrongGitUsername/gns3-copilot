@@ -11,7 +11,15 @@ from gns3_copilot.log_config import setup_tool_logger
 logger = setup_tool_logger("gns3_project_open")
 
 # Load environment variables
-load_dotenv()
+dotenv_loaded = load_dotenv()
+if dotenv_loaded:
+    logger.info(
+        "GNS3ProjectOpen Tool Successfully loaded environment variables from .env file"
+    )
+else:
+    logger.warning(
+        "GNS3ProjectOpen Tool No .env file found or failed to load. Using existing environment variables."
+    )
 
 
 class GNS3ProjectOpen(BaseTool):
@@ -75,6 +83,9 @@ class GNS3ProjectOpen(BaseTool):
         Returns:
             Dictionary with operation result and project details
         """
+        # Log received input
+        logger.info("Received input: %s", tool_input)
+
         try:
             # Validate input
             if not tool_input or "project_id" not in tool_input:
@@ -158,8 +169,8 @@ class GNS3ProjectOpen(BaseTool):
                 operation = "close"
                 action_message = "closed"
 
-            # Return success with project details
-            return {
+            # Prepare result
+            result = {
                 "success": True,
                 "operation": operation,
                 "project": {
@@ -169,6 +180,12 @@ class GNS3ProjectOpen(BaseTool):
                 },
                 "message": f"Project '{project.name}' {action_message} successfully",
             }
+
+            # Log result
+            logger.info("Project operation result: %s", result)
+
+            # Return success with project details
+            return result
 
         except Exception as e:
             logger.error("Error operating on GNS3 project: %s", str(e))

@@ -21,7 +21,13 @@ from gns3_copilot.log_config import setup_tool_logger
 logger = setup_tool_logger("gns3_create_link")
 
 # Load environment variables
-load_dotenv()
+dotenv_loaded = load_dotenv()
+if dotenv_loaded:
+    logger.info("GNS3LinkTool Successfully loaded environment variables from .env file")
+else:
+    logger.warning(
+        "GNS3LinkTool No .env file found or failed to load. Using existing environment variables."
+    )
 
 
 class GNS3LinkTool(BaseTool):
@@ -90,6 +96,9 @@ class GNS3LinkTool(BaseTool):
         Returns:
             list: A list containing dictionaries with created link details or error messages.
         """
+        # Log received input
+        logger.info("Received input: %s", tool_input)
+
         try:
             # Parse input JSON
             input_data = json.loads(tool_input)

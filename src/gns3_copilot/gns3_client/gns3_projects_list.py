@@ -11,8 +11,15 @@ from gns3_copilot.log_config import setup_tool_logger
 logger = setup_tool_logger("gns3_project_list")
 
 # load environment variables
-load_dotenv()
-
+dotenv_loaded = load_dotenv()
+if dotenv_loaded:
+    logger.info(
+        "GNS3ProjectList Tool Successfully loaded environment variables from .env file"
+    )
+else:
+    logger.warning(
+        "GNS3ProjectList Tool No .env file found or failed to load. Using existing environment variables."
+    )
 """
 example output:
 
@@ -41,6 +48,9 @@ class GNS3ProjectList(BaseTool):
     """
 
     def _run(self, tool_input: Any = None, run_manager: Any = None) -> dict:
+        # Log received input
+        logger.info("Received input: %s", tool_input)
+
         try:
             api_version_str = os.getenv("API_VERSION")
             server_url = os.getenv("GNS3_SERVER_URL")
@@ -66,7 +76,13 @@ class GNS3ProjectList(BaseTool):
             # Return the projects data in a structured format
             projects = server.projects_summary(is_print=False)
 
-            return {"projects": projects}
+            # Prepare result
+            result = {"projects": projects}
+
+            # Log result
+            logger.info("Projects list result: %s", result)
+
+            return result
 
         except Exception as e:
             logger.error("Error retrieving GNS3 project list: %s", str(e))

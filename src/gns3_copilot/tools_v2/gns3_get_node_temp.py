@@ -21,7 +21,15 @@ from gns3_copilot.log_config import setup_tool_logger
 logger = setup_tool_logger("gns3_get_node_temp")
 
 # Load environment variables
-load_dotenv()
+dotenv_loaded = load_dotenv()
+if dotenv_loaded:
+    logger.info(
+        "GNS3TemplateTool Successfully loaded environment variables from .env file"
+    )
+else:
+    logger.warning(
+        "GNS3TemplateTool No .env file found or failed to load. Using existing environment variables."
+    )
 
 
 class GNS3TemplateTool(BaseTool):
@@ -117,8 +125,14 @@ class GNS3TemplateTool(BaseTool):
                 json.dumps(template_info, indent=2, ensure_ascii=False),
             )
 
-            # Return JSON-formatted result
-            return {"templates": template_info}
+            # Return JSON-formatted result with full logging
+            result = {"templates": template_info}
+            logger.info(
+                "Template retrieval completed. Total templates: %d. Result: %s",
+                len(template_info),
+                json.dumps(result, indent=2, ensure_ascii=False),
+            )
+            return result
 
         except Exception as e:
             logger.error(

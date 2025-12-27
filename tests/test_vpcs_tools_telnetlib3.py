@@ -202,9 +202,11 @@ class TestVPCSMultiCommandsInputValidation:
         tool = VPCSMultiCommands()
         input_data = ["not a dictionary"]
         
-        # This should raise TypeError due to string indices
-        with pytest.raises(TypeError):
-            tool._run(json.dumps(input_data))
+        # Should return error for non-dictionary item
+        result = tool._run(json.dumps(input_data))
+        assert len(result) == 1
+        assert "error" in result[0]
+        assert "must be a dictionary" in result[0]["error"]
 
 
 class TestVPCSMultiCommandsEnvironmentVariables:

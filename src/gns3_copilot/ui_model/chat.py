@@ -48,7 +48,7 @@ from gns3_copilot.public_model import (
     speech_to_text,
     text_to_speech_wav,
 )
-from gns3_copilot.ui_model.utils import save_config_to_env
+from gns3_copilot.ui_model.utils import new_session, save_config_to_env
 
 logger = setup_logger("chat")
 
@@ -66,30 +66,6 @@ st.html("""
 }
 </style>
 """)
-
-
-def new_session() -> None:
-    """
-    Create a new chat session by generating a unique thread ID and resetting session state.
-
-    Initializes a fresh conversation session with a new UUID, clears existing session data,
-    and resets the UI session selector to the default option.
-
-    Side Effects:
-        - Updates st.session_state with new thread_id
-        - Clears current_thread_id and state_history
-        - Resets session_select to default option
-        - Logs session creation
-    """
-    new_tid = str(uuid.uuid4())
-    # Real new thread id
-    st.session_state["thread_id"] = new_tid
-    # Clear your own state
-    st.session_state["current_thread_id"] = None
-    st.session_state["state_history"] = None
-    # Reset the dropdown menu to the first option ("(Please select session)", None)
-    st.session_state["session_select"] = session_options[0]
-    logger.debug("New Session created with thread_id= %s", new_tid)
 
 
 # Initialize session state for thread ID
@@ -194,7 +170,11 @@ with st.sidebar:
 
     col1, col2 = st.columns(2)
     with col1:
-        st.button("New Session", on_click=new_session, help="Create a new session")
+        st.button(
+            "New Session",
+            on_click=lambda: new_session(session_options),
+            help="Create a new session",
+        )
     with col2:
         # Only allow deletion if the user has selected a valid thread_id
         if selected_thread_id and st.button(

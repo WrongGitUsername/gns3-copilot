@@ -124,17 +124,16 @@ class TestSetupLogger:
         assert logger1 is logger2
         assert len(logger2.handlers) == 2
     
+    @patch('gns3_copilot.log_config.logging_config.TimedRotatingFileHandler')
     @patch('os.makedirs')
     @patch('os.path.exists')
-    def test_directory_creation(self, mock_exists, mock_makedirs):
+    def test_directory_creation(self, mock_exists, mock_makedirs, mock_handler):
         """Test log directory creation."""
         mock_exists.return_value = False
+        mock_handler.return_value = Mock()
+        setup_logger("test_dir", log_file="custom/test.log")
         
-        with patch('logging.FileHandler') as mock_handler:
-            mock_handler.return_value = Mock()
-            setup_logger("test_dir", log_file="custom/test.log")
-            
-            mock_makedirs.assert_called_once_with("custom", exist_ok=True)
+        mock_makedirs.assert_called_once_with("custom", exist_ok=True)
 
 
 class TestGetLogger:
@@ -178,7 +177,11 @@ class TestSetupToolLogger:
     
     def test_tool_with_config(self):
         """Test tool logger with predefined config."""
-        with patch('logging.FileHandler') as mock_handler:
+        # Clean up any existing logger
+        if "test_tool" in logging.Logger.manager.loggerDict:
+            del logging.Logger.manager.loggerDict["test_tool"]
+        
+        with patch('gns3_copilot.log_config.logging_config.TimedRotatingFileHandler') as mock_handler:
             mock_handler.return_value = Mock()
             logger = setup_tool_logger("test_tool", "device_config")
             
@@ -188,7 +191,11 @@ class TestSetupToolLogger:
     
     def test_tool_without_config(self):
         """Test tool logger without predefined config."""
-        with patch('logging.FileHandler') as mock_handler:
+        # Clean up any existing logger
+        if "unknown_tool" in logging.Logger.manager.loggerDict:
+            del logging.Logger.manager.loggerDict["unknown_tool"]
+        
+        with patch('gns3_copilot.log_config.logging_config.TimedRotatingFileHandler') as mock_handler:
             mock_handler.return_value = Mock()
             logger = setup_tool_logger("unknown_tool")
             
@@ -198,7 +205,11 @@ class TestSetupToolLogger:
     
     def test_tool_same_name_config(self):
         """Test tool with same name as config."""
-        with patch('logging.FileHandler') as mock_handler:
+        # Clean up any existing logger
+        if "app" in logging.Logger.manager.loggerDict:
+            del logging.Logger.manager.loggerDict["app"]
+        
+        with patch('gns3_copilot.log_config.logging_config.TimedRotatingFileHandler') as mock_handler:
             mock_handler.return_value = Mock()
             logger = setup_tool_logger("app")  # 'app' exists in LOGGER_CONFIGS
             
@@ -217,12 +228,15 @@ class TestLoggerConfigs:
             assert isinstance(config["console_level"], int)
             assert isinstance(config["file_level"], int)
     
-    def test_expected_tools_exist(self):
-        """Test that expected tools have configs."""
+    def test_tools_work_with_default_config(self):
+        """Test that tools work correctly without explicit configs (using default)."""
         expected_tools = ["app", "chat", "settings", "device_config"]
         
         for tool in expected_tools:
-            assert tool in LOGGER_CONFIGS
+            # These tools should not require explicit config entries
+            logger = setup_tool_logger(tool)
+            assert logger.name == tool
+            assert len(logger.handlers) == 2  # file + console
 
 
 class TestEdgeCases:
@@ -236,7 +250,7 @@ class TestEdgeCases:
     
     def test_permission_error(self):
         """Test permission error handling."""
-        with patch('logging.FileHandler', side_effect=PermissionError):
+        with patch('gns3_copilot.log_config.logging_config.TimedRotatingFileHandler', side_effect=PermissionError):
             with pytest.raises(PermissionError):
                 setup_logger("permission_test", log_file="/root/test.log")
 

@@ -11,7 +11,15 @@ from gns3_copilot.log_config import setup_tool_logger
 logger = setup_tool_logger("gns3_project_update")
 
 # Load environment variables
-load_dotenv()
+dotenv_loaded = load_dotenv()
+if dotenv_loaded:
+    logger.info(
+        "GNS3ProjectUpdate Tool Successfully loaded environment variables from .env file"
+    )
+else:
+    logger.warning(
+        "GNS3ProjectUpdate Tool No .env file found or failed to load. Using existing environment variables."
+    )
 
 
 class GNS3ProjectUpdate(BaseTool):
@@ -82,6 +90,9 @@ class GNS3ProjectUpdate(BaseTool):
         Returns:
             Dictionary with operation result and updated project details
         """
+        # Log received input
+        logger.info("Received input: %s", tool_input)
+
         try:
             # Validate input
             if not tool_input:
@@ -222,13 +233,19 @@ class GNS3ProjectUpdate(BaseTool):
                 if value is not None:
                     project_details[field] = value
 
-            # Return success with project details
-            return {
+            # Prepare result
+            result = {
                 "success": True,
                 "project": project_details,
                 "updated_fields": updated_fields,
                 "message": f"Project '{project.name}' updated successfully",
             }
+
+            # Log result
+            logger.info("Project update result: %s", result)
+
+            # Return success with project details
+            return result
 
         except ValueError as e:
             logger.error("Validation error updating GNS3 project: %s", str(e))

@@ -11,7 +11,15 @@ from gns3_copilot.log_config import setup_tool_logger
 logger = setup_tool_logger("gns3_project_create")
 
 # Load environment variables
-load_dotenv()
+dotenv_loaded = load_dotenv()
+if dotenv_loaded:
+    logger.info(
+        "GNS3ProjectCreate Tool Successfully loaded environment variables from .env file"
+    )
+else:
+    logger.warning(
+        "GNS3ProjectCreate Tool No .env file found or failed to load. Using existing environment variables."
+    )
 
 
 class GNS3ProjectCreate(BaseTool):
@@ -62,6 +70,9 @@ class GNS3ProjectCreate(BaseTool):
         Returns:
             Dictionary with operation result and project details
         """
+        # Log received input
+        logger.info("Received input: %s", tool_input)
+
         try:
             # Validate input
             if not tool_input or "name" not in tool_input:
@@ -153,8 +164,8 @@ class GNS3ProjectCreate(BaseTool):
                 project.project_id,
             )
 
-            # Return success with project details
-            return {
+            # Prepare result
+            result = {
                 "success": True,
                 "project": {
                     "project_id": project.project_id,
@@ -164,6 +175,12 @@ class GNS3ProjectCreate(BaseTool):
                 },
                 "message": f"Project '{project.name}' created successfully",
             }
+
+            # Log result
+            logger.info("Project creation result: %s", result)
+
+            # Return success with project details
+            return result
 
         except ValueError as e:
             logger.error("Validation error creating GNS3 project: %s", str(e))
