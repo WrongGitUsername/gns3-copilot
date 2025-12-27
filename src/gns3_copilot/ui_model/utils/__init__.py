@@ -39,7 +39,6 @@ from gns3_copilot.ui_model.utils.config_manager import (
 )
 from gns3_copilot.ui_model.utils.gns3_checker import check_gns3_api
 from gns3_copilot.ui_model.utils.update_ui import (
-    check_and_display_updates,
     check_startup_updates,
     render_startup_update_result,
     render_update_settings,
@@ -48,7 +47,6 @@ from gns3_copilot.ui_model.utils.update_ui import (
 __all__ = [
     # Update UI
     "check_startup_updates",
-    "check_and_display_updates",
     "render_startup_update_result",
     "render_update_settings",
     # Config Manager
