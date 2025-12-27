@@ -11,8 +11,15 @@ from gns3_copilot.log_config import setup_tool_logger
 logger = setup_tool_logger("gns3_project_list")
 
 # load environment variables
-load_dotenv()
-
+dotenv_loaded = load_dotenv()
+if dotenv_loaded:
+    logger.info(
+        "GNS3ProjectList Tool Successfully loaded environment variables from .env file"
+    )
+else:
+    logger.warning(
+        "GNS3ProjectList Tool No .env file found or failed to load. Using existing environment variables."
+    )
 """
 example output:
 

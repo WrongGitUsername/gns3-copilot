@@ -21,7 +21,15 @@ from gns3_copilot.log_config import setup_tool_logger
 logger = setup_tool_logger("gns3_get_node_temp")
 
 # Load environment variables
-load_dotenv()
+dotenv_loaded = load_dotenv()
+if dotenv_loaded:
+    logger.info(
+        "GNS3TemplateTool Successfully loaded environment variables from .env file"
+    )
+else:
+    logger.warning(
+        "GNS3TemplateTool No .env file found or failed to load. Using existing environment variables."
+    )
 
 
 class GNS3TemplateTool(BaseTool):

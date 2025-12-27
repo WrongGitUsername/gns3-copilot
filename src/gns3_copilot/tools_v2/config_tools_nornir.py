@@ -10,6 +10,7 @@ from typing import Any
 from dotenv import load_dotenv
 from langchain.tools import BaseTool
 from langchain_core.callbacks import CallbackManagerForToolRun
+from netmiko.exceptions import ReadTimeout
 from nornir import InitNornir
 from nornir.core import Nornir
 from nornir.core.task import AggregatedResult, Result, Task
@@ -22,7 +23,15 @@ from gns3_copilot.public_model import get_device_ports_from_topology
 logger = setup_tool_logger("config_tools_nornir")
 
 # Load environment variables
-load_dotenv()
+dotenv_loaded = load_dotenv()
+if dotenv_loaded:
+    logger.info(
+        "ExecuteMultipleDeviceConfigCommands Successfully loaded environment variables from .env file"
+    )
+else:
+    logger.warning(
+        "ExecuteMultipleDeviceConfigCommands No .env file found or failed to load. Using existing environment variables."
+    )
 
 # Nornir configuration groups
 groups_data = {
@@ -182,6 +191,25 @@ class ExecuteMultipleDeviceConfigCommands(BaseTool):
             )
             return Result(host=task.host, result=_result.result)
 
+        except ReadTimeout as e:
+            # Log ReadTimeout exception with full details
+            logger.error(
+                "ReadTimeout occurred for device %s: %s",
+                device_name,
+                str(e),
+            )
+            logger.debug(
+                "ReadTimeout details for device %s - Exception type: %s, Message: %s",
+                device_name,
+                type(e).__name__,
+                str(e),
+            )
+            return Result(
+                host=task.host,
+                result=f"Configuration failed (ReadTimeout): {str(e)}",
+                failed=True,
+            )
+
         except Exception as e:
             # Handle prompt detection issues with Cisco IOSv L2 images where the '#' prompt character
             # may be delayed, causing Netmiko prompt detection failures. Implements retry logic.
@@ -191,7 +219,18 @@ class ExecuteMultipleDeviceConfigCommands(BaseTool):
                 )
                 return Result(host=task.host, result=_result.result)
 
-            logger.error("Configuration failed for device %s: %s", device_name, e)
+            # Log any other exceptions with full details
+            logger.error(
+                "Configuration failed for device %s: %s (Exception type: %s)",
+                device_name,
+                str(e),
+                type(e).__name__,
+            )
+            logger.debug(
+                "Full exception details for device %s: %s",
+                device_name,
+                str(e),
+            )
             return Result(
                 host=task.host,
                 result=f"Configuration failed (Unhandled Exception): {str(e)}",

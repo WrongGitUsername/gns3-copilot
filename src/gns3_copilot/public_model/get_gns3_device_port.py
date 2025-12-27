@@ -50,7 +50,10 @@ def get_device_ports_from_topology(
             logger.warning("Unable to get topology information")
             return hosts_data
 
+        logger.debug("GNS3 topology: %s", topology)
+
         for device_name in device_names:
+            logger.debug("Processing device: %s", device_name)
             # Check if device exists in topology
             if device_name not in topology.get("nodes", {}):
                 logger.warning("Device '%s' not found in topology", device_name)

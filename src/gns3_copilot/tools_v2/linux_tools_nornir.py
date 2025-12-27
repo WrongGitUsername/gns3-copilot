@@ -24,7 +24,15 @@ from gns3_copilot.public_model import get_device_ports_from_topology
 logger = setup_tool_logger("linux_tools_nornir")
 
 # Load environment variables
-load_dotenv()
+dotenv_loaded = load_dotenv()
+if dotenv_loaded:
+    logger.info(
+        "LinuxTelnetBatchTool Successfully loaded environment variables from .env file"
+    )
+else:
+    logger.warning(
+        "LinuxTelnetBatchTool No .env file found or failed to load. Using existing environment variables."
+    )
 
 # Linux Telnet dedicated connection group
 # (using generic_telnet driver, suitable for GNS3 console)

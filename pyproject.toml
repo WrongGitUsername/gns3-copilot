@@ -210,6 +210,7 @@ module = [
     "soundfile.*",
     "nornir.*",
     "nornir_netmiko.*",
+    "netmiko.*",
     "telnetlib3.*",
     "requests.*",
     "gns3fy.*"

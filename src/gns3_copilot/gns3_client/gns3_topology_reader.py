@@ -17,7 +17,15 @@ from gns3_copilot.log_config import setup_tool_logger
 logger = setup_tool_logger("gns3_topology_reader")
 
 # load environment variables
-load_dotenv()
+dotenv_loaded = load_dotenv()
+if dotenv_loaded:
+    logger.info(
+        "GNS3TopologyTool Successfully loaded environment variables from .env file"
+    )
+else:
+    logger.warning(
+        "GNS3TopologyTool No .env file found or failed to load. Using existing environment variables."
+    )
 
 
 # Define LangChain tool class
