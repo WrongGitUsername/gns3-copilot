@@ -99,7 +99,12 @@ else:
 
 # --- Logic branch: If no project is selected, display project cards ---
 if not selected_p:
-    st.title("GNS3 Copilot - Workspace Selection")
+    st.markdown(
+        """
+        <h3 style='text-align: left; font-size: 22px; font-weight: bold; margin-top: 20px;'>GNS3 Copilot - Workspace Selection</h3>
+        """,
+        unsafe_allow_html=True
+    )
     st.info(
         "Please select a project to enter the conversation context. Closed projects can be opened directly.",
         width=800,
@@ -258,7 +263,12 @@ else:
 
 # --- Main workspace (only visible when a project is selected) ---
 if selected_p:
-    st.title("Workspace", text_alignment="center")
+    st.markdown(
+        """
+        <h3 style='text-align: left; font-size: 22px; font-weight: bold; margin-top: 20px;'>Workspace</h3>
+        """,
+        unsafe_allow_html=True
+    )
 
     layout_col1, layout_col2 = st.columns([3, 7], gap="medium")
 

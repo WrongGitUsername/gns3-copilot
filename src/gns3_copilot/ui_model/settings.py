@@ -34,7 +34,12 @@ logger = setup_logger("settings")
 
 
 # Streamlit UI
-st.title("Settings", text_alignment="center")
+st.markdown(
+    """
+    <h3 style='text-align: left; font-size: 22px; font-weight: bold; margin-top: 20px;'>Settings</h3>
+    """,
+    unsafe_allow_html=True
+)
 
 with st.container(width=800, horizontal_alignment="center", vertical_alignment="top"):
     st.info(f"Configuration file path: **{ENV_FILE_PATH}**")
