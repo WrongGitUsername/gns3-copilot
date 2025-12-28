@@ -35,7 +35,7 @@ from typing import Any
 import streamlit as st
 from langchain.messages import AIMessage, HumanMessage, ToolMessage
 
-from gns3_copilot.agent import agent, langgraph_checkpointer, list_thread_ids
+from gns3_copilot.agent import agent
 from gns3_copilot.gns3_client import (
     GNS3ProjectCreate,
     GNS3ProjectList,
@@ -48,7 +48,6 @@ from gns3_copilot.public_model import (
     speech_to_text,
     text_to_speech_wav,
 )
-from gns3_copilot.ui_model.utils import new_session, save_config_to_env
 
 logger = setup_logger("chat")
 
@@ -73,13 +72,9 @@ if "thread_id" not in st.session_state:
     # If thread_id is not in session_state, create and save a new one
     st.session_state["thread_id"] = str(uuid.uuid4())
 
-# 初始化 iframe URL 模式（项目页 vs 登录页）
+# Initialize iframe URL mode (project page vs login page)
 if "gns3_url_mode" not in st.session_state:
     st.session_state.gns3_url_mode = "project"
-
-# 初始化 iframe 缩放比例
-if "zoom_scale_topology" not in st.session_state:
-    st.session_state.zoom_scale_topology = 0.8
 
 # Initialize temp_selected_project for new sessions
 if "temp_selected_project" not in st.session_state:
@@ -87,112 +82,9 @@ if "temp_selected_project" not in st.session_state:
 
 current_thread_id = st.session_state["thread_id"]
 
-# Sidebar info
-with st.sidebar:
-    # Get current container height from session state or default to 1200
-    current_height = st.session_state.get("CONTAINER_HEIGHT")
-    if current_height is None or not isinstance(current_height, int):
-        current_height = 1200
-
-    # Note: We don't use key parameter here to avoid automatic session_state management
-    new_height = st.slider(
-        "Page Height (px)",
-        min_value=300,
-        max_value=1500,
-        value=current_height,
-        step=50,
-        help="Adjust the height for chat and GNS3 view",
-    )
-
-    # If the height changed, update session state and save to .env file
-    if new_height != current_height:
-        st.session_state["CONTAINER_HEIGHT"] = new_height
-        # Save to .env file using the centralized save function
-        try:
-            save_config_to_env()
-        except Exception as e:
-            logger.error("Failed to update CONTAINER_HEIGHT: %s", e)
-
-    # Get current zoom scale from session state
-    current_zoom = st.session_state.get("zoom_scale_topology")
-    if current_zoom is None:
-        current_zoom = 0.8
-
-    new_zoom = st.slider(
-        "Zoom Scale",
-        min_value=0.5,
-        max_value=1.0,
-        value=current_zoom,
-        step=0.05,
-        help="Adjust the zoom scale for GNS3 topology view",
-    )
-
-    # If the zoom changed, update session state and save to .env file
-    if new_zoom != current_zoom:
-        st.session_state["zoom_scale_topology"] = new_zoom
-        try:
-            save_config_to_env()
-        except Exception as e:
-            logger.error("Failed to update ZOOM_SCALE_TOPOLOGY: %s", e)
-
-    st.markdown("---")
-
-    thread_ids = list_thread_ids(langgraph_checkpointer)
-
-    # Display name/value are title and id
-    # The first option is an empty/placeholder selection
-    session_options = [("(Please select session)", None)]
-
-    for tid in thread_ids:
-        ckpt = langgraph_checkpointer.get({"configurable": {"thread_id": tid}})
-        title = (
-            ckpt.get("channel_values", {}).get("conversation_title") if ckpt else None
-        ) or "New Session"
-        # Same title name caused the issue where selecting conversations always selected the same thread id.
-        # Use part of thread_id to avoid same title name
-        unique_title = f"{title} ({tid[:6]})"
-        session_options.append((unique_title, tid))
-
-    logger.debug("session_options : %s", session_options)
-
-    selected = st.selectbox(
-        "Session History",
-        options=session_options,
-        format_func=lambda x: x[0],  # view conversation_title
-        key="session_select",  # new key for state management
-    )
-
-    title, selected_thread_id = selected
-
-    logger.debug("selectbox selected : %s, %s", title, selected_thread_id)
-
-    st.markdown(f"Current Session: `{title} thread_id: {selected_thread_id}`")
-
-    col1, col2 = st.columns(2)
-    with col1:
-        st.button(
-            "New Session",
-            on_click=lambda: new_session(session_options),
-            help="Create a new session",
-        )
-    with col2:
-        # Only allow deletion if the user has selected a valid thread_id
-        if selected_thread_id and st.button(
-            "Delete", help="Delete current selection session"
-        ):
-            langgraph_checkpointer.delete_thread(thread_id=selected_thread_id)
-            st.success(
-                f"_Delete Success_: {title} \n\n _Thread_id_: `{selected_thread_id}`"
-            )
-            st.rerun()
-
-    # If a valid thread id is selected, load the historical messages
-    if selected_thread_id:
-        # Store the selected ID for use in the main interface
-        st.session_state["current_thread_id"] = selected_thread_id
-        st.session_state["state_history"] = agent.get_state(
-            {"configurable": {"thread_id": selected_thread_id}}
-        )
+# Get selected thread ID and title from session state (set by sidebar)
+selected_thread_id = st.session_state.get("selected_thread_id")
+title = st.session_state.get("session_title")
 
 
 # Unique thread ID for each session
@@ -504,10 +396,10 @@ if selected_p:
             border=False,
         )
         with iframe_container:
-            # 设置缩放比例 (0.7 = 70%, 0.8 = 80%, 0.9 = 90%)
+            # Set zoom scale (0.7 = 70%, 0.8 = 80%, 0.9 = 90%)
             zoom_scale = (
                 st.session_state.zoom_scale_topology
-            )  # 缩放到80%，你可以调整为0.7-0.9之间
+            )  # Scale to 80%, you can adjust between 0.7-0.9
 
             iframe_width = 2000
             iframe_height = 1000
@@ -516,7 +408,7 @@ if selected_p:
             <style>
                 .iframe-scroll-container {{
                     width: 100%;
-                    height: {st.session_state.CONTAINER_HEIGHT};  /* 可根据需要调整，或使用 70vh */
+                    height: {st.session_state.CONTAINER_HEIGHT};  /* Can be adjusted as needed, or use 70vh */
                     overflow: auto;
                     border: 1px solid #ddd;
                     border-radius: 4px;
@@ -528,9 +420,9 @@ if selected_p:
                     height: {iframe_height}px;
                     border: none;
                     display: block;
-                    /* 使用zoom而非transform，保持坐标系正确 */
+                    /* Use zoom instead of transform to keep coordinate system correct */
                     zoom: {zoom_scale};
-                    /* 或者使用这种写法 */
+                    /* Or use this alternative syntax */
                     /* zoom: 80%; */
                 }}
             </style>

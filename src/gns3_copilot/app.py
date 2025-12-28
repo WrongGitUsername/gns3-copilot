@@ -7,11 +7,11 @@ with navigation between settings, chat, and help pages.
 
 import streamlit as st
 
+from gns3_copilot.ui_model.sidebar import render_sidebar, render_sidebar_about
 from gns3_copilot.ui_model.styles import get_styles
 from gns3_copilot.ui_model.utils import (
     check_startup_updates,
     load_config_from_env,
-    render_sidebar_about,
     render_startup_update_result,
 )
 
@@ -44,6 +44,17 @@ def main() -> None:
     # Prevent the app from crashing if a page path is missing
     try:
         pg = st.navigation(NAV_PAGES, position="sidebar")
+
+        # Render sidebar with current page information
+        current_page = pg.script_path if hasattr(pg, "script_path") else ""
+        selected_thread_id, title = render_sidebar(current_page=current_page)
+
+        # Store selected thread ID and title in session state for chat page
+        if selected_thread_id is not None:
+            st.session_state["selected_thread_id"] = selected_thread_id
+        if title is not None:
+            st.session_state["session_title"] = title
+
         pg.run()
     except Exception as exc:
         st.error("Failed to initialize application navigation.")
@@ -54,7 +65,7 @@ def main() -> None:
     if hasattr(pg, "script_path") and pg.script_path == "ui_model/settings.py":
         render_startup_update_result()
 
-    # Render sidebar content
+    # Render sidebar about section
     render_sidebar_about()
 
 
