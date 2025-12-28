@@ -51,22 +51,6 @@ from gns3_copilot.public_model import (
 
 logger = setup_logger("chat")
 
-# streamlit UI
-st.set_page_config(
-    page_title="GNS3 Copilot", layout="wide", initial_sidebar_state="expanded"
-)  # layout="wide"
-
-# Inject CSS to adjust padding for chat messages in fixed-height containers
-st.html("""
-<style>
-[data-testid="stVerticalBlockBorderWrapper"] .stChatMessage {
-    padding-top: 1rem;
-    padding-bottom: 1rem;
-}
-</style>
-""")
-
-
 # Initialize session state for thread ID
 if "thread_id" not in st.session_state:
     # If thread_id is not in session_state, create and save a new one

@@ -33,7 +33,11 @@ Example:
         )
 """
 
-from gns3_copilot.ui_model.utils.app_ui import render_sidebar_about
+from gns3_copilot.ui_model.utils.app_ui import (
+    initialize_page_config,
+    inject_chat_styles,
+    render_sidebar_about,
+)
 from gns3_copilot.ui_model.utils.chat_helpers import new_session
 from gns3_copilot.ui_model.utils.config_manager import (
     ENV_FILE_PATH,
@@ -62,6 +66,8 @@ __all__ = [
     "new_session",
     # App UI
     "render_sidebar_about",
+    "initialize_page_config",
+    "inject_chat_styles",
 ]
 
 # Dynamic version management
