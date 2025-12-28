@@ -60,6 +60,11 @@ if "thread_id" not in st.session_state:
 if "gns3_url_mode" not in st.session_state:
     st.session_state.gns3_url_mode = "project"
 
+# Initialize iframe visibility state
+# Used to show/hide GNS3 topology interface
+if "show_iframe" not in st.session_state:
+    st.session_state.show_iframe = False
+
 # Initialize temp_selected_project for new sessions
 if "temp_selected_project" not in st.session_state:
     st.session_state["temp_selected_project"] = None
@@ -103,7 +108,7 @@ if not selected_p:
         """
         <h3 style='text-align: left; font-size: 22px; font-weight: bold; margin-top: 20px;'>GNS3 Copilot - Workspace Selection</h3>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
     st.info(
         "Please select a project to enter the conversation context. Closed projects can be opened directly.",
@@ -267,10 +272,14 @@ if selected_p:
         """
         <h3 style='text-align: left; font-size: 22px; font-weight: bold; margin-top: 20px;'>Workspace</h3>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
-    layout_col1, layout_col2 = st.columns([3, 7], gap="medium")
+    # Dynamic column layout based on iframe visibility
+    if st.session_state.show_iframe:
+        layout_col1, layout_col2 = st.columns([3, 7], gap="medium")
+    else:
+        layout_col1 = st.container()
 
     with layout_col1:
         history_container = st.container(
@@ -358,86 +367,95 @@ if selected_p:
                 if current_assistant_block is not None:
                     current_assistant_block.__exit__(None, None, None)
 
-    with layout_col2:
-        # Extract project_id from the selected project
-        project_id = selected_p[
-            1
-        ]  # selected_p is a tuple: (name, p_id, dev_count, link_count, status)
-        # Get GNS3 server URL from session_state (loaded from .env file)
-        gns3_server_url = st.session_state.get(
-            "GNS3_SERVER_URL", "http://127.0.0.1:3080/"
-        )
-
-        # Get API version and construct appropriate iframe URL
-        api_version = st.session_state.get("API_VERSION", "2")
-        if api_version == "3":
-            if st.session_state.gns3_url_mode == "login":
-                # API v3 login page
-                iframe_url = f"{gns3_server_url}"
-            else:
-                # API v3 uses 'controller' instead of 'server'
-                iframe_url = (
-                    f"{gns3_server_url}/static/web-ui/controller/1/project/{project_id}"
-                )
-        else:
-            # API v2 uses 'server' (default behavior)
-            iframe_url = (
-                f"{gns3_server_url}/static/web-ui/server/1/project/{project_id}"
+    # Only render layout_col2 content when show_iframe is True
+    if st.session_state.show_iframe:
+        with layout_col2:
+            # Extract project_id from the selected project
+            project_id = selected_p[
+                1
+            ]  # selected_p is a tuple: (name, p_id, dev_count, link_count, status)
+            # Get GNS3 server URL from session_state (loaded from .env file)
+            gns3_server_url = st.session_state.get(
+                "GNS3_SERVER_URL", "http://127.0.0.1:3080/"
             )
 
-        iframe_container = st.container(
-            height=st.session_state.CONTAINER_HEIGHT,
-            # horizontal_alignment="center",
-            vertical_alignment="center",
-            border=False,
-        )
-        with iframe_container:
-            # Set zoom scale (0.7 = 70%, 0.8 = 80%, 0.9 = 90%)
-            zoom_scale = (
-                st.session_state.zoom_scale_topology
-            )  # Scale to 80%, you can adjust between 0.7-0.9
+            # Get API version and construct appropriate iframe URL
+            api_version = st.session_state.get("API_VERSION", "2")
+            if api_version == "3":
+                if st.session_state.gns3_url_mode == "login":
+                    # API v3 login page
+                    iframe_url = f"{gns3_server_url}"
+                else:
+                    # API v3 uses 'controller' instead of 'server'
+                    iframe_url = f"{gns3_server_url}/static/web-ui/controller/1/project/{project_id}"
+            else:
+                # API v2 uses 'server' (default behavior)
+                iframe_url = (
+                    f"{gns3_server_url}/static/web-ui/server/1/project/{project_id}"
+                )
 
-            iframe_width = 2000
-            iframe_height = 1000
+            iframe_container = st.container(
+                height=st.session_state.CONTAINER_HEIGHT,
+                # horizontal_alignment="center",
+                vertical_alignment="center",
+                border=False,
+            )
+            with iframe_container:
+                # Set zoom scale (0.7 = 70%, 0.8 = 80%, 0.9 = 90%)
+                zoom_scale = (
+                    st.session_state.zoom_scale_topology
+                )  # Scale to 80%, you can adjust between 0.7-0.9
 
-            iframe_html = f"""
-            <style>
-                .iframe-scroll-container {{
-                    width: 100%;
-                    height: {st.session_state.CONTAINER_HEIGHT};  /* Can be adjusted as needed, or use 70vh */
-                    overflow: auto;
-                    border: 1px solid #ddd;
-                    border-radius: 4px;
-                    background: #f9f9f9;
-                }}
+                iframe_width = 2000
+                iframe_height = 1000
 
-                .iframe-scroll-container iframe {{
-                    width: {iframe_width}px;
-                    height: {iframe_height}px;
-                    border: none;
-                    display: block;
-                    /* Use zoom instead of transform to keep coordinate system correct */
-                    zoom: {zoom_scale};
-                    /* Or use this alternative syntax */
-                    /* zoom: 80%; */
-                }}
-            </style>
+                iframe_html = f"""
+                <style>
+                    .iframe-scroll-container {{
+                        width: 100%;
+                        height: {st.session_state.CONTAINER_HEIGHT};  /* Can be adjusted as needed, or use 70vh */
+                        overflow: auto;
+                        border: 1px solid #ddd;
+                        border-radius: 4px;
+                        background: #f9f9f9;
+                    }}
 
-            <div class="iframe-scroll-container">
-                <iframe
-                    src="{iframe_url}"
-                    loading="lazy"
-                    allowfullscreen
-                    title="Embedded Content"
-                ></iframe>
-            </div>
-            """
+                    .iframe-scroll-container iframe {{
+                        width: {iframe_width}px;
+                        height: {iframe_height}px;
+                        border: none;
+                        display: block;
+                        /* Use zoom instead of transform to keep coordinate system correct */
+                        zoom: {zoom_scale};
+                        /* Or use this alternative syntax */
+                        /* zoom: 80%; */
+                    }}
+                </style>
 
-            st.markdown(iframe_html, unsafe_allow_html=True)
+                <div class="iframe-scroll-container">
+                    <iframe
+                        src="{iframe_url}"
+                        loading="lazy"
+                        allowfullscreen
+                        title="Embedded Content"
+                    ></iframe>
+                </div>
+                """
+
+                st.markdown(iframe_html, unsafe_allow_html=True)
 
     # st.divider()
+    # --- Chat Input Area ---
+    if st.session_state.show_iframe:
+        # When Show Topology: there are two buttons on the right, needs to be wider
+        # Left column is narrow, middle column is moderate, right column is wider
+        col_ratio = [0.2, 0.6, 0.4]
+    else:
+        # When Hide Topology: there is only one button on the right
+        # Left column is narrow, middle column is wide, right column is moderate
+        col_ratio = [0.2, 0.7, 0.3]
 
-    chat_input_left, chat_input_center, chat_input_right = st.columns([1, 1, 1])
+    chat_input_left, chat_input_center, chat_input_right = st.columns(col_ratio)
 
     with chat_input_center:
         # Configure chat_input based on switch
@@ -659,16 +677,36 @@ if selected_p:
                 #    f.write(f"{state_history}\n\n")
 
     with chat_input_right:
-        if st.button(
-            "🔄 GNS3 Login"
-            if st.session_state.gns3_url_mode == "project"
-            else "🔙 Project Topology",
-            help="Switch between GNS3 Login and project topology. If the page is not displayed, please click me",
-        ):
-            st.session_state.gns3_url_mode = (
-                "login" if st.session_state.gns3_url_mode == "project" else "project"
-            )
-            st.rerun()
+        # Create two sub-columns in the right column, arrange buttons left and right
+        btn_col1, btn_col2 = st.columns(2)
+        with btn_col1:
+            if st.button(
+                "Hide" if st.session_state.show_iframe else "Show",
+                icon=":material/visibility:"
+                if not st.session_state.show_iframe
+                else ":material/visibility_off:",
+                help="Show or hide the GNS3 project topology iframe",
+            ):
+                st.session_state.show_iframe = not st.session_state.show_iframe
+                st.rerun()
+
+        with btn_col2:
+            if st.session_state.show_iframe:
+                if st.button(
+                    "Login"
+                    if st.session_state.gns3_url_mode == "project"
+                    else "Topology",
+                    icon=":material/login:"
+                    if st.session_state.gns3_url_mode == "project"
+                    else ":material/device_hub:",
+                    help="If the page is not displayed, please click me. Need to perform GNS3 web login once.",
+                ):
+                    st.session_state.gns3_url_mode = (
+                        "login"
+                        if st.session_state.gns3_url_mode == "project"
+                        else "project"
+                    )
+                    st.rerun()
 
     with chat_input_left:
         st.empty()

@@ -38,7 +38,7 @@ st.markdown(
     """
     <h3 style='text-align: left; font-size: 22px; font-weight: bold; margin-top: 20px;'>Settings</h3>
     """,
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 with st.container(width=800, horizontal_alignment="center", vertical_alignment="top"):

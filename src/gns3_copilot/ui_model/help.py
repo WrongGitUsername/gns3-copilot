@@ -25,7 +25,7 @@ st.markdown(
     """
     <h3 style='text-align: left; font-size: 22px; font-weight: bold; margin-top: 20px;'>GNS3 Copilot Configuration Guide</h3>
     """,
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 tab1_en, tab2_zh = st.tabs(["Help", "帮助"])
 
