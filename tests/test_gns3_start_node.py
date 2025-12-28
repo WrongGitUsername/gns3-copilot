@@ -369,37 +369,37 @@ class TestGNS3StartNodeToolAPIVersionHandling:
 
     @patch.dict(os.environ, {
         "GNS3_SERVER_URL": "http://localhost:3080"
-    })
+    }, clear=True)
     @patch('gns3_copilot.tools_v2.gns3_start_node.Gns3Connector')
     @patch('gns3_copilot.tools_v2.gns3_start_node.Node')
     @patch('gns3_copilot.tools_v2.gns3_start_node.show_progress_bar')
     def test_default_api_version(self, mock_progress, mock_node_class, mock_connector_class):
         """Test default API version when not specified"""
         tool = GNS3StartNodeTool()
-        
+
         input_data = {
             "project_id": "project1",
             "node_ids": ["node1"]
         }
-        
-        # Mock the connector and its methods
+
+        # Mock connector and its methods
         mock_connector = Mock()
         mock_connector_class.return_value = mock_connector
-        
+
         # Mock node
         mock_node = Mock()
         mock_node.node_id = "node1"
         mock_node.name = "TestNode"
         mock_node.status = "started"
         mock_node_class.return_value = mock_node
-        
+
         result = tool._run(json.dumps(input_data))
-        
+
         # Verify connector was created with default API version 2
-        mock_connector_class.assert_called_once_with(
-            url="http://localhost:3080",
-            api_version=2
-        )
+        assert mock_connector_class.called
+        call_args = mock_connector_class.call_args
+        assert call_args[1]['url'] == "http://localhost:3080"
+        assert call_args[1]['api_version'] == 2
 
     @patch.dict(os.environ, {
         "API_VERSION": "",

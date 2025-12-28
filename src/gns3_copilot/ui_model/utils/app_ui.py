@@ -8,6 +8,8 @@ and other general-purpose UI elements.
 Functions:
     render_sidebar_about(): Render the About section in the sidebar displaying
                             application information and feature highlights.
+    initialize_page_config(): Initialize Streamlit page configuration.
+    inject_chat_styles(): Inject CSS styles for chat messages.
 
 Constants:
     ABOUT_TEXT: Markdown-formatted text containing application description,
@@ -15,8 +17,14 @@ Constants:
 
 Example:
     Import and use in app.py:
-        from gns3_copilot.ui_model.utils import render_sidebar_about
+        from gns3_copilot.ui_model.utils import (
+            render_sidebar_about,
+            initialize_page_config,
+            inject_chat_styles
+        )
 
+        initialize_page_config()
+        inject_chat_styles()
         render_sidebar_about()
 """
 
@@ -46,3 +54,33 @@ def render_sidebar_about() -> None:
     with st.sidebar:
         st.header("About")
         st.markdown(ABOUT_TEXT)
+
+
+def initialize_page_config() -> None:
+    """
+    Initialize Streamlit page configuration.
+
+    This function sets up the page title, layout, and sidebar state.
+    Should be called once at application startup.
+    """
+    st.set_page_config(
+        page_title="GNS3 Copilot", layout="wide", initial_sidebar_state="expanded"
+    )
+
+
+def inject_chat_styles() -> None:
+    """
+    Inject CSS styles for chat messages.
+
+    This function injects custom CSS to adjust padding for chat messages
+    in fixed-height containers, improving the visual presentation of the
+    chat interface.
+    """
+    st.html("""
+<style>
+[data-testid="stVerticalBlockBorderWrapper"] .stChatMessage {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+</style>
+""")

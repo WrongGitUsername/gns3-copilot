@@ -21,7 +21,15 @@ from gns3_copilot.log_config import setup_tool_logger
 logger = setup_tool_logger("gns3_create_node")
 
 # Load environment variables
-load_dotenv()
+dotenv_loaded = load_dotenv()
+if dotenv_loaded:
+    logger.info(
+        "GNS3CreateNodeTool Successfully loaded environment variables from .env file"
+    )
+else:
+    logger.warning(
+        "GNS3CreateNodeTool No .env file found or failed to load. Using existing environment variables."
+    )
 
 
 class GNS3CreateNodeTool(BaseTool):
@@ -114,6 +122,9 @@ class GNS3CreateNodeTool(BaseTool):
         Returns:
             dict: A dictionary with creation results for all nodes or an error message.
         """
+        # Log received input
+        logger.info("Received input: %s", tool_input)
+
         try:
             # Parse input JSON
             input_data = json.loads(tool_input)

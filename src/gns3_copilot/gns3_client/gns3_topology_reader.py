@@ -17,7 +17,15 @@ from gns3_copilot.log_config import setup_tool_logger
 logger = setup_tool_logger("gns3_topology_reader")
 
 # load environment variables
-load_dotenv()
+dotenv_loaded = load_dotenv()
+if dotenv_loaded:
+    logger.info(
+        "GNS3TopologyTool Successfully loaded environment variables from .env file"
+    )
+else:
+    logger.warning(
+        "GNS3TopologyTool No .env file found or failed to load. Using existing environment variables."
+    )
 
 
 # Define LangChain tool class
@@ -91,6 +99,9 @@ class GNS3TopologyTool(BaseTool):
                   or an error dictionary if an exception occurs or project_id is not provided.
         """
 
+        # Log received input
+        logger.info("Received tool_input: %s, project_id: %s", tool_input, project_id)
+
         try:
             # Validate project_id parameter
             if not project_id:
@@ -135,7 +146,10 @@ class GNS3TopologyTool(BaseTool):
                 ),
                 "links": project.links_summary(is_print=False),
             }
-            logger.debug("Topology retrieved: %s", topology)
+
+            # Log topology result
+            logger.info("Topology retrieved: %s", topology)
+
             return topology
 
         except Exception as e:

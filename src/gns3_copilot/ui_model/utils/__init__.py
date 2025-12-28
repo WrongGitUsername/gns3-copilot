@@ -7,6 +7,7 @@ GNS3 server connectivity checking, update management, and general UI rendering.
 
 Modules:
     app_ui: General UI rendering functions (sidebar, about page)
+    chat_helpers: Chat session management helper functions
     config_manager: Configuration loading and persistence to .env files
     gns3_checker: GNS3 server API connectivity validation
     update_ui: Application update checking and UI components
@@ -20,6 +21,7 @@ Key Functions:
     - load_config_from_env(): Load configuration from .env file
     - save_config_to_env(): Save configuration to .env file
     - check_gns3_api(): Validate GNS3 server connectivity
+    - new_session(): Create a new chat session with unique thread ID
     - render_sidebar_about(): Render sidebar about information
 
 Example:
@@ -31,7 +33,12 @@ Example:
         )
 """
 
-from gns3_copilot.ui_model.utils.app_ui import render_sidebar_about
+from gns3_copilot.ui_model.utils.app_ui import (
+    initialize_page_config,
+    inject_chat_styles,
+    render_sidebar_about,
+)
+from gns3_copilot.ui_model.utils.chat_helpers import new_session
 from gns3_copilot.ui_model.utils.config_manager import (
     ENV_FILE_PATH,
     load_config_from_env,
@@ -39,7 +46,6 @@ from gns3_copilot.ui_model.utils.config_manager import (
 )
 from gns3_copilot.ui_model.utils.gns3_checker import check_gns3_api
 from gns3_copilot.ui_model.utils.update_ui import (
-    check_and_display_updates,
     check_startup_updates,
     render_startup_update_result,
     render_update_settings,
@@ -48,7 +54,6 @@ from gns3_copilot.ui_model.utils.update_ui import (
 __all__ = [
     # Update UI
     "check_startup_updates",
-    "check_and_display_updates",
     "render_startup_update_result",
     "render_update_settings",
     # Config Manager
@@ -57,8 +62,12 @@ __all__ = [
     "ENV_FILE_PATH",
     # GNS3 Checker
     "check_gns3_api",
+    # Chat Helpers
+    "new_session",
     # App UI
     "render_sidebar_about",
+    "initialize_page_config",
+    "inject_chat_styles",
 ]
 
 # Dynamic version management

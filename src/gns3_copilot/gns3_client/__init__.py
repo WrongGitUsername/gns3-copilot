@@ -22,6 +22,9 @@ from .custom_gns3fy import (
     Node,
     Project,
 )
+from .gns3_project_create import GNS3ProjectCreate
+from .gns3_project_open import GNS3ProjectOpen
+from .gns3_project_update import GNS3ProjectUpdate
 from .gns3_projects_list import GNS3ProjectList
 from .gns3_topology_reader import GNS3TopologyTool
 
@@ -47,4 +50,7 @@ __all__ = [
     "LINK_TYPES",
     "GNS3TopologyTool",
     "GNS3ProjectList",
+    "GNS3ProjectOpen",
+    "GNS3ProjectCreate",
+    "GNS3ProjectUpdate",
 ]

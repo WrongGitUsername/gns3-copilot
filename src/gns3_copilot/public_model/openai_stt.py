@@ -48,6 +48,15 @@ def speech_to_text(
     """
     Transcribe audio to text using OpenAI Whisper API.
     """
+    # Log received input parameters (excluding sensitive data)
+    logger.info(
+        "Received parameters: model=%s, language=%s, response_format=%s, temperature=%s, base_url=%s",
+        model or "default",
+        language,
+        response_format,
+        temperature,
+        base_url or "default",
+    )
     config = get_stt_config()
 
     # Determine specific type to avoid Optional
@@ -111,10 +120,18 @@ def speech_to_text(
         if hasattr(response, "model_dump"):
             data = cast(dict[str, Any], response.model_dump())
             if f_response_format == "json":
-                return str(data.get("text", ""))
-            return data
+                result: str | dict[str, Any] = str(data.get("text", ""))
+            else:
+                result = data
+        else:
+            result = str(response)
 
-        return str(response)
+        # Log result
+        logger.info(
+            "STT result: %s", result[:500] if isinstance(result, str) else result
+        )
+
+        return result
 
     except Exception as e:
         logger.error(f"STT API call failed: {type(e).__name__} - {str(e)}")

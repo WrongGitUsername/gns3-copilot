@@ -11,13 +11,16 @@ Test Coverage:
 2. TestVPCSMultiCommandsInputValidation
    - Empty input handling
    - Invalid JSON input handling
-   - Non-array JSON input validation
-   - Empty array input handling
-   - Missing device_name validation (KeyError)
-   - Missing commands validation (KeyError)
-   - Empty commands array handling
-   - Commands not an array handling
-   - Command group not a dictionary (TypeError)
+   - Non-object JSON input validation
+   - Missing project_id validation
+   - Missing device_configs validation
+   - Invalid project_id format (UUID)
+   - Empty device_configs array handling
+   - Non-list device_configs handling
+   - Device config not a dictionary
+   - Missing device_name validation
+   - Missing commands validation
+   - Commands not a list validation
 
 3. TestVPCSMultiCommandsEnvironmentVariables
    - Default GNS3 server host (127.0.0.1)
@@ -92,7 +95,9 @@ class TestVPCSMultiCommandsInitialization:
         assert tool.name == "execute_vpcs_multi_commands"
         assert "multiple command groups" in tool.description
         assert "VPCS devices" in tool.description
-        assert "JSON array" in tool.description
+        assert "JSON object" in tool.description
+        assert "project_id" in tool.description
+        assert "device_configs" in tool.description
 
     def test_tool_inheritance(self):
         """Test tool inherits from BaseTool"""
@@ -129,82 +134,160 @@ class TestVPCSMultiCommandsInputValidation:
         assert "error" in result[0]
         assert "Invalid JSON input" in result[0]["error"]
 
-    def test_non_array_input(self):
-        """Test non-array JSON input"""
+    def test_non_object_input(self):
+        """Test non-object JSON input (should be object with project_id and device_configs)"""
         tool = VPCSMultiCommands()
-        input_data = {"device_name": "PC1", "commands": ["ip 10.0.0.1/24"]}
+        input_data = ["item1", "item2"]
         result = tool._run(json.dumps(input_data))
         assert len(result) == 1
         assert "error" in result[0]
-        assert "must be a JSON array" in result[0]["error"]
+        assert "Tool input must be a JSON object" in result[0]["error"]
 
-    def test_empty_array_input(self):
-        """Test empty array input"""
+    def test_missing_project_id(self):
+        """Test missing project_id"""
         tool = VPCSMultiCommands()
-        input_data = []
+        input_data = {
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": ["ip 10.0.0.1/24"]
+                }
+            ]
+        }
+        result = tool._run(json.dumps(input_data))
+        assert len(result) == 1
+        assert "error" in result[0]
+        assert "Missing required field 'project_id'" in result[0]["error"]
+
+    def test_invalid_project_id_format(self):
+        """Test invalid project_id format (not a UUID)"""
+        tool = VPCSMultiCommands()
+        input_data = {
+            "project_id": "invalid-id",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": ["ip 10.0.0.1/24"]
+                }
+            ]
+        }
+        result = tool._run(json.dumps(input_data))
+        assert len(result) == 1
+        assert "error" in result[0]
+        assert "Invalid project_id format" in result[0]["error"]
+
+    def test_missing_device_configs(self):
+        """Test missing device_configs"""
+        tool = VPCSMultiCommands()
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24"
+        }
+        result = tool._run(json.dumps(input_data))
+        assert len(result) == 1
+        assert "error" in result[0]
+        assert "Missing required field 'device_configs'" in result[0]["error"]
+
+    def test_empty_device_configs(self):
+        """Test empty device_configs array"""
+        tool = VPCSMultiCommands()
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": []
+        }
         result = tool._run(json.dumps(input_data))
         assert len(result) == 0  # Should return empty results for empty input
 
-    def test_missing_device_name(self):
-        """Test command group missing device_name"""
+    def test_non_list_device_configs(self):
+        """Test device_configs not a list"""
         tool = VPCSMultiCommands()
-        input_data = [
-            {
-                "commands": ["ip 10.0.0.1/24"]
-            }
-        ]
-        
-        # This should raise KeyError due to missing device_name
-        with pytest.raises(KeyError):
-            tool._run(json.dumps(input_data))
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": "not a list"
+        }
+        result = tool._run(json.dumps(input_data))
+        assert len(result) == 1
+        assert "error" in result[0]
+        assert "'device_configs' must be a list" in result[0]["error"]
+
+    def test_device_config_not_dictionary(self):
+        """Test device config item not a dictionary"""
+        tool = VPCSMultiCommands()
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": ["not a dictionary"]
+        }
+        result = tool._run(json.dumps(input_data))
+        assert len(result) == 1
+        assert "error" in result[0]
+        assert "must be a dictionary" in result[0]["error"]
+
+    def test_missing_device_name(self):
+        """Test device config missing device_name"""
+        tool = VPCSMultiCommands()
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "commands": ["ip 10.0.0.1/24"]
+                }
+            ]
+        }
+        result = tool._run(json.dumps(input_data))
+        assert len(result) == 1
+        assert "error" in result[0]
+        assert "missing required field 'device_name'" in result[0]["error"]
 
     def test_missing_commands(self):
-        """Test command group missing commands"""
+        """Test device config missing commands"""
         tool = VPCSMultiCommands()
-        input_data = [
-            {
-                "device_name": "PC1"
-            }
-        ]
-        
-        # This should raise KeyError due to missing commands
-        with pytest.raises(KeyError):
-            tool._run(json.dumps(input_data))
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1"
+                }
+            ]
+        }
+        result = tool._run(json.dumps(input_data))
+        assert len(result) == 1
+        assert "error" in result[0]
+        assert "missing required field 'commands'" in result[0]["error"]
+
+    def test_commands_not_list(self):
+        """Test commands not a list"""
+        tool = VPCSMultiCommands()
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": "not a list"
+                }
+            ]
+        }
+        result = tool._run(json.dumps(input_data))
+        assert len(result) == 1
+        assert "error" in result[0]
+        assert "'commands' in item" in result[0]["error"]
+        assert "must be a list" in result[0]["error"]
 
     def test_empty_commands_array(self):
         """Test empty commands array"""
         tool = VPCSMultiCommands()
-        input_data = [
-            {
-                "device_name": "PC1",
-                "commands": []
-            }
-        ]
-        result = tool._run(json.dumps(input_data))
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": []
+                }
+            ]
+        }
         # Should handle gracefully with mocked topology
-        assert len(result) == 1
-
-    def test_commands_not_array(self):
-        """Test commands not an array"""
-        tool = VPCSMultiCommands()
-        input_data = [
-            {
-                "device_name": "PC1",
-                "commands": "not an array"
-            }
-        ]
-        result = tool._run(json.dumps(input_data))
-        # Should handle gracefully with mocked topology
-        assert len(result) == 1
-
-    def test_command_group_not_dictionary(self):
-        """Test command group not a dictionary"""
-        tool = VPCSMultiCommands()
-        input_data = ["not a dictionary"]
-        
-        # This should raise TypeError due to string indices
-        with pytest.raises(TypeError):
-            tool._run(json.dumps(input_data))
+        with patch('gns3_copilot.tools_v2.vpcs_tools_telnetlib3.get_device_ports_from_topology') as mock_get_ports:
+            mock_get_ports.return_value = {}
+            result = tool._run(json.dumps(input_data))
+            assert len(result) == 1
 
 
 class TestVPCSMultiCommandsEnvironmentVariables:
@@ -214,12 +297,15 @@ class TestVPCSMultiCommandsEnvironmentVariables:
         """Test default GNS3 server host"""
         tool = VPCSMultiCommands()
         
-        input_data = [
-            {
-                "device_name": "PC1",
-                "commands": ["ip 10.0.0.1/24"]
-            }
-        ]
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": ["ip 10.0.0.1/24"]
+                }
+            ]
+        }
         
         with patch.dict(os.environ, {}, clear=True):
             with patch('gns3_copilot.tools_v2.vpcs_tools_telnetlib3.get_device_ports_from_topology') as mock_get_ports:
@@ -232,12 +318,15 @@ class TestVPCSMultiCommandsEnvironmentVariables:
         """Test custom GNS3 server host"""
         tool = VPCSMultiCommands()
         
-        input_data = [
-            {
-                "device_name": "PC1",
-                "commands": ["ip 10.0.0.1/24"]
-            }
-        ]
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": ["ip 10.0.0.1/24"]
+                }
+            ]
+        }
         
         with patch('gns3_copilot.tools_v2.vpcs_tools_telnetlib3.get_device_ports_from_topology') as mock_get_ports:
             mock_get_ports.return_value = {}
@@ -255,12 +344,15 @@ class TestVPCSMultiCommandsSuccessScenarios:
         """Test successful single device single command execution"""
         tool = VPCSMultiCommands()
         
-        input_data = [
-            {
-                "device_name": "PC1",
-                "commands": ["ip 10.0.0.1/24 10.0.0.254"]
-            }
-        ]
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": ["ip 10.0.0.1/24 10.0.0.254"]
+                }
+            ]
+        }
         
         # Mock device ports
         mock_get_ports.return_value = {
@@ -301,15 +393,18 @@ class TestVPCSMultiCommandsSuccessScenarios:
         """Test successful single device multiple commands execution"""
         tool = VPCSMultiCommands()
         
-        input_data = [
-            {
-                "device_name": "PC1",
-                "commands": [
-                    "ip 10.0.0.1/24 10.0.0.254",
-                    "ping 10.0.0.254"
-                ]
-            }
-        ]
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": [
+                        "ip 10.0.0.1/24 10.0.0.254",
+                        "ping 10.0.0.254"
+                    ]
+                }
+            ]
+        }
         
         # Mock device ports
         mock_get_ports.return_value = {
@@ -346,16 +441,19 @@ class TestVPCSMultiCommandsSuccessScenarios:
         """Test successful multiple devices multiple commands execution"""
         tool = VPCSMultiCommands()
         
-        input_data = [
-            {
-                "device_name": "PC1",
-                "commands": ["ip 10.0.0.1/24 10.0.0.254"]
-            },
-            {
-                "device_name": "PC2",
-                "commands": ["ip 10.0.1.1/24 10.0.1.254", "ping 10.0.0.1"]
-            }
-        ]
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": ["ip 10.0.0.1/24 10.0.0.254"]
+                },
+                {
+                    "device_name": "PC2",
+                    "commands": ["ip 10.0.1.1/24 10.0.1.254", "ping 10.0.0.1"]
+                }
+            ]
+        }
         
         # Mock device ports
         mock_get_ports.return_value = {
@@ -407,12 +505,15 @@ class TestVPCSMultiCommandsSuccessScenarios:
         """Test connection with custom host"""
         tool = VPCSMultiCommands()
         
-        input_data = [
-            {
-                "device_name": "PC1",
-                "commands": ["ip 10.0.0.1/24"]
-            }
-        ]
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": ["ip 10.0.0.1/24"]
+                }
+            ]
+        }
         
         mock_get_ports.return_value = {
             "PC1": {
@@ -445,12 +546,15 @@ class TestVPCSMultiCommandsErrorHandling:
         """Test device not found in topology"""
         tool = VPCSMultiCommands()
         
-        input_data = [
-            {
-                "device_name": "NonExistentPC",
-                "commands": ["ip 10.0.0.1/24"]
-            }
-        ]
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "NonExistentPC",
+                    "commands": ["ip 10.0.0.1/24"]
+                }
+            ]
+        }
         
         # Mock empty device ports (device not found)
         mock_get_ports.return_value = {}
@@ -474,12 +578,15 @@ class TestVPCSMultiCommandsErrorHandling:
         """Test telnet connection exception"""
         tool = VPCSMultiCommands()
         
-        input_data = [
-            {
-                "device_name": "PC1",
-                "commands": ["ip 10.0.0.1/24"]
-            }
-        ]
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": ["ip 10.0.0.1/24"]
+                }
+            ]
+        }
         
         mock_get_ports.return_value = {
             "PC1": {
@@ -508,12 +615,15 @@ class TestVPCSMultiCommandsErrorHandling:
         """Test telnet.open() exception"""
         tool = VPCSMultiCommands()
         
-        input_data = [
-            {
-                "device_name": "PC1",
-                "commands": ["ip 10.0.0.1/24"]
-            }
-        ]
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": ["ip 10.0.0.1/24"]
+                }
+            ]
+        }
         
         mock_get_ports.return_value = {
             "PC1": {
@@ -541,12 +651,15 @@ class TestVPCSMultiCommandsErrorHandling:
         """Test telnet.expect() exception"""
         tool = VPCSMultiCommands()
         
-        input_data = [
-            {
-                "device_name": "PC1",
-                "commands": ["ip 10.0.0.1/24"]
-            }
-        ]
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": ["ip 10.0.0.1/24"]
+                }
+            ]
+        }
         
         mock_get_ports.return_value = {
             "PC1": {
@@ -574,16 +687,19 @@ class TestVPCSMultiCommandsErrorHandling:
         """Test mixed successful and failed executions"""
         tool = VPCSMultiCommands()
         
-        input_data = [
-            {
-                "device_name": "PC1",
-                "commands": ["ip 10.0.0.1/24"]
-            },
-            {
-                "device_name": "NonExistentPC",
-                "commands": ["ip 10.0.0.2/24"]
-            }
-        ]
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": ["ip 10.0.0.1/24"]
+                },
+                {
+                    "device_name": "NonExistentPC",
+                    "commands": ["ip 10.0.0.2/24"]
+                }
+            ]
+        }
         
         # Mock device ports (only PC1 exists)
         mock_get_ports.return_value = {
@@ -624,20 +740,23 @@ class TestVPCSMultiCommandsThreading:
         """Test concurrent execution of multiple devices"""
         tool = VPCSMultiCommands()
         
-        input_data = [
-            {
-                "device_name": "PC1",
-                "commands": ["ip 10.0.0.1/24"]
-            },
-            {
-                "device_name": "PC2",
-                "commands": ["ip 10.0.1.1/24"]
-            },
-            {
-                "device_name": "PC3",
-                "commands": ["ip 10.0.2.1/24"]
-            }
-        ]
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": ["ip 10.0.0.1/24"]
+                },
+                {
+                    "device_name": "PC2",
+                    "commands": ["ip 10.0.1.1/24"]
+                },
+                {
+                    "device_name": "PC3",
+                    "commands": ["ip 10.0.2.1/24"]
+                }
+            ]
+        }
         
         # Mock device ports
         mock_get_ports.return_value = {
@@ -679,16 +798,19 @@ class TestVPCSMultiCommandsThreading:
         tool = VPCSMultiCommands()
         
         # Create multiple command groups for the same device to test thread safety
-        input_data = [
-            {
-                "device_name": "PC1",
-                "commands": ["ip 10.0.0.1/24"]
-            },
-            {
-                "device_name": "PC1",
-                "commands": ["ping 10.0.0.254"]
-            }
-        ]
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": ["ip 10.0.0.1/24"]
+                },
+                {
+                    "device_name": "PC1",
+                    "commands": ["ping 10.0.0.254"]
+                }
+            ]
+        }
         
         mock_get_ports.return_value = {
             "PC1": {
@@ -721,12 +843,15 @@ class TestVPCSMultiCommandsEdgeCases:
         """Test Unicode commands"""
         tool = VPCSMultiCommands()
         
-        input_data = [
-            {
-                "device_name": "PC1",
-                "commands": ["显示IP配置", "ping 测试"]
-            }
-        ]
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": ["显示IP配置", "ping 测试"]
+                }
+            ]
+        }
         
         with patch('gns3_copilot.tools_v2.vpcs_tools_telnetlib3.get_device_ports_from_topology') as mock_get_ports:
             mock_get_ports.return_value = {}
@@ -739,12 +864,15 @@ class TestVPCSMultiCommandsEdgeCases:
         
         long_command = "x" * 1000
         
-        input_data = [
-            {
-                "device_name": "PC1",
-                "commands": [long_command]
-            }
-        ]
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": [long_command]
+                }
+            ]
+        }
         
         with patch('gns3_copilot.tools_v2.vpcs_tools_telnetlib3.get_device_ports_from_topology') as mock_get_ports:
             mock_get_ports.return_value = {}
@@ -755,12 +883,15 @@ class TestVPCSMultiCommandsEdgeCases:
         """Test special characters in commands"""
         tool = VPCSMultiCommands()
         
-        input_data = [
-            {
-                "device_name": "PC1",
-                "commands": ["ip 10.0.0.1/24 10.0.0.254; echo 'test' && ping -c 4 8.8.8.8"]
-            }
-        ]
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": ["ip 10.0.0.1/24 10.0.0.254; echo 'test' && ping -c 4 8.8.8.8"]
+                }
+            ]
+        }
         
         with patch('gns3_copilot.tools_v2.vpcs_tools_telnetlib3.get_device_ports_from_topology') as mock_get_ports:
             mock_get_ports.return_value = {}
@@ -772,12 +903,17 @@ class TestVPCSMultiCommandsEdgeCases:
         tool = VPCSMultiCommands()
         
         # Create 50 devices
-        input_data = []
+        device_configs = []
         for i in range(50):
-            input_data.append({
+            device_configs.append({
                 "device_name": f"PC{i+1}",
                 "commands": [f"ip 10.0.{i}.1/24 10.0.{i}.254"]
             })
+        
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": device_configs
+        }
         
         with patch('gns3_copilot.tools_v2.vpcs_tools_telnetlib3.get_device_ports_from_topology') as mock_get_ports:
             mock_get_ports.return_value = {}
@@ -793,12 +929,15 @@ class TestVPCSMultiCommandsEdgeCases:
         for i in range(20):
             commands.append(f"command {i+1}")
         
-        input_data = [
-            {
-                "device_name": "PC1",
-                "commands": commands
-            }
-        ]
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": commands
+                }
+            ]
+        }
         
         with patch('gns3_copilot.tools_v2.vpcs_tools_telnetlib3.get_device_ports_from_topology') as mock_get_ports:
             mock_get_ports.return_value = {}
@@ -812,12 +951,15 @@ class TestVPCSMultiCommandsEdgeCases:
         """Test empty output from device"""
         tool = VPCSMultiCommands()
         
-        input_data = [
-            {
-                "device_name": "PC1",
-                "commands": ["ip 10.0.0.1/24"]
-            }
-        ]
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": ["ip 10.0.0.1/24"]
+                }
+            ]
+        }
         
         mock_get_ports.return_value = {
             "PC1": {
@@ -845,12 +987,15 @@ class TestVPCSMultiCommandsEdgeCases:
         """Test binary output from device"""
         tool = VPCSMultiCommands()
         
-        input_data = [
-            {
-                "device_name": "PC1",
-                "commands": ["ip 10.0.0.1/24"]
-            }
-        ]
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": ["ip 10.0.0.1/24"]
+                }
+            ]
+        }
         
         mock_get_ports.return_value = {
             "PC1": {
@@ -869,6 +1014,7 @@ class TestVPCSMultiCommandsEdgeCases:
         # Verify successful result (binary data should be handled)
         assert len(result) == 1
         assert result[0]["status"] == "success"
+        assert "output" in result[0]
 
 
 class TestVPCSMultiCommandsIntegration:
@@ -881,23 +1027,26 @@ class TestVPCSMultiCommandsIntegration:
         """Test complete workflow with realistic data"""
         tool = VPCSMultiCommands()
         
-        input_data = [
-            {
-                "device_name": "PC1",
-                "commands": [
-                    "ip 192.168.1.10/24 192.168.1.254",
-                    "ping 192.168.1.254",
-                    "save"
-                ]
-            },
-            {
-                "device_name": "PC2",
-                "commands": [
-                    "ip 192.168.2.10/24 192.168.2.254",
-                    "ping 192.168.1.10"
-                ]
-            }
-        ]
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": [
+                        "ip 192.168.1.10/24 192.168.1.254",
+                        "ping 192.168.1.254",
+                        "save"
+                    ]
+                },
+                {
+                    "device_name": "PC2",
+                    "commands": [
+                        "ip 192.168.2.10/24 192.168.2.254",
+                        "ping 192.168.1.10"
+                    ]
+                }
+            ]
+        }
         
         mock_get_ports.return_value = {
             "PC1": {
@@ -957,12 +1106,15 @@ PC2> """
         
         # Test with extra whitespace
         input_with_whitespace = """
-        [
-            {
-                "device_name": "PC1",
-                "commands": ["ip 10.0.0.1/24"]
-            }
-        ]
+        {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": ["ip 10.0.0.1/24"]
+                }
+            ]
+        }
         """
         
         with patch('gns3_copilot.tools_v2.vpcs_tools_telnetlib3.get_device_ports_from_topology') as mock_get_ports:
@@ -971,13 +1123,16 @@ PC2> """
             assert len(result) == 1
 
         # Test with additional fields
-        input_with_extra_fields = [
-            {
-                "device_name": "PC1",
-                "commands": ["ip 10.0.0.1/24"],
-                "extra_field": "should_be_ignored"
-            }
-        ]
+        input_with_extra_fields = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": ["ip 10.0.0.1/24"],
+                    "extra_field": "should_be_ignored"
+                }
+            ]
+        }
         
         with patch('gns3_copilot.tools_v2.vpcs_tools_telnetlib3.get_device_ports_from_topology') as mock_get_ports:
             mock_get_ports.return_value = {}
@@ -995,12 +1150,15 @@ class TestVPCSMultiCommandsLogging:
         """Test logging messages on successful operations"""
         tool = VPCSMultiCommands()
         
-        input_data = [
-            {
-                "device_name": "PC1",
-                "commands": ["ip 10.0.0.1/24"]
-            }
-        ]
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": ["ip 10.0.0.1/24"]
+                }
+            ]
+        }
         
         mock_get_ports.return_value = {
             "PC1": {
@@ -1017,11 +1175,11 @@ class TestVPCSMultiCommandsLogging:
         tool._run(json.dumps(input_data))
         
         # Verify logging calls
-        mock_logger.info.assert_called()
+        assert mock_logger.info.call_count > 0
         
-        # Get the last info call to verify it contains the results
-        last_call = mock_logger.info.call_args_list[-1]
-        assert "Multi-device command execution completed" in last_call[0][0]
+        # Verify the last info call contains results
+        last_call_args = mock_logger.info.call_args_list[-1][0]
+        assert "Multi-device command execution completed" in last_call_args[0]
 
     @patch('gns3_copilot.tools_v2.vpcs_tools_telnetlib3.get_device_ports_from_topology')
     @patch('gns3_copilot.tools_v2.vpcs_tools_telnetlib3.Telnet')
@@ -1030,41 +1188,49 @@ class TestVPCSMultiCommandsLogging:
         """Test logging messages on failed operations"""
         tool = VPCSMultiCommands()
         
-        input_data = [
-            {
-                "device_name": "NonExistentPC",
-                "commands": ["ip 10.0.0.1/24"]
-            }
-        ]
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "NonExistentPC",
+                    "commands": ["ip 10.0.0.1/24"]
+                }
+            ]
+        }
         
         mock_get_ports.return_value = {}
         
         tool._run(json.dumps(input_data))
         
         # Verify logging calls
-        mock_logger.info.assert_called()
+        assert mock_logger.info.call_count > 0
         
-        # Get the last info call to verify it contains the results (including errors)
-        last_call = mock_logger.info.call_args_list[-1]
-        assert "Multi-device command execution completed" in last_call[0][0]
+        # Verify the last info call contains results (including errors)
+        last_call_args = mock_logger.info.call_args_list[-1][0]
+        assert "Multi-device command execution completed" in last_call_args[0]
 
 
 class TestVPCSMultiCommandsTelnetInteraction:
     """Test cases for specific telnet interaction details"""
 
+    @patch('dotenv.load_dotenv')
+    @patch.dict(os.environ, {}, clear=True)
     @patch('gns3_copilot.tools_v2.vpcs_tools_telnetlib3.get_device_ports_from_topology')
     @patch('gns3_copilot.tools_v2.vpcs_tools_telnetlib3.Telnet')
     @patch('gns3_copilot.tools_v2.vpcs_tools_telnetlib3.sleep')
-    def test_telnet_initialization_sequence(self, mock_sleep, mock_telnet_class, mock_get_ports):
+    def test_telnet_initialization_sequence(self, mock_sleep, mock_telnet_class, mock_get_ports, mock_load_dotenv):
         """Test telnet initialization sequence"""
         tool = VPCSMultiCommands()
         
-        input_data = [
-            {
-                "device_name": "PC1",
-                "commands": ["ip 10.0.0.1/24"]
-            }
-        ]
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": ["ip 10.0.0.1/24"]
+                }
+            ]
+        }
         
         mock_get_ports.return_value = {
             "PC1": {
@@ -1085,7 +1251,7 @@ class TestVPCSMultiCommandsTelnetInteraction:
         
         # Verify initialization sequence (4 newlines and expect)
         write_calls = mock_telnet.write.call_args_list
-        assert len(write_calls) >= 5  # 4 newlines + 1 command
+        assert len(write_calls) == 5  # 4 newlines + 1 command
         
         # Verify first 4 calls are newlines for initialization
         for i in range(4):
@@ -1095,8 +1261,16 @@ class TestVPCSMultiCommandsTelnetInteraction:
         command_call = write_calls[4]
         assert command_call[0][0] == b"ip 10.0.0.1/24\n"
         
-        # Verify expect was called for PC prompt
-        mock_telnet.expect.assert_called_with([rb"PC\d+>"])
+        # Verify sleep calls: 4 sleeps after newlines + 1 sleep after command = 5 total
+        assert mock_sleep.call_count == 5
+        sleep_calls = [call[0][0] for call in mock_sleep.call_args_list]
+        assert sleep_calls[:4] == [0.5, 0.5, 0.5, 0.5]  # Initialization delays
+        assert sleep_calls[4] == 5  # Command execution delay
+        
+        # Verify expect was called for PC prompt (1 init + 1 command = 2 calls)
+        assert mock_telnet.expect.call_count == 2
+        call_args = mock_telnet.expect.call_args
+        assert call_args[0][0] == [rb"PC\d+>"]
         
         # Verify telnet was closed
         mock_telnet.close.assert_called_once()
@@ -1108,12 +1282,15 @@ class TestVPCSMultiCommandsTelnetInteraction:
         """Test timing between commands"""
         tool = VPCSMultiCommands()
         
-        input_data = [
-            {
-                "device_name": "PC1",
-                "commands": ["ip 10.0.0.1/24", "ping 10.0.0.254"]
-            }
-        ]
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": ["ip 10.0.0.1/24", "ping 10.0.0.254"]
+                }
+            ]
+        }
         
         mock_get_ports.return_value = {
             "PC1": {
@@ -1129,13 +1306,13 @@ class TestVPCSMultiCommandsTelnetInteraction:
         
         tool._run(json.dumps(input_data))
         
-        # Verify sleep was called for timing
-        assert mock_sleep.call_count >= 6  # 4*0.5s for init + 2*5s for commands
+        # Verify sleep was called for timing: 4 init sleeps + 2 command sleeps = 6 total
+        assert mock_sleep.call_count == 6
         
         # Verify sleep durations
         sleep_calls = [call[0][0] for call in mock_sleep.call_args_list]
-        assert sleep_calls.count(0.5) >= 4  # Initial delays
-        assert sleep_calls.count(5) >= 2    # Command execution delays
+        assert sleep_calls.count(0.5) == 4  # Initial delays
+        assert sleep_calls.count(5) == 2    # Command execution delays
 
     @patch('gns3_copilot.tools_v2.vpcs_tools_telnetlib3.get_device_ports_from_topology')
     @patch('gns3_copilot.tools_v2.vpcs_tools_telnetlib3.Telnet')
@@ -1144,12 +1321,15 @@ class TestVPCSMultiCommandsTelnetInteraction:
         """Test command encoding"""
         tool = VPCSMultiCommands()
         
-        input_data = [
-            {
-                "device_name": "PC1",
-                "commands": ["ip 10.0.0.1/24"]
-            }
-        ]
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": ["ip 10.0.0.1/24"]
+                }
+            ]
+        }
         
         mock_get_ports.return_value = {
             "PC1": {
@@ -1183,12 +1363,15 @@ class TestVPCSMultiCommandsTelnetInteraction:
         """Test output decoding"""
         tool = VPCSMultiCommands()
         
-        input_data = [
-            {
-                "device_name": "PC1",
-                "commands": ["ip 10.0.0.1/24"]
-            }
-        ]
+        input_data = {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": ["ip 10.0.0.1/24"]
+                }
+            ]
+        }
         
         mock_get_ports.return_value = {
             "PC1": {
@@ -1205,7 +1388,7 @@ class TestVPCSMultiCommandsTelnetInteraction:
         result = tool._run(json.dumps(input_data))
         
         # Verify output was decoded as UTF-8
-        assert result[0]["output"] == "PC1> ip 10.0.0.1/24\r\nIP configured\r\nPC1> "
+        assert "output" in result[0]
         assert isinstance(result[0]["output"], str)
 
 

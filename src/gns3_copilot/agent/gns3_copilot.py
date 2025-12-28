@@ -49,9 +49,10 @@ load_dotenv()
 # Set up logger for GNS3 Copilot
 logger = setup_logger("gns3_copilot", log_file="log/gns3_copilot.log")
 
+# LangChain 1.2.0 requires 'model' as the first positional argument
 base_model = init_chat_model(
+    os.getenv("MODEL_NAME"),
     model_provider=os.getenv("MODE_PROVIDER"),
-    model=os.getenv("MODEL_NAME"),
     api_key=os.getenv("MODEL_API_KEY"),
     base_url=os.getenv("BASE_URL", ""),
     temperature=os.getenv("TEMPERATURE", "0"),
