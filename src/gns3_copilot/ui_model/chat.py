@@ -268,6 +268,8 @@ else:
         else:
             # New session: clear temp storage
             st.session_state["temp_selected_project"] = None
+        # Clear chat history from session state
+        st.session_state["state_history"] = None
         st.rerun()
 
 # --- Main workspace (only visible when a project is selected) ---

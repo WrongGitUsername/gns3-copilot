@@ -9,8 +9,7 @@ consistent functionality across all pages.
 Features:
     - Page height adjustment slider (global)
     - Zoom scale adjustment slider (global)
-    - Session history management (chat page only)
-    - Current project status display (chat page only)
+    - Session history management (global)
     - About section (global)
 
 Usage:
@@ -29,7 +28,6 @@ Usage:
         render_sidebar_about()
 
 Notes:
-    - Session management controls only appear on the chat page
     - Configuration changes (height, zoom) are persisted to .env file
     - Thread IDs are managed through LangGraph checkpointer
 
@@ -59,14 +57,13 @@ def render_sidebar(
     This function renders sidebar controls including:
     - Page height adjustment
     - Zoom scale adjustment
-    - Session history management (only on chat page)
-    - Current project status (only on chat page)
+    - Session history management
 
     Args:
         current_page: The current active page path
 
     Returns:
-        Tuple of (selected_thread_id, title) - can be None for non-chat pages
+        Tuple of (selected_thread_id, title) - can be None if no session is selected
     """
     with st.sidebar:
         # Initialize sidebar configuration values
@@ -118,12 +115,15 @@ def render_sidebar(
 
         st.markdown("---")
 
-        # Session management - only show on chat page
+        # Session management - render for all pages
         selected_thread_id = None
         title = None
 
-        if "ui_model/chat.py" in current_page:
+        try:
             selected_thread_id, title = _render_session_management()
+        except Exception as e:
+            logger.error("Failed to render session management: %s", e)
+            st.error("Failed to load session history. Please check the logs.")
 
         return selected_thread_id, title
 

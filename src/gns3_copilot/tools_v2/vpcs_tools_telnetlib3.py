@@ -255,7 +255,9 @@ class VPCSMultiCommands(BaseTool):
 
         # Validate project_id format
         if not self._validate_project_id(project_id):
-            error_msg = f"Invalid project_id format: {project_id}. Expected UUID format."
+            error_msg = (
+                f"Invalid project_id format: {project_id}. Expected UUID format."
+            )
             logger.error(error_msg)
             return ([{"error": error_msg}], "")
 
@@ -268,9 +270,7 @@ class VPCSMultiCommands(BaseTool):
 
         # Validate device_configs is a list
         if not isinstance(device_configs, list):
-            error_msg = (
-                f"'device_configs' must be a list, but got {type(device_configs).__name__}"
-            )
+            error_msg = f"'device_configs' must be a list, but got {type(device_configs).__name__}"
             logger.error(error_msg)
             return ([{"error": error_msg}], "")
 
