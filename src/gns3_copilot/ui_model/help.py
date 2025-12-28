@@ -21,7 +21,12 @@ and configure the application for optimal functionality.
 
 import streamlit as st
 
-st.title("GNS3 Copilot Configuration Guide", text_alignment="center")
+st.markdown(
+    """
+    <h3 style='text-align: left; font-size: 22px; font-weight: bold; margin-top: 20px;'>GNS3 Copilot Configuration Guide</h3>
+    """,
+    unsafe_allow_html=True,
+)
 tab1_en, tab2_zh = st.tabs(["Help", "帮助"])
 
 with tab1_en:

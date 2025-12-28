@@ -60,18 +60,21 @@ class VPCSMultiCommands(BaseTool):
     Executes multiple command groups across multiple VPCS devices concurrently using telnetlib3.
     Supports parallel execution with threading for improved performance.
 
-    Input should be a JSON array of device configurations.
+    Input should be a JSON object containing project_id and device configurations.
     Example input:
-        [
-            {
-                "device_name": "PC1",
-                "commands": ["ip 10.10.0.12/24 10.10.0.254", "ping 10.10.0.254"]
-            },
-            {
-                "device_name": "PC2",
-                "commands": ["ip 10.10.0.13/24 10.10.0.254"]
-            }
-        ]
+        {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": ["ip 10.10.0.12/24 10.10.0.254", "ping 10.10.0.254"]
+                },
+                {
+                    "device_name": "PC2",
+                    "commands": ["ip 10.10.0.13/24 10.10.0.254"]
+                }
+            ]
+        }
 
     Returns a list of results, each containing device_name, status, output, and commands.
     """
@@ -195,19 +198,24 @@ class VPCSMultiCommands(BaseTool):
         import re
 
         uuid_pattern = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-        return bool(re.match(uuid_pattern, project_id, re.IGNORECASE))
+        is_valid = bool(re.match(uuid_pattern, project_id, re.IGNORECASE))
+        if is_valid:
+            logger.debug("project_id '%s' is valid UUID format", project_id)
+        else:
+            logger.warning("project_id '%s' is not a valid UUID format", project_id)
+        return is_valid
 
     def _validate_tool_input(
         self, tool_input: str | bytes | list[Any] | dict[str, Any]
     ) -> tuple[list[dict[str, Any]], str]:
         """
-        Validate device command input and extract device_configs.
+        Validate device command input and extract project_id and device_configs.
 
         Args:
             tool_input: The input received from the LangChain/LangGraph tool call.
 
         Returns:
-            Tuple containing (device_configs_list, "") or (error_list, "")
+            Tuple containing (device_configs_list, project_id) or (error_list, "")
         """
 
         parsed_input = None
@@ -229,22 +237,50 @@ class VPCSMultiCommands(BaseTool):
                 "Using tool input directly as type: %s", type(parsed_input).__name__
             )
 
-        # Validate input is a list (array)
-        if not isinstance(parsed_input, list):
+        # Validate input is a dictionary
+        if not isinstance(parsed_input, dict):
             error_msg = (
-                "Tool input must be a JSON array, "
+                "Tool input must be a JSON object containing 'project_id' and 'device_configs', "
                 f"but got {type(parsed_input).__name__}"
             )
             logger.error(error_msg)
             return ([{"error": error_msg}], "")
 
-        # Handle empty array
-        if not parsed_input:
+        # Extract and validate project_id
+        project_id = parsed_input.get("project_id")
+        if not project_id:
+            error_msg = "Missing required field 'project_id' in input"
+            logger.error(error_msg)
+            return ([{"error": error_msg}], "")
+
+        # Validate project_id format
+        if not self._validate_project_id(project_id):
+            error_msg = (
+                f"Invalid project_id format: {project_id}. Expected UUID format."
+            )
+            logger.error(error_msg)
+            return ([{"error": error_msg}], "")
+
+        # Extract and validate device_configs
+        device_configs = parsed_input.get("device_configs")
+        if device_configs is None:
+            error_msg = "Missing required field 'device_configs' in input"
+            logger.error(error_msg)
+            return ([{"error": error_msg}], "")
+
+        # Validate device_configs is a list
+        if not isinstance(device_configs, list):
+            error_msg = f"'device_configs' must be a list, but got {type(device_configs).__name__}"
+            logger.error(error_msg)
+            return ([{"error": error_msg}], "")
+
+        # Handle empty list
+        if not device_configs:
             logger.warning("Device configs list is empty.")
             return [], ""
 
-        # Validate each item in the array
-        for i, item in enumerate(parsed_input):
+        # Validate each item in device_configs
+        for i, item in enumerate(device_configs):
             if not isinstance(item, dict):
                 error_msg = (
                     f"Item at index {i} must be a dictionary, got {type(item).__name__}"
@@ -252,7 +288,31 @@ class VPCSMultiCommands(BaseTool):
                 logger.error(error_msg)
                 return ([{"error": error_msg}], "")
 
-        return parsed_input, ""
+            # Validate required fields in each device config
+            if "device_name" not in item:
+                error_msg = f"Item at index {i} missing required field 'device_name'"
+                logger.error(error_msg)
+                return ([{"error": error_msg}], "")
+
+            if "commands" not in item:
+                error_msg = f"Item at index {i} missing required field 'commands'"
+                logger.error(error_msg)
+                return ([{"error": error_msg}], "")
+
+            if not isinstance(item["commands"], list):
+                error_msg = (
+                    f"'commands' in item at index {i} must be a list, "
+                    f"but got {type(item['commands']).__name__}"
+                )
+                logger.error(error_msg)
+                return ([{"error": error_msg}], "")
+
+        logger.info(
+            "Input validated successfully. project_id=%s, device_configs_count=%d",
+            project_id,
+            len(device_configs),
+        )
+        return device_configs, project_id
 
     def _run(
         self, tool_input: str, run_manager: CallbackManagerForToolRun | None = None
@@ -275,19 +335,37 @@ class VPCSMultiCommands(BaseTool):
 
         # Extract all device names from input using set comprehension
         device_names = {config["device_name"] for config in device_configs}
+        logger.debug("Extracted device names: %s", list(device_names))
 
-        # Get device port mapping (no project_id needed)
-        device_ports = get_device_ports_from_topology(list(device_names))
+        # Get device port mapping with project_id
+        logger.debug("Retrieving device port mapping for project_id=%s", project_id)
+        device_ports = get_device_ports_from_topology(
+            list(device_names), project_id=project_id
+        )
+        logger.info(
+            "Retrieved port mappings for %d devices: %s",
+            len(device_ports),
+            list(device_ports.keys()),
+        )
 
         # Get host IP from environment variable
         gns3_host = os.getenv("GNS3_SERVER_HOST", "127.0.0.1")
+        logger.info("Using GNS3 server host: %s", gns3_host)
 
         # Initialize results list (pre-allocate space for concurrent writes)
         results: list[dict[str, Any]] = [{} for _ in range(len(device_configs))]
         threads = []
 
         # Create thread for each command group
+        logger.info("Starting parallel execution for %d devices", len(device_configs))
         for i, cmd_group in enumerate(device_configs):
+            device_name = cmd_group["device_name"]
+            logger.debug(
+                "Creating thread for device '%s' (index %d) with %d commands",
+                device_name,
+                i,
+                len(cmd_group["commands"]),
+            )
             thread = threading.Thread(
                 target=self._connect_and_execute_commands,
                 args=(
@@ -301,13 +379,22 @@ class VPCSMultiCommands(BaseTool):
             )
             threads.append(thread)
             thread.start()
+            logger.debug("Thread started for device '%s'", device_name)
 
         # Wait for all threads to complete
+        logger.debug("Waiting for all threads to complete...")
         for thread in threads:
             thread.join()
 
+        # Count successful and failed executions
+        success_count = sum(1 for r in results if r.get("status") == "success")
+        error_count = sum(1 for r in results if r.get("status") == "error")
+
         logger.info(
-            "Multi-device command execution completed. Total devices: %d", len(results)
+            "Multi-device command execution completed. Total: %d, Success: %d, Error: %d",
+            len(results),
+            success_count,
+            error_count,
         )
 
         return results
@@ -316,18 +403,33 @@ class VPCSMultiCommands(BaseTool):
 if __name__ == "__main__":
     # Example usage
     command_groups = json.dumps(
-        [
-            {
-                "device_name": "PC1",
-                "commands": ["ip 10.10.0.12/24 10.10.0.254", "ping 10.10.0.254"],
-            },
-            {"device_name": "PC2", "commands": ["ip 10.10.0.13/24 10.10.0.254"]},
-            {
-                "device_name": "PC3",
-                "commands": ["ip 10.20.0.22/24 10.20.0.254", "ping 10.20.0.254"],
-            },
-            {"device_name": "PC4", "commands": ["ip 10.20.0.23/24 10.20.0.254"]},
-        ]
+        {
+            "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
+            "device_configs": [
+                {
+                    "device_name": "PC1",
+                    "commands": [
+                        "ip 10.10.0.12/24 10.10.0.254",
+                        "ping 10.10.0.254",
+                    ],
+                },
+                {
+                    "device_name": "PC2",
+                    "commands": ["ip 10.10.0.13/24 10.10.0.254"],
+                },
+                {
+                    "device_name": "PC3",
+                    "commands": [
+                        "ip 10.20.0.22/24 10.20.0.254",
+                        "ping 10.20.0.254",
+                    ],
+                },
+                {
+                    "device_name": "PC4",
+                    "commands": ["ip 10.20.0.23/24 10.20.0.254"],
+                },
+            ],
+        }
     )
 
     exe_cmd = VPCSMultiCommands()
