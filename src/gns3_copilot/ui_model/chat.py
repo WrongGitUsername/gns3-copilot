@@ -403,7 +403,7 @@ if selected_p:
                                                 autoplay=True,
                                             )
                                     except Exception as e:
-                                        logger.error("TTS Error: %", e)
+                                        logger.error("TTS Error: %s", e)
                                         st.error(f"TTS Error: {e}")
                                 # Get metadata (ID and name) from tool_calls
                                 if msg.tool_calls:
