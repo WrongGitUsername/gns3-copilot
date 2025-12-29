@@ -158,22 +158,23 @@ class TestOpenaiStt:
     @patch('gns3_copilot.public_model.openai_stt.OpenAI')
     def test_speech_to_text_bytes_input(self, mock_openai):
         """Test bytes array input"""
-        # Mock OpenAI client and response
-        mock_client = Mock()
-        mock_openai.return_value = mock_client
-        mock_response = Mock()
-        mock_response.model_dump.return_value = {"text": "Hello world"}
-        mock_client.audio.transcriptions.create.return_value = mock_response
+        with patch.dict(os.environ, {}, clear=True):
+            # Mock OpenAI client and response
+            mock_client = Mock()
+            mock_openai.return_value = mock_client
+            mock_response = Mock()
+            mock_response.model_dump.return_value = {"text": "Hello world"}
+            mock_client.audio.transcriptions.create.return_value = mock_response
 
-        audio_data = b"fake audio data"
-        result = speech_to_text(audio_data, response_format="json")
+            audio_data = b"fake audio data"
+            result = speech_to_text(audio_data, response_format="json")
 
-        assert result == "Hello world"
-        mock_openai.assert_called_once_with(
-            api_key="local-dummy",
-            base_url="http://127.0.0.1:8001/v1",  # Correct port matching .env configuration
-            timeout=60.0,
-        )
+            assert result == "Hello world"
+            mock_openai.assert_called_once_with(
+                api_key="local-dummy",
+                base_url="http://127.0.0.1:8001/v1",
+                timeout=60.0,
+            )
 
     @patch('gns3_copilot.public_model.openai_stt.OpenAI')
     def test_speech_to_text_file_input(self, mock_openai):
@@ -360,12 +361,13 @@ class TestOpenaiTts:
     @patch('gns3_copilot.public_model.openai_tts.OpenAI')
     def test_text_to_speech_api_error(self, mock_openai):
         """Test API call error"""
-        mock_client = Mock()
-        mock_openai.return_value = mock_client
-        mock_client.audio.speech.create.side_effect = Exception("TTS API Error")
+        with patch.dict(os.environ, {}, clear=True):
+            mock_client = Mock()
+            mock_openai.return_value = mock_client
+            mock_client.audio.speech.create.side_effect = Exception("TTS API Error")
 
-        with pytest.raises(Exception, match="TTS Error"):
-            text_to_speech_wav("test")
+            with pytest.raises(Exception, match="TTS Error"):
+                text_to_speech_wav("test")
 
     def test_get_duration_valid_wav(self):
         """Test getting valid WAV file duration"""

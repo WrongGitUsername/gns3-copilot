@@ -360,13 +360,15 @@ class TestLoadSystemPrompt:
     
     def test_load_system_prompt_with_level_param(self):
         """Test loading system prompt with level parameter."""
-        with patch('gns3_copilot.prompts.prompt_loader._load_regular_level_prompt') as mock_regular:
-            mock_regular.return_value = "Test prompt"
-            
-            prompt = load_system_prompt('B1')
-            
-            mock_regular.assert_called_once_with('B1')
-            assert prompt == "Test prompt"
+        # Ensure voice mode is disabled so it uses regular level prompt
+        with patch.dict(os.environ, {'VOICE': 'false'}):
+            with patch('gns3_copilot.prompts.prompt_loader._load_regular_level_prompt') as mock_regular:
+                mock_regular.return_value = "Test prompt"
+                
+                prompt = load_system_prompt('B1')
+                
+                mock_regular.assert_called_once_with('B1')
+                assert prompt == "Test prompt"
     
     @patch.dict(os.environ, {'VOICE': 'true'})
     def test_load_system_prompt_voice_with_level(self):
