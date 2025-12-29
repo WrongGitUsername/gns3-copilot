@@ -580,7 +580,7 @@ class TestGNS3ProjectCreateErrorHandling:
         """Test handling of network connection errors"""
         tool = GNS3ProjectCreate()
         
-        with patch('gns3_copilot.gns3_client.custom_gns3fy.Gns3Connector') as mock_connector_class:
+        with patch('gns3_copilot.gns3_client.gns3_project_create.Gns3Connector') as mock_connector_class:
             # Mock connector to raise connection error
             mock_connector_class.side_effect = Exception("Connection refused")
             
@@ -622,7 +622,7 @@ class TestGNS3ProjectCreateErrorHandling:
         """Test that exceptions are logged"""
         tool = GNS3ProjectCreate()
         
-        with patch('gns3_copilot.gns3_client.custom_gns3fy.Gns3Connector') as mock_connector_class:
+        with patch('gns3_copilot.gns3_client.gns3_project_create.Gns3Connector') as mock_connector_class:
             mock_connector_class.side_effect = Exception("Test error")
             
             result = tool._run(tool_input={"name": "test_project"})
@@ -638,7 +638,7 @@ class TestGNS3ProjectCreateErrorHandling:
         """Test handling of timeout errors"""
         tool = GNS3ProjectCreate()
         
-        with patch('gns3_copilot.gns3_client.custom_gns3fy.Gns3Connector') as mock_connector_class:
+        with patch('gns3_copilot.gns3_client.gns3_project_create.Gns3Connector') as mock_connector_class:
             mock_connector_class.side_effect = TimeoutError("Request timeout")
             
             result = tool._run(tool_input={"name": "test_project"})
