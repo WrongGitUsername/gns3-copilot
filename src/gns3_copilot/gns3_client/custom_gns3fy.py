@@ -164,7 +164,9 @@ class Gns3Connector:
         temp_session.headers["Content-Type"] = "application/json"
 
         try:
-            response = temp_session.post(auth_url, json=auth_data, verify=self.verify)
+            response = temp_session.post(
+                auth_url, json=auth_data, verify=self.verify, timeout=10.0
+            )
             if response.status_code == 200:
                 auth_result = response.json()
                 self.access_token = auth_result["access_token"]
@@ -235,6 +237,7 @@ class Gns3Connector:
             "headers": headers,
             "params": params,
             "verify": verify,
+            "timeout": 10.0,  # Fixed 10-second timeout for all GNS3 API requests
         }
         if data is not None:
             kwargs["data"] = data
