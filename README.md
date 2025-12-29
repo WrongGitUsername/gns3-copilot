@@ -32,6 +32,14 @@ GNS3 Copilot is a powerful network automation tool that integrates multiple AI m
 
 [Core Framework Detailed Design](Architecture/Core%20Framework%20Detailed%20Design.md)
 
+## Documentation
+
+- [FAQ](docs/FAQ.md) - Frequently asked questions and troubleshooting guide
+- [LLM Quick Configuration Guide](docs/llm-quick-configuration-guide.md) - Quick setup guide for LLM providers
+- [Manual Testing Guide](docs/manual_testing_guide.md) - Comprehensive manual testing instructions
+- [Auto Documentation Automation Guide](docs/auto-doc-automation-guide.md) - Automated documentation guide
+- [Packaging Guide](docs/packaging-guide.md) - Package distribution and release guide
+
 
 The Final Concept: Multi-Agent System Architecture and Dynamic Context Manager (Based on Current Understanding)
 

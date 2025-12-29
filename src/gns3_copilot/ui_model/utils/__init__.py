@@ -10,6 +10,7 @@ Modules:
     chat_helpers: Chat session management helper functions
     config_manager: Configuration loading and persistence to .env files
     gns3_checker: GNS3 server API connectivity validation
+    project_manager_ui: Project management UI components (create, select projects)
     update_ui: Application update checking and UI components
     updater: Core update logic (version checking, update execution)
 
@@ -38,13 +39,25 @@ from gns3_copilot.ui_model.utils.app_ui import (
     inject_chat_styles,
     render_sidebar_about,
 )
-from gns3_copilot.ui_model.utils.chat_helpers import new_session
+from gns3_copilot.ui_model.utils.chat_helpers import (
+    build_topology_iframe_url,
+    generate_topology_iframe_html,
+    new_session,
+)
 from gns3_copilot.ui_model.utils.config_manager import (
     ENV_FILE_PATH,
     load_config_from_env,
     save_config_to_env,
 )
 from gns3_copilot.ui_model.utils.gns3_checker import check_gns3_api
+from gns3_copilot.ui_model.utils.llm_providers import (
+    get_all_providers,
+    get_provider_config,
+)
+from gns3_copilot.ui_model.utils.project_manager_ui import (
+    render_create_project_form,
+    render_project_cards,
+)
 from gns3_copilot.ui_model.utils.update_ui import (
     check_startup_updates,
     render_startup_update_result,
@@ -62,8 +75,16 @@ __all__ = [
     "ENV_FILE_PATH",
     # GNS3 Checker
     "check_gns3_api",
+    # LLM Providers
+    "get_all_providers",
+    "get_provider_config",
     # Chat Helpers
     "new_session",
+    "build_topology_iframe_url",
+    "generate_topology_iframe_html",
+    # Project Manager UI
+    "render_create_project_form",
+    "render_project_cards",
     # App UI
     "render_sidebar_about",
     "initialize_page_config",

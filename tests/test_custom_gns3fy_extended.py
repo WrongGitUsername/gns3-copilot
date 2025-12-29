@@ -1836,7 +1836,8 @@ class TestErrorHandlingExtended:
             data="some data",
             headers=None,
             params=None,
-            verify=False
+            verify=False,
+            timeout=10.0  # Fixed timeout in implementation
         )
 
     def test_http_call_neither_data_nor_json(self):
