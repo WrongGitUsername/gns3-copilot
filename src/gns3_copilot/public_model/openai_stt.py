@@ -30,7 +30,7 @@ def get_stt_config() -> dict[str, Any]:
         "model": os.getenv("STT_MODEL", "whisper-1"),
         "language": os.getenv("STT_LANGUAGE", None),
         "temperature": float(os.getenv("STT_TEMPERATURE", "0.0")),
-        "response_format": os.getenv("STT_RESPONSE_FORMAT", "json"),
+        "response_format": "json",  # Fixed to json format
     }
 
 
@@ -44,9 +44,12 @@ def speech_to_text(
     timestamp_granularities: list[Literal["word", "segment"]] | None = None,
     api_key: str | None = None,
     base_url: str | None = None,
-) -> str | dict[str, Any]:
+) -> str:
     """
     Transcribe audio to text using OpenAI Whisper API.
+    
+    Returns:
+        str: The transcribed text (always in JSON format)
     """
     # Log received input parameters (excluding sensitive data)
     logger.info(
@@ -61,9 +64,8 @@ def speech_to_text(
 
     # Determine specific type to avoid Optional
     f_model: str = model if model is not None else str(config["model"])
-    f_response_format: Any = (
-        response_format if response_format is not None else config["response_format"]
-    )
+    # Always use json format for response
+    f_response_format: str = "json"
     f_temperature: float = (
         temperature if temperature is not None else float(config["temperature"])
     )
@@ -112,24 +114,17 @@ def speech_to_text(
             timestamp_granularities=cast(Any, timestamp_granularities or NOT_GIVEN),
         )
 
-        # Explicitly handle response type to resolve unreachable and no-any-return
+        # Always return text string from JSON response
         if isinstance(response, str):
-            return response
-
-        # For Pydantic model objects
-        if hasattr(response, "model_dump"):
+            result = response
+        elif hasattr(response, "model_dump"):
             data = cast(dict[str, Any], response.model_dump())
-            if f_response_format == "json":
-                result: str | dict[str, Any] = str(data.get("text", ""))
-            else:
-                result = data
+            result = str(data.get("text", ""))
         else:
             result = str(response)
 
         # Log result
-        logger.info(
-            "STT result: %s", result[:500] if isinstance(result, str) else result
-        )
+        logger.info("STT result: %s", result[:500])
 
         return result
 
@@ -142,7 +137,7 @@ def speech_to_text_simple(audio_data: bytes | BinaryIO, **kwargs: Any) -> str:
     """
     Simplified version that always returns a plain transcription string.
     """
-    result = speech_to_text(audio_data=audio_data, response_format="text", **kwargs)
+    result = speech_to_text(audio_data=audio_data, **kwargs)
     return str(result)
 
 
