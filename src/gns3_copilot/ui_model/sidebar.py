@@ -99,7 +99,7 @@ def render_sidebar(
         new_zoom = st.slider(
             "Zoom Scale",
             min_value=0.5,
-            max_value=1.0,
+            max_value=1.2,
             value=current_zoom,
             step=0.05,
             help="Adjust the zoom scale for GNS3 topology view",
