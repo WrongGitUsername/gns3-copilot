@@ -132,7 +132,7 @@ def generate_topology_iframe_html(
             height: {container_height}px;
             overflow: auto;
             border: none;
-            
+
             /* Use Flexbox to center the iframe vertically and horizontally */
             display: flex;
             align-items: center;
