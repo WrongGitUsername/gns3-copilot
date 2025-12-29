@@ -50,6 +50,10 @@ from gns3_copilot.ui_model.utils.config_manager import (
     save_config_to_env,
 )
 from gns3_copilot.ui_model.utils.gns3_checker import check_gns3_api
+from gns3_copilot.ui_model.utils.llm_providers import (
+    get_all_providers,
+    get_provider_config,
+)
 from gns3_copilot.ui_model.utils.project_manager_ui import (
     render_create_project_form,
     render_project_cards,
@@ -71,6 +75,9 @@ __all__ = [
     "ENV_FILE_PATH",
     # GNS3 Checker
     "check_gns3_api",
+    # LLM Providers
+    "get_all_providers",
+    "get_provider_config",
     # Chat Helpers
     "new_session",
     "build_topology_iframe_url",

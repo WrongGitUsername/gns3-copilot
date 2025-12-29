@@ -20,6 +20,8 @@ from gns3_copilot.log_config import setup_logger
 from gns3_copilot.ui_model.utils import (
     ENV_FILE_PATH,
     check_gns3_api,
+    get_all_providers,
+    get_provider_config,
     render_update_settings,
     save_config_to_env,
 )
@@ -96,12 +98,61 @@ with st.container(width=800, horizontal_alignment="center", vertical_alignment="
             check_gns3_api()
 
     with st.expander("LLM Model Configuration", expanded=True):
+        # Provider selector and model selector side-by-side
+        col1, col2 = st.columns([1, 2])
+
+        with col1:
+            # Provider selector with custom option
+            all_providers = get_all_providers()
+            selected_provider_preset = st.selectbox(
+                "Select LLM Provider",
+                ["Custom"] + all_providers,
+                help="Choose a predefined provider for automatic configuration",
+            )
+
+        with col2:
+            # Model selector - only show when provider is not Custom
+            if selected_provider_preset != "Custom":
+                provider_config = get_provider_config(selected_provider_preset)
+                if provider_config:
+                    model_options = provider_config.models + ["Custom model name..."]
+
+                    selected_model = st.selectbox(
+                        "Model Name *",
+                        model_options,
+                        help="Select a predefined model or choose custom to enter manually",
+                    )
+
+                    if selected_model == "Custom model name...":
+                        # Show custom input field
+                        custom_model = st.text_input(
+                            "Enter Custom Model Name",
+                            key="CUSTOM_MODEL_NAME",
+                            value=st.session_state.get("MODEL_NAME", ""),
+                            placeholder="e.g., custom-model-name",
+                            help="Enter the exact model name as required by the provider",
+                        )
+                        st.session_state["MODEL_NAME"] = custom_model
+                    else:
+                        # Set the selected model
+                        st.session_state["MODEL_NAME"] = selected_model
+
+        # Apply preset configuration only when provider is not Custom
+        if selected_provider_preset != "Custom":
+            provider_config = get_provider_config(selected_provider_preset)
+            if provider_config:
+                # Auto-fill provider type
+                st.session_state["MODE_PROVIDER"] = provider_config.provider
+                # Auto-fill base URL
+                st.session_state["BASE_URL"] = provider_config.base_url
+        st.markdown("---")
+        # Manual Configuration Section (always available)
         col1, col2, col3 = st.columns([1, 2, 1])
 
         with col1:
             # LLM Model Provider
             st.text_input(
-                "Model Provider *",  # Updated to use * for required field
+                "Model Provider *",
                 key="MODE_PROVIDER",
                 value=st.session_state.get("MODE_PROVIDER", ""),
                 type="default",
@@ -127,13 +178,13 @@ with st.container(width=800, horizontal_alignment="center", vertical_alignment="
                 value=st.session_state.get("MODEL_NAME", ""),
                 type="default",
                 help="""
-    The name or ID of the model, e.g. 'o3-mini', 'claude-sonnet-4-5-20250929', 'deepseek-caht'.
+    The name or ID of the model, e.g. 'o3-mini', 'claude-sonnet-4-5-20250929', 'deepseek-chat'.
 
     If using the OpenRouter platform,
     please enter the model name in the OpenRouter format,
     e.g.: 'openai/gpt-4o-mini', 'x-ai/grok-4-fast'.
                 """,
-                placeholder="e.g. 'o3-mini', 'claude-sonnet-4-5-20250929', 'deepseek-caht'",
+                placeholder="e.g. 'o3-mini', 'claude-sonnet-4-5-20250929', 'deepseek-chat'",
             )
 
         with col3:
@@ -354,8 +405,8 @@ with st.container(width=800, horizontal_alignment="center", vertical_alignment="
                     """,
                 )
         else:
-            st.info(
-                "💡 **Voice features are currently disabled.** Enable the toggle above to configure TTS/STT settings."
+            st.caption(
+                "💡 Voice features are currently disabled. Enable the toggle above to configure TTS/STT settings."
             )
 
     with st.expander("Other Settings", expanded=True):
