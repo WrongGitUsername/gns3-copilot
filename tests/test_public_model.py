@@ -136,7 +136,6 @@ class TestOpenaiStt:
             "STT_MODEL": "whisper-2",
             "STT_LANGUAGE": "zh",
             "STT_TEMPERATURE": "0.5",
-            "STT_RESPONSE_FORMAT": "text",
         }
         with patch.dict(os.environ, env_vars, clear=True):
             config = get_stt_config()
@@ -146,7 +145,7 @@ class TestOpenaiStt:
                 "model": "whisper-2",
                 "language": "zh",
                 "temperature": 0.5,
-                "response_format": "text",
+                "response_format": "json",  # Fixed to "json" as per implementation
             }
             assert config == expected
 
@@ -230,9 +229,9 @@ class TestOpenaiStt:
         result = speech_to_text_simple(audio_data)
         
         assert result == "Simple result"
+        # speech_to_text_simple just passes kwargs, doesn't set response_format
         mock_speech_to_text.assert_called_once_with(
-            audio_data=audio_data,
-            response_format="text"
+            audio_data=audio_data
         )
 
     def test_default_gns3_prompt(self):

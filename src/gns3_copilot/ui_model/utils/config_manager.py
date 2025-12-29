@@ -166,7 +166,6 @@ def load_config_from_env() -> None:
             logger.debug("Loaded config: %s = %s", st_key, default_value)
             continue  # Skip the generic assignment below
 
-
         # Special handling for TEMPERATURE (Ensure default is a number or empty string)
         if st_key == "TEMPERATURE" and not default_value.replace(".", "", 1).isdigit():
             # Provide a reasonable default value if not set or invalid

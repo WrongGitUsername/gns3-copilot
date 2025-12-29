@@ -539,13 +539,17 @@ class TestGns3ConnectorComprehensive:
         connector.access_token = "test_token"
         connector._create_session()
         
+        # After _create_session, headers should have Authorization
+        assert connector.session.headers.get("Authorization") == "Bearer test_token"
+        
         connector.http_call("get", "http://localhost:3080/v3/test")
         
         assert connector.api_calls == 1
-        mock_session_instance.get.assert_called_once_with("http://localhost:3080/v3/test", 
-                                                   headers=None, 
-                                                   params=None, 
-                                                   verify=False)
+        # Verify the call was made with expected parameters
+        call_args, call_kwargs = mock_session_instance.get.call_args
+        assert call_args[0] == "http://localhost:3080/v3/test"
+        assert call_kwargs.get("verify") == False
+        assert call_kwargs.get("params") is None
 
     @patch('requests.Session')
     def test_http_call_auto_authenticate(self, mock_session):

@@ -47,7 +47,7 @@ def speech_to_text(
 ) -> str:
     """
     Transcribe audio to text using OpenAI Whisper API.
-    
+
     Returns:
         str: The transcribed text (always in JSON format)
     """
@@ -105,21 +105,20 @@ def speech_to_text(
         )
 
         response = client.audio.transcriptions.create(
-            file=(file_name, audio_file),
+            file=cast(tuple[str, IO[bytes]], (file_name, audio_file)),
             model=f_model,
             language=cast(Any, f_language or NOT_GIVEN),
             prompt=cast(Any, prompt or NOT_GIVEN),
-            response_format=f_response_format,
+            response_format=cast(Literal["json"], f_response_format),
             temperature=f_temperature,
             timestamp_granularities=cast(Any, timestamp_granularities or NOT_GIVEN),
         )
 
         # Always return text string from JSON response
-        if isinstance(response, str):
-            result = response
-        elif hasattr(response, "model_dump"):
-            data = cast(dict[str, Any], response.model_dump())
-            result = str(data.get("text", ""))
+        # With response_format="json", response is always a Transcription object
+        if hasattr(response, "model_dump"):
+            data = response.model_dump()
+            result: str = str(data.get("text", ""))
         else:
             result = str(response)
 
