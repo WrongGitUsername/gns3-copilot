@@ -56,36 +56,36 @@ def render_create_project_form() -> None:
                     "Scene Height", value=1000, min_value=500, max_value=5000
                 )
 
-        col_create, col_cancel = st.columns(2)
-        with col_create:
-            if st.button("Create", type="primary", key="btn_create_project"):
-                if new_name and new_name.strip():
-                    # Build project parameters
-                    params: dict[str, Any] = {"name": new_name.strip()}
-                    if auto_start:
-                        params["auto_start"] = True
-                    if auto_close:
-                        params["auto_close"] = True
-                    if auto_open:
-                        params["auto_open"] = True
-                    params["scene_width"] = scene_width
-                    params["scene_height"] = scene_height
+        if st.button(
+            ":material/add_circle:",
+            key="btn_create_project",
+            type="primary",
+            help="Create Project",
+        ):
+            if new_name and new_name.strip():
+                # Build project parameters
+                params: dict[str, Any] = {"name": new_name.strip()}
+                if auto_start:
+                    params["auto_start"] = True
+                if auto_close:
+                    params["auto_close"] = True
+                if auto_open:
+                    params["auto_open"] = True
+                params["scene_width"] = scene_width
+                params["scene_height"] = scene_height
 
-                    # Call GNS3ProjectCreate tool
-                    create_tool = GNS3ProjectCreate()
-                    result = create_tool._run(params)
+                # Call GNS3ProjectCreate tool
+                create_tool = GNS3ProjectCreate()
+                result = create_tool._run(params)
 
-                    if result.get("success"):
-                        st.success(f"Project '{new_name}' created successfully!")
-                        sleep(1)
-                        st.rerun()
-                    else:
-                        st.error(f"Failed to create project: {result.get('error')}")
+                if result.get("success"):
+                    st.success(f"Project '{new_name}' created successfully!")
+                    sleep(1)
+                    st.rerun()
                 else:
-                    st.warning("Please enter a project name.")
-        with col_cancel:
-            if st.button("Clear", key="btn_clear_project"):
-                st.rerun()
+                    st.error(f"Failed to create project: {result.get('error')}")
+            else:
+                st.warning("Please enter a project name.")
 
 
 def render_project_cards(
@@ -126,11 +126,6 @@ def render_project_cards(
                     st.caption(f"ID: {p_id[:8]}")
                     # Display device and link information
                     st.write(f"{dev_count} Devices | {link_count} Links")
-                    # Dynamic status text display
-                    if is_opened:
-                        st.success(f"Status: {status.upper()}")
-                    else:
-                        st.warning(f"Status: {status.upper()} (Unavailable)")
                     # --- Button logic ---
                     # Show different buttons based on project status
                     if is_opened:
@@ -150,7 +145,7 @@ def render_project_cards(
                                 else:
                                     # New session: store in temp storage
                                     st.session_state["temp_selected_project"] = p
-                                st.success(f"Project {name} has been selected!")
+                                st.toast(f"Project {name} selected!")
                                 st.rerun()
                         with col_btn2:
                             if st.button(
@@ -166,7 +161,7 @@ def render_project_cards(
                                 )
 
                                 if result.get("success"):
-                                    st.success(f"Project {name} closed successfully!")
+                                    st.toast(f"Project {name} closed!")
                                     # Wait a moment and refresh to update project status
                                     sleep(1)
                                     st.rerun()
@@ -201,9 +196,6 @@ def render_project_cards(
                                     delete_tool = GNS3ProjectDelete()
                                     result = delete_tool._run({"project_id": p_id})
                                     if result.get("success"):
-                                        st.success(
-                                            f"Project '{name}' deleted successfully!"
-                                        )
                                         st.session_state.pop(
                                             "delete_confirmation_project", None
                                         )
@@ -240,7 +232,7 @@ def render_project_cards(
                                     {"project_id": p_id, "open": True}
                                 )
                                 if result.get("success"):
-                                    st.success(f"Project {name} opened successfully!")
+                                    st.toast(f"Project {name} opened!")
                                     # Wait a moment and refresh to update project status
                                     sleep(1)
                                     st.rerun()
@@ -275,9 +267,6 @@ def render_project_cards(
                                     delete_tool = GNS3ProjectDelete()
                                     result = delete_tool._run({"project_id": p_id})
                                     if result.get("success"):
-                                        st.success(
-                                            f"Project '{name}' deleted successfully!"
-                                        )
                                         st.session_state.pop(
                                             "delete_confirmation_project", None
                                         )

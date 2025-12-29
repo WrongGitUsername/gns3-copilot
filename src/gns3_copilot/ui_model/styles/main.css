@@ -96,3 +96,46 @@ iframe[title="st.iframe"] {
     font-size: 14px !important;
     margin: 0 !important;
 }
+
+/* ============================================
+   Success/Error/Warning/Info Messages Font Size
+   ============================================ */
+
+/* Alert container - reduce overall height */
+[data-testid="stAlert"] {
+    margin: 0.25rem 0 !important;
+    padding: 0.5rem 1rem !important;
+}
+
+/* Alert content container - reduce padding */
+[data-testid="stAlertContainer"] {
+    padding: 0.5rem 1rem !important;
+    min-height: auto !important;
+}
+
+/* Target alert markdown container for all message types */
+[data-testid="stAlert"] [data-testid="stMarkdownContainer"] {
+    font-size: 14px !important;
+    padding: 0.25rem 0 !important;
+    line-height: 1.4 !important;
+}
+
+/* Success message specific */
+[data-testid="stAlertContentSuccess"] [data-testid="stMarkdownContainer"] {
+    font-size: 14px !important;
+}
+
+/* Warning message specific */
+[data-testid="stAlertContentWarning"] [data-testid="stMarkdownContainer"] {
+    font-size: 14px !important;
+}
+
+/* Error message specific */
+[data-testid="stAlertContentError"] [data-testid="stMarkdownContainer"] {
+    font-size: 14px !important;
+}
+
+/* Info message specific */
+[data-testid="stAlertContentInfo"] [data-testid="stMarkdownContainer"] {
+    font-size: 14px !important;
+}
