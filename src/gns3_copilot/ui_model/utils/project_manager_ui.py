@@ -17,6 +17,7 @@ import streamlit as st
 from gns3_copilot.agent import agent
 from gns3_copilot.gns3_client import (
     GNS3ProjectCreate,
+    GNS3ProjectDelete,
     GNS3ProjectOpen,
 )
 from gns3_copilot.log_config import setup_logger
@@ -55,36 +56,36 @@ def render_create_project_form() -> None:
                     "Scene Height", value=1000, min_value=500, max_value=5000
                 )
 
-        col_create, col_cancel = st.columns(2)
-        with col_create:
-            if st.button("Create", type="primary", key="btn_create_project"):
-                if new_name and new_name.strip():
-                    # Build project parameters
-                    params: dict[str, Any] = {"name": new_name.strip()}
-                    if auto_start:
-                        params["auto_start"] = True
-                    if auto_close:
-                        params["auto_close"] = True
-                    if auto_open:
-                        params["auto_open"] = True
-                    params["scene_width"] = scene_width
-                    params["scene_height"] = scene_height
+        if st.button(
+            ":material/add_circle:",
+            key="btn_create_project",
+            type="primary",
+            help="Create Project",
+        ):
+            if new_name and new_name.strip():
+                # Build project parameters
+                params: dict[str, Any] = {"name": new_name.strip()}
+                if auto_start:
+                    params["auto_start"] = True
+                if auto_close:
+                    params["auto_close"] = True
+                if auto_open:
+                    params["auto_open"] = True
+                params["scene_width"] = scene_width
+                params["scene_height"] = scene_height
 
-                    # Call GNS3ProjectCreate tool
-                    create_tool = GNS3ProjectCreate()
-                    result = create_tool._run(params)
+                # Call GNS3ProjectCreate tool
+                create_tool = GNS3ProjectCreate()
+                result = create_tool._run(params)
 
-                    if result.get("success"):
-                        st.success(f"Project '{new_name}' created successfully!")
-                        sleep(1)
-                        st.rerun()
-                    else:
-                        st.error(f"Failed to create project: {result.get('error')}")
+                if result.get("success"):
+                    st.success(f"Project '{new_name}' created successfully!")
+                    sleep(1)
+                    st.rerun()
                 else:
-                    st.warning("Please enter a project name.")
-        with col_cancel:
-            if st.button("Clear", key="btn_clear_project"):
-                st.rerun()
+                    st.error(f"Failed to create project: {result.get('error')}")
+            else:
+                st.warning("Please enter a project name.")
 
 
 def render_project_cards(
@@ -125,22 +126,18 @@ def render_project_cards(
                     st.caption(f"ID: {p_id[:8]}")
                     # Display device and link information
                     st.write(f"{dev_count} Devices | {link_count} Links")
-                    # Dynamic status text display
-                    if is_opened:
-                        st.success(f"Status: {status.upper()}")
-                    else:
-                        st.warning(f"Status: {status.upper()} (Unavailable)")
                     # --- Button logic ---
                     # Show different buttons based on project status
                     if is_opened:
-                        # Opened project: show Select Project and Close Project buttons
-                        col_btn1, col_btn2 = st.columns(2)
+                        # Opened project: show Select Project, Close Project, and Delete Project buttons
+                        col_btn1, col_btn2, col_btn3 = st.columns(3)
                         with col_btn1:
                             if st.button(
-                                "Select Project",
+                                ":material/select_all:",
                                 key=f"btn_select_{p_id}",
                                 use_container_width=True,
                                 type="primary",
+                                help="Select Project",
                             ):
                                 if selected_thread_id:
                                     # Historical session: update agent state
@@ -148,14 +145,15 @@ def render_project_cards(
                                 else:
                                     # New session: store in temp storage
                                     st.session_state["temp_selected_project"] = p
-                                st.success(f"Project {name} has been selected!")
+                                st.toast(f"Project {name} selected!")
                                 st.rerun()
                         with col_btn2:
                             if st.button(
-                                "Close Project",
+                                ":material/close:",
                                 key=f"btn_close_{p_id}",
                                 use_container_width=True,
                                 type="secondary",
+                                help="Close Project",
                             ):
                                 close_tool = GNS3ProjectOpen()
                                 result = close_tool._run(
@@ -163,7 +161,7 @@ def render_project_cards(
                                 )
 
                                 if result.get("success"):
-                                    st.success(f"Project {name} closed successfully!")
+                                    st.toast(f"Project {name} closed!")
                                     # Wait a moment and refresh to update project status
                                     sleep(1)
                                     st.rerun()
@@ -171,22 +169,121 @@ def render_project_cards(
                                     st.error(
                                         f"Failed to close project {name}: {result.get('error', 'Unknown error')}"
                                     )
-                    else:
-                        # Closed project: show Open Project button
-                        if st.button(
-                            "Open Project",
-                            key=f"btn_open_{p_id}",
-                            use_container_width=True,
-                            type="secondary",
-                        ):
-                            open_tool = GNS3ProjectOpen()
-                            result = open_tool._run({"project_id": p_id, "open": True})
-                            if result.get("success"):
-                                st.success(f"Project {name} opened successfully!")
-                                # Wait a moment and refresh to update project status
-                                sleep(1)
+                        with col_btn3:
+                            if st.button(
+                                ":material/delete:",
+                                key=f"btn_delete_{p_id}",
+                                use_container_width=True,
+                                help="Delete Project",
+                            ):
+                                # Store project info for confirmation
+                                st.session_state["delete_confirmation_project"] = p
                                 st.rerun()
-                            else:
-                                st.error(
-                                    f"Failed to open project {name}: {result.get('error', 'Unknown error')}"
+                        # Show confirmation dialog if needed
+                        if st.session_state.get("delete_confirmation_project") == p:
+                            st.warning(
+                                f"Are you sure you want to delete project '{name}'? This action cannot be undone!"
+                            )
+                            col_confirm, col_cancel = st.columns(2)
+                            with col_confirm:
+                                if st.button(
+                                    ":material/check_circle:",
+                                    key=f"btn_confirm_delete_{p_id}",
+                                    type="primary",
+                                    use_container_width=True,
+                                    help="Confirm",
+                                ):
+                                    delete_tool = GNS3ProjectDelete()
+                                    result = delete_tool._run({"project_id": p_id})
+                                    if result.get("success"):
+                                        st.session_state.pop(
+                                            "delete_confirmation_project", None
+                                        )
+                                        sleep(1)
+                                        st.rerun()
+                                    else:
+                                        st.error(
+                                            f"Failed to delete project '{name}': {result.get('error', 'Unknown error')}"
+                                        )
+                            with col_cancel:
+                                if st.button(
+                                    ":material/cancel:",
+                                    key=f"btn_cancel_delete_{p_id}",
+                                    use_container_width=True,
+                                    help="Cancel",
+                                ):
+                                    st.session_state.pop(
+                                        "delete_confirmation_project", None
+                                    )
+                                    st.rerun()
+                    else:
+                        # Closed project: show Open Project and Delete Project buttons
+                        col_btn1, col_btn2 = st.columns(2)
+                        with col_btn1:
+                            if st.button(
+                                ":material/open_in_new:",
+                                key=f"btn_open_{p_id}",
+                                use_container_width=True,
+                                type="secondary",
+                                help="Open Project",
+                            ):
+                                open_tool = GNS3ProjectOpen()
+                                result = open_tool._run(
+                                    {"project_id": p_id, "open": True}
                                 )
+                                if result.get("success"):
+                                    st.toast(f"Project {name} opened!")
+                                    # Wait a moment and refresh to update project status
+                                    sleep(1)
+                                    st.rerun()
+                                else:
+                                    st.error(
+                                        f"Failed to open project {name}: {result.get('error', 'Unknown error')}"
+                                    )
+                        with col_btn2:
+                            if st.button(
+                                ":material/delete:",
+                                key=f"btn_delete_{p_id}",
+                                use_container_width=True,
+                                help="Delete Project",
+                            ):
+                                # Store project info for confirmation
+                                st.session_state["delete_confirmation_project"] = p
+                                st.rerun()
+                        # Show confirmation dialog if needed
+                        if st.session_state.get("delete_confirmation_project") == p:
+                            st.warning(
+                                f"Are you sure you want to delete project '{name}'? This action cannot be undone!"
+                            )
+                            col_confirm, col_cancel = st.columns(2)
+                            with col_confirm:
+                                if st.button(
+                                    ":material/check_circle:",
+                                    key=f"btn_confirm_delete_{p_id}",
+                                    type="primary",
+                                    use_container_width=True,
+                                    help="Confirm",
+                                ):
+                                    delete_tool = GNS3ProjectDelete()
+                                    result = delete_tool._run({"project_id": p_id})
+                                    if result.get("success"):
+                                        st.session_state.pop(
+                                            "delete_confirmation_project", None
+                                        )
+                                        sleep(1)
+                                        st.rerun()
+                                    else:
+                                        st.error(
+                                            f"Failed to delete project '{name}': {result.get('error', 'Unknown error')}"
+                                        )
+                            with col_cancel:
+                                if st.button(
+                                    ":material/cancel:",
+                                    key=f"btn_cancel_delete_{p_id}",
+                                    use_container_width=True,
+                                    help="Cancel",
+                                ):
+                                    st.session_state.pop(
+                                        "delete_confirmation_project", None
+                                    )
+                                    st.rerun()

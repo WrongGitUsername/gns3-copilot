@@ -263,7 +263,7 @@ def load_config_from_env() -> None:
         if st_key == "zoom_scale_topology":
             try:
                 zoom_float = float(default_value) if default_value else 0.8
-                if not (0.5 <= zoom_float <= 1.0):
+                if not (0.5 <= zoom_float <= 1.2):
                     logger.debug(
                         "Invalid zoom_scale_topology value: %s, setting to default 0.8",
                         default_value,

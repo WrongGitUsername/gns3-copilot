@@ -131,20 +131,20 @@ def generate_topology_iframe_html(
             width: 100%;
             height: {container_height}px;
             overflow: auto;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background: #f9f9f9;
+            border: none;
+
+            /* Use Flexbox to center the iframe vertically and horizontally */
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }}
 
         .iframe-scroll-container iframe {{
             width: {iframe_width}px;
             height: {iframe_height}px;
             border: none;
-            display: block;
             /* Use zoom instead of transform to keep coordinate system correct */
             zoom: {zoom_scale};
-            /* Or use this alternative syntax */
-            /* zoom: 80%; */
         }}
     </style>
 
