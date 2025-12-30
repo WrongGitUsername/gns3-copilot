@@ -44,6 +44,7 @@ import streamlit as st
 from gns3_copilot.agent import agent, langgraph_checkpointer, list_thread_ids
 from gns3_copilot.log_config import setup_logger
 from gns3_copilot.ui_model.utils import new_session, save_config_to_env
+from gns3_copilot import __version__
 
 logger = setup_logger("chat")
 
@@ -200,8 +201,8 @@ def render_sidebar_about() -> None:
         st.markdown("---")
         st.markdown("### About")
         st.markdown(
-            """
-            **GNS3 Copilot** is an AI-powered network engineering assistant
+            f"""
+            **GNS3 Copilot** {__version__} is an AI-powered network engineering assistant
             designed to help you with GNS3 network simulation tasks.
 
             📖 [Documentation](https://github.com/yueguobin/gns3-copilot)
