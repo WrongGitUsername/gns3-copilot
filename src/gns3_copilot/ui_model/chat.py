@@ -129,18 +129,8 @@ if not selected_p:
         if st.button("Refresh List"):
             st.rerun()
 else:
-    # Top status bar logic
+    # Top status bar - Show current project name
     st.sidebar.success(f"Current Project: **{selected_p[0]}**")
-    if st.sidebar.button("Switch Project / Exit"):
-        if selected_thread_id:
-            # Historical session: update agent state
-            agent.update_state(config, {"selected_project": None})
-        else:
-            # New session: clear temp storage
-            st.session_state["temp_selected_project"] = None
-        # Clear chat history from session state
-        st.session_state["state_history"] = None
-        st.rerun()
 
 # --- Main workspace (only visible when a project is selected) ---
 if selected_p:

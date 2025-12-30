@@ -147,6 +147,8 @@ def llm_call(state: dict):
             f"Link_Number={selected_p[3]}, "
             f"Status={selected_p[4]}"
         )
+        logger.debug("Project info for LLM context: %s", project_info)
+
         context_messages.append(
             SystemMessage(content=f"Current Context: {project_info}")
         )
