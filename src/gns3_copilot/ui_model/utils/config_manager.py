@@ -342,4 +342,4 @@ def save_config_to_env() -> None:
     )
     st.success("Configuration successfully saved to the .env file!")
     st.session_state["_config_loaded"] = False
-    st.rerun()
+    st.session_state["_needs_rerun"] = True

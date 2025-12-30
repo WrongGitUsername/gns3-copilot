@@ -462,6 +462,11 @@ with st.container(width=800, horizontal_alignment="center", vertical_alignment="
 
     if ENV_FILE_PATH:
         st.button("Save Settings to .env", on_click=save_config_to_env)
+
+        # Check if rerun is needed after callback execution
+        if st.session_state.get("_needs_rerun", False):
+            st.session_state["_needs_rerun"] = False
+            st.rerun()
     else:
         # Cannot find or create the .env file, so the save button is disabled.
         st.error(
