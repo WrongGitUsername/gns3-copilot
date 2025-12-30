@@ -41,10 +41,10 @@ from typing import Any
 
 import streamlit as st
 
+from gns3_copilot import __version__
 from gns3_copilot.agent import agent, langgraph_checkpointer, list_thread_ids
 from gns3_copilot.log_config import setup_logger
 from gns3_copilot.ui_model.utils import new_session, save_config_to_env
-from gns3_copilot import __version__
 
 logger = setup_logger("chat")
 
