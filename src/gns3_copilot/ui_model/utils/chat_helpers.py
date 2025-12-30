@@ -30,7 +30,7 @@ def new_session(session_options: list[tuple[str, str | None]]) -> None:
     Create a new chat session by generating a unique thread ID and resetting session state.
 
     Initializes a fresh conversation session with a new UUID, clears existing session data,
-    and resets the UI session selector to the default option.
+    resets project selection, and resets the UI session selector to the default option.
 
     Args:
         session_options: List of tuples containing session display names and thread IDs.
@@ -38,13 +38,15 @@ def new_session(session_options: list[tuple[str, str | None]]) -> None:
 
     Side Effects:
         - Updates st.session_state with new thread_id
-        - Clears current_thread_id and state_history
+        - Clears current_thread_id, state_history, and temp_selected_project
         - Resets session_select to default option (session_options[0])
         - Logs session creation
     """
     new_tid = str(uuid.uuid4())
     # Real new thread id
     st.session_state["thread_id"] = new_tid
+    # Clear selected_project from temp storage
+    st.session_state["temp_selected_project"] = None
     # Clear your own state
     st.session_state["current_thread_id"] = None
     st.session_state["state_history"] = None
