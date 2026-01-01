@@ -87,7 +87,6 @@ dependencies = [
     
     # Web UI
     "streamlit>=1.32.0",
-    "streamlit-ace>=0.1.1",
 ]
 
 [project.optional-dependencies]

@@ -35,6 +35,7 @@ from .custom_gns3fy import (
     Node,
     Project,
 )
+from .gns3_file_index import add_file_to_index, get_file_list
 from .gns3_project_create import GNS3ProjectCreate
 from .gns3_project_delete import GNS3ProjectDelete
 from .gns3_project_list_files import GNS3ProjectListFilesTool
@@ -77,4 +78,6 @@ __all__ = [
     "GNS3ProjectWriteFileTool",
     "GNS3ProjectListFilesTool",
     "get_gns3_connector",
+    "add_file_to_index",
+    "get_file_list",
 ]
