@@ -19,6 +19,7 @@ from gns3_copilot.ui_model.utils import (
 
 NAV_PAGES = [
     "ui_model/chat.py",
+    "ui_model/notes.py",
     "ui_model/settings.py",
     "ui_model/help.py",
 ]
