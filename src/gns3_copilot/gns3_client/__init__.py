@@ -11,8 +11,12 @@ Main classes:
 - Node: GNS3 Node management
 - Link: GNS3 Link management
 - GNS3TopologyTool: GNS3 topology reading tool
+
+Main functions:
+- get_gns3_connector: Factory function to create Gns3Connector from environment
 """
 
+from .connector_factory import get_gns3_connector
 from .custom_gns3fy import (
     CONSOLE_TYPES,
     LINK_TYPES,
@@ -22,9 +26,15 @@ from .custom_gns3fy import (
     Node,
     Project,
 )
+from .gns3_notes_manager import (
+    GNS3NotesManager,
+    NoteInfo,
+    NotesIndex,
+)
 from .gns3_project_create import GNS3ProjectCreate
 from .gns3_project_delete import GNS3ProjectDelete
 from .gns3_project_open import GNS3ProjectOpen
+from .gns3_project_path import GNS3ProjectPath
 from .gns3_project_update import GNS3ProjectUpdate
 from .gns3_projects_list import GNS3ProjectList
 from .gns3_topology_reader import GNS3TopologyTool
@@ -52,7 +62,12 @@ __all__ = [
     "GNS3TopologyTool",
     "GNS3ProjectList",
     "GNS3ProjectOpen",
+    "GNS3ProjectPath",
     "GNS3ProjectCreate",
     "GNS3ProjectDelete",
     "GNS3ProjectUpdate",
+    "GNS3NotesManager",
+    "NoteInfo",
+    "NotesIndex",
+    "get_gns3_connector",
 ]

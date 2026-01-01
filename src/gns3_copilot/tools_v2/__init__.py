@@ -7,6 +7,7 @@ This package provides various tools for interacting with GNS3 network simulator,
 - Multiple device command execution using Nornir
 - VPCS device configuration using telnetlib3
 - Node and link management
+- Notes management
 
 Main modules:
 - config_tools_nornir: Multiple device configuration command execution tool using Nornir
@@ -17,6 +18,7 @@ Main modules:
 - gns3_start_node: GNS3 node startup tool
 - gns3_get_node_temp: GNS3 template retrieval tool
 - linux_tools_nornir: Linux Telnet batch command execution tool using Nornir
+- gns3_notes_tools: GNS3 notes management tools (list, read, write, delete)
 
 Note: GNS3TopologyTool is now available from gns3_client package
 
@@ -29,6 +31,7 @@ from .display_tools_nornir import ExecuteMultipleDeviceCommands
 from .gns3_create_link import GNS3LinkTool
 from .gns3_create_node import GNS3CreateNodeTool
 from .gns3_get_node_temp import GNS3TemplateTool
+from .gns3_notes_tools import DeleteNoteTool, ListNotesTool, ReadNoteTool, WriteNoteTool
 from .gns3_start_node import GNS3StartNodeTool
 from .linux_tools_nornir import LinuxTelnetBatchTool
 from .vpcs_tools_telnetlib3 import VPCSMultiCommands
@@ -55,6 +58,10 @@ __all__ = [
     "GNS3StartNodeTool",
     "GNS3TemplateTool",
     "LinuxTelnetBatchTool",
+    "ListNotesTool",
+    "ReadNoteTool",
+    "WriteNoteTool",
+    "DeleteNoteTool",
 ]
 
 # Package initialization message
