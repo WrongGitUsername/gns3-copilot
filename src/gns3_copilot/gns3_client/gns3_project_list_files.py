@@ -189,7 +189,9 @@ if __name__ == "__main__":
         tool = GNS3ProjectListFilesTool()
 
         # Replace with actual project ID for testing
-        test_project_id = "1445a4ba-4635-430b-a332-bef438f65932"  # Replace with actual project UUID
+        test_project_id = (
+            "1445a4ba-4635-430b-a332-bef438f65932"  # Replace with actual project UUID
+        )
         print(f"\nTesting with project: {test_project_id}")
         print("NOTE: Replace 'your-project-uuid' with actual project ID")
 

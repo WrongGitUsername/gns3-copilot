@@ -211,7 +211,7 @@ if __name__ == "__main__":
             "project_id": "1445a4ba-4635-430b-a332-bef438f65932",  # Replace with actual project UUID
             "path": "test_write.txt",
             "data": "This is a test file created by GNS3ProjectWriteFileTool\n"
-                    "Created on: 2026-01-01",
+            "Created on: 2026-01-01",
         }
     )
 

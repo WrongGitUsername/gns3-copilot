@@ -9,6 +9,79 @@ import logging
 import os
 from logging.handlers import TimedRotatingFileHandler
 
+# Module path mapping: maps module names to their log subdirectories
+MODULE_PATH_MAPPING: dict[str, str] = {
+    # Agent modules
+    "gns3_copilot": "agent",
+    "checkpoint_utils": "agent",
+    # GNS3 client modules
+    "connector_factory": "gns3_client",
+    "custom_gns3fy": "gns3_client",
+    "gns3_file_index": "gns3_client",
+    "gns3_project_create": "gns3_client",
+    "gns3_project_delete": "gns3_client",
+    "gns3_project_list_files": "gns3_client",
+    "gns3_project_open": "gns3_client",
+    "gns3_project_path": "gns3_client",
+    "gns3_project_read_file": "gns3_client",
+    "gns3_project_update": "gns3_client",
+    "gns3_project_write_file": "gns3_client",
+    "gns3_projects_list": "gns3_client",
+    "gns3_topology_reader": "gns3_client",
+    # Public model modules
+    "openai_stt": "public_model",
+    "openai_tts": "public_model",
+    "get_gns3_device_port": "public_model",
+    "parse_tool_content": "public_model",
+    # Prompts modules
+    "prompt_loader": "prompts",
+    # Tools v2 modules
+    "config_tools_nornir": "tools_v2",
+    "display_tools_nornir": "tools_v2",
+    "linux_tools_nornir": "tools_v2",
+    "vpcs_tools_telnetlib3": "tools_v2",
+    "gns3_create_node": "tools_v2",
+    "gns3_create_link": "tools_v2",
+    "gns3_start_node": "tools_v2",
+    "gns3_get_node_temp": "tools_v2",
+    # UI model modules
+    "chat": "ui_model",
+    "settings": "ui_model",
+    "help": "ui_model",
+    "notes": "ui_model",
+    "sidebar": "ui_model",
+    # UI model utils modules
+    "app_ui": "ui_model/utils",
+    "chat_helpers": "ui_model/utils",
+    "config_manager": "ui_model/utils",
+    "gns3_checker": "ui_model/utils",
+    "llm_providers": "ui_model/utils",
+    "project_manager_ui": "ui_model/utils",
+    "update_ui": "ui_model/utils",
+    "updater": "ui_model/utils",
+}
+
+
+def _get_log_path(name: str) -> str:
+    """
+    Get the log file path based on module name mapping.
+
+    Args:
+        name (str): Module name
+
+    Returns:
+        str: Log file path
+    """
+    # Check if the module name is in the mapping
+    subdirectory = MODULE_PATH_MAPPING.get(name)
+
+    if subdirectory:
+        # Use subdirectory-based path
+        return f"log/{subdirectory}/{name}.log"
+    else:
+        # Use default flat structure
+        return f"log/{name}.log"
+
 
 def setup_logger(
     name: str,
@@ -38,7 +111,7 @@ def setup_logger(
 
         # Configure file handler
         if log_file is None:
-            log_file = f"log/{name}.log"
+            log_file = _get_log_path(name)
 
         # Ensure log directory exists
         log_dir = os.path.dirname(log_file)
@@ -143,7 +216,7 @@ def setup_tool_logger(tool_name: str, config_name: str | None = None) -> logging
 
     return setup_logger(
         name=tool_name,
-        log_file=f"log/{tool_name}.log",
+        log_file=_get_log_path(tool_name),
         console_level=config.get(
             "console_level", DEFAULT_LOGGER_CONFIG["console_level"]
         ),
