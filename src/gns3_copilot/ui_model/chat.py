@@ -36,11 +36,7 @@ import streamlit as st
 from langchain.messages import AIMessage, HumanMessage, ToolMessage
 
 from gns3_copilot.agent import agent
-from gns3_copilot.gns3_client import (
-    GNS3ProjectList,
-    Project,
-    get_gns3_connector,
-)
+from gns3_copilot.gns3_client import GNS3ProjectList
 from gns3_copilot.log_config import setup_logger
 from gns3_copilot.public_model import (
     format_tool_response,
@@ -48,7 +44,6 @@ from gns3_copilot.public_model import (
     speech_to_text,
     text_to_speech_wav,
 )
-from gns3_copilot.ui_model.notes import render_notes_editor
 from gns3_copilot.ui_model.utils import (
     build_topology_iframe_url,
     generate_topology_iframe_html,
@@ -241,63 +236,32 @@ if selected_p:
     # Only render layout_col2 content when show_iframe is True
     if st.session_state.show_iframe:
         with layout_col2:
-            # Create tabs for Topology and Notes
-            topo_tab, notes_tab = st.tabs(["🌐 Topology", "📝 Notes"])
+            # Extract project_id from the selected project
+            project_id = selected_p[
+                1
+            ]  # selected_p is a tuple: (name, p_id, dev_count, link_count, status)
+            # Build the topology iframe URL based on API version and URL mode
+            iframe_url = build_topology_iframe_url(project_id)
 
-            # Topology tab
-            with topo_tab:
-                # Extract project_id from the selected project
-                project_id = selected_p[
-                    1
-                ]  # selected_p is a tuple: (name, p_id, dev_count, link_count, status)
-                # Build topology iframe URL based on API version and URL mode
-                iframe_url = build_topology_iframe_url(project_id)
+            iframe_container = st.container(
+                height=st.session_state.CONTAINER_HEIGHT,
+                # horizontal_alignment="center",
+                vertical_alignment="center",
+                border=False,
+            )
+            with iframe_container:
+                # Set zoom scale (0.7 = 70%, 0.8 = 80%, 0.9 = 90%)
+                zoom_scale = (
+                    st.session_state.zoom_scale_topology
+                )  # Scale to 80%, you can adjust between 0.7-0.9
 
-                iframe_container = st.container(
-                    height=st.session_state.CONTAINER_HEIGHT,
-                    # horizontal_alignment="center",
-                    vertical_alignment="center",
-                    border=False,
+                iframe_html = generate_topology_iframe_html(
+                    iframe_url=iframe_url,
+                    zoom_scale=zoom_scale,
+                    container_height=st.session_state.CONTAINER_HEIGHT,
                 )
-                with iframe_container:
-                    # Set zoom scale (0.7 = 70%, 0.8 = 80%, 0.9 = 90%)
-                    zoom_scale = (
-                        st.session_state.zoom_scale_topology
-                    )  # Scale to 80%, you can adjust between 0.7-0.9
 
-                    iframe_html = generate_topology_iframe_html(
-                        iframe_url=iframe_url,
-                        zoom_scale=zoom_scale,
-                        container_height=st.session_state.CONTAINER_HEIGHT,
-                    )
-
-                    st.markdown(iframe_html, unsafe_allow_html=True)
-
-            # Notes tab
-            with notes_tab:
-                # Get current project path
-                project_name = selected_p[0]  # Project name
-                project_id = selected_p[1]  # Project ID
-
-                # Create Project instance for notes manager
-                try:
-                    connector = get_gns3_connector()
-                    if connector:
-                        project = Project(project_id=project_id)
-                        project.connector = connector
-                        # Render notes editor with Project instance
-                        render_notes_editor(project, project_name)
-                    else:
-                        st.error(
-                            "Failed to initialize GNS3 connector. "
-                            "Please check your GNS3 server settings."
-                        )
-                except Exception as e:
-                    logger.error(f"Failed to initialize Project for notes: {e}")
-                    st.error(
-                        f"Failed to initialize notes: {e}. "
-                        "Please check your GNS3 server settings."
-                    )
+                st.markdown(iframe_html, unsafe_allow_html=True)
 
     # st.divider()
     # --- Chat Input Area ---
