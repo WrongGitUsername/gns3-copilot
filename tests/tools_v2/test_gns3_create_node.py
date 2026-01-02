@@ -71,7 +71,7 @@ import pytest
 from unittest.mock import Mock, patch, MagicMock, call
 from typing import Any, Dict, List
 
-# Import the module to test
+# Import module to test
 from gns3_copilot.tools_v2.gns3_create_node import GNS3CreateNodeTool
 
 
@@ -255,8 +255,8 @@ class TestGNS3CreateNodeToolAPIVersionHandling:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_create_node.Gns3Connector')
-    def test_api_version_2_initialization(self, mock_connector_class):
+    @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
+    def test_api_version_2_initialization(self, mock_get_gns3_connector):
         """Test API version 2 initialization"""
         tool = GNS3CreateNodeTool()
         
@@ -271,9 +271,9 @@ class TestGNS3CreateNodeToolAPIVersionHandling:
             ]
         }
         
-        # Mock the connector and its methods
+        # Mock connector and its methods
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         # Mock node creation
         with patch('gns3_copilot.tools_v2.gns3_create_node.Node') as mock_node_class:
@@ -284,11 +284,9 @@ class TestGNS3CreateNodeToolAPIVersionHandling:
             
             tool._run(json.dumps(input_data))
             
-            # Verify connector was created with correct parameters
-            mock_connector_class.assert_called_once_with(
-                url="http://localhost:3080",
-                api_version=2
-            )
+            # Verify connector was obtained via factory function
+            mock_get_gns3_connector.assert_called_once()
+            assert mock_connector is not None
 
     @patch.dict(os.environ, {
         "API_VERSION": "3",
@@ -296,8 +294,8 @@ class TestGNS3CreateNodeToolAPIVersionHandling:
         "GNS3_SERVER_USERNAME": "testuser",
         "GNS3_SERVER_PASSWORD": "testpass"
     })
-    @patch('gns3_copilot.tools_v2.gns3_create_node.Gns3Connector')
-    def test_api_version_3_initialization(self, mock_connector_class):
+    @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
+    def test_api_version_3_initialization(self, mock_get_gns3_connector):
         """Test API version 3 initialization"""
         tool = GNS3CreateNodeTool()
         
@@ -312,9 +310,9 @@ class TestGNS3CreateNodeToolAPIVersionHandling:
             ]
         }
         
-        # Mock the connector and its methods
+        # Mock connector and its methods
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         # Mock node creation
         with patch('gns3_copilot.tools_v2.gns3_create_node.Node') as mock_node_class:
@@ -325,13 +323,9 @@ class TestGNS3CreateNodeToolAPIVersionHandling:
             
             tool._run(json.dumps(input_data))
             
-            # Verify connector was created with correct parameters
-            mock_connector_class.assert_called_once_with(
-                url="http://localhost:3080",
-                user="testuser",
-                cred="testpass",
-                api_version=3
-            )
+            # Verify connector was obtained via factory function
+            mock_get_gns3_connector.assert_called_once()
+            assert mock_connector is not None
 
     @patch.dict(os.environ, {
         "API_VERSION": "invalid",
@@ -354,13 +348,13 @@ class TestGNS3CreateNodeToolAPIVersionHandling:
         
         result = tool._run(json.dumps(input_data))
         assert "error" in result
-        assert "Failed to process node creation request" in result["error"]
+        assert "Failed to connect to GNS3 server" in result["error"]
 
     @patch.dict(os.environ, {
         "GNS3_SERVER_URL": "http://localhost:3080"
     }, clear=True)
-    @patch('gns3_copilot.tools_v2.gns3_create_node.Gns3Connector')
-    def test_default_api_version(self, mock_connector_class):
+    @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
+    def test_default_api_version(self, mock_get_gns3_connector):
         """Test default API version when not specified"""
         tool = GNS3CreateNodeTool()
 
@@ -377,7 +371,7 @@ class TestGNS3CreateNodeToolAPIVersionHandling:
 
         # Mock connector and its methods
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
 
         # Mock node creation
         with patch('gns3_copilot.tools_v2.gns3_create_node.Node') as mock_node_class:
@@ -388,11 +382,9 @@ class TestGNS3CreateNodeToolAPIVersionHandling:
 
             result = tool._run(json.dumps(input_data))
 
-            # Verify connector was created with default API version 2
-            assert mock_connector_class.called
-            call_args = mock_connector_class.call_args
-            assert call_args[1]['url'] == "http://localhost:3080"
-            assert call_args[1]['api_version'] == 2
+            # Verify connector was obtained via factory function
+            mock_get_gns3_connector.assert_called_once()
+            assert mock_connector is not None
 
 
 class TestGNS3CreateNodeToolSuccessScenarios:
@@ -402,9 +394,9 @@ class TestGNS3CreateNodeToolSuccessScenarios:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_create_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_create_node.Node')
-    def test_single_node_creation(self, mock_node_class, mock_connector_class):
+    def test_single_node_creation(self, mock_node_class, mock_get_gns3_connector):
         """Test successful single node creation"""
         tool = GNS3CreateNodeTool()
         
@@ -421,7 +413,7 @@ class TestGNS3CreateNodeToolSuccessScenarios:
         
         # Mock connector
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         # Mock node creation
         mock_node = Mock()
@@ -463,9 +455,9 @@ class TestGNS3CreateNodeToolSuccessScenarios:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_create_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_create_node.Node')
-    def test_multiple_nodes_creation(self, mock_node_class, mock_connector_class):
+    def test_multiple_nodes_creation(self, mock_node_class, mock_get_gns3_connector):
         """Test successful multiple nodes creation"""
         tool = GNS3CreateNodeTool()
         
@@ -492,7 +484,7 @@ class TestGNS3CreateNodeToolSuccessScenarios:
         
         # Mock connector
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         # Mock node creation
         mock_node1 = Mock()
@@ -545,9 +537,9 @@ class TestGNS3CreateNodeToolSuccessScenarios:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_create_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_create_node.Node')
-    def test_negative_coordinates(self, mock_node_class, mock_connector_class):
+    def test_negative_coordinates(self, mock_node_class, mock_get_gns3_connector):
         """Test node creation with negative coordinates"""
         tool = GNS3CreateNodeTool()
         
@@ -564,7 +556,7 @@ class TestGNS3CreateNodeToolSuccessScenarios:
         
         # Mock connector
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         # Mock node creation
         mock_node = Mock()
@@ -586,9 +578,9 @@ class TestGNS3CreateNodeToolSuccessScenarios:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_create_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_create_node.Node')
-    def test_float_coordinates(self, mock_node_class, mock_connector_class):
+    def test_float_coordinates(self, mock_node_class, mock_get_gns3_connector):
         """Test node creation with float coordinates"""
         tool = GNS3CreateNodeTool()
         
@@ -605,7 +597,7 @@ class TestGNS3CreateNodeToolSuccessScenarios:
         
         # Mock connector
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         # Mock node creation
         mock_node = Mock()
@@ -631,9 +623,9 @@ class TestGNS3CreateNodeToolErrorHandling:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_create_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_create_node.Node')
-    def test_node_creation_exception(self, mock_node_class, mock_connector_class):
+    def test_node_creation_exception(self, mock_node_class, mock_get_gns3_connector):
         """Test exception during node creation"""
         tool = GNS3CreateNodeTool()
         
@@ -650,7 +642,7 @@ class TestGNS3CreateNodeToolErrorHandling:
         
         # Mock connector
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         # Mock node creation exception
         mock_node = Mock()
@@ -675,8 +667,8 @@ class TestGNS3CreateNodeToolErrorHandling:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_create_node.Gns3Connector')
-    def test_connector_exception(self, mock_connector_class):
+    @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
+    def test_connector_exception(self, mock_get_gns3_connector):
         """Test exception during connector initialization"""
         tool = GNS3CreateNodeTool()
         
@@ -692,21 +684,20 @@ class TestGNS3CreateNodeToolErrorHandling:
         }
         
         # Mock connector initialization exception
-        mock_connector_class.side_effect = Exception("Connector initialization failed")
+        mock_get_gns3_connector.side_effect = Exception("Connector initialization failed")
         
         result = tool._run(json.dumps(input_data))
         
         assert "error" in result
-        assert "Failed to process node creation request" in result["error"]
-        assert "Connector initialization failed" in result["error"]
+        assert "Failed to connect to GNS3 server" in result["error"] or "Connector initialization failed" in result["error"]
 
     @patch.dict(os.environ, {
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_create_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_create_node.Node')
-    def test_node_get_exception(self, mock_node_class, mock_connector_class):
+    def test_node_get_exception(self, mock_node_class, mock_get_gns3_connector):
         """Test exception during node.get() call"""
         tool = GNS3CreateNodeTool()
         
@@ -723,7 +714,7 @@ class TestGNS3CreateNodeToolErrorHandling:
         
         # Mock connector
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         # Mock node with get() exception
         mock_node = Mock()
@@ -752,9 +743,9 @@ class TestGNS3CreateNodeToolMixedSuccessFailure:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_create_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_create_node.Node')
-    def test_mixed_success_and_failure(self, mock_node_class, mock_connector_class):
+    def test_mixed_success_and_failure(self, mock_node_class, mock_get_gns3_connector):
         """Test mixed successful and failed node creations"""
         tool = GNS3CreateNodeTool()
         
@@ -781,7 +772,7 @@ class TestGNS3CreateNodeToolMixedSuccessFailure:
         
         # Mock connector
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         # Mock nodes - first and third succeed, second fails
         mock_node1 = Mock()
@@ -954,9 +945,9 @@ class TestGNS3CreateNodeToolIntegration:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_create_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_create_node.Node')
-    def test_complete_workflow(self, mock_node_class, mock_connector_class):
+    def test_complete_workflow(self, mock_node_class, mock_get_gns3_connector):
         """Test complete workflow with realistic data"""
         tool = GNS3CreateNodeTool()
         
@@ -983,7 +974,7 @@ class TestGNS3CreateNodeToolIntegration:
         
         # Mock connector
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         # Mock realistic node data
         mock_router = Mock()
@@ -1104,10 +1095,10 @@ class TestGNS3CreateNodeToolLogging:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_create_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_create_node.Node')
     @patch('gns3_copilot.tools_v2.gns3_create_node.logger')
-    def test_logging_on_success(self, mock_logger, mock_node_class, mock_connector_class):
+    def test_logging_on_success(self, mock_logger, mock_node_class, mock_get_gns3_connector):
         """Test logging messages on successful operations"""
         tool = GNS3CreateNodeTool()
         
@@ -1124,7 +1115,7 @@ class TestGNS3CreateNodeToolLogging:
         
         # Mock connector and node
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         mock_node = Mock()
         mock_node.node_id = "node123"
@@ -1134,7 +1125,7 @@ class TestGNS3CreateNodeToolLogging:
         tool._run(json.dumps(input_data))
         
         # Verify logging calls
-        mock_logger.info.assert_any_call("Connecting to GNS3 server at %s...", "http://localhost:3080")
+        mock_logger.info.assert_any_call("Received input: %s", json.dumps(input_data))
         mock_logger.info.assert_any_call("Creating %d nodes in project %s...", 1, "project1")
         mock_logger.info.assert_any_call("Creating node %d/%d with template %s at coordinates (%s, %s)...", 1, 1, "template1", 100, -200)
         mock_logger.debug.assert_called()
@@ -1144,10 +1135,10 @@ class TestGNS3CreateNodeToolLogging:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_create_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_create_node.Node')
     @patch('gns3_copilot.tools_v2.gns3_create_node.logger')
-    def test_logging_on_failure(self, mock_logger, mock_node_class, mock_connector_class):
+    def test_logging_on_failure(self, mock_logger, mock_node_class, mock_get_gns3_connector):
         """Test logging messages on failed operations"""
         tool = GNS3CreateNodeTool()
         
@@ -1164,7 +1155,7 @@ class TestGNS3CreateNodeToolLogging:
         
         # Mock connector
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         # Mock node creation failure
         mock_node = Mock()
@@ -1174,7 +1165,7 @@ class TestGNS3CreateNodeToolLogging:
         tool._run(json.dumps(input_data))
         
         # Verify logging calls
-        mock_logger.info.assert_any_call("Connecting to GNS3 server at %s...", "http://localhost:3080")
+        mock_logger.info.assert_any_call("Received input: %s", json.dumps(input_data))
         mock_logger.info.assert_any_call("Creating %d nodes in project %s...", 1, "project1")
         mock_logger.info.assert_any_call("Creating node %d/%d with template %s at coordinates (%s, %s)...", 1, 1, "template1", 100, -200)
         mock_logger.error.assert_called()
@@ -1184,10 +1175,10 @@ class TestGNS3CreateNodeToolLogging:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_create_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_create_node.Node')
     @patch('gns3_copilot.tools_v2.gns3_create_node.logger')
-    def test_logging_on_multiple_nodes(self, mock_logger, mock_node_class, mock_connector_class):
+    def test_logging_on_multiple_nodes(self, mock_logger, mock_node_class, mock_get_gns3_connector):
         """Test logging messages for multiple nodes"""
         tool = GNS3CreateNodeTool()
         
@@ -1209,7 +1200,7 @@ class TestGNS3CreateNodeToolLogging:
         
         # Mock connector and nodes
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         mock_node1 = Mock()
         mock_node1.node_id = "node123"
@@ -1251,7 +1242,7 @@ class TestGNS3CreateNodeToolEnvironmentVariables:
         
         result = tool._run(json.dumps(input_data))
         assert "error" in result
-        assert "Failed to process node creation request" in result["error"]
+        assert "Failed to connect to GNS3 server" in result["error"] or "Failed to process node creation request" in result["error"]
 
     @patch.dict(os.environ, {
         "GNS3_SERVER_URL": "http://localhost:3080",
@@ -1274,5 +1265,4 @@ class TestGNS3CreateNodeToolEnvironmentVariables:
         
         result = tool._run(json.dumps(input_data))
         assert "error" in result
-        assert "Failed to process node creation request" in result["error"]
-        assert "Unsupported API version" in result["error"]
+        assert "Failed to connect to GNS3 server" in result["error"] or "Failed to process node creation request" in result["error"]

@@ -8,9 +8,9 @@ duration calculation.
 
 import io
 import os
-import wave
 from typing import Any
 
+import soundfile as sf
 from dotenv import load_dotenv
 from openai import (
     OpenAI,
@@ -120,23 +120,74 @@ def text_to_speech_wav(
 
 def get_duration(audio_bytes: bytes) -> float:
     """
-    Calculate the duration of WAV audio data in seconds using Python's built-in wave module.
+    Calculate the duration of WAV audio data in seconds using soundfile library.
+
+    This function supports multiple WAV formats including PCM and IEEE Float
+    (format code 3), which is not supported by Python's standard wave module.
+
+    Args:
+        audio_bytes: Raw WAV audio data as bytes
+
+    Returns:
+        Duration in seconds as float, returns 0.0 if calculation fails
     """
+    # Validation 1: Check if audio_bytes is valid
+    if not audio_bytes:
+        logger.error("Audio bytes is empty or None")
+        return 0.0
+
+    # Validation 2: Check minimum audio data size
+    if len(audio_bytes) < 100:
+        logger.error(
+            f"Audio data too small to be valid: {len(audio_bytes)} bytes "
+            f"(minimum 100 bytes required)"
+        )
+        return 0.0
+
     try:
-        # Wrap the byte stream in a BytesIO object to make it readable like a file
+        # Log audio data size for debugging
+        logger.info(
+            f"Parsing audio, size: {len(audio_bytes)} bytes ({len(audio_bytes) / 1024:.2f} KB)"
+        )
+
+        # Wrap the byte stream in a BytesIO object
         with io.BytesIO(audio_bytes) as bio:
-            with wave.open(bio, "rb") as wav_f:
-                # Get frame count and frame rate (sample rate)
-                n_frames = wav_f.getnframes()
-                frame_rate = wav_f.getframerate()
+            # Reset buffer position to the beginning before reading
+            bio.seek(0)
 
-                if frame_rate <= 0:
-                    return 0.0
+            # Use soundfile to read audio info
+            # soundfile supports multiple formats including IEEE Float (format code 3)
+            info = sf.info(bio)
 
-                duration = n_frames / float(frame_rate)
-                return float(duration)
+            # Log audio parameters for debugging
+            logger.debug(
+                f"Audio parameters - duration: {info.duration:.2f}s, "
+                f"samplerate: {info.samplerate}, channels: {info.channels}, "
+                f"format: {info.format}, subtype: {info.subtype}"
+            )
+
+            # Validate samplerate
+            if info.samplerate <= 0:
+                logger.error(f"Invalid samplerate: {info.samplerate}")
+                return 0.0
+
+            # Validate duration
+            if info.duration <= 0:
+                logger.error(f"Invalid duration: {info.duration}")
+                return 0.0
+
+            # Log successful calculation
+            logger.info(
+                f"Successfully calculated audio duration: {info.duration:.2f} seconds"
+            )
+
+            return float(info.duration)
+
+    except sf.LibsndfileError as e:
+        logger.error(f"Soundfile parsing error: {e}")
+        return 0.0
     except Exception as e:
-        logger.error(f"Failed to calculate duration: {e}")
+        logger.error(f"Unexpected error calculating duration: {e}", exc_info=True)
         return 0.0
 
 

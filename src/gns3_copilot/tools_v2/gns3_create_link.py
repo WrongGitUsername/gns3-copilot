@@ -6,7 +6,6 @@ using the GNS3 API connector.
 """
 
 import json
-import os
 from pprint import pprint
 from typing import Any
 
@@ -14,7 +13,7 @@ from dotenv import load_dotenv
 from langchain.tools import BaseTool
 from langchain_core.callbacks import CallbackManagerForToolRun
 
-from gns3_copilot.gns3_client import Gns3Connector, Link
+from gns3_copilot.gns3_client import Link, get_gns3_connector
 from gns3_copilot.log_config import setup_tool_logger
 
 # Configure logging
@@ -114,28 +113,17 @@ class GNS3LinkTool(BaseTool):
                 logger.error("Invalid links data: must be a non-empty array")
                 return [{"error": "Invalid links data: must be a non-empty array"}]
 
-            raw_api_version = os.getenv("API_VERSION")
-            api_version = int(raw_api_version) if raw_api_version else 2
+            # Initialize Gns3Connector using factory function
+            logger.info("Connecting to GNS3 server...")
+            gns3_server = get_gns3_connector()
 
-            # Initialize Gns3Connector
-            logger.info(
-                "Connecting to GNS3 server at %s...", os.getenv("GNS3_SERVER_URL")
-            )
-
-            if api_version == 2:
-                gns3_server = Gns3Connector(
-                    url=os.getenv("GNS3_SERVER_URL"), api_version=api_version
-                )
-
-            elif api_version == 3:
-                gns3_server = Gns3Connector(
-                    url=os.getenv("GNS3_SERVER_URL"),
-                    user=os.getenv("GNS3_SERVER_USERNAME"),
-                    cred=os.getenv("GNS3_SERVER_PASSWORD"),
-                    api_version=api_version,
-                )
-            else:
-                raise ValueError(f"Unsupported API version: {api_version}")
+            if gns3_server is None:
+                logger.error("Failed to create GNS3 connector")
+                return [
+                    {
+                        "error": "Failed to connect to GNS3 server. Please check your configuration."
+                    }
+                ]
 
             created_links = []
 

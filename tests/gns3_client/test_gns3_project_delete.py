@@ -86,13 +86,13 @@ class TestGNS3ProjectDeleteSuccess:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_delete.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_delete.Gns3Connector')
-    def test_success_v2_api_by_project_id(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_delete.get_gns3_connector')
+    def test_success_v2_api_by_project_id(self, mock_get_connector, mock_project_class):
         """Test successful project deletion with v2 API by project_id"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -118,13 +118,13 @@ class TestGNS3ProjectDeleteSuccess:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_delete.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_delete.Gns3Connector')
-    def test_success_v2_api_by_name(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_delete.get_gns3_connector')
+    def test_success_v2_api_by_name(self, mock_get_connector, mock_project_class):
         """Test successful project deletion with v2 API by name"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -151,13 +151,13 @@ class TestGNS3ProjectDeleteSuccess:
         "GNS3_SERVER_PASSWORD": "testpass"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_delete.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_delete.Gns3Connector')
-    def test_success_v3_api(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_delete.get_gns3_connector')
+    def test_success_v3_api(self, mock_get_connector, mock_project_class):
         """Test successful project deletion with v3 API"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v3"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -179,13 +179,13 @@ class TestGNS3ProjectDeleteSuccess:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_delete.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_delete.Gns3Connector')
-    def test_return_value_validation(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_delete.get_gns3_connector')
+    def test_return_value_validation(self, mock_get_connector, mock_project_class):
         """Test return value structure is correct"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -211,13 +211,13 @@ class TestGNS3ProjectDeleteSuccess:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_delete.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_delete.Gns3Connector')
-    def test_project_details_captured_before_deletion(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_delete.get_gns3_connector')
+    def test_project_details_captured_before_deletion(self, mock_get_connector, mock_project_class):
         """Test that project details are captured before deletion"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -272,13 +272,13 @@ class TestGNS3ProjectDeleteInputValidation:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_delete.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_delete.Gns3Connector')
-    def test_valid_project_id_input(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_delete.get_gns3_connector')
+    def test_valid_project_id_input(self, mock_get_connector, mock_project_class):
         """Test valid project_id input"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -298,13 +298,13 @@ class TestGNS3ProjectDeleteInputValidation:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_delete.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_delete.Gns3Connector')
-    def test_valid_name_input(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_delete.get_gns3_connector')
+    def test_valid_name_input(self, mock_get_connector, mock_project_class):
         """Test valid name input"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -332,7 +332,7 @@ class TestGNS3ProjectDeleteEnvironmentValidation:
             
             assert result["success"] is False
             assert "error" in result
-            assert "API_VERSION" in result["error"]
+            assert "Failed to connect to GNS3 server" in result["error"]
 
     def test_missing_server_url(self):
         """Test missing GNS3_SERVER_URL environment variable"""
@@ -345,7 +345,7 @@ class TestGNS3ProjectDeleteEnvironmentValidation:
             
             assert result["success"] is False
             assert "error" in result
-            assert "GNS3_SERVER_URL" in result["error"]
+            assert "Failed to connect to GNS3 server" in result["error"]
 
     def test_invalid_api_version(self):
         """Test invalid API_VERSION value"""
@@ -359,7 +359,7 @@ class TestGNS3ProjectDeleteEnvironmentValidation:
             
             assert result["success"] is False
             assert "error" in result
-            assert "Unsupported API_VERSION" in result["error"]
+            assert "Failed to connect to GNS3 server" in result["error"]
 
 
 class TestGNS3ProjectDeleteOperations:
@@ -370,13 +370,13 @@ class TestGNS3ProjectDeleteOperations:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_delete.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_delete.Gns3Connector')
-    def test_project_get_called(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_delete.get_gns3_connector')
+    def test_project_get_called(self, mock_get_connector, mock_project_class):
         """Test that project.get() is called before deletion"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -399,13 +399,13 @@ class TestGNS3ProjectDeleteOperations:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_delete.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_delete.Gns3Connector')
-    def test_project_delete_called(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_delete.get_gns3_connector')
+    def test_project_delete_called(self, mock_get_connector, mock_project_class):
         """Test that project.delete() is called"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -426,13 +426,13 @@ class TestGNS3ProjectDeleteOperations:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_delete.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_delete.Gns3Connector')
-    def test_project_initialized_with_id(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_delete.get_gns3_connector')
+    def test_project_initialized_with_id(self, mock_get_connector, mock_project_class):
         """Test that Project is initialized with project_id"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -454,13 +454,13 @@ class TestGNS3ProjectDeleteOperations:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_delete.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_delete.Gns3Connector')
-    def test_project_initialized_with_name(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_delete.get_gns3_connector')
+    def test_project_initialized_with_name(self, mock_get_connector, mock_project_class):
         """Test that Project is initialized with name"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -486,13 +486,13 @@ class TestGNS3ProjectDeleteErrorHandling:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_delete.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_delete.Gns3Connector')
-    def test_project_not_found_by_name(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_delete.get_gns3_connector')
+    def test_project_not_found_by_name(self, mock_get_connector, mock_project_class):
         """Test project not found by name"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project with no project_id (not found)
         mock_project = Mock()
@@ -512,13 +512,13 @@ class TestGNS3ProjectDeleteErrorHandling:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_delete.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_delete.Gns3Connector')
-    def test_project_not_found_by_id(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_delete.get_gns3_connector')
+    def test_project_not_found_by_id(self, mock_get_connector, mock_project_class):
         """Test project not found by project_id"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project with no project_id (not found)
         mock_project = Mock()
@@ -541,28 +541,28 @@ class TestGNS3ProjectDeleteErrorHandling:
         """Test handling of network connection errors"""
         tool = GNS3ProjectDelete()
         
-        with patch('gns3_copilot.gns3_client.gns3_project_delete.Gns3Connector') as mock_connector_class:
-            # Mock connector to raise connection error
-            mock_connector_class.side_effect = Exception("Connection refused")
+        with patch('gns3_copilot.gns3_client.gns3_project_delete.get_gns3_connector') as mock_get_connector:
+            # Mock connector to return None (connection failed)
+            mock_get_connector.return_value = None
             
             result = tool._run(tool_input={"project_id": "test_id"})
             
             assert result["success"] is False
             assert "error" in result
-            assert "Failed to delete GNS3 project" in result["error"]
+            assert "Failed to connect to GNS3 server" in result["error"]
 
     @patch.dict(os.environ, {
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_delete.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_delete.Gns3Connector')
-    def test_project_delete_server_error(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_delete.get_gns3_connector')
+    def test_project_delete_server_error(self, mock_get_connector, mock_project_class):
         """Test handling of project deletion server error"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project to raise error on delete
         mock_project = Mock()
@@ -584,13 +584,13 @@ class TestGNS3ProjectDeleteErrorHandling:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_delete.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_delete.Gns3Connector')
-    def test_value_error_handling(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_delete.get_gns3_connector')
+    def test_value_error_handling(self, mock_get_connector, mock_project_class):
         """Test handling of ValueError"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project to raise ValueError
         mock_project = Mock()
@@ -613,13 +613,13 @@ class TestGNS3ProjectDeleteReturnFormat:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_delete.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_delete.Gns3Connector')
-    def test_success_response_format(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_delete.get_gns3_connector')
+    def test_success_response_format(self, mock_get_connector, mock_project_class):
         """Test success response has correct format"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -666,13 +666,13 @@ class TestGNS3ProjectDeleteReturnFormat:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_delete.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_delete.Gns3Connector')
-    def test_project_details_in_response(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_delete.get_gns3_connector')
+    def test_project_details_in_response(self, mock_get_connector, mock_project_class):
         """Test that project details are included in response"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -696,13 +696,13 @@ class TestGNS3ProjectDeleteReturnFormat:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_delete.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_delete.Gns3Connector')
-    def test_message_content(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_delete.get_gns3_connector')
+    def test_message_content(self, mock_get_connector, mock_project_class):
         """Test that message contains useful information"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()

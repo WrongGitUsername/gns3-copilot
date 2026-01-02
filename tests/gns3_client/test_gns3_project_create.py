@@ -48,7 +48,7 @@ from unittest.mock import Mock, patch, MagicMock
 from typing import Any, Dict
 
 # Import the module to test
-from gns3_copilot.gns3_client import GNS3ProjectCreate, Project
+from gns3_copilot.gns3_client import GNS3ProjectCreate
 
 
 class TestGNS3ProjectCreateBasic:
@@ -86,13 +86,13 @@ class TestGNS3ProjectCreateSuccess:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_create.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_create.Gns3Connector')
-    def test_success_v2_api(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_create.get_gns3_connector')
+    def test_success_v2_api(self, mock_get_connector, mock_project_class):
         """Test successful project creation with v2 API"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -119,13 +119,13 @@ class TestGNS3ProjectCreateSuccess:
         "GNS3_SERVER_PASSWORD": "testpass"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_create.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_create.Gns3Connector')
-    def test_success_v3_api(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_create.get_gns3_connector')
+    def test_success_v3_api(self, mock_get_connector, mock_project_class):
         """Test successful project creation with v3 API"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v3"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -147,13 +147,13 @@ class TestGNS3ProjectCreateSuccess:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_create.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_create.Gns3Connector')
-    def test_return_value_validation(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_create.get_gns3_connector')
+    def test_return_value_validation(self, mock_get_connector, mock_project_class):
         """Test return value structure is correct"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -179,13 +179,13 @@ class TestGNS3ProjectCreateSuccess:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_create.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_create.Gns3Connector')
-    def test_with_optional_parameters(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_create.get_gns3_connector')
+    def test_with_optional_parameters(self, mock_get_connector, mock_project_class):
         """Test project creation with optional parameters"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -213,13 +213,13 @@ class TestGNS3ProjectCreateSuccess:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_create.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_create.Gns3Connector')
-    def test_with_only_required_parameters(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_create.get_gns3_connector')
+    def test_with_only_required_parameters(self, mock_get_connector, mock_project_class):
         """Test project creation with only required parameter (name)"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -300,11 +300,11 @@ class TestGNS3ProjectCreateInputValidation:
             "GNS3_SERVER_URL": "http://localhost:3080"
         }):
             with patch('gns3_copilot.gns3_client.gns3_project_create.Project') as mock_project_class:
-                with patch('gns3_copilot.gns3_client.gns3_project_create.Gns3Connector') as mock_connector_class:
+                with patch('gns3_copilot.gns3_client.gns3_project_create.get_gns3_connector') as mock_get_connector:
                     # Mock connector
                     mock_connector = Mock()
                     mock_connector.base_url = "http://localhost:3080/v2"
-                    mock_connector_class.return_value = mock_connector
+                    mock_get_connector.return_value = mock_connector
                     
                     # Mock project
                     mock_project = Mock()
@@ -331,7 +331,7 @@ class TestGNS3ProjectCreateEnvironmentValidation:
             
             assert result["success"] is False
             assert "error" in result
-            assert "API_VERSION" in result["error"]
+            assert "Failed to connect to GNS3 server" in result["error"]
 
     def test_missing_server_url(self):
         """Test missing GNS3_SERVER_URL environment variable"""
@@ -344,7 +344,7 @@ class TestGNS3ProjectCreateEnvironmentValidation:
             
             assert result["success"] is False
             assert "error" in result
-            assert "GNS3_SERVER_URL" in result["error"]
+            assert "Failed to connect to GNS3 server" in result["error"]
 
     def test_invalid_api_version(self):
         """Test invalid API_VERSION value"""
@@ -358,7 +358,7 @@ class TestGNS3ProjectCreateEnvironmentValidation:
             
             assert result["success"] is False
             assert "error" in result
-            assert "Unsupported API_VERSION" in result["error"]
+            assert "Failed to connect to GNS3 server" in result["error"]
 
     @patch.dict(os.environ, {
         "API_VERSION": "2",
@@ -369,11 +369,11 @@ class TestGNS3ProjectCreateEnvironmentValidation:
         tool = GNS3ProjectCreate()
         
         with patch('gns3_copilot.gns3_client.gns3_project_create.Project') as mock_project_class:
-            with patch('gns3_copilot.gns3_client.gns3_project_create.Gns3Connector') as mock_connector_class:
+            with patch('gns3_copilot.gns3_client.gns3_project_create.get_gns3_connector') as mock_get_connector:
                 # Mock connector
                 mock_connector = Mock()
                 mock_connector.base_url = "http://localhost:3080/v2"
-                mock_connector_class.return_value = mock_connector
+                mock_get_connector.return_value = mock_connector
                 
                 # Mock project
                 mock_project = Mock()
@@ -398,11 +398,11 @@ class TestGNS3ProjectCreateEnvironmentValidation:
         tool = GNS3ProjectCreate()
         
         with patch('gns3_copilot.gns3_client.gns3_project_create.Project') as mock_project_class:
-            with patch('gns3_copilot.gns3_client.gns3_project_create.Gns3Connector') as mock_connector_class:
+            with patch('gns3_copilot.gns3_client.gns3_project_create.get_gns3_connector') as mock_get_connector:
                 # Mock connector
                 mock_connector = Mock()
                 mock_connector.base_url = "http://localhost:3080/v3"
-                mock_connector_class.return_value = mock_connector
+                mock_get_connector.return_value = mock_connector
                 
                 # Mock project
                 mock_project = Mock()
@@ -425,13 +425,13 @@ class TestGNS3ProjectCreateOperations:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_create.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_create.Gns3Connector')
-    def test_project_create_called(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_create.get_gns3_connector')
+    def test_project_create_called(self, mock_get_connector, mock_project_class):
         """Test that project.create() is called"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -452,13 +452,13 @@ class TestGNS3ProjectCreateOperations:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_create.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_create.Gns3Connector')
-    def test_project_id_verification(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_create.get_gns3_connector')
+    def test_project_id_verification(self, mock_get_connector, mock_project_class):
         """Test that project_id is verified after creation"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -479,13 +479,13 @@ class TestGNS3ProjectCreateOperations:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_create.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_create.Gns3Connector')
-    def test_project_creation_failure_no_id(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_create.get_gns3_connector')
+    def test_project_creation_failure_no_id(self, mock_get_connector, mock_project_class):
         """Test handling when project creation fails (no project_id)"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project with no project_id (creation failed)
         mock_project = Mock()
@@ -505,13 +505,13 @@ class TestGNS3ProjectCreateOperations:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_create.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_create.Gns3Connector')
-    def test_project_parameters_passed_correctly(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_create.get_gns3_connector')
+    def test_project_parameters_passed_correctly(self, mock_get_connector, mock_project_class):
         """Test that project parameters are passed correctly"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -543,13 +543,13 @@ class TestGNS3ProjectCreateOperations:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_create.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_create.Gns3Connector')
-    def test_default_optional_parameters(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_create.get_gns3_connector')
+    def test_default_optional_parameters(self, mock_get_connector, mock_project_class):
         """Test that optional parameters have correct defaults"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -580,28 +580,28 @@ class TestGNS3ProjectCreateErrorHandling:
         """Test handling of network connection errors"""
         tool = GNS3ProjectCreate()
         
-        with patch('gns3_copilot.gns3_client.gns3_project_create.Gns3Connector') as mock_connector_class:
-            # Mock connector to raise connection error
-            mock_connector_class.side_effect = Exception("Connection refused")
+        with patch('gns3_copilot.gns3_client.gns3_project_create.get_gns3_connector') as mock_get_connector:
+            # Mock connector to return None (connection failed)
+            mock_get_connector.return_value = None
             
             result = tool._run(tool_input={"name": "test_project"})
             
             assert result["success"] is False
             assert "error" in result
-            assert "Failed to create GNS3 project" in result["error"]
+            assert "Failed to connect to GNS3 server" in result["error"]
 
     @patch.dict(os.environ, {
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_create.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_create.Gns3Connector')
-    def test_project_creation_server_error(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_create.get_gns3_connector')
+    def test_project_creation_server_error(self, mock_get_connector, mock_project_class):
         """Test handling of project creation server error"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project to raise error on create
         mock_project = Mock()
@@ -622,8 +622,8 @@ class TestGNS3ProjectCreateErrorHandling:
         """Test that exceptions are logged"""
         tool = GNS3ProjectCreate()
         
-        with patch('gns3_copilot.gns3_client.gns3_project_create.Gns3Connector') as mock_connector_class:
-            mock_connector_class.side_effect = Exception("Test error")
+        with patch('gns3_copilot.gns3_client.gns3_project_create.get_gns3_connector') as mock_get_connector:
+            mock_get_connector.return_value = None
             
             result = tool._run(tool_input={"name": "test_project"})
             
@@ -638,8 +638,8 @@ class TestGNS3ProjectCreateErrorHandling:
         """Test handling of timeout errors"""
         tool = GNS3ProjectCreate()
         
-        with patch('gns3_copilot.gns3_client.gns3_project_create.Gns3Connector') as mock_connector_class:
-            mock_connector_class.side_effect = TimeoutError("Request timeout")
+        with patch('gns3_copilot.gns3_client.gns3_project_create.get_gns3_connector') as mock_get_connector:
+            mock_get_connector.return_value = None
             
             result = tool._run(tool_input={"name": "test_project"})
             
@@ -651,13 +651,13 @@ class TestGNS3ProjectCreateErrorHandling:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_create.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_create.Gns3Connector')
-    def test_value_error_handling(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_create.get_gns3_connector')
+    def test_value_error_handling(self, mock_get_connector, mock_project_class):
         """Test handling of ValueError"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project to raise ValueError
         mock_project = Mock()
@@ -680,13 +680,13 @@ class TestGNS3ProjectCreateReturnFormat:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_create.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_create.Gns3Connector')
-    def test_success_response_format(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_create.get_gns3_connector')
+    def test_success_response_format(self, mock_get_connector, mock_project_class):
         """Test success response has correct format"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -733,13 +733,13 @@ class TestGNS3ProjectCreateReturnFormat:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_create.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_create.Gns3Connector')
-    def test_project_details_in_response(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_create.get_gns3_connector')
+    def test_project_details_in_response(self, mock_get_connector, mock_project_class):
         """Test that project details are included in response"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -763,13 +763,13 @@ class TestGNS3ProjectCreateReturnFormat:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_create.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_create.Gns3Connector')
-    def test_message_content(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_create.get_gns3_connector')
+    def test_message_content(self, mock_get_connector, mock_project_class):
         """Test that message contains useful information"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()

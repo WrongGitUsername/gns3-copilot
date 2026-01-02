@@ -7,6 +7,7 @@ This package provides various tools for interacting with GNS3 network simulator,
 - Multiple device command execution using Nornir
 - VPCS device configuration using telnetlib3
 - Node and link management
+- Notes management
 
 Main modules:
 - config_tools_nornir: Multiple device configuration command execution tool using Nornir
