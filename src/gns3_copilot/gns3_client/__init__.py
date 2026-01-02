@@ -36,7 +36,10 @@ from .custom_gns3fy import (
     Node,
     Project,
 )
+from .gns3_create_drawing import GNS3CreateDrawingTool
+from .gns3_delete_drawing import GNS3DeleteDrawingTool
 from .gns3_file_index import add_file_to_index, get_file_list
+from .gns3_get_drawings import GNS3GetDrawingsTool
 from .gns3_project_create import GNS3ProjectCreate
 from .gns3_project_delete import GNS3ProjectDelete
 from .gns3_project_list_files import GNS3ProjectListFilesTool
@@ -48,6 +51,7 @@ from .gns3_project_update import GNS3ProjectUpdate
 from .gns3_project_write_file import GNS3ProjectWriteFileTool
 from .gns3_projects_list import GNS3ProjectList
 from .gns3_topology_reader import GNS3TopologyTool
+from .gns3_update_drawing import GNS3UpdateDrawingTool
 
 # Dynamic version management
 try:
@@ -80,6 +84,10 @@ __all__ = [
     "GNS3ProjectReadFileTool",
     "GNS3ProjectWriteFileTool",
     "GNS3ProjectListFilesTool",
+    "GNS3CreateDrawingTool",
+    "GNS3DeleteDrawingTool",
+    "GNS3GetDrawingsTool",
+    "GNS3UpdateDrawingTool",
     "get_gns3_connector",
     "add_file_to_index",
     "get_file_list",

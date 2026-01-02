@@ -32,14 +32,10 @@ Author: Guobin Yue
 # Import main tool classes
 from .config_tools_nornir import ExecuteMultipleDeviceConfigCommands
 from .display_tools_nornir import ExecuteMultipleDeviceCommands
-from .gns3_create_drawing import GNS3CreateDrawingTool
 from .gns3_create_link import GNS3LinkTool
 from .gns3_create_node import GNS3CreateNodeTool
-from .gns3_delete_drawing import GNS3DeleteDrawingTool
-from .gns3_get_drawings import GNS3GetDrawingsTool
 from .gns3_get_node_temp import GNS3TemplateTool
 from .gns3_start_node import GNS3StartNodeTool
-from .gns3_update_drawing import GNS3UpdateDrawingTool
 from .linux_tools_nornir import LinuxTelnetBatchTool
 from .vpcs_tools_telnetlib3 import VPCSMultiCommands
 
@@ -64,10 +60,6 @@ __all__ = [
     "GNS3LinkTool",
     "GNS3StartNodeTool",
     "GNS3TemplateTool",
-    "GNS3GetDrawingsTool",
-    "GNS3CreateDrawingTool",
-    "GNS3UpdateDrawingTool",
-    "GNS3DeleteDrawingTool",
     "LinuxTelnetBatchTool",
 ]
 

@@ -44,10 +44,10 @@ from unittest.mock import Mock, patch
 from typing import Any, Dict
 
 # Import modules to test
-from gns3_copilot.tools_v2.gns3_get_drawings import GNS3GetDrawingsTool
-from gns3_copilot.tools_v2.gns3_create_drawing import GNS3CreateDrawingTool
-from gns3_copilot.tools_v2.gns3_update_drawing import GNS3UpdateDrawingTool
-from gns3_copilot.tools_v2.gns3_delete_drawing import GNS3DeleteDrawingTool
+from gns3_copilot.gns3_client.gns3_get_drawings import GNS3GetDrawingsTool
+from gns3_copilot.gns3_client.gns3_create_drawing import GNS3CreateDrawingTool
+from gns3_copilot.gns3_client.gns3_update_drawing import GNS3UpdateDrawingTool
+from gns3_copilot.gns3_client.gns3_delete_drawing import GNS3DeleteDrawingTool
 
 
 # ============================================================================
@@ -107,7 +107,7 @@ class TestGNS3GetDrawingsToolInputValidation:
     @patch.dict(os.environ, {
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_get_drawings.get_gns3_connector')
+    @patch('gns3_copilot.gns3_client.gns3_get_drawings.get_gns3_connector')
     def test_connector_exception(self, mock_get_gns3_connector):
         """Test exception during connector initialization"""
         tool = GNS3GetDrawingsTool()
@@ -126,7 +126,7 @@ class TestGNS3GetDrawingsToolSuccessScenarios:
     @patch.dict(os.environ, {
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_get_drawings.get_gns3_connector')
+    @patch('gns3_copilot.gns3_client.gns3_get_drawings.get_gns3_connector')
     def test_get_empty_drawings(self, mock_get_gns3_connector):
         """Test getting drawings from project with no drawings"""
         tool = GNS3GetDrawingsTool()
@@ -138,7 +138,7 @@ class TestGNS3GetDrawingsToolSuccessScenarios:
         mock_get_gns3_connector.return_value = mock_connector
         
         # Mock project with no drawings
-        with patch('gns3_copilot.tools_v2.gns3_get_drawings.Project') as mock_project_class:
+        with patch('gns3_copilot.gns3_client.gns3_get_drawings.Project') as mock_project_class:
             mock_project = Mock()
             mock_project.drawings = []
             mock_project_class.return_value = mock_project
@@ -154,7 +154,7 @@ class TestGNS3GetDrawingsToolSuccessScenarios:
     @patch.dict(os.environ, {
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_get_drawings.get_gns3_connector')
+    @patch('gns3_copilot.gns3_client.gns3_get_drawings.get_gns3_connector')
     def test_get_single_drawing(self, mock_get_gns3_connector):
         """Test getting a single drawing"""
         tool = GNS3GetDrawingsTool()
@@ -166,7 +166,7 @@ class TestGNS3GetDrawingsToolSuccessScenarios:
         mock_get_gns3_connector.return_value = mock_connector
         
         # Mock project with one drawing
-        with patch('gns3_copilot.tools_v2.gns3_get_drawings.Project') as mock_project_class:
+        with patch('gns3_copilot.gns3_client.gns3_get_drawings.Project') as mock_project_class:
             mock_project = Mock()
             mock_project.drawings = [
                 {
@@ -192,7 +192,7 @@ class TestGNS3GetDrawingsToolSuccessScenarios:
     @patch.dict(os.environ, {
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_get_drawings.get_gns3_connector')
+    @patch('gns3_copilot.gns3_client.gns3_get_drawings.get_gns3_connector')
     def test_get_multiple_drawings(self, mock_get_gns3_connector):
         """Test getting multiple drawings"""
         tool = GNS3GetDrawingsTool()
@@ -204,7 +204,7 @@ class TestGNS3GetDrawingsToolSuccessScenarios:
         mock_get_gns3_connector.return_value = mock_connector
         
         # Mock project with multiple drawings
-        with patch('gns3_copilot.tools_v2.gns3_get_drawings.Project') as mock_project_class:
+        with patch('gns3_copilot.gns3_client.gns3_get_drawings.Project') as mock_project_class:
             mock_project = Mock()
             mock_project.drawings = [
                 {
@@ -391,7 +391,7 @@ class TestGNS3CreateDrawingToolSuccessScenarios:
     @patch.dict(os.environ, {
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_create_drawing.get_gns3_connector')
+    @patch('gns3_copilot.gns3_client.gns3_create_drawing.get_gns3_connector')
     def test_single_drawing_creation(self, mock_get_gns3_connector):
         """Test successful single drawing creation"""
         tool = GNS3CreateDrawingTool()
@@ -416,7 +416,7 @@ class TestGNS3CreateDrawingToolSuccessScenarios:
         mock_get_gns3_connector.return_value = mock_connector
         
         # Mock project and create_drawing method
-        with patch('gns3_copilot.tools_v2.gns3_create_drawing.Project') as mock_project_class:
+        with patch('gns3_copilot.gns3_client.gns3_create_drawing.Project') as mock_project_class:
             mock_project = Mock()
             mock_project.create_drawing = Mock(return_value={"drawing_id": "drawing123"})
             mock_project_class.return_value = mock_project
@@ -434,7 +434,7 @@ class TestGNS3CreateDrawingToolSuccessScenarios:
     @patch.dict(os.environ, {
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_create_drawing.get_gns3_connector')
+    @patch('gns3_copilot.gns3_client.gns3_create_drawing.get_gns3_connector')
     def test_multiple_drawings_creation(self, mock_get_gns3_connector):
         """Test successful multiple drawings creation"""
         tool = GNS3CreateDrawingTool()
@@ -461,7 +461,7 @@ class TestGNS3CreateDrawingToolSuccessScenarios:
         mock_get_gns3_connector.return_value = mock_connector
         
         # Mock project and create_drawing method
-        with patch('gns3_copilot.tools_v2.gns3_create_drawing.Project') as mock_project_class:
+        with patch('gns3_copilot.gns3_client.gns3_create_drawing.Project') as mock_project_class:
             mock_project = Mock()
             mock_project.create_drawing = Mock(side_effect=[
                 {"drawing_id": "drawing1"},
@@ -482,7 +482,7 @@ class TestGNS3CreateDrawingToolErrorHandling:
     @patch.dict(os.environ, {
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_create_drawing.get_gns3_connector')
+    @patch('gns3_copilot.gns3_client.gns3_create_drawing.get_gns3_connector')
     def test_drawing_creation_exception(self, mock_get_gns3_connector):
         """Test exception during drawing creation"""
         tool = GNS3CreateDrawingTool()
@@ -504,7 +504,7 @@ class TestGNS3CreateDrawingToolErrorHandling:
         mock_get_gns3_connector.return_value = mock_connector
         
         # Mock project and create_drawing method
-        with patch('gns3_copilot.tools_v2.gns3_create_drawing.Project') as mock_project_class:
+        with patch('gns3_copilot.gns3_client.gns3_create_drawing.Project') as mock_project_class:
             mock_project = Mock()
             mock_project.create_drawing = Mock(side_effect=Exception("Drawing creation failed"))
             mock_project_class.return_value = mock_project
@@ -651,7 +651,7 @@ class TestGNS3UpdateDrawingToolSuccessScenarios:
     @patch.dict(os.environ, {
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_update_drawing.get_gns3_connector')
+    @patch('gns3_copilot.gns3_client.gns3_update_drawing.get_gns3_connector')
     def test_partial_update(self, mock_get_gns3_connector):
         """Test partial update of drawing properties"""
         tool = GNS3UpdateDrawingTool()
@@ -669,7 +669,7 @@ class TestGNS3UpdateDrawingToolSuccessScenarios:
         mock_get_gns3_connector.return_value = mock_connector
         
         # Mock project
-        with patch('gns3_copilot.tools_v2.gns3_update_drawing.Project') as mock_project_class:
+        with patch('gns3_copilot.gns3_client.gns3_update_drawing.Project') as mock_project_class:
             mock_project = Mock()
             mock_project.drawings = [
                 {
@@ -699,7 +699,7 @@ class TestGNS3UpdateDrawingToolSuccessScenarios:
     @patch.dict(os.environ, {
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_update_drawing.get_gns3_connector')
+    @patch('gns3_copilot.gns3_client.gns3_update_drawing.get_gns3_connector')
     def test_multiple_properties_update(self, mock_get_gns3_connector):
         """Test updating multiple drawing properties"""
         tool = GNS3UpdateDrawingTool()
@@ -719,7 +719,7 @@ class TestGNS3UpdateDrawingToolSuccessScenarios:
         mock_get_gns3_connector.return_value = mock_connector
         
         # Mock project
-        with patch('gns3_copilot.tools_v2.gns3_update_drawing.Project') as mock_project_class:
+        with patch('gns3_copilot.gns3_client.gns3_update_drawing.Project') as mock_project_class:
             mock_project = Mock()
             mock_project.drawings = [
                 {
@@ -804,7 +804,7 @@ class TestGNS3DeleteDrawingToolSuccessScenarios:
     @patch.dict(os.environ, {
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_delete_drawing.get_gns3_connector')
+    @patch('gns3_copilot.gns3_client.gns3_delete_drawing.get_gns3_connector')
     def test_successful_deletion(self, mock_get_gns3_connector):
         """Test successful drawing deletion"""
         tool = GNS3DeleteDrawingTool()
@@ -820,7 +820,7 @@ class TestGNS3DeleteDrawingToolSuccessScenarios:
         mock_get_gns3_connector.return_value = mock_connector
         
         # Mock project
-        with patch('gns3_copilot.tools_v2.gns3_delete_drawing.Project') as mock_project_class:
+        with patch('gns3_copilot.gns3_client.gns3_delete_drawing.Project') as mock_project_class:
             mock_project = Mock()
             mock_project.drawings = [
                 {
@@ -853,10 +853,10 @@ class TestGNS3DrawingToolsIntegration:
     @patch.dict(os.environ, {
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_delete_drawing.get_gns3_connector')
-    @patch('gns3_copilot.tools_v2.gns3_update_drawing.get_gns3_connector')
-    @patch('gns3_copilot.tools_v2.gns3_create_drawing.get_gns3_connector')
-    @patch('gns3_copilot.tools_v2.gns3_get_drawings.get_gns3_connector')
+    @patch('gns3_copilot.gns3_client.gns3_delete_drawing.get_gns3_connector')
+    @patch('gns3_copilot.gns3_client.gns3_update_drawing.get_gns3_connector')
+    @patch('gns3_copilot.gns3_client.gns3_create_drawing.get_gns3_connector')
+    @patch('gns3_copilot.gns3_client.gns3_get_drawings.get_gns3_connector')
     def test_complete_drawing_workflow(
         self,
         mock_get_connector,
@@ -887,7 +887,7 @@ class TestGNS3DrawingToolsIntegration:
             ]
         }
         
-        with patch('gns3_copilot.tools_v2.gns3_create_drawing.Project') as mock_project_class:
+        with patch('gns3_copilot.gns3_client.gns3_create_drawing.Project') as mock_project_class:
             mock_project = Mock()
             mock_project.create_drawing = Mock(return_value={"drawing_id": "drawing1"})
             mock_project_class.return_value = mock_project
@@ -901,7 +901,7 @@ class TestGNS3DrawingToolsIntegration:
         get_tool = GNS3GetDrawingsTool()
         get_input = {"project_id": "project1"}
         
-        with patch('gns3_copilot.tools_v2.gns3_get_drawings.Project') as mock_project_class:
+        with patch('gns3_copilot.gns3_client.gns3_get_drawings.Project') as mock_project_class:
             mock_project = Mock()
             mock_project.drawings = [
                 {
@@ -925,7 +925,7 @@ class TestGNS3DrawingToolsIntegration:
             "y": -250
         }
         
-        with patch('gns3_copilot.tools_v2.gns3_update_drawing.Project') as mock_project_class:
+        with patch('gns3_copilot.gns3_client.gns3_update_drawing.Project') as mock_project_class:
             mock_project = Mock()
             mock_project.drawings = [
                 {
@@ -952,7 +952,7 @@ class TestGNS3DrawingToolsIntegration:
             "drawing_id": drawing_id
         }
         
-        with patch('gns3_copilot.tools_v2.gns3_delete_drawing.Project') as mock_project_class:
+        with patch('gns3_copilot.gns3_client.gns3_delete_drawing.Project') as mock_project_class:
             mock_project = Mock()
             mock_project.drawings = [
                 {
