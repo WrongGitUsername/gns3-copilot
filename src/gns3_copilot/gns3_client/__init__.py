@@ -14,6 +14,7 @@ Main classes:
 - GNS3ProjectReadFileTool: LangChain tool for reading project files
 - GNS3ProjectWriteFileTool: LangChain tool for writing project files
 - GNS3ProjectListFilesTool: LangChain tool for listing project files
+- GNS3ProjectLock: LangChain tool for locking/unlocking GNS3 projects
 
 File Manager Modules:
 - gns3_project_read_file: GNS3ProjectReadFileTool implementation
@@ -39,6 +40,7 @@ from .gns3_file_index import add_file_to_index, get_file_list
 from .gns3_project_create import GNS3ProjectCreate
 from .gns3_project_delete import GNS3ProjectDelete
 from .gns3_project_list_files import GNS3ProjectListFilesTool
+from .gns3_project_lock import GNS3ProjectLock
 from .gns3_project_open import GNS3ProjectOpen
 from .gns3_project_path import GNS3ProjectPath
 from .gns3_project_read_file import GNS3ProjectReadFileTool
@@ -73,6 +75,7 @@ __all__ = [
     "GNS3ProjectPath",
     "GNS3ProjectCreate",
     "GNS3ProjectDelete",
+    "GNS3ProjectLock",
     "GNS3ProjectUpdate",
     "GNS3ProjectReadFileTool",
     "GNS3ProjectWriteFileTool",
