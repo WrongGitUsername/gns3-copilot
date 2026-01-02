@@ -40,6 +40,7 @@ from .gns3_create_drawing import GNS3CreateDrawingTool
 from .gns3_delete_drawing import GNS3DeleteDrawingTool
 from .gns3_file_index import add_file_to_index, get_file_list
 from .gns3_get_drawings import GNS3GetDrawingsTool
+from .gns3_get_nodes import GNS3GetNodesTool
 from .gns3_project_create import GNS3ProjectCreate
 from .gns3_project_delete import GNS3ProjectDelete
 from .gns3_project_list_files import GNS3ProjectListFilesTool
@@ -87,6 +88,7 @@ __all__ = [
     "GNS3CreateDrawingTool",
     "GNS3DeleteDrawingTool",
     "GNS3GetDrawingsTool",
+    "GNS3GetNodesTool",
     "GNS3UpdateDrawingTool",
     "get_gns3_connector",
     "add_file_to_index",

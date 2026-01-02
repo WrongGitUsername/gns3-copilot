@@ -96,7 +96,6 @@ class GNS3TemplateTool(BaseTool):
 
             # Retrieve all available templates
             templates = gns3_server.get_templates()
-
             # Extract name, template_id, and template_type
             template_info = [
                 {

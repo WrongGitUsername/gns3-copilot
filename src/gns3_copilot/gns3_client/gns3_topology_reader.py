@@ -166,7 +166,7 @@ if __name__ == "__main__":
 
     # Example usage with project_id
     # Replace with an actual project UUID from your GNS3 server
-    example_project_id = "f32ebf3d-ef8c-4910-b0d6-566ed828cd24"
+    example_project_id = "0c0fde25-6ead-4413-a283-ea8fd2324291"
 
     print("Testing GNS3TopologyTool with project_id...")
     result = tool._run(project_id=example_project_id)

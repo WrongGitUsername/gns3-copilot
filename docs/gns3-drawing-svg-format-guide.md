@@ -317,6 +317,38 @@ All SVG elements support the following common attributes:
 }
 ```
 
+#### Important: Node Coordinate Reference Point
+
+**Critical Discovery**: In GNS3, node coordinates (`node.x`, `node.y`) represent the **top-left corner** of the node icon, NOT the center point.
+
+**Implications for Drawing Placement**:
+
+When creating drawings that should align with or reference nodes (e.g., area annotations around devices):
+
+1. **Node Position**: The coordinate returned by GNS3 API is the top-left corner of the node's icon
+2. **Center Point Calculation**: To calculate the center point of a node, use:
+   ```python
+   node_center_x = node.x + (node_width / 2)
+   node_center_y = node.y + (node_height / 2)
+   ```
+3. **Device Dimensions**: Typical router/device icons are approximately 60-80 pixels in width and height
+4. **Drawing Alignment**: When creating area annotations that should encompass devices, calculations should use the device's center point, not the top-left corner
+
+**Example**:
+```python
+# If node is at (100, 200) and device is 70x70 pixels
+node_x = 100  # Top-left corner
+node_y = 200  # Top-left corner
+device_width = 70
+device_height = 70
+
+# Calculate center point
+center_x = node_x + (device_width / 2)  # = 135
+center_y = node_y + (device_height / 2)  # = 235
+```
+
+**Testing**: To verify node coordinate reference points in your GNS3 setup, create small test markers (e.g., 10x10 rectangles) at node positions and observe where they appear relative to the node icon.
+
 ### Lock Status
 
 - `locked: true`: Drawing is locked, cannot be edited or moved
