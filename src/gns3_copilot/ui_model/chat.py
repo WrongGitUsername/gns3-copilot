@@ -356,14 +356,18 @@ if selected_p:
                                     actual_text = msg.content[0]["text"]
                                     # Now actual_text is the clean text you need
                                     current_text_chunk += actual_text
-                                    active_text_placeholder.markdown(
-                                        current_text_chunk, unsafe_allow_html=True
-                                    )
+                                    # Only display text in non-voice mode
+                                    if not voice_enabled:
+                                        active_text_placeholder.markdown(
+                                            current_text_chunk, unsafe_allow_html=True
+                                        )
                                 elif isinstance(msg.content, str):
                                     current_text_chunk += str(msg.content)
-                                    active_text_placeholder.markdown(
-                                        current_text_chunk, unsafe_allow_html=True
-                                    )
+                                    # Only display text in non-voice mode
+                                    if not voice_enabled:
+                                        active_text_placeholder.markdown(
+                                            current_text_chunk, unsafe_allow_html=True
+                                        )
                                 # Determine if text message (i.e., msg.content) reception is complete
                                 is_text_ending = (
                                     # Case 1: Tool call starts
@@ -383,7 +387,9 @@ if selected_p:
                                     tts_played = True
                                     # Text_to_speech
                                     try:
-                                        with st.spinner("Generating voice..."):
+                                        with st.spinner(
+                                            "Generating voice...", width=200
+                                        ):
                                             audio_bytes = text_to_speech_wav(
                                                 current_text_chunk
                                             )
@@ -391,7 +397,15 @@ if selected_p:
                                                 audio_bytes,
                                                 format="audio/mp3",
                                                 autoplay=True,
+                                                width=200,
                                             )
+                                            # Wait for audio playback to complete
+                                            duration = get_duration(audio_bytes)
+                                            logger.info(
+                                                "TTS audio duration: %.2f seconds",
+                                                duration,
+                                            )
+                                            sleep(duration)  # Extra buffer time
                                     except Exception as e:
                                         logger.error("TTS Error: %s", e)
                                         st.error(f"TTS Error: {e}")
@@ -468,9 +482,6 @@ if selected_p:
                                         # Use the final complete structure
                                         st.json(display_tool_call, expanded=False)
                             if isinstance(msg, ToolMessage):
-                                # Wait for audio playback to complete before returning ToolMessage to LLM
-                                if voice_enabled and audio_bytes:
-                                    sleep(get_duration(audio_bytes))
                                 # Clear state after completion, ready to receive next tool call
                                 current_tool_state = None
                                 content_pretty = format_tool_response(msg.content)
@@ -481,7 +492,6 @@ if selected_p:
                                     st.json(json.loads(content_pretty), expanded=False)
                                 active_text_placeholder = st.empty()
                                 current_text_chunk = ""
-                                # After a round of AIMessage/ToolMessage, reset tts_played switch, next round of AIMessage/ToolMessage can generate TTS again
                                 tts_played = False
                 # After the interaction, update the session state with the latest StateSnapshot
                 state_history = agent.get_state(config)
