@@ -1,10 +1,9 @@
-import os
 from typing import Any
 
 from dotenv import load_dotenv
 from langchain.tools import BaseTool
 
-from gns3_copilot.gns3_client import Gns3Connector, Project
+from gns3_copilot.gns3_client import Project, get_gns3_connector
 from gns3_copilot.log_config import setup_tool_logger
 
 # Configure logging
@@ -97,39 +96,15 @@ class GNS3ProjectCreate(BaseTool):
             scene_width = tool_input.get("scene_width")
             scene_height = tool_input.get("scene_height")
 
-            # Get environment variables
-            api_version_str = os.getenv("API_VERSION")
-            server_url = os.getenv("GNS3_SERVER_URL")
+            # Initialize Gns3Connector using factory function
+            logger.info("Connecting to GNS3 server...")
+            server = get_gns3_connector()
 
-            if not api_version_str:
+            if server is None:
+                logger.error("Failed to create GNS3 connector")
                 return {
                     "success": False,
-                    "error": "API_VERSION environment variable not set",
-                }
-
-            if not server_url:
-                return {
-                    "success": False,
-                    "error": "GNS3_SERVER_URL environment variable not set",
-                }
-
-            # Create connector based on API version
-            if api_version_str == "2":
-                server = Gns3Connector(
-                    url=server_url,
-                    api_version=int(api_version_str),
-                )
-            elif api_version_str == "3":
-                server = Gns3Connector(
-                    url=server_url,
-                    user=os.getenv("GNS3_SERVER_USERNAME"),
-                    cred=os.getenv("GNS3_SERVER_PASSWORD"),
-                    api_version=int(api_version_str),
-                )
-            else:
-                return {
-                    "success": False,
-                    "error": f"Unsupported API_VERSION: {api_version_str}. Must be 2 or 3",
+                    "error": "Failed to connect to GNS3 server. Please check your configuration.",
                 }
 
             # Create project instance with specified parameters

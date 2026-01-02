@@ -77,7 +77,7 @@ import time
 from unittest.mock import Mock, patch, MagicMock, call
 from typing import Any, Dict, List
 
-# Import the module to test
+# Import module to test
 from gns3_copilot.tools_v2.gns3_start_node import GNS3StartNodeTool, show_progress_bar
 
 
@@ -239,7 +239,7 @@ class TestGNS3StartNodeToolInputValidation:
         }
         result = tool._run(json.dumps(input_data))
         assert "error" in result
-        # None values are treated as falsy, so they trigger the missing fields validation
+        # None values are treated as falsy, so they trigger missing fields validation
         assert "Missing required fields" in result["error"]
 
     def test_valid_minimal_input(self):
@@ -254,7 +254,7 @@ class TestGNS3StartNodeToolInputValidation:
         with patch.dict(os.environ, {}, clear=True):
             result = tool._run(json.dumps(input_data))
             assert "error" in result
-            assert "Failed to start nodes" in result["error"]
+            assert "Failed to connect to GNS3 server" in result["error"] or "Failed to connect to GNS3 server" in result["error"]
 
     def test_valid_multiple_nodes(self):
         """Test valid input with multiple nodes"""
@@ -268,7 +268,7 @@ class TestGNS3StartNodeToolInputValidation:
         with patch.dict(os.environ, {}, clear=True):
             result = tool._run(json.dumps(input_data))
             assert "error" in result
-            assert "Failed to start nodes" in result["error"]
+            assert "Failed to connect to GNS3 server" in result["error"] or "Failed to connect to GNS3 server" in result["error"]
 
 
 class TestGNS3StartNodeToolAPIVersionHandling:
@@ -278,10 +278,10 @@ class TestGNS3StartNodeToolAPIVersionHandling:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_start_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_start_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_start_node.Node')
     @patch('gns3_copilot.tools_v2.gns3_start_node.show_progress_bar')
-    def test_api_version_2_initialization(self, mock_progress, mock_node_class, mock_connector_class):
+    def test_api_version_2_initialization(self, mock_progress, mock_node_class, mock_get_gns3_connector):
         """Test API version 2 initialization"""
         tool = GNS3StartNodeTool()
         
@@ -290,9 +290,9 @@ class TestGNS3StartNodeToolAPIVersionHandling:
             "node_ids": ["node1"]
         }
         
-        # Mock the connector and its methods
+        # Mock connector and its methods
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         # Mock node
         mock_node = Mock()
@@ -303,11 +303,9 @@ class TestGNS3StartNodeToolAPIVersionHandling:
         
         result = tool._run(json.dumps(input_data))
         
-        # Verify connector was created with correct parameters
-        mock_connector_class.assert_called_once_with(
-            url="http://localhost:3080",
-            api_version=2
-        )
+        # Verify connector was obtained via factory function
+        mock_get_gns3_connector.assert_called_once()
+        assert mock_connector is not None
 
     @patch.dict(os.environ, {
         "API_VERSION": "3",
@@ -315,10 +313,10 @@ class TestGNS3StartNodeToolAPIVersionHandling:
         "GNS3_SERVER_USERNAME": "testuser",
         "GNS3_SERVER_PASSWORD": "testpass"
     })
-    @patch('gns3_copilot.tools_v2.gns3_start_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_start_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_start_node.Node')
     @patch('gns3_copilot.tools_v2.gns3_start_node.show_progress_bar')
-    def test_api_version_3_initialization(self, mock_progress, mock_node_class, mock_connector_class):
+    def test_api_version_3_initialization(self, mock_progress, mock_node_class, mock_get_gns3_connector):
         """Test API version 3 initialization"""
         tool = GNS3StartNodeTool()
         
@@ -327,9 +325,9 @@ class TestGNS3StartNodeToolAPIVersionHandling:
             "node_ids": ["node1"]
         }
         
-        # Mock the connector and its methods
+        # Mock connector and its methods
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         # Mock node
         mock_node = Mock()
@@ -340,13 +338,9 @@ class TestGNS3StartNodeToolAPIVersionHandling:
         
         result = tool._run(json.dumps(input_data))
         
-        # Verify connector was created with correct parameters
-        mock_connector_class.assert_called_once_with(
-            url="http://localhost:3080",
-            user="testuser",
-            cred="testpass",
-            api_version=3
-        )
+        # Verify connector was obtained via factory function
+        mock_get_gns3_connector.assert_called_once()
+        assert mock_connector is not None
 
     @patch.dict(os.environ, {
         "API_VERSION": "invalid",
@@ -363,17 +357,15 @@ class TestGNS3StartNodeToolAPIVersionHandling:
         
         result = tool._run(json.dumps(input_data))
         assert "error" in result
-        assert "Failed to start nodes" in result["error"]
-        # The error message comes from int() conversion failure
-        assert "invalid literal" in result["error"]
+        assert "Failed to connect to GNS3 server" in result["error"] or "Failed to connect to GNS3 server" in result["error"]
 
     @patch.dict(os.environ, {
         "GNS3_SERVER_URL": "http://localhost:3080"
     }, clear=True)
-    @patch('gns3_copilot.tools_v2.gns3_start_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_start_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_start_node.Node')
     @patch('gns3_copilot.tools_v2.gns3_start_node.show_progress_bar')
-    def test_default_api_version(self, mock_progress, mock_node_class, mock_connector_class):
+    def test_default_api_version(self, mock_progress, mock_node_class, mock_get_gns3_connector):
         """Test default API version when not specified"""
         tool = GNS3StartNodeTool()
 
@@ -384,7 +376,7 @@ class TestGNS3StartNodeToolAPIVersionHandling:
 
         # Mock connector and its methods
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
 
         # Mock node
         mock_node = Mock()
@@ -395,20 +387,18 @@ class TestGNS3StartNodeToolAPIVersionHandling:
 
         result = tool._run(json.dumps(input_data))
 
-        # Verify connector was created with default API version 2
-        assert mock_connector_class.called
-        call_args = mock_connector_class.call_args
-        assert call_args[1]['url'] == "http://localhost:3080"
-        assert call_args[1]['api_version'] == 2
+        # Verify connector was obtained via factory function
+        mock_get_gns3_connector.assert_called_once()
+        assert mock_connector is not None
 
     @patch.dict(os.environ, {
         "API_VERSION": "",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_start_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_start_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_start_node.Node')
     @patch('gns3_copilot.tools_v2.gns3_start_node.show_progress_bar')
-    def test_empty_api_version(self, mock_progress, mock_node_class, mock_connector_class):
+    def test_empty_api_version(self, mock_progress, mock_node_class, mock_get_gns3_connector):
         """Test empty API version string"""
         tool = GNS3StartNodeTool()
         
@@ -417,9 +407,9 @@ class TestGNS3StartNodeToolAPIVersionHandling:
             "node_ids": ["node1"]
         }
         
-        # Mock the connector and its methods
+        # Mock connector and its methods
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         # Mock node
         mock_node = Mock()
@@ -430,11 +420,9 @@ class TestGNS3StartNodeToolAPIVersionHandling:
         
         result = tool._run(json.dumps(input_data))
         
-        # Verify connector was created with default API version 2
-        mock_connector_class.assert_called_once_with(
-            url="http://localhost:3080",
-            api_version=2
-        )
+        # Verify connector was obtained via factory function
+        mock_get_gns3_connector.assert_called_once()
+        assert mock_connector is not None
 
 
 class TestGNS3StartNodeToolSuccessScenarios:
@@ -444,10 +432,10 @@ class TestGNS3StartNodeToolSuccessScenarios:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_start_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_start_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_start_node.Node')
     @patch('gns3_copilot.tools_v2.gns3_start_node.show_progress_bar')
-    def test_single_node_startup(self, mock_progress, mock_node_class, mock_connector_class):
+    def test_single_node_startup(self, mock_progress, mock_node_class, mock_get_gns3_connector):
         """Test successful single node startup"""
         tool = GNS3StartNodeTool()
         
@@ -458,7 +446,7 @@ class TestGNS3StartNodeToolSuccessScenarios:
         
         # Mock connector
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         # Mock node
         mock_node = Mock()
@@ -494,10 +482,10 @@ class TestGNS3StartNodeToolSuccessScenarios:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_start_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_start_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_start_node.Node')
     @patch('gns3_copilot.tools_v2.gns3_start_node.show_progress_bar')
-    def test_multiple_nodes_startup(self, mock_progress, mock_node_class, mock_connector_class):
+    def test_multiple_nodes_startup(self, mock_progress, mock_node_class, mock_get_gns3_connector):
         """Test successful multiple nodes startup"""
         tool = GNS3StartNodeTool()
         
@@ -508,7 +496,7 @@ class TestGNS3StartNodeToolSuccessScenarios:
         
         # Mock connector
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         # Create different mock nodes for each call to avoid conflicts
         def create_mock_node(node_id):
@@ -551,10 +539,10 @@ class TestGNS3StartNodeToolSuccessScenarios:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_start_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_start_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_start_node.Node')
     @patch('gns3_copilot.tools_v2.gns3_start_node.show_progress_bar')
-    def test_node_with_none_name(self, mock_progress, mock_node_class, mock_connector_class):
+    def test_node_with_none_name(self, mock_progress, mock_node_class, mock_get_gns3_connector):
         """Test node with None name"""
         tool = GNS3StartNodeTool()
         
@@ -565,7 +553,7 @@ class TestGNS3StartNodeToolSuccessScenarios:
         
         # Mock connector
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         # Mock node with None name
         mock_node = Mock()
@@ -587,10 +575,10 @@ class TestGNS3StartNodeToolSuccessScenarios:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_start_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_start_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_start_node.Node')
     @patch('gns3_copilot.tools_v2.gns3_start_node.show_progress_bar')
-    def test_node_with_none_status(self, mock_progress, mock_node_class, mock_connector_class):
+    def test_node_with_none_status(self, mock_progress, mock_node_class, mock_get_gns3_connector):
         """Test node with None status"""
         tool = GNS3StartNodeTool()
         
@@ -601,7 +589,7 @@ class TestGNS3StartNodeToolSuccessScenarios:
         
         # Mock connector
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         # Mock node with None status
         mock_node = Mock()
@@ -627,8 +615,8 @@ class TestGNS3StartNodeToolErrorHandling:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_start_node.Gns3Connector')
-    def test_connector_exception(self, mock_connector_class):
+    @patch('gns3_copilot.tools_v2.gns3_start_node.get_gns3_connector')
+    def test_connector_exception(self, mock_get_gns3_connector):
         """Test exception during connector initialization"""
         tool = GNS3StartNodeTool()
         
@@ -638,7 +626,7 @@ class TestGNS3StartNodeToolErrorHandling:
         }
         
         # Mock connector initialization exception
-        mock_connector_class.side_effect = Exception("Connector initialization failed")
+        mock_get_gns3_connector.side_effect = Exception("Connector initialization failed")
         
         result = tool._run(json.dumps(input_data))
         
@@ -658,7 +646,7 @@ class TestGNS3StartNodeToolErrorHandling:
         
         result = tool._run(json.dumps(input_data))
         assert "error" in result
-        assert "Failed to start nodes" in result["error"]
+        assert "Failed to connect to GNS3 server" in result["error"] or "Failed to connect to GNS3 server" in result["error"]
 
 
 class TestGNS3StartNodeToolEdgeCases:
@@ -668,10 +656,10 @@ class TestGNS3StartNodeToolEdgeCases:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_start_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_start_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_start_node.Node')
     @patch('gns3_copilot.tools_v2.gns3_start_node.show_progress_bar')
-    def test_unicode_node_ids(self, mock_progress, mock_node_class, mock_connector_class):
+    def test_unicode_node_ids(self, mock_progress, mock_node_class, mock_get_gns3_connector):
         """Test Unicode node IDs"""
         tool = GNS3StartNodeTool()
         
@@ -682,7 +670,7 @@ class TestGNS3StartNodeToolEdgeCases:
         
         # Mock connector
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         # Create mock nodes with proper Unicode handling
         side_effect_nodes = []
@@ -713,10 +701,10 @@ class TestGNS3StartNodeToolEdgeCases:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_start_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_start_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_start_node.Node')
     @patch('gns3_copilot.tools_v2.gns3_start_node.show_progress_bar')
-    def test_large_number_of_nodes(self, mock_progress, mock_node_class, mock_connector_class):
+    def test_large_number_of_nodes(self, mock_progress, mock_node_class, mock_get_gns3_connector):
         """Test large number of nodes"""
         tool = GNS3StartNodeTool()
         
@@ -729,7 +717,7 @@ class TestGNS3StartNodeToolEdgeCases:
         
         # Mock connector
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         # Create mock nodes for each node
         side_effect_nodes = []
@@ -763,10 +751,10 @@ class TestGNS3StartNodeToolIntegration:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_start_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_start_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_start_node.Node')
     @patch('gns3_copilot.tools_v2.gns3_start_node.show_progress_bar')
-    def test_complete_workflow(self, mock_progress, mock_node_class, mock_connector_class):
+    def test_complete_workflow(self, mock_progress, mock_node_class, mock_get_gns3_connector):
         """Test complete workflow with realistic data"""
         tool = GNS3StartNodeTool()
         
@@ -781,7 +769,7 @@ class TestGNS3StartNodeToolIntegration:
         
         # Mock connector
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         # Create mock nodes
         side_effect_nodes = []
@@ -846,10 +834,10 @@ class TestGNS3StartNodeToolProgressBarCalculation:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_start_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_start_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_start_node.Node')
     @patch('gns3_copilot.tools_v2.gns3_start_node.show_progress_bar')
-    def test_progress_bar_duration_calculation_single_node(self, mock_progress, mock_node_class, mock_connector_class):
+    def test_progress_bar_duration_calculation_single_node(self, mock_progress, mock_node_class, mock_get_gns3_connector):
         """Test progress bar duration calculation for single node"""
         tool = GNS3StartNodeTool()
         
@@ -860,7 +848,7 @@ class TestGNS3StartNodeToolProgressBarCalculation:
         
         # Mock connector and node
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         mock_node = Mock()
         mock_node.node_id = "node1"
@@ -879,10 +867,10 @@ class TestGNS3StartNodeToolProgressBarCalculation:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_start_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_start_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_start_node.Node')
     @patch('gns3_copilot.tools_v2.gns3_start_node.show_progress_bar')
-    def test_progress_bar_duration_calculation_multiple_nodes(self, mock_progress, mock_node_class, mock_connector_class):
+    def test_progress_bar_duration_calculation_multiple_nodes(self, mock_progress, mock_node_class, mock_get_gns3_connector):
         """Test progress bar duration calculation for multiple nodes"""
         tool = GNS3StartNodeTool()
         
@@ -893,7 +881,7 @@ class TestGNS3StartNodeToolProgressBarCalculation:
         
         # Mock connector and nodes
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         # Create mock nodes
         side_effect_nodes = []
@@ -922,10 +910,10 @@ class TestGNS3StartNodeToolReturnFormat:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_start_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_start_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_start_node.Node')
     @patch('gns3_copilot.tools_v2.gns3_start_node.show_progress_bar')
-    def test_return_format_structure(self, mock_progress, mock_node_class, mock_connector_class):
+    def test_return_format_structure(self, mock_progress, mock_node_class, mock_get_gns3_connector):
         """Test return format structure"""
         tool = GNS3StartNodeTool()
         
@@ -936,7 +924,7 @@ class TestGNS3StartNodeToolReturnFormat:
         
         # Mock connector and node
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         mock_node = Mock()
         mock_node.node_id = "node1"
@@ -967,13 +955,13 @@ class TestGNS3StartNodeToolReturnFormat:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_start_node.Gns3Connector')
-    def test_error_return_format(self, mock_connector_class):
+    @patch('gns3_copilot.tools_v2.gns3_start_node.get_gns3_connector')
+    def test_error_return_format(self, mock_get_gns3_connector):
         """Test error return format"""
         tool = GNS3StartNodeTool()
         
         # Mock connector with exception
-        mock_connector_class.side_effect = Exception("Test error")
+        mock_get_gns3_connector.side_effect = Exception("Test error")
         
         input_data = {
             "project_id": "project1",
@@ -997,10 +985,10 @@ class TestGNS3StartNodeToolPerformance:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_start_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_start_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_start_node.Node')
     @patch('gns3_copilot.tools_v2.gns3_start_node.show_progress_bar')
-    def test_performance_with_large_dataset(self, mock_progress, mock_node_class, mock_connector_class):
+    def test_performance_with_large_dataset(self, mock_progress, mock_node_class, mock_get_gns3_connector):
         """Test performance with large dataset"""
         tool = GNS3StartNodeTool()
         
@@ -1013,7 +1001,7 @@ class TestGNS3StartNodeToolPerformance:
         
         # Mock connector
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         # Create mock nodes
         side_effect_nodes = []
@@ -1049,16 +1037,16 @@ class TestGNS3StartNodeToolConcurrency:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.tools_v2.gns3_start_node.Gns3Connector')
+    @patch('gns3_copilot.tools_v2.gns3_start_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_start_node.Node')
     @patch('gns3_copilot.tools_v2.gns3_start_node.show_progress_bar')
-    def test_thread_safety(self, mock_progress, mock_node_class, mock_connector_class):
+    def test_thread_safety(self, mock_progress, mock_node_class, mock_get_gns3_connector):
         """Test thread safety of tool"""
         import threading
         
         # Mock connector
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_gns3_connector.return_value = mock_connector
         
         results = []
         errors = []

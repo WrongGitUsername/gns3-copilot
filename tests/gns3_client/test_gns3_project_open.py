@@ -45,7 +45,7 @@ from unittest.mock import Mock, patch, MagicMock
 from typing import Any, Dict
 
 # Import the module to test
-from gns3_copilot.gns3_client import GNS3ProjectOpen, Project
+from gns3_copilot.gns3_client import GNS3ProjectOpen
 
 
 class TestGNS3ProjectOpenBasic:
@@ -81,13 +81,13 @@ class TestGNS3ProjectOpenSuccess:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_open.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_open.Gns3Connector')
-    def test_success_v2_api(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_open.get_gns3_connector')
+    def test_success_v2_api(self, mock_get_connector, mock_project_class):
         """Test successful project opening with v2 API"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -112,13 +112,13 @@ class TestGNS3ProjectOpenSuccess:
         "GNS3_SERVER_PASSWORD": "testpass"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_open.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_open.Gns3Connector')
-    def test_success_v3_api(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_open.get_gns3_connector')
+    def test_success_v3_api(self, mock_get_connector, mock_project_class):
         """Test successful project opening with v3 API"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v3"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -139,13 +139,13 @@ class TestGNS3ProjectOpenSuccess:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_open.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_open.Gns3Connector')
-    def test_return_value_validation(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_open.get_gns3_connector')
+    def test_return_value_validation(self, mock_get_connector, mock_project_class):
         """Test return value structure is correct"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -172,13 +172,13 @@ class TestGNS3ProjectOpenSuccess:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_open.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_open.Gns3Connector')
-    def test_success_close_project(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_open.get_gns3_connector')
+    def test_success_close_project(self, mock_get_connector, mock_project_class):
         """Test successful project closing"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -267,13 +267,13 @@ class TestGNS3ProjectOpenInputValidation:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_open.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_open.Gns3Connector')
-    def test_valid_project_id_format(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_open.get_gns3_connector')
+    def test_valid_project_id_format(self, mock_get_connector, mock_project_class):
         """Test valid UUID format for project_id"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -296,40 +296,40 @@ class TestGNS3ProjectOpenEnvironmentValidation:
     def test_missing_api_version(self):
         """Test missing API_VERSION environment variable"""
         tool = GNS3ProjectOpen()
-        
+
         with patch.dict(os.environ, {}, clear=True):
-            result = tool._run(tool_input={"project_id": "project1", "open": True})
-            
+            result = tool._run(tool_input={"project_id": "test_id", "open": True})
+
             assert result["success"] is False
             assert "error" in result
-            assert "API_VERSION" in result["error"]
+            assert "Failed to connect to GNS3 server" in result["error"]
 
     def test_missing_server_url(self):
         """Test missing GNS3_SERVER_URL environment variable"""
         tool = GNS3ProjectOpen()
-        
+
         with patch.dict(os.environ, {
             "API_VERSION": "2"
         }, clear=True):
-            result = tool._run(tool_input={"project_id": "project1", "open": True})
-            
+            result = tool._run(tool_input={"project_id": "test_id", "open": True})
+
             assert result["success"] is False
             assert "error" in result
-            assert "GNS3_SERVER_URL" in result["error"]
+            assert "Failed to connect to GNS3 server" in result["error"]
 
     def test_invalid_api_version(self):
         """Test invalid API_VERSION value"""
         tool = GNS3ProjectOpen()
-        
+
         with patch.dict(os.environ, {
             "API_VERSION": "invalid",
             "GNS3_SERVER_URL": "http://localhost:3080"
         }):
-            result = tool._run(tool_input={"project_id": "project1", "open": True})
-            
+            result = tool._run(tool_input={"project_id": "test_id", "open": True})
+
             assert result["success"] is False
             assert "error" in result
-            assert "Unsupported API_VERSION" in result["error"]
+            assert "Failed to connect to GNS3 server" in result["error"]
 
     @patch.dict(os.environ, {
         "API_VERSION": "2",
@@ -371,118 +371,122 @@ class TestGNS3ProjectOpenProjectOperations:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.gns3_client.gns3_project_open.Gns3Connector')
-    def test_project_not_found(self, mock_connector_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_open.Project')
+    @patch('gns3_copilot.gns3_client.gns3_project_open.get_gns3_connector')
+    def test_project_not_found(self, mock_get_connector, mock_project_class):
         """Test handling when project is not found"""
         # Mock connector
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Simulate project not found by having project with no name
         mock_project = Mock()
         mock_project.name = None  # Simulates project not found
         mock_project.project_id = "project1"
+        mock_project_class.return_value = mock_project
         
-        with patch('gns3_copilot.gns3_client.gns3_project_open.Project', return_value=mock_project):
-            tool = GNS3ProjectOpen()
-            result = tool._run(tool_input={"project_id": "nonexistent_project", "open": True})
-            
-            # Should return error when project name is None
-            assert result["success"] is False
-            assert "error" in result
-            assert "not found" in result["error"].lower()
-
-    @patch.dict(os.environ, {
-        "API_VERSION": "2",
-        "GNS3_SERVER_URL": "http://localhost:3080"
-    })
-    @patch('gns3_copilot.gns3_client.gns3_project_open.Gns3Connector')
-    def test_project_get_called(self, mock_connector_class):
-        """Test that project.get() is called with correct parameters"""
-        # Mock connector
-        mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        tool = GNS3ProjectOpen()
+        result = tool._run(tool_input={"project_id": "nonexistent_project", "open": True})
         
-        mock_project = Mock()
-        mock_project.project_id = "test_project"
-        mock_project.name = "Test Project"
-        mock_project.status = "opened"
-        mock_project.open.return_value = None
-        
-        with patch('gns3_copilot.gns3_client.gns3_project_open.Project', return_value=mock_project):
-            tool = GNS3ProjectOpen()
-            tool._run(tool_input={"project_id": "test_project", "open": True})
-            
-            # Verify get was called with False for all parameters to avoid loading nodes/links
-            mock_project.get.assert_called_once_with(
-                get_nodes=False,
-                get_links=False,
-                get_stats=False
-            )
-
-    @patch.dict(os.environ, {
-        "API_VERSION": "2",
-        "GNS3_SERVER_URL": "http://localhost:3080"
-    })
-    @patch('gns3_copilot.gns3_client.gns3_project_open.Gns3Connector')
-    def test_project_open_called(self, mock_connector_class):
-        """Test that project.open() is called"""
-        # Mock connector
-        mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
-        
-        mock_project = Mock()
-        mock_project.project_id = "test_project"
-        mock_project.name = "Test Project"
-        mock_project.status = "opened"
-        mock_project.open.return_value = None
-        
-        with patch('gns3_copilot.gns3_client.gns3_project_open.Project', return_value=mock_project):
-            tool = GNS3ProjectOpen()
-            tool._run(tool_input={"project_id": "test_project", "open": True})
-            
-            # Verify open was called
-            mock_project.open.assert_called_once()
-            # Verify close was NOT called
-            mock_project.close.assert_not_called()
-
-    @patch.dict(os.environ, {
-        "API_VERSION": "2",
-        "GNS3_SERVER_URL": "http://localhost:3080"
-    })
-    @patch('gns3_copilot.gns3_client.gns3_project_open.Gns3Connector')
-    def test_project_close_called(self, mock_connector_class):
-        """Test that project.close() is called"""
-        # Mock connector
-        mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
-        
-        mock_project = Mock()
-        mock_project.project_id = "test_project"
-        mock_project.name = "Test Project"
-        mock_project.status = "closed"
-        mock_project.close.return_value = None
-        
-        with patch('gns3_copilot.gns3_client.gns3_project_open.Project', return_value=mock_project):
-            tool = GNS3ProjectOpen()
-            tool._run(tool_input={"project_id": "test_project", "close": True})
-            
-            # Verify close was called
-            mock_project.close.assert_called_once()
-            # Verify open was NOT called
-            mock_project.open.assert_not_called()
+        # Should return error when project name is None
+        assert result["success"] is False
+        assert "error" in result
+        assert "not found" in result["error"].lower()
 
     @patch.dict(os.environ, {
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_open.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_open.Gns3Connector')
-    def test_project_status_updated(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_open.get_gns3_connector')
+    def test_project_get_called(self, mock_get_connector, mock_project_class):
+        """Test that project.get() is called with correct parameters"""
+        # Mock connector
+        mock_connector = Mock()
+        mock_get_connector.return_value = mock_connector
+        
+        mock_project = Mock()
+        mock_project.project_id = "test_project"
+        mock_project.name = "Test Project"
+        mock_project.status = "opened"
+        mock_project.open.return_value = None
+        mock_project_class.return_value = mock_project
+        
+        tool = GNS3ProjectOpen()
+        tool._run(tool_input={"project_id": "test_project", "open": True})
+        
+        # Verify get was called with False for all parameters to avoid loading nodes/links
+        mock_project.get.assert_called_once_with(
+            get_nodes=False,
+            get_links=False,
+            get_stats=False
+        )
+
+    @patch.dict(os.environ, {
+        "API_VERSION": "2",
+        "GNS3_SERVER_URL": "http://localhost:3080"
+    })
+    @patch('gns3_copilot.gns3_client.gns3_project_open.Project')
+    @patch('gns3_copilot.gns3_client.gns3_project_open.get_gns3_connector')
+    def test_project_open_called(self, mock_get_connector, mock_project_class):
+        """Test that project.open() is called"""
+        # Mock connector
+        mock_connector = Mock()
+        mock_get_connector.return_value = mock_connector
+        
+        mock_project = Mock()
+        mock_project.project_id = "test_project"
+        mock_project.name = "Test Project"
+        mock_project.status = "opened"
+        mock_project.open.return_value = None
+        mock_project_class.return_value = mock_project
+        
+        tool = GNS3ProjectOpen()
+        tool._run(tool_input={"project_id": "test_project", "open": True})
+        
+        # Verify open was called
+        mock_project.open.assert_called_once()
+        # Verify close was NOT called
+        mock_project.close.assert_not_called()
+
+    @patch.dict(os.environ, {
+        "API_VERSION": "2",
+        "GNS3_SERVER_URL": "http://localhost:3080"
+    })
+    @patch('gns3_copilot.gns3_client.gns3_project_open.Project')
+    @patch('gns3_copilot.gns3_client.gns3_project_open.get_gns3_connector')
+    def test_project_close_called(self, mock_get_connector, mock_project_class):
+        """Test that project.close() is called"""
+        # Mock connector
+        mock_connector = Mock()
+        mock_get_connector.return_value = mock_connector
+        
+        mock_project = Mock()
+        mock_project.project_id = "test_project"
+        mock_project.name = "Test Project"
+        mock_project.status = "closed"
+        mock_project.close.return_value = None
+        mock_project_class.return_value = mock_project
+        
+        tool = GNS3ProjectOpen()
+        tool._run(tool_input={"project_id": "test_project", "close": True})
+        
+        # Verify close was called
+        mock_project.close.assert_called_once()
+        # Verify open was NOT called
+        mock_project.open.assert_not_called()
+
+    @patch.dict(os.environ, {
+        "API_VERSION": "2",
+        "GNS3_SERVER_URL": "http://localhost:3080"
+    })
+    @patch('gns3_copilot.gns3_client.gns3_project_open.Project')
+    @patch('gns3_copilot.gns3_client.gns3_project_open.get_gns3_connector')
+    def test_project_status_updated(self, mock_get_connector, mock_project_class):
         """Test that project status is updated in response"""
         # Mock connector
         mock_connector = Mock()
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -509,34 +513,39 @@ class TestGNS3ProjectOpenErrorHandling:
         """Test handling of network connection errors"""
         tool = GNS3ProjectOpen()
         
-        with patch('gns3_copilot.gns3_client.custom_gns3fy.Gns3Connector') as mock_connector_class:
-            # Mock connector to raise connection error
-            mock_connector_class.side_effect = Exception("Connection refused")
+        with patch('gns3_copilot.gns3_client.gns3_project_open.get_gns3_connector') as mock_get_connector:
+            # Mock connector to return None (connection failed)
+            mock_get_connector.return_value = None
             
             result = tool._run(tool_input={"project_id": "project1", "open": True})
             
             assert result["success"] is False
             assert "error" in result
-            assert "Failed to operate on GNS3 project" in result["error"]
+            assert "Failed to connect to GNS3 server" in result["error"]
 
     @patch.dict(os.environ, {
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    def test_gns3_server_error(self):
+    @patch('gns3_copilot.gns3_client.gns3_project_open.Project')
+    @patch('gns3_copilot.gns3_client.gns3_project_open.get_gns3_connector')
+    def test_gns3_server_error(self, mock_get_connector, mock_project_class):
         """Test handling of GNS3 server errors"""
         tool = GNS3ProjectOpen()
         
-        with patch('gns3_copilot.gns3_client.Project') as mock_project_class:
-            # Mock project to raise error on get
-            mock_project = Mock()
-            mock_project.get.side_effect = Exception("Project not found")
-            mock_project_class.return_value = mock_project
-            
-            result = tool._run(tool_input={"project_id": "project1", "open": True})
-            
-            assert result["success"] is False
-            assert "error" in result
+        # Mock connector
+        mock_connector = Mock()
+        mock_get_connector.return_value = mock_connector
+        
+        # Mock project to raise error on get
+        mock_project = Mock()
+        mock_project.get.side_effect = Exception("Project not found")
+        mock_project_class.return_value = mock_project
+        
+        result = tool._run(tool_input={"project_id": "project1", "open": True})
+        
+        assert result["success"] is False
+        assert "error" in result
 
     @patch.dict(os.environ, {
         "API_VERSION": "2",
@@ -546,8 +555,8 @@ class TestGNS3ProjectOpenErrorHandling:
         """Test that exceptions are logged"""
         tool = GNS3ProjectOpen()
         
-        with patch('gns3_copilot.gns3_client.custom_gns3fy.Gns3Connector') as mock_connector_class:
-            mock_connector_class.side_effect = Exception("Test error")
+        with patch('gns3_copilot.gns3_client.gns3_project_open.get_gns3_connector') as mock_get_connector:
+            mock_get_connector.return_value = None
             
             result = tool._run(tool_input={"project_id": "project1", "open": True})
             
@@ -562,8 +571,8 @@ class TestGNS3ProjectOpenErrorHandling:
         """Test handling of timeout errors"""
         tool = GNS3ProjectOpen()
         
-        with patch('gns3_copilot.gns3_client.custom_gns3fy.Gns3Connector') as mock_connector_class:
-            mock_connector_class.side_effect = TimeoutError("Request timeout")
+        with patch('gns3_copilot.gns3_client.gns3_project_open.get_gns3_connector') as mock_get_connector:
+            mock_get_connector.return_value = None
             
             result = tool._run(tool_input={"project_id": "project1", "open": True})
             
@@ -579,13 +588,13 @@ class TestGNS3ProjectOpenReturnFormat:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_open.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_open.Gns3Connector')
-    def test_success_response_format(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_open.get_gns3_connector')
+    def test_success_response_format(self, mock_get_connector, mock_project_class):
         """Test success response has correct format"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -630,13 +639,13 @@ class TestGNS3ProjectOpenReturnFormat:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_open.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_open.Gns3Connector')
-    def test_project_details_in_response(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_open.get_gns3_connector')
+    def test_project_details_in_response(self, mock_get_connector, mock_project_class):
         """Test that project details are included in response"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
@@ -658,13 +667,13 @@ class TestGNS3ProjectOpenReturnFormat:
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
     @patch('gns3_copilot.gns3_client.gns3_project_open.Project')
-    @patch('gns3_copilot.gns3_client.gns3_project_open.Gns3Connector')
-    def test_message_content(self, mock_connector_class, mock_project_class):
+    @patch('gns3_copilot.gns3_client.gns3_project_open.get_gns3_connector')
+    def test_message_content(self, mock_get_connector, mock_project_class):
         """Test that message contains useful information"""
         # Mock connector
         mock_connector = Mock()
         mock_connector.base_url = "http://localhost:3080/v2"
-        mock_connector_class.return_value = mock_connector
+        mock_get_connector.return_value = mock_connector
         
         # Mock project
         mock_project = Mock()
