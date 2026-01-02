@@ -28,12 +28,16 @@ Streamlit web interface components for user interaction and display
 - `chat.py` - Chat interface handling user message flow and response display
 - `settings.py` - System configuration page for LLM, GNS3 server, and other settings
 - `help.py` - Help documentation page
+- `sidebar.py` - Sidebar navigation and project selection UI
 - `utils/app_ui.py` - UI initialization and page routing
 - `utils/chat_helpers.py` - Chat helper functions (message formatting, updates, etc.)
 - `utils/config_manager.py` - Configuration manager (load, save configuration)
 - `utils/gns3_checker.py` - GNS3 connection checking and validation
+- `utils/llm_providers.py` - LLM provider configuration and management
+- `utils/project_manager_ui.py` - Project management UI components
 - `utils/update_ui.py` - UI update logic
 - `utils/updater.py` - Application update checking
+- `utils/translations/` - Internationalization translations directory
 - `styles/main.css` - Interface styles
 
 ### 2. src/gns3_copilot/agent/ - LangGraph Agent Framework
@@ -43,6 +47,7 @@ Core AI agent responsible for intent recognition, tool calling, and conversation
   - Includes llm_call, tool_node, title_generator nodes
   - Integrated with SQLite checkpoint for conversation state persistence
   - Implements should_continue routing logic
+- `checkpoint_utils.py` - Checkpoint utility functions for state persistence
 
 ### 3. src/gns3_copilot/tools_v2/ - Tool Integration Layer
 Defines various network automation tools for LangGraph agent to invoke
@@ -56,10 +61,20 @@ Defines various network automation tools for LangGraph agent to invoke
 - `gns3_get_node_temp.py` - Get available GNS3 node templates
 
 ### 4. src/gns3_copilot/gns3_client/ - GNS3 Integration Framework
-Client for interacting with GNS3 server
+Client for interacting with GNS3 server API and project management
 - `custom_gns3fy.py` - Enhanced GNS3 client (based on gns3fy extensions)
+- `connector_factory.py` - Connector factory for GNS3 client instantiation
+- `gns3_file_index.py` - GNS3 project file indexing utilities
 - `gns3_projects_list.py` - Project list management
 - `gns3_topology_reader.py` - Topology information reading and analysis
+- `gns3_project_create.py` - Create new GNS3 projects
+- `gns3_project_delete.py` - Delete GNS3 projects
+- `gns3_project_open.py` - Open existing GNS3 projects
+- `gns3_project_path.py` - Get GNS3 project paths
+- `gns3_project_update.py` - Update GNS3 project metadata
+- `gns3_project_list_files.py` - List files in GNS3 project
+- `gns3_project_read_file.py` - Read files from GNS3 project
+- `gns3_project_write_file.py` - Write files to GNS3 project
 
 ### 5. src/gns3_copilot/public_model/ - Public Model Layer
 Common models and utility functions
@@ -71,9 +86,10 @@ Common models and utility functions
 ### 6. src/gns3_copilot/prompts/ - Prompt Templates
 LLM prompt management supporting multiple languages and proficiency levels
 - `base_prompt.py` - Base prompt template
-- `prompt_loader.py` - Prompt loader
+- `prompt_loader.py` - Prompt loader utility
+- `title_prompt.py` - Conversation title generation prompt
 - `english_level_prompt_*.py` - English proficiency level prompts (A1-C2)
-- `voice_prompt_*.py` - Voice-related prompts
+- `voice_prompt_*.py` - Voice-related prompts for different English levels
 - `vocie_prompt.py` - Voice prompt (legacy naming)
 
 ### 7. src/gns3_copilot/log_config/ - Logging Configuration
@@ -126,7 +142,13 @@ LLM prompt management supporting multiple languages and proficiency levels
    - Avoid logging sensitive information
    - Follow principle of least privilege for GNS3 server access configuration
 
-9. Module Responsibility Principle
+9. UI and Streamlit Guidelines
+   - Use Streamlit's built-in Material Design icons with the `:material:` prefix (e.g., `:material:home:`, `:material:settings:`, `:material:add:`)
+   - Prefer Material icons over emoji for better visual consistency and accessibility
+   - Use appropriate icons that match the semantic meaning of UI elements
+   - Refer to Streamlit documentation for available Material icons
+
+10. Module Responsibility Principle
    - Follow single responsibility principle, each module focuses on specific functionality
    - Tool layer (tools_v2) only defines tools, does not contain business logic
    - Agent layer (agent) is responsible for tool selection and invocation
