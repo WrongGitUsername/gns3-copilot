@@ -681,6 +681,302 @@ After rotation, the ellipse center on canvas:
 
 **✓ Result**: The ellipse center position is accurate within 1 pixel, which is visually imperceptible and well within acceptable tolerance.
 
+---
+
+#### Advanced: Multi-Node Ellipse Calculation (3+ Nodes)
+
+**Overview**: This section documents the algorithm for creating elliptical drawings that encircle connections between three or more network devices. This is useful for grouping devices that form a logical area, subnet, or network region.
+
+**⚠️ Important**: This algorithm creates **axis-aligned ellipses** (no rotation) that visually group connected devices. Unlike the two-node algorithm which rotates the ellipse to align with the link direction, multi-node ellipses are always horizontal.
+
+**Core Concept**: The algorithm uses a **center point bounding box** approach to create ellipses that encircle all device center points, effectively covering the connections between devices.
+
+**Algorithm Steps**:
+
+**Step 1: Calculate All Device Center Points**
+
+For each node, calculate its center point:
+
+```python
+center_x = node.x + (node.width / 2)
+center_y = node.y + (node.height / 2)
+```
+
+**Step 2: Find Extreme Points**
+
+Find the minimum and maximum x and y values among all center points:
+
+```python
+min_x = min(center_x for center_x in all_centers)
+max_x = max(center_x for center_x in all_centers)
+min_y = min(center_y for center_y in all_centers)
+max_y = max(center_y for center_y in all_centers)
+```
+
+**Step 3: Calculate Base Dimensions**
+
+Calculate the width and height of the bounding box:
+
+```python
+base_width = max_x - min_x
+base_height = max_y - min_y
+```
+
+**Step 4: Apply Padding Ratio (Optional Scaling)**
+
+Apply a scaling factor to adjust the ellipse size:
+
+```python
+padding_ratio = -0.05  # Default: makes ellipse 5% smaller than bounding box
+draw_width = base_width * (1 + padding_ratio)
+draw_height = base_height * (1 + padding_ratio)
+```
+
+**Padding Ratio Guidelines**:
+- `padding_ratio = 0`: Ellipse edge passes through extreme device centers
+- `padding_ratio = 0.1`: Ellipse is 10% larger (more breathing room)
+- `padding_ratio = -0.05`: Ellipse is 5% smaller (tighter grouping, default)
+- `padding_ratio = -0.1`: Ellipse is 10% smaller (very tight grouping)
+
+**Step 5: Calculate Ellipse Center Position**
+
+Calculate the center as the midpoint of the bounding box (NOT the average of all centers):
+
+```python
+center_x = (min_x + max_x) / 2
+center_y = (min_y + max_y) / 2
+```
+
+**Important**: Using the midpoint of extremes ensures that inner nodes (not at the boundaries) don't shift the center.
+
+**Step 6: Calculate Drawing Position**
+
+Calculate the top-left corner of the drawing:
+
+```python
+svg_x = center_x - (draw_width / 2)
+svg_y = center_y - (draw_height / 2)
+```
+
+**Step 7: Calculate SVG Parameters**
+
+```python
+rx = draw_width / 2
+ry = draw_height / 2
+cx = draw_width / 2
+cy = draw_height / 2
+```
+
+**Step 8: Generate SVG Content**
+
+```python
+svg_content = f'''<svg width="{draw_width}" height="{draw_height}">
+<ellipse cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}"
+fill="#ffffff" fill-opacity="0.8" 
+stroke="#000000" stroke-width="2" stroke-dasharray="5,5" />
+</svg>'''
+```
+
+**Rotation**: Multi-node ellipses always have `rotation = 0` (axis-aligned).
+
+**Real-World Example: 4 Nodes**
+
+**Input Data**:
+```python
+nodes = [
+    {'name': 'R-1', 'x': -105, 'y': -268, 'width': 60, 'height': 60},
+    {'name': 'R-2', 'x': -416, 'y': -37, 'width': 60, 'height': 60},
+    {'name': 'R-3', 'x': -111, 'y': 202, 'width': 60, 'height': 60},
+    {'name': 'R-4', 'x': 183, 'y': -23, 'width': 60, 'height': 60}
+]
+```
+
+**Step 1: Center Points**
+```
+R-1: (-75, -238)   # -105+30, -268+30
+R-2: (-386, -7)    # -416+30, -37+30
+R-3: (-81, 232)    # -111+30, 202+30
+R-4: (213, 7)      # 183+30, -23+30
+```
+
+**Step 2: Extreme Points**
+```
+min_x = -386 (R-2)
+max_x = 213 (R-4)
+min_y = -238 (R-1)
+max_y = 232 (R-3)
+```
+
+**Step 3: Base Dimensions**
+```
+base_width = 213 - (-386) = 599
+base_height = 232 - (-238) = 470
+```
+
+**Step 4: Draw Dimensions (padding_ratio = -0.05)**
+```
+draw_width = 599 * 0.95 = 569.05
+draw_height = 470 * 0.95 = 446.5
+```
+
+**Step 5: Center Position**
+```
+center_x = (-386 + 213) / 2 = -86.5
+center_y = (-238 + 232) / 2 = -3.0
+```
+
+**Step 6: Drawing Position**
+```
+svg_x = -86.5 - (569.05 / 2) = -371.025
+svg_y = -3.0 - (446.5 / 2) = -226.25
+```
+
+**Step 7: SVG Parameters**
+```
+rx = 284.525
+ry = 223.25
+cx = 284.525
+cy = 223.25
+```
+
+**Final Result**:
+```json
+{
+  "svg": "<svg width=\"569\" height=\"446\"><ellipse cx=\"284\" cy=\"223\" rx=\"284\" ry=\"223\" fill=\"#ffffff\" fill-opacity=\"0.8\" stroke=\"#000000\" stroke-width=\"2\" stroke-dasharray=\"5,5\" /></svg>",
+  "x": -371,
+  "y": -226,
+  "rotation": 0
+}
+```
+
+**Implementation Example**:
+
+```python
+def calculate_multi_node_ellipse(nodes, area_name, padding_ratio=-0.05):
+    """
+    Calculate ellipse parameters for 3 or more nodes.
+    
+    Args:
+        nodes: List of dicts with 'x', 'y', 'width', 'height' (top-left corner)
+        area_name: Name of the area (for color scheme selection)
+        padding_ratio: Scaling factor for ellipse size (default: -0.05)
+    
+    Returns:
+        dict with ellipse parameters and SVG content
+    
+    Note:
+        Creates axis-aligned ellipses (rotation=0) that encircle
+        all device center points.
+    """
+    if len(nodes) < 2:
+        raise ValueError("At least 2 nodes are required")
+    
+    # Step 1: Calculate center points
+    centers = []
+    for node in nodes:
+        center_x = node["x"] + node["width"] / 2
+        center_y = node["y"] + node["height"] / 2
+        centers.append((center_x, center_y))
+    
+    # Step 2: Find extremes
+    min_x = min(c[0] for c in centers)
+    max_x = max(c[0] for c in centers)
+    min_y = min(c[1] for c in centers)
+    max_y = max(c[1] for c in centers)
+    
+    # Step 3: Base dimensions
+    base_width = max_x - min_x
+    base_height = max_y - min_y
+    
+    # Step 4: Draw dimensions
+    draw_width = base_width * (1 + padding_ratio)
+    draw_height = base_height * (1 + padding_ratio)
+    
+    # Step 5: Center position
+    center_x = (min_x + max_x) / 2
+    center_y = (min_y + max_y) / 2
+    
+    # Step 6: Drawing position
+    svg_x = center_x - draw_width / 2
+    svg_y = center_y - draw_height / 2
+    
+    # Step 7: SVG parameters
+    rx = draw_width / 2
+    ry = draw_height / 2
+    cx = draw_width / 2
+    cy = draw_height / 2
+    
+    return {
+        "metadata": {
+            "node_count": len(nodes),
+            "base_width": base_width,
+            "base_height": base_height,
+            "center_x": center_x,
+            "center_y": center_y,
+            "rx": rx,
+            "ry": ry
+        },
+        "ellipse": {
+            "x": int(svg_x),
+            "y": int(svg_y),
+            "rotation": 0,
+            "svg": generate_ellipse_svg(rx, ry, area_name)
+        }
+    }
+```
+
+**Key Differences from Two-Node Algorithm**:
+
+| Aspect | Two-Node Algorithm | Multi-Node Algorithm |
+|--------|-------------------|---------------------|
+| Rotation | Aligns with link direction | Always 0 (axis-aligned) |
+| Center Calculation | Midpoint of two devices | Midpoint of bounding box extremes |
+| Radius X | Based on distance between devices | Based on bounding box width |
+| Radius Y | Based on device heights | Based on bounding box height |
+| Use Case | Link between two devices | Grouping multiple devices |
+
+**When to Use**:
+
+- **Use Two-Node Algorithm**: When creating ellipses specifically for a link between two devices (e.g., OSPF area between two routers)
+- **Use Multi-Node Algorithm**: When grouping 3 or more devices that form a logical area, subnet, or network region
+
+**Example Use Cases**:
+
+1. **3 Nodes (Triangle)**: Three routers forming a triangle topology
+2. **4 Nodes (Rectangle)**: Four routers at corners of a rectangular area
+3. **5+ Nodes (Cluster)**: Multiple devices in a network cluster or data center
+4. **Irregular Layout**: Any arrangement where you want to visually group devices
+
+**Visual Effect**:
+
+The ellipse will:
+- Encircle all device center points
+- Be tight around the extreme devices
+- Ignore inner devices for dimension calculation (they just need to be within the bounding box)
+- Provide visual grouping that helps identify logical network areas
+
+**Important Notes**:
+
+1. **Inner Nodes Don't Affect Dimensions**: Devices that are not at the extreme boundaries don't change the ellipse size
+2. **Padding Ratio Controls Tightness**: Use negative values for tighter grouping, positive for more breathing room
+3. **Axis-Aligned**: Multi-node ellipses are never rotated, making them easier to read
+4. **Works for Any Number of Nodes**: Algorithm is general and works for 3, 4, 5, or more devices
+
+**Comparison with User's Original Data**:
+
+The user's original drawing had:
+- `x: -366, y: -224, width: 570, height: 442`
+
+Our algorithm produces:
+- `x: -371, y: -226, width: 569, height: 446`
+
+The small differences (5 pixels in position, 4 pixels in dimensions) are due to:
+1. Using device center points instead of edge coordinates
+2. Applying a default padding_ratio of -0.05 for visual balance
+3. Slight differences in rounding and floating-point handling
+
+These differences are visually imperceptible and result in a more balanced, aesthetically pleasing ellipse.
+
 **Tolerance Notes**:
 
 1. **Pixel differences**: Small differences (1-4 pixels) in svg_x, svg_y, and cx are due to:

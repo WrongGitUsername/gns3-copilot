@@ -19,7 +19,10 @@ from gns3_copilot.gns3_client import (
     get_gns3_connector,
 )
 from gns3_copilot.log_config import setup_tool_logger
-from gns3_copilot.public_model.gns3_drawing_utils import calculate_two_node_ellipse
+from gns3_copilot.public_model.gns3_drawing_utils import (
+    calculate_multi_node_ellipse,
+    calculate_two_node_ellipse,
+)
 
 # Configure logging
 logger = setup_tool_logger("gns3_create_area_drawing")
@@ -41,8 +44,8 @@ class GNS3CreateAreaDrawingTool(BaseTool):
     """
     A LangChain tool to create visual area annotations for network devices.
 
-    Creates ellipse annotations that connect two network devices, automatically
-    calculating optimal position, size, and rotation based on node coordinates.
+    Creates ellipse annotations that connect multiple network devices (2+ nodes),
+    automatically calculating optimal position, size, and rotation based on node coordinates.
 
     **Input:**
     A JSON object containing the project_id, area_name, and node_names.
@@ -51,7 +54,7 @@ class GNS3CreateAreaDrawingTool(BaseTool):
         {
             "project_id": "uuid-of-project",
             "area_name": "Area 0",
-            "node_names": ["R-1", "R-2"]
+            "node_names": ["R-1", "R-2", "R-3"]
         }
 
     **Output:**
@@ -59,7 +62,7 @@ class GNS3CreateAreaDrawingTool(BaseTool):
         {
             "project_id": "uuid-of-project",
             "area_name": "Area 0",
-            "node_count": 2,
+            "node_count": 3,
             "shape_type": "ellipse",
             "created_drawings": [
                 {
@@ -78,13 +81,13 @@ class GNS3CreateAreaDrawingTool(BaseTool):
             "failed_drawings": 0
         }
 
-    **Note:** Currently supports exactly 2 nodes. For more nodes, please use multiple calls
-    or wait for multi-node support in future versions.
+    **Note:** Supports 2 or more nodes. For 2 nodes, uses rotated ellipse connecting them.
+    For 3+ nodes, uses axis-aligned ellipse enclosing all device centers.
     """
 
     name: str = "create_gns3_area_drawing"
     description: str = """
-    Creates a visual ellipse annotation for exactly TWO network devices to show area grouping.
+    Creates a visual ellipse annotation for TWO or MORE network devices to show area grouping.
 
     Use this tool when:
     - Configuring OSPF, EIGRP, BGP, or other routing protocols
@@ -94,13 +97,13 @@ class GNS3CreateAreaDrawingTool(BaseTool):
     Input parameters:
     - project_id (required): GNS3 project UUID
     - area_name (required): Area/group name (e.g., "Area 0", "AS 100")
-    - node_names (required): List of exactly 2 node names (e.g., ["R-1", "R-2"])
+    - node_names (required): List of 2 or more node names (e.g., ["R-1", "R-2"] or ["R-1", "R-2", "R-3", "R-4"])
 
     The tool automatically:
     - Gets node coordinates from the project topology
-    - Calculates optimal ellipse to connect the two devices
+    - For 2 nodes: Calculates rotated ellipse connecting them
+    - For 3+ nodes: Calculates axis-aligned ellipse enclosing all devices
     - Determines perfect size and position
-    - Calculates rotation angle based on node alignment
     - Chooses appropriate colors (green for Area 0, blue for other areas)
     - Generates professional SVG graphics
     - Creates both the ellipse shape and area label text
@@ -108,6 +111,9 @@ class GNS3CreateAreaDrawingTool(BaseTool):
     Example usage:
         User: "Configure OSPF area 0 on R-1 and R-2"
         → Call: create_gns3_area_drawing(project_id="xxx", area_name="Area 0", node_names=["R-1", "R-2"])
+
+        User: "Create OSPF area 1 for R-1, R-2, R-3, R-4"
+        → Call: create_gns3_area_drawing(project_id="xxx", area_name="Area 1", node_names=["R-1", "R-2", "R-3", "R-4"])
 
     Returns creation results including drawing IDs and status.
     """
@@ -151,15 +157,15 @@ class GNS3CreateAreaDrawingTool(BaseTool):
                 logger.error("Invalid input: node_names must be a non-empty array.")
                 return {"error": "node_names must be a non-empty array."}
 
-            # Validate: currently only supports exactly 2 nodes
-            if len(node_names) != 2:
+            # Validate: requires at least 2 nodes
+            if len(node_names) < 2:
                 logger.error(
-                    "Invalid input: This version only supports exactly 2 nodes, got %d.",
+                    "Invalid input: At least 2 nodes are required, got %d.",
                     len(node_names),
                 )
                 return {
-                    "error": f"This version only supports exactly 2 nodes, got {len(node_names)}. "
-                    "Please provide exactly 2 node names."
+                    "error": f"At least 2 nodes are required, got {len(node_names)}. "
+                    "Please provide 2 or more node names."
                 }
 
             # Initialize Gns3Connector using factory function
@@ -194,51 +200,51 @@ class GNS3CreateAreaDrawingTool(BaseTool):
             # Build a dictionary mapping node names to their complete information
             nodes_dict = {node["name"]: node for node in nodes_result.get("nodes", [])}
 
-            # Retrieve the two nodes
-            node1_name = node_names[0]
-            node2_name = node_names[1]
+            # Validate all requested nodes exist
+            for node_name in node_names:
+                if node_name not in nodes_dict:
+                    logger.error("Node %s not found in project", node_name)
+                    return {
+                        "error": f"Node '{node_name}' not found in project topology."
+                    }
 
-            if node1_name not in nodes_dict:
-                logger.error("Node %s not found in project", node1_name)
-                return {"error": f"Node '{node1_name}' not found in project topology."}
+            # Retrieve all requested nodes
+            nodes = [nodes_dict[node_name] for node_name in node_names]
 
-            if node2_name not in nodes_dict:
-                logger.error("Node %s not found in project", node2_name)
-                return {"error": f"Node '{node2_name}' not found in project topology."}
+            # Log node information
+            node_info_list = [
+                f"{node_name} at ({node['x']}, {node['y']}, size: {node.get('width', 'N/A')}x{node.get('height', 'N/A')})"
+                for node_name, node in zip(node_names, nodes, strict=True)
+            ]
+            logger.info("Found nodes: %s", ", ".join(node_info_list))
 
-            # Get complete node information (includes x, y, height, width, etc.)
-            node1 = nodes_dict[node1_name]
-            node2 = nodes_dict[node2_name]
+            # Calculate ellipse parameters based on node count
+            logger.info("Calculating ellipse parameters for %d nodes...", len(nodes))
 
-            logger.info(
-                "Found nodes: %s at (%d, %d, size: %dx%d), %s at (%d, %d, size: %dx%d)",
-                node1_name,
-                node1["x"],
-                node1["y"],
-                node1.get("width", "N/A"),
-                node1.get("height", "N/A"),
-                node2_name,
-                node2["x"],
-                node2["y"],
-                node2.get("width", "N/A"),
-                node2.get("height", "N/A"),
-            )
-
-            # Calculate ellipse parameters using utility function
-            # The function now uses actual node dimensions from the retrieved data
-            logger.info(
-                "Calculating ellipse parameters using actual node dimensions..."
-            )
-            ellipse_result = calculate_two_node_ellipse(node1, node2, area_name)
-
-            logger.info(
-                "Ellipse calculated: center=(%.2f, %.2f), distance=%.2f, angle=%.2f°, ry=%.2f",
-                ellipse_result["metadata"]["center_x"],
-                ellipse_result["metadata"]["center_y"],
-                ellipse_result["metadata"]["distance"],
-                ellipse_result["metadata"]["angle_deg"],
-                ellipse_result["metadata"]["ry"],
-            )
+            if len(nodes) == 2:
+                # For 2 nodes, use rotated ellipse connecting them
+                ellipse_result = calculate_two_node_ellipse(
+                    nodes[0], nodes[1], area_name
+                )
+                logger.info(
+                    "Two-node ellipse: center=(%.2f, %.2f), distance=%.2f, angle=%.2f°",
+                    ellipse_result["metadata"]["center_x"],
+                    ellipse_result["metadata"]["center_y"],
+                    ellipse_result["metadata"]["distance"],
+                    ellipse_result["metadata"]["angle_deg"],
+                )
+            else:
+                # For 3+ nodes, use axis-aligned ellipse enclosing all centers
+                ellipse_result = calculate_multi_node_ellipse(nodes, area_name)
+                logger.info(
+                    "Multi-node ellipse: center=(%.2f, %.2f), base_size=%.2fx%.2f, draw_size=%.2fx%.2f",
+                    ellipse_result["metadata"]["center_x"],
+                    ellipse_result["metadata"]["center_y"],
+                    ellipse_result["metadata"]["base_width"],
+                    ellipse_result["metadata"]["base_height"],
+                    ellipse_result["metadata"]["rx"] * 2,
+                    ellipse_result["metadata"]["ry"] * 2,
+                )
 
             # Prepare drawings for creation
             # Ensure all coordinates are integers as required by GNS3 API
@@ -359,9 +365,9 @@ if __name__ == "__main__":
 
     test_input = json.dumps(
         {
-            "project_id": "0c0fde25-6ead-4413-a283-ea8fd2324291",  # Replace with actual project UUID
-            "area_name": "mstp",
-            "node_names": ["R-4", "R-3"],
+            "project_id": "d7fc094c-685e-4db1-ac11-5e33a1b2e066",  # Replace with actual project UUID
+            "area_name": "ospf area 0",
+            "node_names": ["R-1", "R-2", "R-3", "R-4"],  # Replace with actual node names
         }
     )
 

@@ -425,12 +425,168 @@ def _get_color_scheme(area_name: str) -> dict[str, Any]:
     return COLOR_SCHEMES["IGP"]
 
 
+def calculate_multi_node_ellipse(
+    nodes: list[dict[str, Any]],
+    area_name: str,
+    padding_ratio: float = -0.05,
+) -> dict[str, Any]:
+    """
+    Calculate ellipse annotation parameters for multiple nodes (2+ nodes).
+
+    This function computes an axis-aligned ellipse that encloses multiple network devices.
+    Uses the "center point extreme value method" to find the bounding box of all device
+    center points and places an ellipse around it.
+
+    Algorithm:
+    1. Calculate device center points for all nodes
+    2. Find extreme points (min_x, max_x, min_y, max_y) among centers
+    3. Calculate base dimensions from extremes
+    4. Apply padding_ratio to adjust ellipse size
+    5. Calculate position to keep ellipse centered
+    6. Generate axis-aligned ellipse and text (no rotation needed)
+
+    Args:
+        nodes: List of node dictionaries with 'x', 'y', 'height', and 'width' (top-left corner)
+        area_name: Name of the area (e.g., "Area 0", "AS 100")
+        padding_ratio: Expansion/contraction ratio (default: -0.05)
+                      * 0.0: Ellipse passes through device centers
+                      * 0.1: 10% larger, includes device edges
+                      * -0.05: 5% smaller, tighter around centers (recommended)
+
+    Returns:
+        Dictionary containing ellipse and text SVG parameters:
+        {
+            "ellipse": {
+                "svg": str,  # Ellipse SVG content
+                "x": int,    # SVG x coordinate
+                "y": int,    # SVG y coordinate
+                "rotation": int  # Rotation angle (always 0 for multi-node)
+            },
+            "text": {
+                "svg": str,  # Text SVG content
+                "x": int,    # SVG x coordinate
+                "y": int,    # SVG y coordinate
+                "rotation": int  # Rotation angle (always 0)
+            },
+            "metadata": {
+                "center_x": float,
+                "center_y": float,
+                "rx": float,
+                "ry": float,
+                "base_width": float,
+                "base_height": float,
+                "node_count": int
+            }
+        }
+
+    Example:
+        >>> nodes = [
+        ...     {"x": 100, "y": 200, "width": 60, "height": 60},
+        ...     {"x": 300, "y": 200, "width": 60, "height": 60},
+        ...     {"x": 200, "y": 100, "width": 60, "height": 60}
+        ... ]
+        >>> result = calculate_multi_node_ellipse(nodes, "Area 0")
+        >>> print(result["metadata"]["center_x"])
+        230.0
+    """
+    # Validate input
+    if not nodes or len(nodes) < 2:
+        raise ValueError("At least 2 nodes are required for multi-node ellipse")
+
+    # Step 1: Calculate center points for all nodes
+    centers = []
+    for node in nodes:
+        node_width = node.get("width", DEFAULT_DEVICE_WIDTH)
+        node_height = node.get("height", DEFAULT_DEVICE_HEIGHT)
+        center_x = node["x"] + (node_width / 2)
+        center_y = node["y"] + (node_height / 2)
+        centers.append((center_x, center_y))
+
+    # Step 2: Find extreme points among all centers
+    min_x = min(c[0] for c in centers)
+    max_x = max(c[0] for c in centers)
+    min_y = min(c[1] for c in centers)
+    max_y = max(c[1] for c in centers)
+
+    # Step 3: Calculate base dimensions from extremes
+    base_width = max_x - min_x
+    base_height = max_y - min_y
+
+    # Step 4: Apply padding to adjust ellipse size
+    # Positive padding_ratio = larger ellipse (includes device edges)
+    # Negative padding_ratio = smaller ellipse (tighter around centers)
+    draw_width = base_width * (1 + padding_ratio)
+    draw_height = base_height * (1 + padding_ratio)
+
+    # Ensure minimum dimensions to avoid degenerate ellipses
+    draw_width = max(draw_width, 100)  # Minimum 100px width
+    draw_height = max(draw_height, 80)  # Minimum 80px height
+
+    # Step 5: Calculate position to keep ellipse centered
+    # Calculate offset needed to maintain center alignment after padding
+    width_offset = (draw_width - base_width) / 2
+    height_offset = (draw_height - base_height) / 2
+
+    draw_x = min_x - width_offset
+    draw_y = min_y - height_offset
+
+    # Calculate ellipse center
+    center_x = (min_x + max_x) / 2
+    center_y = (min_y + max_y) / 2
+
+    # Step 6: Calculate ellipse radii
+    rx = draw_width / 2
+    ry = draw_height / 2
+
+    # Step 7: Get color scheme based on area name
+    color_scheme = _get_color_scheme(area_name)
+
+    # Step 8: Generate SVG content
+    # Axis-aligned ellipse (no rotation)
+    ellipse_svg = generate_ellipse_svg(
+        int(rx), int(ry), color_scheme, int(draw_width), int(draw_height)
+    )
+    text_svg = generate_text_svg(area_name, color_scheme)
+
+    # Calculate text SVG dimensions
+    text_svg_width = len(area_name) * 8 + 20
+    text_svg_height = DEFAULT_FONT_SIZE + 16
+
+    # Position text at ellipse center
+    text_x = int(center_x - text_svg_width / 2)
+    text_y = int(center_y - text_svg_height / 2)
+
+    return {
+        "ellipse": {
+            "svg": ellipse_svg,
+            "x": int(draw_x),
+            "y": int(draw_y),
+            "rotation": 0,  # No rotation for multi-node ellipses
+        },
+        "text": {
+            "svg": text_svg,
+            "x": text_x,
+            "y": text_y,
+            "rotation": 0,
+        },
+        "metadata": {
+            "center_x": center_x,
+            "center_y": center_y,
+            "rx": rx,
+            "ry": ry,
+            "base_width": base_width,
+            "base_height": base_height,
+            "node_count": len(nodes),
+        },
+    }
+
+
 if __name__ == "__main__":
     # Test the utility functions
     print("Testing gns3_drawing_utils...")
 
-    # Test 1: Horizontal layout
-    print("\nTest 1: Horizontal layout")
+    # Test 1: Horizontal layout (2 nodes)
+    print("\nTest 1: Horizontal layout (2 nodes)")
     node1 = {"x": 100, "y": 200}
     node2 = {"x": 300, "y": 200}
     result = calculate_two_node_ellipse(node1, node2, "Area 0")
@@ -440,8 +596,8 @@ if __name__ == "__main__":
     print(f"Distance: {result['metadata']['distance']:.2f}")
     print(f"Angle: {result['metadata']['angle_deg']:.2f}°")
 
-    # Test 2: Vertical layout
-    print("\nTest 2: Vertical layout")
+    # Test 2: Vertical layout (2 nodes)
+    print("\nTest 2: Vertical layout (2 nodes)")
     node1 = {"x": 200, "y": 100}
     node2 = {"x": 200, "y": 300}
     result = calculate_two_node_ellipse(node1, node2, "Area 0")
@@ -450,8 +606,8 @@ if __name__ == "__main__":
     )
     print(f"Angle: {result['metadata']['angle_deg']:.2f}°")
 
-    # Test 3: Diagonal layout
-    print("\nTest 3: Diagonal layout")
+    # Test 3: Diagonal layout (2 nodes)
+    print("\nTest 3: Diagonal layout (2 nodes)")
     node1 = {"x": 100, "y": 100}
     node2 = {"x": 300, "y": 300}
     result = calculate_two_node_ellipse(node1, node2, "Area 0")
@@ -459,5 +615,45 @@ if __name__ == "__main__":
         f"Center: ({result['metadata']['center_x']}, {result['metadata']['center_y']})"
     )
     print(f"Angle: {result['metadata']['angle_deg']:.2f}°")
+
+    # Test 4: Multi-node (4 nodes from user example)
+    print("\nTest 4: Multi-node ellipse (4 nodes)")
+    nodes = [
+        {"x": -105, "y": -268, "width": 60, "height": 60, "name": "R-1"},
+        {"x": -416, "y": -37, "width": 60, "height": 60, "name": "R-2"},
+        {"x": -111, "y": 202, "width": 60, "height": 60, "name": "R-3"},
+        {"x": 183, "y": -23, "width": 60, "height": 60, "name": "R-4"},
+    ]
+    result = calculate_multi_node_ellipse(nodes, "Area 0", padding_ratio=-0.05)
+    print(
+        f"Center: ({result['metadata']['center_x']:.2f}, {result['metadata']['center_y']:.2f})"
+    )
+    print(
+        f"Base size: {result['metadata']['base_width']:.2f} x {result['metadata']['base_height']:.2f}"
+    )
+    print(
+        f"Draw size: {result['metadata']['rx'] * 2:.2f} x {result['metadata']['ry'] * 2:.2f}"
+    )
+    print(f"Position: ({result['ellipse']['x']}, {result['ellipse']['y']})")
+    print(f"Node count: {result['metadata']['node_count']}")
+
+    # Test 5: Multi-node (3 nodes - triangle)
+    print("\nTest 5: Multi-node ellipse (3 nodes - triangle)")
+    nodes = [
+        {"x": 100, "y": 100, "width": 60, "height": 60, "name": "R-1"},
+        {"x": 300, "y": 100, "width": 60, "height": 60, "name": "R-2"},
+        {"x": 200, "y": 300, "width": 60, "height": 60, "name": "R-3"},
+    ]
+    result = calculate_multi_node_ellipse(nodes, "Area 1", padding_ratio=-0.05)
+    print(
+        f"Center: ({result['metadata']['center_x']:.2f}, {result['metadata']['center_y']:.2f})"
+    )
+    print(
+        f"Base size: {result['metadata']['base_width']:.2f} x {result['metadata']['base_height']:.2f}"
+    )
+    print(
+        f"Draw size: {result['metadata']['rx'] * 2:.2f} x {result['metadata']['ry'] * 2:.2f}"
+    )
+    print(f"Node count: {result['metadata']['node_count']}")
 
     print("\n✅ All tests passed!")

@@ -9,6 +9,7 @@ import math
 
 from gns3_copilot.public_model.gns3_drawing_utils import (
     calculate_two_node_ellipse,
+    calculate_multi_node_ellipse,
     generate_ellipse_svg,
     generate_text_svg,
     DEFAULT_PADDING,
@@ -251,6 +252,183 @@ class TestCalculateTwoNodeEllipse:
         print("✅ test_svg_structure_text passed")
 
 
+class TestCalculateMultiNodeEllipse:
+    """Test cases for calculate_multi_node_ellipse function."""
+
+    def test_three_nodes_triangle(self):
+        """Test ellipse calculation for 3 nodes in triangle layout."""
+        # Arrange
+        nodes = [
+            {"x": 100, "y": 100, "width": 60, "height": 60, "name": "R-1"},
+            {"x": 300, "y": 100, "width": 60, "height": 60, "name": "R-2"},
+            {"x": 200, "y": 300, "width": 60, "height": 60, "name": "R-3"},
+        ]
+        area_name = "Area 1"
+
+        # Act
+        result = calculate_multi_node_ellipse(nodes, area_name)
+
+        # Assert
+        # Check center (midpoint of extremes, not average of all centers)
+        min_x, max_x = 130, 330
+        min_y, max_y = 130, 330
+        assert result["metadata"]["center_x"] == (min_x + max_x) / 2
+        assert result["metadata"]["center_y"] == (min_y + max_y) / 2
+
+        # Check base dimensions (from extremes)
+        assert result["metadata"]["base_width"] == 200.0  # 330 - 130
+        assert result["metadata"]["base_height"] == 200.0  # 330 - 130
+
+        # Check node count
+        assert result["metadata"]["node_count"] == 3
+
+        # Check no rotation for multi-node ellipses
+        assert result["ellipse"]["rotation"] == 0
+        assert result["text"]["rotation"] == 0
+
+        # Check SVG content
+        assert "<svg" in result["ellipse"]["svg"]
+        assert "<ellipse" in result["ellipse"]["svg"]
+        assert "Area 1" in result["text"]["svg"]
+        assert "<text" in result["text"]["svg"]
+
+        print("✅ test_three_nodes_triangle passed")
+
+    def test_four_nodes_user_example(self):
+        """Test ellipse calculation for 4 nodes from user example."""
+        # Arrange - using actual data from user's example
+        nodes = [
+            {"x": -105, "y": -268, "width": 60, "height": 60, "name": "R-1"},
+            {"x": -416, "y": -37, "width": 60, "height": 60, "name": "R-2"},
+            {"x": -111, "y": 202, "width": 60, "height": 60, "name": "R-3"},
+            {"x": 183, "y": -23, "width": 60, "height": 60, "name": "R-4"},
+        ]
+        area_name = "Area 0"
+
+        # Act
+        result = calculate_multi_node_ellipse(nodes, area_name)
+
+        # Assert
+        # Calculate center points
+        centers = [
+            (-75, -238),   # R-1: -105+30, -268+30
+            (-386, -7),    # R-2: -416+30, -37+30
+            (-81, 232),    # R-3: -111+30, 202+30
+            (213, 7),      # R-4: 183+30, -23+30
+        ]
+        
+        # Check extremes
+        min_x, max_x = -386, 213
+        min_y, max_y = -238, 232
+        
+        assert result["metadata"]["center_x"] == (min_x + max_x) / 2
+        assert result["metadata"]["center_y"] == (min_y + max_y) / 2
+
+        # Check base dimensions
+        assert result["metadata"]["base_width"] == 599.0  # 213 - (-386)
+        assert result["metadata"]["base_height"] == 470.0  # 232 - (-238)
+
+        # Check draw dimensions (with default padding_ratio = -0.05)
+        expected_width = 599.0 * 0.95
+        expected_height = 470.0 * 0.95
+        assert abs(result["metadata"]["rx"] * 2 - expected_width) < 0.1
+        assert abs(result["metadata"]["ry"] * 2 - expected_height) < 0.1
+
+        # Check node count
+        assert result["metadata"]["node_count"] == 4
+
+        # Check SVG content
+        assert "<svg" in result["ellipse"]["svg"]
+        assert "<ellipse" in result["ellipse"]["svg"]
+
+        print("✅ test_four_nodes_user_example passed")
+
+    def test_five_nodes_cluster(self):
+        """Test ellipse calculation for 5 nodes in cluster layout."""
+        # Arrange
+        nodes = [
+            {"x": 100, "y": 100, "width": 60, "height": 60, "name": "R-1"},
+            {"x": 200, "y": 100, "width": 60, "height": 60, "name": "R-2"},
+            {"x": 300, "y": 100, "width": 60, "height": 60, "name": "R-3"},
+            {"x": 100, "y": 200, "width": 60, "height": 60, "name": "R-4"},
+            {"x": 300, "y": 200, "width": 60, "height": 60, "name": "R-5"},
+        ]
+        area_name = "AS 100"
+
+        # Act
+        result = calculate_multi_node_ellipse(nodes, area_name)
+
+        # Assert
+        # Calculate center points
+        centers = [
+            (130, 130), (230, 130), (330, 130),
+            (130, 230), (330, 230)
+        ]
+        min_x, max_x = 130, 330
+        min_y, max_y = 130, 230
+        
+        assert result["metadata"]["center_x"] == (min_x + max_x) / 2
+        assert result["metadata"]["center_y"] == (min_y + max_y) / 2
+
+        # Check base dimensions
+        assert result["metadata"]["base_width"] == 200.0
+        assert result["metadata"]["base_height"] == 100.0
+
+        # Check node count
+        assert result["metadata"]["node_count"] == 5
+
+        # Check that inner nodes (not at extremes) don't affect dimensions
+        # R-2 at (230, 130) and R-4 at (130, 230) are not at extremes
+        assert result["metadata"]["base_width"] == 200.0  # Only R-1 and R-3 matter
+        assert result["metadata"]["base_height"] == 100.0  # Only R-1 and R-5 matter
+
+        print("✅ test_five_nodes_cluster passed")
+
+    def test_validation_insufficient_nodes(self):
+        """Test that function raises error for less than 2 nodes."""
+        # Arrange
+        nodes = [
+            {"x": 100, "y": 100, "width": 60, "height": 60, "name": "R-1"},
+        ]
+        area_name = "Area 0"
+
+        # Act & Assert
+        try:
+            calculate_multi_node_ellipse(nodes, area_name)
+            assert False, "Should have raised ValueError"
+        except ValueError as e:
+            assert "At least 2 nodes" in str(e)
+
+        print("✅ test_validation_insufficient_nodes passed")
+
+    def test_axis_aligned_no_rotation(self):
+        """Test that multi-node ellipses are always axis-aligned (no rotation)."""
+        # Arrange - diagonal layout
+        nodes = [
+            {"x": 100, "y": 100, "width": 60, "height": 60, "name": "R-1"},
+            {"x": 300, "y": 300, "width": 60, "height": 60, "name": "R-2"},
+            {"x": 100, "y": 300, "width": 60, "height": 60, "name": "R-3"},
+        ]
+        area_name = "Area 0"
+
+        # Act
+        result = calculate_multi_node_ellipse(nodes, area_name)
+
+        # Assert
+        # Multi-node ellipses should never be rotated
+        assert result["ellipse"]["rotation"] == 0
+        assert result["text"]["rotation"] == 0
+
+        # Check that ellipse is axis-aligned (center is midpoint of bounding box)
+        centers = [(130, 130), (330, 330), (130, 330)]
+        min_x, max_x = 130, 330
+        min_y, max_y = 130, 330
+        assert result["metadata"]["center_x"] == (min_x + max_x) / 2
+        assert result["metadata"]["center_y"] == (min_y + max_y) / 2
+
+        print("✅ test_axis_aligned_no_rotation passed")
+
+
 def run_all_tests():
     """Run all unit tests."""
     print("=" * 80)
@@ -258,8 +436,9 @@ def run_all_tests():
     print("=" * 80)
 
     test_class = TestCalculateTwoNodeEllipse()
+    test_class_multi = TestCalculateMultiNodeEllipse()
 
-    # Run all tests
+    # Run two-node tests
     test_class.test_horizontal_layout()
     test_class.test_vertical_layout()
     test_class.test_diagonal_layout()
@@ -269,6 +448,13 @@ def run_all_tests():
     test_class.test_color_scheme_default()
     test_class.test_svg_structure_ellipse()
     test_class.test_svg_structure_text()
+
+    # Run multi-node tests
+    test_class_multi.test_three_nodes_triangle()
+    test_class_multi.test_four_nodes_user_example()
+    test_class_multi.test_five_nodes_cluster()
+    test_class_multi.test_validation_insufficient_nodes()
+    test_class_multi.test_axis_aligned_no_rotation()
 
     print("=" * 80)
     print("✅ All unit tests passed!")
