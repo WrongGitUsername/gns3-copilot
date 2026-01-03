@@ -150,6 +150,7 @@ def calculate_two_node_ellipse(
     text_x = int(center_x - text_svg_width / 2)
     text_y = int(center_y - text_svg_height / 2)
 
+    # Text should always remain horizontal (rotation = 0), not rotate with ellipse
     return {
         "ellipse": {
             "svg": ellipse_svg,
@@ -157,7 +158,7 @@ def calculate_two_node_ellipse(
             "y": int(svg_y),
             "rotation": int(angle_deg),
         },
-        "text": {"svg": text_svg, "x": text_x, "y": text_y, "rotation": int(angle_deg)},
+        "text": {"svg": text_svg, "x": text_x, "y": text_y, "rotation": 0},
         "metadata": {
             "center_x": center_x,
             "center_y": center_y,
@@ -179,6 +180,8 @@ def generate_ellipse_svg(
     """
     Generate SVG content for an ellipse.
 
+    Matches the format used by GNS3 GUI to enable style editing in the interface.
+
     Args:
         rx: X radius of the ellipse
         ry: Y radius of the ellipse
@@ -193,13 +196,8 @@ def generate_ellipse_svg(
         >>> color = {"stroke": "#00cc00", "fill": "#00cc00", "fill_opacity": 0.15}
         >>> svg = generate_ellipse_svg(140, 100, color, 280, 200)
     """
-    return f'''<svg xmlns="http://www.w3.org/2000/svg" height="{svg_height}" width="{svg_width}">
-  <ellipse fill="{color_scheme["fill"]}" fill-opacity="{color_scheme["fill_opacity"]}"
-           cx="{rx}" cy="{ry}"
-           rx="{rx}" ry="{ry}"
-           stroke="{color_scheme["stroke"]}" stroke-width="2"
-           stroke-dasharray="5,5" />
-</svg>'''
+    # Match GUI format: no xmlns, no quotes on numeric attributes, quotes on string attributes
+    return f'''<svg width="{svg_width}" height="{svg_height}"><ellipse cx="{rx}" cy="{ry}" rx="{rx}" ry="{ry}" fill="{color_scheme["fill"]}" fill-opacity="{color_scheme["fill_opacity"]}" stroke="{color_scheme["stroke"]}" stroke-width="2" stroke-dasharray="5,5"/></svg>'''
 
 
 def generate_text_svg(text: str, color_scheme: dict[str, Any]) -> str:
@@ -207,6 +205,7 @@ def generate_text_svg(text: str, color_scheme: dict[str, Any]) -> str:
     Generate compact SVG content for text label.
 
     The SVG size is calculated dynamically based on text length to minimize space usage.
+    Matches the format used by GNS3 GUI to enable style editing in the interface.
 
     Args:
         text: Text content to display (e.g., "Area 0", "AS 100")
@@ -230,12 +229,8 @@ def generate_text_svg(text: str, color_scheme: dict[str, Any]) -> str:
     text_x = text_width / 2
     text_y = text_height / 2 + DEFAULT_FONT_SIZE / 2 - 2
 
-    return f'''<svg xmlns="http://www.w3.org/2000/svg" height="{text_height}" width="{text_width}">
-  <text x="{text_x}" y="{text_y}"
-        fill="{color_scheme["stroke"]}" font-size="{DEFAULT_FONT_SIZE}"
-        font-weight="bold"
-        text-anchor="middle">{text}</text>
-</svg>'''
+    # Match GUI format: no xmlns, no quotes on numeric attributes, quotes on string attributes
+    return f'''<svg width="{text_width}" height="{text_height}"><text x="{text_x}" y="{text_y}" fill="{color_scheme["stroke"]}" font-size="{DEFAULT_FONT_SIZE}" font-weight="bold" text-anchor="middle">{text}</text></svg>'''
 
 
 def _get_color_scheme(area_name: str) -> dict[str, Any]:
