@@ -36,6 +36,7 @@ from .custom_gns3fy import (
     Node,
     Project,
 )
+from .gns3_adjust_layout import GNS3AdjustLayoutTool
 from .gns3_create_drawing import GNS3CreateDrawingTool
 from .gns3_delete_drawing import GNS3DeleteDrawingTool
 from .gns3_file_index import add_file_to_index, get_file_list
@@ -90,6 +91,7 @@ __all__ = [
     "GNS3GetDrawingsTool",
     "GNS3GetNodesTool",
     "GNS3UpdateDrawingTool",
+    "GNS3AdjustLayoutTool",
     "get_gns3_connector",
     "add_file_to_index",
     "get_file_list",
