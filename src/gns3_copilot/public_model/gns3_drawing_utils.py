@@ -20,35 +20,19 @@ DEFAULT_FONT_SIZE = 14
 GNS3_GUI_RX_ADJUSTMENT = 7.35  # Horizontal radius adjustment (distance/2 - 7.35)
 GNS3_GUI_RY_ADJUSTMENT = 4  # Vertical radius adjustment (avg_height - 4)
 
-# Color scheme for different area types
-# Base colors for protocol identifiers (e.g., Area 0, AS 65000)
+# Color scheme for different area types (simplified to 5 protocol categories)
+# Color classification based on network protocol types
 COLOR_SCHEMES = {
-    # OSPF (OSPF Areas)
-    "Area 0": {"stroke": "#00cc00", "fill": "#00cc00", "fill_opacity": 0.15},
-    "Area": {"stroke": "#3366ff", "fill": "#3366ff", "fill_opacity": 0.12},
-    # BGP (Autonomous Systems)
-    "AS 0": {"stroke": "#3366ff", "fill": "#3366ff", "fill_opacity": 0.15},
-    "AS": {"stroke": "#3366ff", "fill": "#3366ff", "fill_opacity": 0.12},
-    # RIP (Routing Information Protocol)
-    "RIP": {"stroke": "#9933ff", "fill": "#9933ff", "fill_opacity": 0.12},
-    # IS-IS (Intermediate System to Intermediate System)
-    "IS-IS": {"stroke": "#ff9900", "fill": "#ff9900", "fill_opacity": 0.12},
-    # EIGRP (Enhanced Interior Gateway Routing Protocol)
-    "EIGRP": {"stroke": "#ff6633", "fill": "#ff6633", "fill_opacity": 0.12},
-    # STP (Spanning Tree Protocol)
-    "STP": {"stroke": "#00cccc", "fill": "#00cccc", "fill_opacity": 0.12},
-    # VXLAN (Virtual Extensible LAN)
-    "VXLAN": {"stroke": "#ff00ff", "fill": "#ff00ff", "fill_opacity": 0.12},
-    # LDP (Label Distribution Protocol)
-    "LDP": {"stroke": "#3399ff", "fill": "#3399ff", "fill_opacity": 0.12},
-    # MPLS (Multiprotocol Label Switching)
-    "MPLS": {"stroke": "#99cc00", "fill": "#99cc00", "fill_opacity": 0.12},
-    # VRF (Virtual Routing and Forwarding)
-    "VRF": {"stroke": "#ff3399", "fill": "#ff3399", "fill_opacity": 0.12},
-    # HSRP (Hot Standby Router Protocol)
-    "HSRP": {"stroke": "#ffcc00", "fill": "#ffcc00", "fill_opacity": 0.12},
-    # Default color
-    "default": {"stroke": "#999999", "fill": "#999999", "fill_opacity": 0.10},
+    # Green - IGP (Interior Gateway Protocol) - OSPF, IS-IS, RIP, EIGRP
+    "IGP": {"stroke": "#00cc00", "fill": "#00cc00", "fill_opacity": 0.12},
+    # Blue - EGP (Exterior Gateway Protocol) - BGP
+    "EGP": {"stroke": "#3366ff", "fill": "#3366ff", "fill_opacity": 0.12},
+    # Orange - Overlay - VXLAN, MPLS
+    "Overlay": {"stroke": "#ff9900", "fill": "#ff9900", "fill_opacity": 0.12},
+    # Gray - Underlay - Base IP network
+    "Underlay": {"stroke": "#999999", "fill": "#999999", "fill_opacity": 0.10},
+    # Purple - Switching - STP, LDP, VRF
+    "Switching": {"stroke": "#9933ff", "fill": "#9933ff", "fill_opacity": 0.12},
 }
 
 
@@ -376,62 +360,69 @@ def _get_color_scheme(area_name: str) -> dict[str, Any]:
     # Check for specific instances with auto-generated colors
     # Extract instance ID (e.g., "Area 1" -> 1, "AS 65001" -> 65001)
 
-    # OSPF Areas: "Area 0", "Area 1", "Area 2", etc.
+    # OSPF Areas: "Area 0", "Area 1", "Area 2", etc. (IGP - Green)
     area_match = re.search(r"Area\s+(\d+)", area_name)
     if area_match:
         area_id = int(area_match.group(1))
-        if area_id == 0:
-            return COLOR_SCHEMES["Area 0"]
-        else:
-            # Auto-generate light green color for Area 1, 2, 3, etc.
-            # Base hue for green is ~120°, shift slightly for each instance
-            hue_shift = (area_id * 15) % 30  # Shift 0-30 degrees based on ID
-            color = _hsv_to_hex(120 + hue_shift, 60, 85)  # High lightness (85%)
-            return {"stroke": color, "fill": color, "fill_opacity": 0.12}
+        # Auto-generate light green color for all Area instances
+        # Base hue for green is ~120°, shift slightly for each instance
+        hue_shift = (area_id * 15) % 30  # Shift 0-30 degrees based on ID
+        color = _hsv_to_hex(120 + hue_shift, 60, 85)  # High lightness (85%)
+        return {"stroke": color, "fill": color, "fill_opacity": 0.12}
 
-    # BGP AS numbers: "AS 65000", "AS 65001", "AS 100", etc.
+    # BGP AS numbers: "AS 65000", "AS 65001", "AS 100", etc. (EGP - Blue)
     as_match = re.search(r"AS\s+(\d+)", area_name)
     if as_match:
         as_id = int(as_match.group(1))
-        if as_id == 0:
-            return COLOR_SCHEMES["AS 0"]
-        else:
-            # Auto-generate light blue color for different AS numbers
-            # Base hue for blue is ~240°, shift based on AS number
-            hue_shift = (as_id * 7) % 40  # Shift 0-40 degrees
-            color = _hsv_to_hex(240 + hue_shift, 65, 80)  # High lightness (80%)
-            return {"stroke": color, "fill": color, "fill_opacity": 0.12}
+        # Auto-generate light blue color for different AS numbers
+        # Base hue for blue is ~240°, shift based on AS number
+        hue_shift = (as_id * 7) % 40  # Shift 0-40 degrees
+        color = _hsv_to_hex(240 + hue_shift, 65, 80)  # High lightness (80%)
+        return {"stroke": color, "fill": color, "fill_opacity": 0.12}
 
     # Protocol keyword matching (case-insensitive)
     area_name_lower = area_name.lower()
 
-    # Check for each protocol keyword
+    # Group protocols into 5 color categories based on network protocol classification
     protocol_keywords = [
-        ("OSPF", "Area 0"),  # OSPF uses green
-        ("BGP", "AS"),  # BGP uses blue
-        ("RIP", "RIP"),
-        ("IS-IS", "IS-IS"),
-        ("EIGRP", "EIGRP"),
-        ("STP", "STP"),
-        ("VXLAN", "VXLAN"),
-        ("LDP", "LDP"),
-        ("MPLS", "MPLS"),
-        ("VRF", "VRF"),
-        ("HSRP", "HSRP"),
+        # IGP (Interior Gateway Protocol) - Green
+        ("ospf", "IGP"),  # OSPF
+        ("is-is", "IGP"),  # IS-IS
+        ("rip", "IGP"),  # RIP
+        ("eigrp", "IGP"),  # EIGRP
+        # EGP (Exterior Gateway Protocol) - Blue
+        ("bgp", "EGP"),  # BGP
+        # Overlay - Orange
+        ("vxlan", "Overlay"),  # VXLAN
+        ("mpls", "Overlay"),  # MPLS
+        # Underlay - Gray
+        ("underlay", "Underlay"),  # Underlay network
+        ("base", "Underlay"),  # Base IP network
+        ("core", "Underlay"),  # Core network
+        # Switching - Purple
+        ("stp", "Switching"),  # STP
+        ("ldp", "Switching"),  # LDP
+        ("vrf", "Switching"),  # VRF
+        ("vlan", "Switching"),  # VLAN
+        ("hsrp", "Switching"),  # HSRP
+        ("vrrp", "Switching"),  # VRRP
+        ("lacp", "Switching"),  # LACP
     ]
 
     for keyword, scheme_key in protocol_keywords:
-        if keyword.lower() in area_name_lower:
+        if keyword in area_name_lower:
             return COLOR_SCHEMES[scheme_key]
 
-    # Check for generic "Area" or "AS" keywords as fallback
+    # Check for generic "Area" keyword as fallback for IGP
     if "area" in area_name_lower:
-        return COLOR_SCHEMES["Area"]
-    if "as" in area_name_lower:
-        return COLOR_SCHEMES["AS"]
+        return COLOR_SCHEMES["IGP"]
 
-    # Default color
-    return COLOR_SCHEMES["default"]
+    # Check for generic "AS" keyword as fallback for EGP
+    if "as" in area_name_lower:
+        return COLOR_SCHEMES["EGP"]
+
+    # Default to IGP color
+    return COLOR_SCHEMES["IGP"]
 
 
 if __name__ == "__main__":
