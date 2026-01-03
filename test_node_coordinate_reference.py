@@ -3,7 +3,13 @@ Test script to verify GNS3 node coordinate reference point.
 
 This script creates small test rectangles at node positions to determine
 whether GNS3 uses center, top-left, or other reference points for node coordinates.
+
+Note: This is a standalone test script, not a pytest test file.
+Run it directly with: python test_node_coordinate_reference.py
 """
+
+# Prevent pytest from collecting this as a test file
+__test__ = False
 
 import json
 from dotenv import load_dotenv
