@@ -115,8 +115,21 @@ def calculate_two_node_ellipse(
     angle_deg = math.degrees(angle_rad)
 
     # Step 5: Determine SVG position and dimensions
-    svg_x = center_x - rx
-    svg_y = center_y - ry
+    # The SVG is positioned so that its top-left corner is at (center_x - rx, center_y - ry)
+    # However, when GNS3 rotates around this point, the ellipse center shifts.
+    # We need to compensate for this shift by adjusting the initial SVG position.
+    
+    # Calculate the offset needed to keep ellipse center at (center_x, center_y) after rotation
+    # Ellipse center in SVG coordinates is (rx, ry)
+    # After rotation by angle_rad, this becomes:
+    # rotated_x = rx * cos(θ) - ry * sin(θ)
+    # rotated_y = rx * sin(θ) + ry * cos(θ)
+    # The offset we need to apply:
+    offset_x = rx - (rx * math.cos(angle_rad) - ry * math.sin(angle_rad))
+    offset_y = ry - (rx * math.sin(angle_rad) + ry * math.cos(angle_rad))
+    
+    svg_x = center_x - rx + offset_x
+    svg_y = center_y - ry + offset_y
     svg_width = rx * 2
     svg_height = ry * 2
 

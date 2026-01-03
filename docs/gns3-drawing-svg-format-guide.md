@@ -349,6 +349,84 @@ center_y = node_y + (device_height / 2)  # = 235
 
 **Testing**: To verify node coordinate reference points in your GNS3 setup, create small test markers (e.g., 10x10 rectangles) at node positions and observe where they appear relative to the node icon.
 
+---
+
+#### Advanced: SVG Rotation and Position Offset
+
+**GNS3 Rotation Behavior**: When GNS3 applies a rotation to a drawing, it rotates around the SVG's **top-left corner** (the `x` and `y` coordinates), not around the center of the SVG content.
+
+**The Problem**: If you have an ellipse that should be centered at position `(center_x, center_y)` on the canvas, and you want to rotate it by angle `θ`, simply positioning the SVG so that the ellipse center is at `(rx, ry)` within the SVG and setting `x = center_x - rx` will not work correctly. When GNS3 rotates around `(x, y)`, the ellipse center will shift from its intended position.
+
+**The Solution**: To compensate for this shift, we need to calculate and apply an offset to the initial SVG position.
+
+**Offset Calculation Formula**:
+
+```python
+# Given:
+# - center_x, center_y: Desired ellipse center on canvas
+# - rx, ry: Ellipse radii (ellipse center is at (rx, ry) within SVG)
+# - angle_rad: Rotation angle in radians
+
+# Calculate offset to compensate for rotation
+offset_x = rx - (rx * cos(angle_rad) - ry * sin(angle_rad))
+offset_y = ry - (rx * sin(angle_rad) + ry * cos(angle_rad))
+
+# Calculate SVG position (x, y)
+svg_x = center_x - rx + offset_x
+svg_y = center_y - ry + offset_y
+```
+
+**How It Works**:
+
+When GNS3 rotates the SVG around `(svg_x, svg_y)` by angle `θ`, a point at `(rx, ry)` within the SVG moves to:
+
+```
+canvas_x = svg_x + rx * cos(θ) - ry * sin(θ)
+canvas_y = svg_y + rx * sin(θ) + ry * cos(θ)
+```
+
+By setting:
+```
+svg_x = center_x - rx + offset_x
+svg_y = center_y - ry + offset_y
+```
+
+The ellipse center after rotation will be exactly at `(center_x, center_y)`.
+
+**Example**:
+
+```python
+import math
+
+# Two nodes at positions (100, 100) and (300, 300)
+node1 = {"x": 100, "y": 100, "width": 50, "height": 50}
+node2 = {"x": 300, "y": 300, "width": 50, "height": 50}
+
+# Calculate center point
+center_x = (node1["x"] + node2["x"]) / 2 + 25  # = 225
+center_y = (node1["y"] + node2["y"]) / 2 + 25  # = 225
+
+# Calculate ellipse dimensions
+distance = math.sqrt((200)**2 + (200)**2)  # ≈ 282.84
+rx = distance / 2 - 5  # ≈ 136.42
+ry = 50  # Average node height
+
+# Calculate rotation angle
+angle_rad = math.atan2(200, 200)  # = π/4 (45 degrees)
+
+# Calculate offset
+offset_x = rx - (rx * math.cos(angle_rad) - ry * math.sin(angle_rad))
+offset_y = ry - (rx * math.sin(angle_rad) + ry * math.cos(angle_rad))
+
+# Calculate SVG position
+svg_x = center_x - rx + offset_x
+svg_y = center_y - ry + offset_y
+
+# Result: SVG positioned so ellipse center remains at (225, 225) after 45° rotation
+```
+
+**Tolerance**: Due to floating-point precision and potential GNS3 rendering differences, small positioning errors (< 2.5 pixels) are acceptable and visually imperceptible.
+
 ### Lock Status
 
 - `locked: true`: Drawing is locked, cannot be edited or moved
