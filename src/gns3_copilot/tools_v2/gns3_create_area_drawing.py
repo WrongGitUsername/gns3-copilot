@@ -360,8 +360,8 @@ if __name__ == "__main__":
     test_input = json.dumps(
         {
             "project_id": "0c0fde25-6ead-4413-a283-ea8fd2324291",  # Replace with actual project UUID
-            "area_name": "Area 0",
-            "node_names": ["R-1", "R-2"],
+            "area_name": "stub area 10",
+            "node_names": ["R-4", "R-8"],
         }
     )
 

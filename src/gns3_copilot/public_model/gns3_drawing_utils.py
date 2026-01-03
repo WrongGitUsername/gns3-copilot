@@ -6,6 +6,7 @@ for network area annotations, specifically optimized for two-node ellipse annota
 """
 
 import math
+import re
 from typing import Any
 
 # Default parameters for area annotations
@@ -14,10 +15,39 @@ DEFAULT_DEVICE_WIDTH = 50  # Width of device icons (left-top to right-top)
 DEFAULT_DEVICE_HEIGHT = 50  # Height of device icons (left-top to left-bottom)
 DEFAULT_FONT_SIZE = 14
 
+# GNS3 GUI compatibility adjustment values
+# These values are derived from reverse-engineering GNS3 GUI behavior
+GNS3_GUI_RX_ADJUSTMENT = 7.35  # Horizontal radius adjustment (distance/2 - 7.35)
+GNS3_GUI_RY_ADJUSTMENT = 4     # Vertical radius adjustment (avg_height - 4)
+
 # Color scheme for different area types
+# Base colors for protocol identifiers (e.g., Area 0, AS 65000)
 COLOR_SCHEMES = {
+    # OSPF (OSPF Areas)
     "Area 0": {"stroke": "#00cc00", "fill": "#00cc00", "fill_opacity": 0.15},
     "Area": {"stroke": "#3366ff", "fill": "#3366ff", "fill_opacity": 0.12},
+    # BGP (Autonomous Systems)
+    "AS 0": {"stroke": "#3366ff", "fill": "#3366ff", "fill_opacity": 0.15},
+    "AS": {"stroke": "#3366ff", "fill": "#3366ff", "fill_opacity": 0.12},
+    # RIP (Routing Information Protocol)
+    "RIP": {"stroke": "#9933ff", "fill": "#9933ff", "fill_opacity": 0.12},
+    # IS-IS (Intermediate System to Intermediate System)
+    "IS-IS": {"stroke": "#ff9900", "fill": "#ff9900", "fill_opacity": 0.12},
+    # EIGRP (Enhanced Interior Gateway Routing Protocol)
+    "EIGRP": {"stroke": "#ff6633", "fill": "#ff6633", "fill_opacity": 0.12},
+    # STP (Spanning Tree Protocol)
+    "STP": {"stroke": "#00cccc", "fill": "#00cccc", "fill_opacity": 0.12},
+    # VXLAN (Virtual Extensible LAN)
+    "VXLAN": {"stroke": "#ff00ff", "fill": "#ff00ff", "fill_opacity": 0.12},
+    # LDP (Label Distribution Protocol)
+    "LDP": {"stroke": "#3399ff", "fill": "#3399ff", "fill_opacity": 0.12},
+    # MPLS (Multiprotocol Label Switching)
+    "MPLS": {"stroke": "#99cc00", "fill": "#99cc00", "fill_opacity": 0.12},
+    # VRF (Virtual Routing and Forwarding)
+    "VRF": {"stroke": "#ff3399", "fill": "#ff3399", "fill_opacity": 0.12},
+    # HSRP (Hot Standby Router Protocol)
+    "HSRP": {"stroke": "#ffcc00", "fill": "#ffcc00", "fill_opacity": 0.12},
+    # Default color
     "default": {"stroke": "#999999", "fill": "#999999", "fill_opacity": 0.10},
 }
 
@@ -103,22 +133,23 @@ def calculate_two_node_ellipse(
     )
 
     # Step 4: Determine ellipse size
-    # Reduce width by 10 pixels (5 on each side) for better alignment
-    rx = (distance / 2) + padding - 5  # Semi-major axis (horizontal)
-    # Use average height of both nodes for the vertical radius
-    ry = (node1_height + node2_height) / 2  # Semi-minor axis (vertical)
+    # Use GNS3 GUI compatibility adjustment values derived from reverse-engineering
+    rx = distance / 2 - GNS3_GUI_RX_ADJUSTMENT  # Semi-major axis (horizontal)
+    ry = (node1_height + node2_height) / 2 - GNS3_GUI_RY_ADJUSTMENT  # Semi-minor axis (vertical)
 
     # Step 5: Calculate rotation angle based on device centers
     angle_rad = math.atan2(
         node2_center_y - node1_center_y, node2_center_x - node1_center_x
     )
-    angle_deg = math.degrees(angle_rad)
+    # Round to nearest integer to match GNS3 GUI behavior
+    angle_deg = round(math.degrees(angle_rad))
+    angle_rad = math.radians(angle_deg)  # Use rounded angle for calculations
 
     # Step 5: Determine SVG position and dimensions
     # The SVG is positioned so that its top-left corner is at (center_x - rx, center_y - ry)
     # However, when GNS3 rotates around this point, the ellipse center shifts.
     # We need to compensate for this shift by adjusting the initial SVG position.
-    
+
     # Calculate the offset needed to keep ellipse center at (center_x, center_y) after rotation
     # Ellipse center in SVG coordinates is (rx, ry)
     # After rotation by angle_rad, this becomes:
@@ -127,7 +158,7 @@ def calculate_two_node_ellipse(
     # The offset we need to apply:
     offset_x = rx - (rx * math.cos(angle_rad) - ry * math.sin(angle_rad))
     offset_y = ry - (rx * math.sin(angle_rad) + ry * math.cos(angle_rad))
-    
+
     svg_x = center_x - rx + offset_x
     svg_y = center_y - ry + offset_y
     svg_width = rx * 2
@@ -233,29 +264,149 @@ def generate_text_svg(text: str, color_scheme: dict[str, Any]) -> str:
     return f'''<svg width="{text_width}" height="{text_height}"><text x="{text_x}" y="{text_y}" fill="{color_scheme["stroke"]}" font-size="{DEFAULT_FONT_SIZE}" font-weight="bold" text-anchor="middle">{text}</text></svg>'''
 
 
-def _get_color_scheme(area_name: str) -> dict[str, Any]:
+def _hsv_to_hex(h: int, s: int, v: int) -> str:
     """
-    Get color scheme based on area name.
+    Convert HSV color values to HEX color string.
+
+    HSV (Hue, Saturation, Value) is a color model that uses cylindrical coordinates.
+    High lightness (v value) is used for instance color generation to create
+    lighter, more transparent versions of base protocol colors.
 
     Args:
-        area_name: Name of the area
+        h: Hue (0-360), color wheel position
+        s: Saturation (0-100), color intensity
+        v: Value (0-100), lightness/brightness
+
+    Returns:
+        HEX color string (e.g., "#ff00cc")
+
+    Example:
+        >>> _hsv_to_hex(120, 80, 90)
+        '#4ce68c'
+    """
+    # Normalize values to 0-1 range
+    h_norm = (h % 360) / 360
+    s_norm = s / 100
+    v_norm = v / 100
+
+    # Convert HSV to RGB
+    c: float = v_norm * s_norm
+    x: float = c * (1 - abs((h_norm / 60) % 2 - 1))
+    m: float = v_norm - c
+
+    r: float
+    g: float
+    b: float
+
+    if 0 <= h_norm < 60:
+        r, g, b = c, x, 0.0
+    elif 60 <= h_norm < 120:
+        r, g, b = x, c, 0.0
+    elif 120 <= h_norm < 180:
+        r, g, b = 0.0, c, x
+    elif 180 <= h_norm < 240:
+        r, g, b = 0.0, x, c
+    elif 240 <= h_norm < 300:
+        r, g, b = x, 0.0, c
+    else:
+        r, g, b = c, 0.0, x
+
+    # Convert to 0-255 range and format as HEX
+    r = int((r + m) * 255)
+    g = int((g + m) * 255)
+    b = int((b + m) * 255)
+
+    return f"#{r:02x}{g:02x}{b:02x}"
+
+
+def _get_color_scheme(area_name: str) -> dict[str, Any]:
+    """
+    Get color scheme based on area name with keyword matching and instance support.
+
+    This function supports:
+    1. Exact matches (e.g., "Area 0", "AS 65000")
+    2. Protocol keyword matching (e.g., "OSPF", "BGP", "RIP")
+    3. Automatic instance color generation (e.g., "Area 1", "Area 2" get different light colors)
+
+    Args:
+        area_name: Name of the area (e.g., "Area 0", "Area 1", "AS 65001", "OSPF Backbone")
 
     Returns:
         Dictionary with color parameters (values can be str or float)
 
-    Example:
+    Examples:
         >>> _get_color_scheme("Area 0")
         {'stroke': '#00cc00', 'fill': '#00cc00', 'fill_opacity': 0.15}
+        >>> _get_color_scheme("Area 1")  # Auto-generated light color
+        {'stroke': '#4cd17c', 'fill': '#4cd17c', 'fill_opacity': 0.12}
+        >>> _get_color_scheme("AS 65001")  # Auto-generated light color
+        {'stroke': '#4c80ff', 'fill': '#4c80ff', 'fill_opacity': 0.12}
+        >>> _get_color_scheme("RIP Network")  # Protocol keyword match
+        {'stroke': '#9933ff', 'fill': '#9933ff', 'fill_opacity': 0.12}
     """
-    # Check for Area 0 first (highest priority)
-    if "Area 0" in area_name:
-        return COLOR_SCHEMES["Area 0"]
-    # Check for other OSPF areas
-    elif "Area" in area_name:
+    # Exact matches (highest priority)
+    if area_name in COLOR_SCHEMES:
+        return COLOR_SCHEMES[area_name]
+
+    # Check for specific instances with auto-generated colors
+    # Extract instance ID (e.g., "Area 1" -> 1, "AS 65001" -> 65001)
+
+    # OSPF Areas: "Area 0", "Area 1", "Area 2", etc.
+    area_match = re.search(r"Area\s+(\d+)", area_name)
+    if area_match:
+        area_id = int(area_match.group(1))
+        if area_id == 0:
+            return COLOR_SCHEMES["Area 0"]
+        else:
+            # Auto-generate light green color for Area 1, 2, 3, etc.
+            # Base hue for green is ~120°, shift slightly for each instance
+            hue_shift = (area_id * 15) % 30  # Shift 0-30 degrees based on ID
+            color = _hsv_to_hex(120 + hue_shift, 60, 85)  # High lightness (85%)
+            return {"stroke": color, "fill": color, "fill_opacity": 0.12}
+
+    # BGP AS numbers: "AS 65000", "AS 65001", "AS 100", etc.
+    as_match = re.search(r"AS\s+(\d+)", area_name)
+    if as_match:
+        as_id = int(as_match.group(1))
+        if as_id == 0:
+            return COLOR_SCHEMES["AS 0"]
+        else:
+            # Auto-generate light blue color for different AS numbers
+            # Base hue for blue is ~240°, shift based on AS number
+            hue_shift = (as_id * 7) % 40  # Shift 0-40 degrees
+            color = _hsv_to_hex(240 + hue_shift, 65, 80)  # High lightness (80%)
+            return {"stroke": color, "fill": color, "fill_opacity": 0.12}
+
+    # Protocol keyword matching (case-insensitive)
+    area_name_lower = area_name.lower()
+
+    # Check for each protocol keyword
+    protocol_keywords = [
+        ("OSPF", "Area 0"),  # OSPF uses green
+        ("BGP", "AS"),  # BGP uses blue
+        ("RIP", "RIP"),
+        ("IS-IS", "IS-IS"),
+        ("EIGRP", "EIGRP"),
+        ("STP", "STP"),
+        ("VXLAN", "VXLAN"),
+        ("LDP", "LDP"),
+        ("MPLS", "MPLS"),
+        ("VRF", "VRF"),
+        ("HSRP", "HSRP"),
+    ]
+
+    for keyword, scheme_key in protocol_keywords:
+        if keyword.lower() in area_name_lower:
+            return COLOR_SCHEMES[scheme_key]
+
+    # Check for generic "Area" or "AS" keywords as fallback
+    if "area" in area_name_lower:
         return COLOR_SCHEMES["Area"]
+    if "as" in area_name_lower:
+        return COLOR_SCHEMES["AS"]
+
     # Default color
-    else:
-        return COLOR_SCHEMES["default"]
+    return COLOR_SCHEMES["default"]
 
 
 if __name__ == "__main__":
