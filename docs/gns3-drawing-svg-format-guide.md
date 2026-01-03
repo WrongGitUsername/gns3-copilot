@@ -497,6 +497,8 @@ The information in this section is derived from GNS3 web UI source code analysis
 
 **⚠️ Important**: Node coordinates represent the **top-left corner** of node icons, and devices are typically 60×60 pixel rectangles (but actual dimensions should be obtained from the GNS3 API).
 
+**Text Label Offset Feature**: To prevent text labels from overlapping with link cables (which connect device centers), text labels are automatically offset along the ellipse's short axis (perpendicular to the link direction). This ensures text remains readable and doesn't obscure network connections.
+
 **Real-World Example Analysis**:
 
 The following analysis is based on actual GNS3 project data:
@@ -695,17 +697,22 @@ After rotation, the ellipse center on canvas:
 ```python
 import math
 
-def calculate_gns3_ellipse(node1, node2):
+def calculate_gns3_ellipse(node1, node2, text_offset_ratio=0.7):
     """
     Calculate ellipse parameters matching GNS3 GUI behavior.
     
     Args:
         node1: dict with 'x', 'y', 'width', 'height' (top-left corner)
         node2: dict with 'x', 'y', 'width', 'height' (top-left corner)
+        text_offset_ratio: Ratio of ry to offset text along perpendicular direction
+                           (default: 0.7, set to 0 to center text)
     
     Returns:
-        dict with ellipse parameters
-    """
+        dict with ellipse parameters including text offset position
+    
+    Note:
+        Text is offset perpendicular to the link direction to avoid
+        overlapping with link cables. Use text_offset_ratio=0 to center text.
     # GNS3 GUI compatibility adjustment values
     GNS3_GUI_RX_ADJUSTMENT = 7.35
     GNS3_GUI_RY_ADJUSTMENT = 4

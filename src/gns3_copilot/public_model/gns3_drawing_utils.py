@@ -18,7 +18,7 @@ DEFAULT_FONT_SIZE = 14
 # GNS3 GUI compatibility adjustment values
 # These values are derived from reverse-engineering GNS3 GUI behavior
 GNS3_GUI_RX_ADJUSTMENT = 7.35  # Horizontal radius adjustment (distance/2 - 7.35)
-GNS3_GUI_RY_ADJUSTMENT = 4     # Vertical radius adjustment (avg_height - 4)
+GNS3_GUI_RY_ADJUSTMENT = 4  # Vertical radius adjustment (avg_height - 4)
 
 # Color scheme for different area types
 # Base colors for protocol identifiers (e.g., Area 0, AS 65000)
@@ -57,11 +57,12 @@ def calculate_two_node_ellipse(
     node2: dict,
     area_name: str,
     padding: int = DEFAULT_PADDING,
+    text_offset_ratio: float = 0.7,
 ) -> dict[str, Any]:
     """
     Calculate ellipse annotation parameters for two nodes.
 
-    This function computes the optimal ellipse to connect two network devices,
+    This function computes optimal ellipse to connect two network devices,
     including position, size, rotation, and SVG content.
 
     Algorithm:
@@ -70,13 +71,16 @@ def calculate_two_node_ellipse(
     3. Calculate distance between device centers
     4. Determine ellipse size: rx = distance/2 + padding, ry = device_height
     5. Calculate rotation angle using atan2
-    6. Generate SVG for ellipse and text
+    6. Calculate text offset to avoid overlapping with link cables
+    7. Generate SVG for ellipse and text
 
     Args:
         node1: First node dictionary with 'x', 'y', 'height', and 'width' (top-left corner)
         node2: Second node dictionary with 'x', 'y', 'height', and 'width' (top-left corner)
         area_name: Name of the area (e.g., "Area 0", "AS 100")
         padding: Distance from nodes to ellipse edge in pixels (default: 0)
+        text_offset_ratio: Ratio of ry to offset text along perpendicular direction (default: 0.7)
+                          Set to 0 to center text, 0.7 for edge, >1 for outside ellipse
 
     Returns:
         Dictionary containing ellipse and text SVG parameters:
@@ -135,7 +139,9 @@ def calculate_two_node_ellipse(
     # Step 4: Determine ellipse size
     # Use GNS3 GUI compatibility adjustment values derived from reverse-engineering
     rx = distance / 2 - GNS3_GUI_RX_ADJUSTMENT  # Semi-major axis (horizontal)
-    ry = (node1_height + node2_height) / 2 - GNS3_GUI_RY_ADJUSTMENT  # Semi-minor axis (vertical)
+    ry = (
+        node1_height + node2_height
+    ) / 2 - GNS3_GUI_RY_ADJUSTMENT  # Semi-minor axis (vertical)
 
     # Step 5: Calculate rotation angle based on device centers
     angle_rad = math.atan2(
@@ -177,9 +183,28 @@ def calculate_two_node_ellipse(
     text_svg_width = len(area_name) * 8 + 20
     text_svg_height = DEFAULT_FONT_SIZE + 16
 
-    # Center the text SVG on the ellipse center
-    text_x = int(center_x - text_svg_width / 2)
-    text_y = int(center_y - text_svg_height / 2)
+    # Calculate text offset to avoid overlapping with link cables
+    # Offset is perpendicular to the link direction (ellipse short axis direction)
+    if text_offset_ratio != 0:
+        # Calculate perpendicular direction (rotate angle by 90 degrees)
+        # This gives us a vector perpendicular to the link direction
+        perpendicular_x = -math.sin(angle_rad)
+        perpendicular_y = math.cos(angle_rad)
+
+        # Calculate offset distance
+        offset_distance = ry * text_offset_ratio
+
+        # Apply offset to text position
+        text_offset_x = perpendicular_x * offset_distance
+        text_offset_y = perpendicular_y * offset_distance
+
+        # Position text with offset
+        text_x = int(center_x + text_offset_x - text_svg_width / 2)
+        text_y = int(center_y + text_offset_y - text_svg_height / 2)
+    else:
+        # No offset, center text on ellipse center
+        text_x = int(center_x - text_svg_width / 2)
+        text_y = int(center_y - text_svg_height / 2)
 
     # Text should always remain horizontal (rotation = 0), not rotate with ellipse
     return {
