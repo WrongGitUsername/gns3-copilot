@@ -50,6 +50,60 @@ def get_changed_files(base_ref: str = 'origin/Development') -> List[str]:
         return []
 
 
+def get_commit_messages(base_ref: str = 'origin/Development') -> List[str]:
+    """Get all commit messages in the PR"""
+    try:
+        result = subprocess.run(
+            ['git', 'log', '--pretty=format:%s', f'{base_ref}..HEAD'],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        commits = [c.strip() for c in result.stdout.split('\n') if c.strip()]
+        print(f"✓ Found {len(commits)} commits")
+        return commits
+    except subprocess.CalledProcessError as e:
+        print(f"Error getting commit messages: {e}")
+        return []
+
+
+def read_existing_documentation(doc_file: str, section: str) -> str:
+    """Read existing content from a documentation section"""
+    doc_path = Path(doc_file)
+    if not doc_path.exists():
+        return ""
+    
+    content = doc_path.read_text(encoding='utf-8')
+    
+    # Define section mappings
+    section_mappings = {
+        "Core Features": ["Core Features", "Features"],
+        "核心功能": ["核心功能", "功能列表"],
+    }
+    
+    possible_sections = section_mappings.get(section, [section])
+    
+    for possible_section in possible_sections:
+        # Look for section header
+        pattern = r'(#{1,6}\s+' + re.escape(possible_section) + r'\s*$)'
+        match = re.search(pattern, content, re.IGNORECASE | re.MULTILINE)
+        
+        if match:
+            # Find the next section header (same or higher level)
+            section_start = match.end()
+            heading_level = len(match.group(1).split()[0])
+            next_section_pattern = r'^#{1,' + str(heading_level) + r'}\s+\S'
+            next_match = re.search(next_section_pattern, content[section_start:], re.MULTILINE)
+            
+            if next_match:
+                section_end = section_start + next_match.start()
+                return content[section_start:section_end].strip()
+            else:
+                return content[section_start:].strip()
+    
+    return ""
+
+
 def get_relevant_files(changed_files: List[str]) -> Tuple[List[str], str]:
     """Get relevant files based on mode"""
     if PR_NUMBER:
@@ -179,7 +233,12 @@ Output ONLY valid JSON:
         return None
 
 
-def call_zhipu_api_for_docs(prompt: str) -> Optional[Dict]:
+def call_zhipu_api_for_docs(
+    prompt: str,
+    commit_messages: List[str],
+    existing_features_en: str = "",
+    existing_features_zh: str = ""
+) -> Optional[Dict]:
     """Call Zhipu API for documentation updates (GitHub Actions mode)"""
     if not ZHIPU_API_KEY:
         print("ERROR: ZHIPU_API_KEY not found")
@@ -195,30 +254,55 @@ def call_zhipu_api_for_docs(prompt: str) -> Optional[Dict]:
         "Content-Type": "application/json"
     }
     
-    data = {
-        "model": ZHIPU_MODEL,
-        "messages": [
-            {
-                "role": "system",
-                "content": """You are a documentation assistant for GNS3 Copilot project. 
+    # Build enhanced system prompt with context
+    system_prompt = """You are a documentation assistant for GNS3 Copilot project. 
 Analyze code changes and provide:
 1. English change summary for PR comment
 2. Chinese change summary for README_ZH.md
 3. Documentation updates for README.md and README_ZH.md
 
-IMPORTANT: Use the EXACT section names:
-- For README.md: use "Core Features" (NOT "Features")
-- For README_ZH.md: use "核心功能" (NOT "功能列表")
+IMPORTANT RULES for Documentation Updates:
+- Use the EXACT section names: "Core Features" (not "Features") for README.md and "核心功能" (not "功能列表") for README_ZH.md
+- Compare new features AGAINST the existing documentation provided below
+- ONLY add features that are NOT already documented
+- Aggregate related features from multiple commits into cohesive descriptions
+- Each feature should be on a separate bullet point starting with - (dash) followed by an emoji
+- Do NOT duplicate existing features - skip them completely
+- If all features are already documented, return empty strings for content
+
+EXTRACTED EXISTING FEATURES (English):
+""" + (existing_features_en if existing_features_en else "(No existing features found)") + """
+
+EXTRACTED EXISTING FEATURES (中文):
+""" + (existing_features_zh if existing_features_zh else "(未找到现有功能)") + """
 
 Output in JSON format:
 {
     "english_summary": "English change summary for PR comment",
     "chinese_summary": "Chinese change summary",
     "doc_updates": {
-        "README.md": {"section": "Core Features", "content": "new content to add"},
-        "README_ZH.md": {"section": "核心功能", "content": "新功能内容"}
+        "README.md": {"section": "Core Features", "content": "new bullet points to add (only NEW features, not duplicates)"},
+        "README_ZH.md": {"section": "核心功能", "content": "新增功能要点（仅新功能，不重复）"}
     }
-}"""
+}
+
+Example output:
+{
+    "english_summary": "Added voice interaction support with TTS/STT",
+    "chinese_summary": "添加语音交互支持，包括TTS/STT功能",
+    "doc_updates": {
+        "README.md": {"section": "Core Features", "content": "- 🗣️ **Voice Interaction**: Text-to-speech and speech-to-text support for hands-free operation"},
+        "README_ZH.md": {"section": "核心功能", "content": "- 🗣️ **语音交互**：支持文本转语音和语音转文本，实现免提操作"}
+    }
+}
+"""
+    
+    data = {
+        "model": ZHIPU_MODEL,
+        "messages": [
+            {
+                "role": "system",
+                "content": system_prompt
             },
             {
                 "role": "user",
@@ -470,22 +554,44 @@ def main():
     if PR_NUMBER:
         # GitHub Actions mode: Update documentation and create comment
         print(f"🤖 GitHub Actions mode detected (PR #{PR_NUMBER})")
-        print(f"🤖 Calling Zhipu {ZHIPU_MODEL} API for documentation updates...")
         
+        # Get commit messages for better context
+        print("📜 Fetching commit messages...")
+        commit_messages = get_commit_messages()
+        
+        # Read existing documentation to avoid duplicates
+        print("📖 Reading existing documentation...")
+        existing_features_en = read_existing_documentation('README.md', 'Core Features')
+        existing_features_zh = read_existing_documentation('README_ZH.md', '核心功能')
+        
+        print(f"✓ Found {len(existing_features_en)} characters in existing English features")
+        print(f"✓ Found {len(existing_features_zh)} characters in existing Chinese features")
+        print()
+        
+        # Build comprehensive prompt
         prompt = f"""Analyze the following code changes in the GNS3 Copilot project:
 
 Changed files: {', '.join(relevant_files)}
 
-Git diff:
-{diff_content[:5000]}
+Commit messages (for context):
+{chr(10).join([f"- {msg}" for msg in commit_messages])}
 
-Provide:
+Git diff (for detailed analysis):
+{diff_content[:8000]}
+
+Based on the commit messages and code changes, provide:
 1. English summary of changes for PR comment
 2. Chinese summary for README_ZH.md
-3. Suggested documentation updates for README.md and README_ZH.md
+3. Documentation updates for README.md and README_ZH.md (only NEW features not already documented)
 """
         
-        api_response = call_zhipu_api_for_docs(prompt)
+        print(f"🤖 Calling Zhipu {ZHIPU_MODEL} API for documentation updates...")
+        api_response = call_zhipu_api_for_docs(
+            prompt,
+            commit_messages=commit_messages,
+            existing_features_en=existing_features_en,
+            existing_features_zh=existing_features_zh
+        )
         
         if not api_response:
             print("✗ Failed to get response from Zhipu API")
@@ -507,6 +613,21 @@ Provide:
             print(chinese_summary)
             print()
         
+        # Log documentation update suggestions
+        if doc_updates:
+            print("📝 Documentation update suggestions:")
+            for doc_file, update_info in doc_updates.items():
+                section = update_info.get('section', '')
+                content = update_info.get('content', '')
+                if content:
+                    print(f"  {doc_file} ({section}):")
+                    print(f"    {content[:100]}...")
+                    if len(content) > 100:
+                        print(f"    ({len(content)} characters total)")
+                else:
+                    print(f"  {doc_file}: No new content (all features already documented)")
+            print()
+        
         # Update documentation
         if doc_updates:
             print("📚 Updating documentation...")
@@ -514,9 +635,15 @@ Provide:
             print()
             
             if updated_files:
-                # Commit changes
-                commit_msg = f"docs: auto-update documentation\n\n[skip ci]\nSummary: {english_summary[:100]}"
-                commit_changes(commit_msg)
+                # Check if any actual updates were made
+                actual_updates = {k: v for k, v in updated_files.items() if v == "Section updated"}
+                
+                if actual_updates:
+                    # Commit changes
+                    commit_msg = f"docs: auto-update documentation\n\n[skip ci]\nSummary: {english_summary[:100]}"
+                    commit_changes(commit_msg)
+                else:
+                    print("ℹ️  All features already documented, no updates needed")
             else:
                 print("No documentation updates applied")
         else:
@@ -530,14 +657,35 @@ Provide:
     else:
         # Local mode: Create PR only (no documentation updates)
         print("🤖 Local mode detected (creating PR)")
+        
+        # Get commit messages for better context
+        print("📜 Fetching commit messages...")
+        commit_messages = get_commit_messages()
+        print()
+        
         print(f"🤖 Calling Zhipu {ZHIPU_MODEL} API for PR generation...")
+        
+        # Build enhanced prompt with commit messages
+        commit_list = "\n".join([f"- {msg}" for msg in commit_messages]) if commit_messages else "No commits found"
         
         prompt = f"""Analyze the following code changes in the GNS3 Copilot project:
 
 Changed files: {', '.join(relevant_files)}
 
-Git diff:
-{diff_content[:5000]}
+Commit messages (for understanding the full scope of changes):
+{commit_list}
+
+Git diff (for detailed code analysis):
+{diff_content[:8000]}
+
+IMPORTANT: Focus on identifying NEW FEATURES and FUNCTIONAL CHANGES in the code,
+not just documentation updates. The PR should describe the actual code functionality improvements.
+
+Prioritize:
+1. New tools or functions added
+2. Major refactoring or architectural changes
+3. Bug fixes and improvements
+4. Configuration or dependency changes
 
 Generate a PR title and description following the provided template format.
 """
