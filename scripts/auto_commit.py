@@ -94,13 +94,31 @@ Types:
 - chore: Maintenance tasks
 - ci: CI/CD changes
 
-Rules:
-1. Use imperative mood in subject (e.g., "add" not "added")
-2. Subject must be <= 72 characters
-3. Body can explain "what" and "why" (max 100 chars per line)
-4. Body should reference related issues with (#xxx) format
-5. Focus on code functionality, not just file changes
-6. If multiple files changed, group them logically
+CRITICAL ANALYSIS RULES:
+1. PRIORITIZE CODE CHANGES OVER DOCUMENTATION:
+   - If scripts/*.py are added/modified: Identify the actual code functionality
+   - If only docs/* are changed: Use "docs" type
+   - If both code and docs: Use the code's type (feat/fix/refactor/etc.), NOT "docs"
+   
+2. ANALYZE CODE FUNCTIONALITY:
+   - Read the diff to understand WHAT the code does
+   - Look for new functions, classes, or major logic changes
+   - Identify the primary purpose of the code changes
+   - Example: If adding a new script, describe what the script does
+   
+3. SCOPE IDENTIFICATION:
+   - scripts/* → scope "scripts" or "tools"
+   - src/gns3_copilot/tools_v2/* → scope "tools"
+   - src/gns3_copilot/agent/* → scope "agent"
+   - src/gns3_copilot/ui_model/* → scope "ui"
+   - docs/* → scope "docs"
+   - tests/* → scope "test"
+
+4. COMMIT MESSAGE FORMAT:
+   - Subject: <= 72 characters, imperative mood
+   - Body: Explain "what" and "why" (max 100 chars per line)
+   - Reference issues with (#xxx) format if applicable
+   - Group related changes logically
 
 Output ONLY valid JSON:
 {
