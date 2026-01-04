@@ -26,6 +26,197 @@ GNS3 drawing functionality allows adding custom graphic elements to the project 
 
 ---
 
+## GNS3 Coordinate System and Drawing Calculations
+
+### 1. Coordinate System Definition
+
+GNS3 canvas uses a centered origin coordinate system:
+
+- **Origin Position**: Canvas center is at (0, 0)
+- **Y-Axis Direction**: Down is positive (+), up is negative (-)
+- **X-Axis Direction**: Right is positive (+), left is negative (-)
+
+```
+        Y-
+         ↑
+         |
+    X- ←─┼──→ X+
+         |
+         ↓
+        Y+
+```
+
+### 2. Device Node Coordinates
+
+- **Coordinate Definition**: Device nodes use top-left corner coordinates
+- **Default Dimensions**: 60×60 pixels
+- **Actual Dimensions**: Obtain accurate width and height values through API interface
+- **SVG Coordinates**: SVG format drawings also use top-left corner coordinates
+
+### 3. Rotation Behavior
+
+- **Rotation Center**: GNS3 drawing rotation uses the top-left corner coordinates as the center of rotation
+- **Rotation Angle**: 0-360 degrees, clockwise direction is positive
+- **Impact Range**: Rotation affects the actual display position of the drawing on the canvas
+
+---
+
+## Connection Drawing Implementation Details
+
+### Scenario Description
+
+Draw connection graphics between two device nodes (such as connection annotations, area coverage, etc.).
+
+### Implementation Steps
+
+#### Step 1: Get Device Information
+
+Obtain information for two device nodes through API interface:
+- Device node coordinates (top-left corner)
+- Device node width (width)
+- Device node height (height)
+
+#### Step 2: Calculate Device Center Points
+
+Calculate the center point coordinates for each device based on the top-left corner coordinates and dimensions:
+
+```
+center_x = x + width / 2
+center_y = y + height / 2
+```
+
+#### Step 3: Calculate Distance and Angle Between Center Points
+
+```
+dx = center_x2 - center_x1
+dy = center_y2 - center_y1
+
+# Calculate distance (straight-line distance)
+distance = sqrt(dx² + dy²)
+
+# Calculate horizontal angle (radians)
+angle_rad = atan2(dy, dx)
+
+# Convert to degrees
+angle_deg = angle_rad * (180 / π)
+```
+
+#### Step 4: Determine Drawing Dimensions
+
+Determine the size of the SVG drawing based on calculated results:
+
+- **Drawing Length/Width**: Use the distance between the two device center points
+- **Drawing Height/Width**: Use the maximum of the two device node widths or heights
+
+```
+drawing_length = distance
+drawing_height = max(height1, height2)
+```
+
+#### Step 5: Calculate Drawing Position (Considering Rotation)
+
+Important: You must first calculate the distance and angle, then calculate the drawing top-left position, and finally apply rotation.
+
+**Calculation Method**:
+
+1. **Calculate unrotated drawing top-left position**:
+
+```
+# Start from the first device center point
+drawing_x = center_x1
+drawing_y = center_y1 - (drawing_height / 2)
+```
+
+2. **Consider the impact of rotation angle**:
+
+Since rotation is centered on the top-left corner, the actual position of the rotated graphics will change. Coordinate transformation is needed:
+
+```
+# Actual top-left position after rotation (optional, adjust according to specific needs)
+rotated_x = drawing_x + (drawing_length / 2) * cos(angle_rad) - (drawing_height / 2) * sin(angle_rad) - (drawing_length / 2)
+rotated_y = drawing_y + (drawing_length / 2) * sin(angle_rad) + (drawing_height / 2) * cos(angle_rad) - (drawing_height / 2)
+```
+
+3. **Set rotation parameters**:
+
+```
+rotation = angle_deg  # Rotation angle
+```
+
+### Implementation Example
+
+```python
+import math
+
+def calculate_drawing_params(node1, node2, extra_height=20):
+    """
+    Calculate drawing parameters for connecting two devices
+    
+    Args:
+        node1: First device node object (containing x, y, width, height)
+        node2: Second device node object (containing x, y, width, height)
+        extra_height: Extra height (pixels) for accommodating annotation text, etc.
+    
+    Returns:
+        dict: Drawing parameters including x, y, width, height, rotation
+    """
+    # Step 1: Get device information
+    x1, y1 = node1['x'], node1['y']
+    w1, h1 = node1.get('width', 60), node1.get('height', 60)
+    
+    x2, y2 = node2['x'], node2['y']
+    w2, h2 = node2.get('width', 60), node2.get('height', 60)
+    
+    # Step 2: Calculate device center points
+    cx1 = x1 + w1 / 2
+    cy1 = y1 + h1 / 2
+    
+    cx2 = x2 + w2 / 2
+    cy2 = y2 + h2 / 2
+    
+    # Step 3: Calculate distance and angle
+    dx = cx2 - cx1
+    dy = cy2 - cy1
+    
+    distance = math.sqrt(dx ** 2 + dy ** 2)
+    angle_rad = math.atan2(dy, dx)
+    angle_deg = math.degrees(angle_rad)
+    
+    # Step 4: Determine drawing dimensions
+    drawing_width = distance
+    drawing_height = max(h1, h2) + extra_height
+    
+    # Step 5: Calculate drawing position (start from first device center point)
+    drawing_x = cx1
+    drawing_y = cy1 - (drawing_height / 2)
+    
+    return {
+        'x': drawing_x,
+        'y': drawing_y,
+        'width': drawing_width,
+        'height': drawing_height,
+        'rotation': angle_deg
+    }
+```
+
+### Important Notes
+
+1. **Rotation Order**: Must first calculate distance and angle, determine drawing dimensions and position, and finally apply rotation
+2. **Coordinate Transformation**: Rotation affects the actual display position of the graphics, requiring coordinate adjustment based on rotation angle
+3. **Edge Cases**:
+   - When two devices overlap, distance is 0, requiring special handling
+   - When angle is close to 0° or 90°, pay attention to numerical precision
+4. **SVG Drawing**: When drawing within SVG, coordinates are relative to the SVG canvas and do not need to consider rotation
+
+### Best Practices
+
+1. **Use Integer Coordinates**: It is recommended to use integer values for final returned coordinates and dimensions
+2. **Reserve Margins**: Add extra space (e.g., 20 pixels) to the drawing height for displaying annotation text
+3. **Angle Normalization**: Limit angles to the 0-360 degree range
+4. **Error Handling**: When distance is too small (e.g., < 10 pixels), return default values or prompt the user
+
+---
+
 ## Color Scheme (Business Professional)
 
 GNS3 Copilot uses a **functionality-based color design** rather than protocol-based color stacking, maintaining a minimalist business style.
@@ -316,6 +507,6 @@ Used to create rectangular boxes (less commonly used).
 
 ---
 
-**Document Version**: 2.0  
+**Document Version**: 2.1  
 **Last Updated**: 2026-01-04  
 **Maintained by**: GNS3 Copilot Team

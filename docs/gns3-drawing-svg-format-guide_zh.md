@@ -26,6 +26,197 @@ GNS3 绘图功能允许在项目画布上添加自定义图形元素，用于网
 
 ---
 
+## GNS3 坐标系统与绘图计算
+
+### 1. 坐标系定义
+
+GNS3 画布使用中心原点坐标系：
+
+- **原点位置**：画布中心为 (0, 0)
+- **Y 轴方向**：向下为正（+），向上为负（-）
+- **X 轴方向**：向右为正（+），向左为负（-）
+
+```
+        Y-
+         ↑
+         |
+    X- ←─┼──→ X+
+         |
+         ↓
+        Y+
+```
+
+### 2. 设备节点坐标
+
+- **坐标定义**：设备节点使用左上角坐标
+- **默认尺寸**：60×60 像素
+- **实际尺寸**：通过 API 接口获取准确的宽度和高度数值
+- **SVG 坐标**：SVG 格式绘图也使用左上角坐标
+
+### 3. 旋转行为
+
+- **旋转中心**：GNS3 绘图旋转时以左上角坐标为圆心进行旋转
+- **旋转角度**：0-360 度，顺时针方向为正
+- **影响范围**：旋转会影响绘图在画布上的实际显示位置
+
+---
+
+## 连接绘图实现细节
+
+### 场景描述
+
+在两个设备节点之间绘制连接图形（如连线标注、区域覆盖等）。
+
+### 实现步骤
+
+#### 步骤 1：获取设备信息
+
+通过 API 接口获取两个设备节点的信息：
+- 设备节点坐标（左上角）
+- 设备节点宽度（width）
+- 设备节点高度（height）
+
+#### 步骤 2：计算设备中心点
+
+根据设备左上角坐标和尺寸，计算每个设备的中心点坐标：
+
+```
+center_x = x + width / 2
+center_y = y + height / 2
+```
+
+#### 步骤 3：计算中心点之间的距离和角度
+
+```
+dx = center_x2 - center_x1
+dy = center_y2 - center_y1
+
+# 计算距离（直线距离）
+distance = sqrt(dx² + dy²)
+
+# 计算水平角度（弧度）
+angle_rad = atan2(dy, dx)
+
+# 转换为角度
+angle_deg = angle_rad * (180 / π)
+```
+
+#### 步骤 4：确定绘图尺寸
+
+根据计算结果确定 SVG 绘图的大小：
+
+- **绘图长度/宽度**：使用两个设备中心点之间的距离
+- **绘图高度/宽度**：使用两个设备节点宽度或高度的最大值
+
+```
+drawing_length = distance
+drawing_height = max(height1, height2)
+```
+
+#### 步骤 5：计算绘图位置（考虑旋转）
+
+重要：需要先计算距离和角度，然后计算绘图左上角位置，最后应用旋转。
+
+**计算方法**：
+
+1. **计算未旋转时的绘图左上角位置**：
+
+```
+# 从第一个设备中心点出发
+drawing_x = center_x1
+drawing_y = center_y1 - (drawing_height / 2)
+```
+
+2. **考虑旋转角度的影响**：
+
+由于旋转是以左上角为圆心，旋转后图形的实际位置会发生变化。需要进行坐标变换：
+
+```
+# 旋转后的实际左上角位置（可选，根据具体需求调整）
+rotated_x = drawing_x + (drawing_length / 2) * cos(angle_rad) - (drawing_height / 2) * sin(angle_rad) - (drawing_length / 2)
+rotated_y = drawing_y + (drawing_length / 2) * sin(angle_rad) + (drawing_height / 2) * cos(angle_rad) - (drawing_height / 2)
+```
+
+3. **设置旋转参数**：
+
+```
+rotation = angle_deg  # 旋转角度
+```
+
+### 实现示例
+
+```python
+import math
+
+def calculate_drawing_params(node1, node2, extra_height=20):
+    """
+    计算连接两个设备的绘图参数
+    
+    Args:
+        node1: 第一个设备节点对象（包含 x, y, width, height）
+        node2: 第二个设备节点对象（包含 x, y, width, height）
+        extra_height: 额外高度（像素），用于容纳标注文字等
+    
+    Returns:
+        dict: 包含 x, y, width, height, rotation 的绘图参数
+    """
+    # 步骤 1：获取设备信息
+    x1, y1 = node1['x'], node1['y']
+    w1, h1 = node1.get('width', 60), node1.get('height', 60)
+    
+    x2, y2 = node2['x'], node2['y']
+    w2, h2 = node2.get('width', 60), node2.get('height', 60)
+    
+    # 步骤 2：计算设备中心点
+    cx1 = x1 + w1 / 2
+    cy1 = y1 + h1 / 2
+    
+    cx2 = x2 + w2 / 2
+    cy2 = y2 + h2 / 2
+    
+    # 步骤 3：计算距离和角度
+    dx = cx2 - cx1
+    dy = cy2 - cy1
+    
+    distance = math.sqrt(dx ** 2 + dy ** 2)
+    angle_rad = math.atan2(dy, dx)
+    angle_deg = math.degrees(angle_rad)
+    
+    # 步骤 4：确定绘图尺寸
+    drawing_width = distance
+    drawing_height = max(h1, h2) + extra_height
+    
+    # 步骤 5：计算绘图位置（从第一个设备中心点开始）
+    drawing_x = cx1
+    drawing_y = cy1 - (drawing_height / 2)
+    
+    return {
+        'x': drawing_x,
+        'y': drawing_y,
+        'width': drawing_width,
+        'height': drawing_height,
+        'rotation': angle_deg
+    }
+```
+
+### 注意事项
+
+1. **旋转顺序**：必须先计算距离和角度，确定绘图尺寸和位置，最后应用旋转
+2. **坐标变换**：旋转会影响图形的实际显示位置，需要根据旋转角度调整坐标
+3. **边缘情况**：
+   - 当两个设备重叠时，距离为 0，需要特殊处理
+   - 当角度接近 0° 或 90° 时，注意数值精度
+4. **SVG 绘图**：在 SVG 内部绘图时，坐标是相对于 SVG 画布的，不需要考虑旋转
+
+### 最佳实践
+
+1. **使用整数坐标**：最终返回的坐标和尺寸建议使用整数值
+2. **预留边距**：在绘图高度上增加额外空间（如 20 像素），用于显示标注文字
+3. **角度规范化**：将角度限制在 0-360 度范围内
+4. **错误处理**：当距离过小（如 < 10 像素）时，返回默认值或提示用户
+
+---
+
 ## 颜色方案（商务专业风格）
 
 GNS3 Copilot 采用**按逻辑功能分类**的颜色设计，而非按协议堆砌颜色，保持简约商务风格。
@@ -316,6 +507,6 @@ def get_color(area_name):
 
 ---
 
-**文档版本**：2.0  
+**文档版本**：2.1  
 **最后更新**：2026-01-04  
 **维护者**：GNS3 Copilot Team
