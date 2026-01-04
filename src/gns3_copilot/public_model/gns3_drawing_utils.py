@@ -321,15 +321,33 @@ def _get_color_scheme(area_name: str) -> dict[str, Any]:
         return COLOR_SCHEMES["NORMAL_AREA"]
 
     # 3. Logical Isolation
-    if "VRF" in label or "VLAN" in label or "MSTP" in label or "VXLAN" in label or "MPLS" in label:
+    if (
+        "VRF" in label
+        or "VLAN" in label
+        or "MSTP" in label
+        or "VXLAN" in label
+        or "MPLS" in label
+    ):
         return COLOR_SCHEMES["ISOLATION"]
 
     # 4. High Availability
-    if "VRRP" in label or "HSRP" in label or "HA" in label or "STACK" in label or "M-LAG" in label:
+    if (
+        "VRRP" in label
+        or "HSRP" in label
+        or "HA" in label
+        or "STACK" in label
+        or "M-LAG" in label
+    ):
         return COLOR_SCHEMES["HIGH_AVAILABILITY"]
 
     # 5. External/Internet
-    if "INET" in label or "OUT" in label or "EXTERNAL" in label or "INTERNET" in label or "DMZ" in label:
+    if (
+        "INET" in label
+        or "OUT" in label
+        or "EXTERNAL" in label
+        or "INTERNET" in label
+        or "DMZ" in label
+    ):
         return COLOR_SCHEMES["EXTERNAL"]
 
     # 6. Management
