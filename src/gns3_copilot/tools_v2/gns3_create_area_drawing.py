@@ -19,10 +19,7 @@ from gns3_copilot.gns3_client import (
     get_gns3_connector,
 )
 from gns3_copilot.log_config import setup_tool_logger
-from gns3_copilot.public_model.gns3_drawing_utils import (
-    calculate_multi_node_ellipse,
-    calculate_two_node_ellipse,
-)
+from gns3_copilot.public_model.gns3_drawing_utils import calculate_two_node_ellipse
 
 # Configure logging
 logger = setup_tool_logger("gns3_create_area_drawing")
@@ -44,7 +41,7 @@ class GNS3CreateAreaDrawingTool(BaseTool):
     """
     A LangChain tool to create visual area annotations for network devices.
 
-    Creates ellipse annotations that connect multiple network devices (2+ nodes),
+    Creates ellipse annotations that connect two network devices,
     automatically calculating optimal position, size, and rotation based on node coordinates.
 
     **Input:**
@@ -54,7 +51,7 @@ class GNS3CreateAreaDrawingTool(BaseTool):
         {
             "project_id": "uuid-of-project",
             "area_name": "Area 0",
-            "node_names": ["R-1", "R-2", "R-3"]
+            "node_names": ["R-1", "R-2"]
         }
 
     **Output:**
@@ -62,7 +59,7 @@ class GNS3CreateAreaDrawingTool(BaseTool):
         {
             "project_id": "uuid-of-project",
             "area_name": "Area 0",
-            "node_count": 3,
+            "node_count": 2,
             "shape_type": "ellipse",
             "created_drawings": [
                 {
@@ -81,41 +78,55 @@ class GNS3CreateAreaDrawingTool(BaseTool):
             "failed_drawings": 0
         }
 
-    **Note:** Supports 2 or more nodes. For 2 nodes, uses rotated ellipse connecting them.
-    For 3+ nodes, uses axis-aligned ellipse enclosing all device centers.
+    **Use Cases:**
+    - Protocol Domains: OSPF areas, BGP AS, IS-IS levels
+    - Logical Isolation: VRF, VLAN, MSTP
+    - High Availability: VRRP, HSRP, Stack, M-LAG
+    - External Boundaries: Internet, DMZ
+    - Management Networks: OOB, Management
+
+    **Semantic Color Coding:**
+    The tool automatically applies business-professional colors based on area_name keywords:
+
+    | Category               | Colors              | Keywords in area_name        | Border Style |
+    |------------------------|---------------------|------------------------------|--------------|
+    | Primary Routing        | Blue (#2196F3)      | BGP, AS, Area 0, Backbone    | Solid        |
+    | Secondary Routing      | Light Blue (#64B5F6)| Area, Level                 | Solid        |
+    | Logical Isolation      | Purple (#9C27B0)    | VRF, VLAN, MSTP             | Dashed       |
+    | High Availability      | Amber (#FFC107)     | VRRP, HSRP, HA, Stack       | Solid        |
+    | External/Boundary      | Red (#EF5350)       | INET, OUT, External, DMZ     | Solid        |
+    | Management             | Gray (#757575)      | MGMT, OOB                    | Dashed       |
+
+    **Implementation Details:**
+    - Retrieves node coordinates from the GNS3 project topology
+    - Calculates rotated ellipse parameters (center, radius, rotation angle)
+    - Generates professional SVG graphics with semantic colors
+    - Creates two drawings: ellipse shape and text label
+    - All coordinates are integers as required by GNS3 API
+
+    **Example Usage:**
+    User: "Configure OSPF area 0 on R-1 and R-2"
+    → Call: create_gns3_area_drawing(project_id="xxx", area_name="Area 0", node_names=["R-1", "R-2"])
+
+    User: "Create VLAN 10 for SW-1 and SW-2"
+    → Call: create_gns3_area_drawing(project_id="xxx", area_name="VLAN 10", node_names=["SW-1", "SW-2"])
+
+    User: "Configure VRRP group 1 on R-1 and R-2"
+    → Call: create_gns3_area_drawing(project_id="xxx", area_name="VRRP Group 1", node_names=["R-1", "R-2"])
     """
 
     name: str = "create_gns3_area_drawing"
     description: str = """
-    Creates a visual ellipse annotation for TWO or MORE network devices to show area grouping.
+    Creates a visual ellipse annotation to mark logical groupings between two network devices.
 
-    Use this tool when:
-    - Configuring OSPF, EIGRP, BGP, or other routing protocols
-    - Multiple devices belong to the same area or group
-    - Users request area grouping or visual annotation
+    Use for protocol domains (OSPF areas, BGP AS, IS-IS levels), logical isolation (VRF, VLAN),
+    or high availability groups (VRRP, HSRP). Automatically calculates optimal position,
+    size, rotation, and applies semantic colors.
 
-    Input parameters:
-    - project_id (required): GNS3 project UUID
-    - area_name (required): Area/group name (e.g., "Area 0", "AS 100")
-    - node_names (required): List of 2 or more node names (e.g., ["R-1", "R-2"] or ["R-1", "R-2", "R-3", "R-4"])
-
-    The tool automatically:
-    - Gets node coordinates from the project topology
-    - For 2 nodes: Calculates rotated ellipse connecting them
-    - For 3+ nodes: Calculates axis-aligned ellipse enclosing all devices
-    - Determines perfect size and position
-    - Chooses appropriate colors (green for Area 0, blue for other areas)
-    - Generates professional SVG graphics
-    - Creates both the ellipse shape and area label text
-
-    Example usage:
-        User: "Configure OSPF area 0 on R-1 and R-2"
-        → Call: create_gns3_area_drawing(project_id="xxx", area_name="Area 0", node_names=["R-1", "R-2"])
-
-        User: "Create OSPF area 1 for R-1, R-2, R-3, R-4"
-        → Call: create_gns3_area_drawing(project_id="xxx", area_name="Area 1", node_names=["R-1", "R-2", "R-3", "R-4"])
-
-    Returns creation results including drawing IDs and status.
+    Parameters:
+    - project_id: GNS3 project UUID
+    - area_name: Logical group name (e.g., "Area 0", "VLAN 10", "VRRP Group 1")
+    - node_names: List of exactly 2 node names (e.g., ["R-1", "R-2"])
     """
 
     def _run(
@@ -157,15 +168,15 @@ class GNS3CreateAreaDrawingTool(BaseTool):
                 logger.error("Invalid input: node_names must be a non-empty array.")
                 return {"error": "node_names must be a non-empty array."}
 
-            # Validate: requires at least 2 nodes
-            if len(node_names) < 2:
+            # Validate: requires exactly 2 nodes
+            if len(node_names) != 2:
                 logger.error(
-                    "Invalid input: At least 2 nodes are required, got %d.",
+                    "Invalid input: Exactly 2 nodes are required, got %d.",
                     len(node_names),
                 )
                 return {
-                    "error": f"At least 2 nodes are required, got {len(node_names)}. "
-                    "Please provide 2 or more node names."
+                    "error": f"Exactly 2 nodes are required, got {len(node_names)}. "
+                    "Please provide exactly 2 node names."
                 }
 
             # Initialize Gns3Connector using factory function
@@ -218,33 +229,18 @@ class GNS3CreateAreaDrawingTool(BaseTool):
             ]
             logger.info("Found nodes: %s", ", ".join(node_info_list))
 
-            # Calculate ellipse parameters based on node count
-            logger.info("Calculating ellipse parameters for %d nodes...", len(nodes))
+            # Calculate ellipse parameters for 2 nodes
+            logger.info("Calculating ellipse parameters for 2 nodes...")
 
-            if len(nodes) == 2:
-                # For 2 nodes, use rotated ellipse connecting them
-                ellipse_result = calculate_two_node_ellipse(
-                    nodes[0], nodes[1], area_name
-                )
-                logger.info(
-                    "Two-node ellipse: center=(%.2f, %.2f), distance=%.2f, angle=%.2f°",
-                    ellipse_result["metadata"]["center_x"],
-                    ellipse_result["metadata"]["center_y"],
-                    ellipse_result["metadata"]["distance"],
-                    ellipse_result["metadata"]["angle_deg"],
-                )
-            else:
-                # For 3+ nodes, use axis-aligned ellipse enclosing all centers
-                ellipse_result = calculate_multi_node_ellipse(nodes, area_name)
-                logger.info(
-                    "Multi-node ellipse: center=(%.2f, %.2f), base_size=%.2fx%.2f, draw_size=%.2fx%.2f",
-                    ellipse_result["metadata"]["center_x"],
-                    ellipse_result["metadata"]["center_y"],
-                    ellipse_result["metadata"]["base_width"],
-                    ellipse_result["metadata"]["base_height"],
-                    ellipse_result["metadata"]["rx"] * 2,
-                    ellipse_result["metadata"]["ry"] * 2,
-                )
+            # Use rotated ellipse connecting the two nodes
+            ellipse_result = calculate_two_node_ellipse(nodes[0], nodes[1], area_name)
+            logger.info(
+                "Two-node ellipse: center=(%.2f, %.2f), distance=%.2f, angle=%.2f°",
+                ellipse_result["metadata"]["center_x"],
+                ellipse_result["metadata"]["center_y"],
+                ellipse_result["metadata"]["distance"],
+                ellipse_result["metadata"]["angle_deg"],
+            )
 
             # Prepare drawings for creation
             # Ensure all coordinates are integers as required by GNS3 API
@@ -253,7 +249,7 @@ class GNS3CreateAreaDrawingTool(BaseTool):
                     "svg": ellipse_result["ellipse"]["svg"],
                     "x": int(ellipse_result["ellipse"]["x"]),
                     "y": int(ellipse_result["ellipse"]["y"]),
-                    "z": 1,
+                    "z": ellipse_result["ellipse"]["z"],
                     "locked": False,
                     "rotation": int(ellipse_result["ellipse"]["rotation"]),
                 },
@@ -261,7 +257,7 @@ class GNS3CreateAreaDrawingTool(BaseTool):
                     "svg": ellipse_result["text"]["svg"],
                     "x": int(ellipse_result["text"]["x"]),
                     "y": int(ellipse_result["text"]["y"]),
-                    "z": 2,
+                    "z": ellipse_result["text"]["z"],
                     "locked": False,
                     "rotation": int(ellipse_result["text"]["rotation"]),
                 },
@@ -366,8 +362,8 @@ if __name__ == "__main__":
     test_input = json.dumps(
         {
             "project_id": "d7fc094c-685e-4db1-ac11-5e33a1b2e066",  # Replace with actual project UUID
-            "area_name": "ospf area 0",
-            "node_names": ["R-1", "R-2", "R-3", "R-4"],  # Replace with actual node names
+            "area_name": "Core Area",
+            "node_names": ["R-6", "R-4"],  # Replace with actual node names
         }
     )
 

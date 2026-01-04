@@ -125,6 +125,7 @@ LLM prompt management supporting multiple languages and proficiency levels
    - Keep code concise and readable
 
 6. Testing and Static Analysis
+   - Do not run or fix test code unless explicitly requested by the user
    - Ensure existing tests still pass when modifying code
    - Add test coverage for new features
    - Run `make lint` after code modifications to check code style

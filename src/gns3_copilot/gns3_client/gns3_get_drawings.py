@@ -180,7 +180,7 @@ if __name__ == "__main__":
     # Test the tool locally
     test_input = json.dumps(
         {
-            "project_id": "0c0fde25-6ead-4413-a283-ea8fd2324291"
+            "project_id": "d7fc094c-685e-4db1-ac11-5e33a1b2e066"
         }  # Replace with actual project UUID
     )
     tool = GNS3GetDrawingsTool()
@@ -227,24 +227,6 @@ example output:
                       'font-size="11" font-weight="bold">Area 0</text></svg>',
                'x': -573,
                'y': -272,
-               'z': 1},
-              {'drawing_id': '52045be2-d6d9-46f8-85af-c33bf7074b6a',
-               'locked': False,
-               'rotation': 0,
-               'svg': '<svg xmlns="http://www.w3.org/2000/svg" width="100" '
-                      'height="50"><text x="10" y="30" font-size="14">Label '
-                      '1</text></svg>',
-               'x': -107,
-               'y': -187,
-               'z': 0},
-              {'drawing_id': '8f1838a7-1aa4-4613-acaa-b300b23e60d5',
-               'locked': False,
-               'rotation': 90,
-               'svg': '<svg xmlns="http://www.w3.org/2000/svg" width="100" '
-                      'height="50"><text x="10" y="30" font-size="14">Label '
-                      '2</text></svg>',
-               'x': 166,
-               'y': -253,
                'z': 1},
               {'drawing_id': 'efd1add9-a798-489d-af26-58b2d73c89dc',
                'locked': False,

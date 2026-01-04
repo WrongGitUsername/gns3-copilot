@@ -1,212 +1,220 @@
 """
 Drawing utility functions for GNS3 area annotations.
 
-Provides helper functions to calculate drawing parameters and generate SVG content
-for network area annotations, specifically optimized for two-node ellipse annotations.
+Calculates drawing parameters and generates SVG content for network area annotations.
+Supports ellipse and rectangle shapes for two-node annotations.
 """
 
 import math
-import re
-from typing import Any
+from typing import Any, Literal
 
-# Default parameters for area annotations
-DEFAULT_PADDING = 0
-DEFAULT_DEVICE_WIDTH = 50  # Width of device icons (left-top to right-top)
-DEFAULT_DEVICE_HEIGHT = 50  # Height of device icons (left-top to left-bottom)
-DEFAULT_FONT_SIZE = 14
+# Default parameters
+DEFAULT_DEVICE_WIDTH = 50
+DEFAULT_DEVICE_HEIGHT = 50
+DEFAULT_FONT_SIZE = 12
+DEFAULT_SHAPE_Z = 0
+DEFAULT_TEXT_Z = 1
 
-# GNS3 GUI compatibility adjustment values
-# These values are derived from reverse-engineering GNS3 GUI behavior
-GNS3_GUI_RX_ADJUSTMENT = 7.35  # Horizontal radius adjustment (distance/2 - 7.35)
-GNS3_GUI_RY_ADJUSTMENT = 4  # Vertical radius adjustment (avg_height - 4)
+# Z-order thresholds (pixels)
+Z_ORDER_LARGE_AREA_THRESHOLD = 500  # z=1 for large areas
+Z_ORDER_MEDIUM_AREA_THRESHOLD = 300  # z=2 for medium areas
 
-# Color scheme for different area types (simplified to 5 protocol categories)
-# Color classification based on network protocol types
+# Color schemes (business professional style)
+# Text uses 'stroke', shape uses 'fill' with 'fill-opacity'
 COLOR_SCHEMES = {
-    # Green - IGP (Interior Gateway Protocol) - OSPF, IS-IS, RIP, EIGRP
-    "IGP": {"stroke": "#00cc00", "fill": "#00cc00", "fill_opacity": 0.12},
-    # Blue - EGP (Exterior Gateway Protocol) - BGP
-    "EGP": {"stroke": "#3366ff", "fill": "#3366ff", "fill_opacity": 0.12},
-    # Orange - Overlay - VXLAN, MPLS
-    "Overlay": {"stroke": "#ff9900", "fill": "#ff9900", "fill_opacity": 0.12},
-    # Gray - Underlay - Base IP network
-    "Underlay": {"stroke": "#999999", "fill": "#999999", "fill_opacity": 0.10},
-    # Purple - Switching - STP, LDP, VRF
-    "Switching": {"stroke": "#9933ff", "fill": "#9933ff", "fill_opacity": 0.12},
+    # Core/Backbone - biz_blue_deep
+    "CORE_BACKBONE": {
+        "stroke": "#1B4F72",  # Deep blue (for text)
+        "fill": "#1B4F72",  # Deep blue background
+        "fill_opacity": 0.8,  # Transparency level
+    },
+    # Normal Areas - biz_blue_light
+    "NORMAL_AREA": {
+        "stroke": "#A9CCE3",  # Light blue (for text)
+        "fill": "#A9CCE3",  # Light blue background
+        "fill_opacity": 0.8,  # Transparency level
+    },
+    # Logical Isolation - biz_purple
+    "ISOLATION": {
+        "stroke": "#7D3C98",  # Purple (for text)
+        "fill": "#7D3C98",  # Purple background
+        "fill_opacity": 0.8,  # Transparency level
+    },
+    # Management/Infrastructure - biz_gray
+    "MANAGEMENT_INFRA": {
+        "stroke": "#808B96",  # Gray (for text)
+        "fill": "#808B96",  # Gray background
+        "fill_opacity": 0.8,  # Transparency level
+    },
+    # Redundancy/High Availability - biz_orange
+    "HIGH_AVAILABILITY": {
+        "stroke": "#D68910",  # Orange (for text)
+        "fill": "#D68910",  # Orange background
+        "fill_opacity": 0.8,  # Transparency level
+    },
+    # External/Boundary - biz_red
+    "EXTERNAL": {
+        "stroke": "#943126",  # Red (for text)
+        "fill": "#943126",  # Red background
+        "fill_opacity": 0.8,  # Transparency level
+    },
+    # Security/Trusted - biz_green
+    "SECURITY_TRUSTED": {
+        "stroke": "#1D8348",  # Green (for text)
+        "fill": "#1D8348",  # Green background
+        "fill_opacity": 0.8,  # Transparency level
+    },
+    # Cloud/Tunnel - biz_cyan
+    "CLOUD_TUNNEL": {
+        "stroke": "#16A085",  # Cyan (for text)
+        "fill": "#16A085",  # Cyan background
+        "fill_opacity": 0.8,  # Transparency level
+    },
+    # Default - biz_gray
+    "DEFAULT": {
+        "stroke": "#808B96",  # Gray (for text)
+        "fill": "#808B96",  # Gray background
+        "fill_opacity": 0.8,  # Transparency level
+    },
 }
 
 
-def calculate_two_node_ellipse(
+def calculate_two_node_shape(
     node1: dict,
     node2: dict,
     area_name: str,
-    padding: int = DEFAULT_PADDING,
-    text_offset_ratio: float = 0.7,
+    shape_type: Literal["ellipse", "rectangle"] = "ellipse",
+    text_offset_ratio: float = 0.0,
 ) -> dict[str, Any]:
     """
-    Calculate ellipse annotation parameters for two nodes.
-
-    This function computes optimal ellipse to connect two network devices,
-    including position, size, rotation, and SVG content.
-
-    Algorithm:
-    1. Calculate device center points (node coordinates are top-left corner)
-    2. Calculate midpoint between device centers (ellipse center)
-    3. Calculate distance between device centers
-    4. Determine ellipse size: rx = distance/2 + padding, ry = device_height
-    5. Calculate rotation angle using atan2
-    6. Calculate text offset to avoid overlapping with link cables
-    7. Generate SVG for ellipse and text
+    Calculate shape annotation parameters for two nodes.
 
     Args:
-        node1: First node dictionary with 'x', 'y', 'height', and 'width' (top-left corner)
-        node2: Second node dictionary with 'x', 'y', 'height', and 'width' (top-left corner)
-        area_name: Name of the area (e.g., "Area 0", "AS 100")
-        padding: Distance from nodes to ellipse edge in pixels (default: 0)
-        text_offset_ratio: Ratio of ry to offset text along perpendicular direction (default: 0.7)
-                          Set to 0 to center text, 0.7 for edge, >1 for outside ellipse
+        node1: First node with 'x', 'y', 'height', 'width' (top-left)
+        node2: Second node with 'x', 'y', 'height', 'width' (top-left)
+        area_name: Name of area (e.g., "Area 0", "AS 100")
+        shape_type: "ellipse" or "rectangle" (default: "ellipse")
+        text_offset_ratio: Ratio to offset text (0=center, positive=offset)
 
     Returns:
-        Dictionary containing ellipse and text SVG parameters:
-        {
-            "ellipse": {
-                "svg": str,  # Ellipse SVG content
-                "x": int,    # SVG x coordinate
-                "y": int,    # SVG y coordinate
-                "rotation": int  # Rotation angle in degrees
-            },
-            "text": {
-                "svg": str,  # Text SVG content
-                "x": int,    # SVG x coordinate
-                "y": int,    # SVG y coordinate
-                "rotation": int  # Rotation angle in degrees
-            },
-            "metadata": {
-                "center_x": float,
-                "center_y": float,
-                "distance": float,
-                "rx": float,
-                "ry": float,
-                "angle_deg": float
-            }
-        }
-
-    Example:
-        >>> node1 = {"x": 100, "y": 200}
-        >>> node2 = {"x": 300, "y": 200}
-        >>> result = calculate_two_node_ellipse(node1, node2, "Area 0")
-        >>> print(result["metadata"]["center_x"])
-        200.0
+        Dict with shape, text SVG params, and metadata
     """
-    # Step 1: Get actual node dimensions (use defaults if not provided)
     node1_width = node1.get("width", DEFAULT_DEVICE_WIDTH)
     node1_height = node1.get("height", DEFAULT_DEVICE_HEIGHT)
     node2_width = node2.get("width", DEFAULT_DEVICE_WIDTH)
     node2_height = node2.get("height", DEFAULT_DEVICE_HEIGHT)
 
-    # Step 2: Calculate device center points
-    # Node coordinates are top-left corner, add half device size to get center
     node1_center_x = node1["x"] + (node1_width / 2)
     node1_center_y = node1["y"] + (node1_height / 2)
     node2_center_x = node2["x"] + (node2_width / 2)
     node2_center_y = node2["y"] + (node2_height / 2)
 
-    # Step 2: Calculate midpoint between device centers (ellipse center)
-    center_x = (node1_center_x + node2_center_x) / 2
-    center_y = (node1_center_y + node2_center_y) / 2
-
-    # Step 3: Calculate distance between device centers
     distance = math.sqrt(
         (node2_center_x - node1_center_x) ** 2 + (node2_center_y - node1_center_y) ** 2
     )
 
-    # Step 4: Determine ellipse size
-    # Use GNS3 GUI compatibility adjustment values derived from reverse-engineering
-    rx = distance / 2 - GNS3_GUI_RX_ADJUSTMENT  # Semi-major axis (horizontal)
-    ry = (
-        node1_height + node2_height
-    ) / 2 - GNS3_GUI_RY_ADJUSTMENT  # Semi-minor axis (vertical)
-
-    # Step 5: Calculate rotation angle based on device centers
     angle_rad = math.atan2(
         node2_center_y - node1_center_y, node2_center_x - node1_center_x
     )
-    # Round to nearest integer to match GNS3 GUI behavior
     angle_deg = round(math.degrees(angle_rad))
-    angle_rad = math.radians(angle_deg)  # Use rounded angle for calculations
+    angle_rad = math.radians(angle_deg)
 
-    # Step 5: Determine SVG position and dimensions
-    # The SVG is positioned so that its top-left corner is at (center_x - rx, center_y - ry)
-    # However, when GNS3 rotates around this point, the ellipse center shifts.
-    # We need to compensate for this shift by adjusting the initial SVG position.
+    center_x = (node1_center_x + node2_center_x) / 2
+    center_y = (node1_center_y + node2_center_y) / 2
 
-    # Calculate the offset needed to keep ellipse center at (center_x, center_y) after rotation
-    # Ellipse center in SVG coordinates is (rx, ry)
-    # After rotation by angle_rad, this becomes:
-    # rotated_x = rx * cos(θ) - ry * sin(θ)
-    # rotated_y = rx * sin(θ) + ry * cos(θ)
-    # The offset we need to apply:
-    offset_x = rx - (rx * math.cos(angle_rad) - ry * math.sin(angle_rad))
-    offset_y = ry - (rx * math.sin(angle_rad) + ry * math.cos(angle_rad))
-
-    svg_x = center_x - rx + offset_x
-    svg_y = center_y - ry + offset_y
-    svg_width = rx * 2
-    svg_height = ry * 2
-
-    # Step 6: Get color scheme based on area name
     color_scheme = _get_color_scheme(area_name)
-
-    # Step 7: Generate SVG content
-    ellipse_svg = generate_ellipse_svg(
-        int(rx), int(ry), color_scheme, int(svg_width), int(svg_height)
-    )
     text_svg = generate_text_svg(area_name, color_scheme)
 
-    # Calculate text SVG dimensions (matching generate_text_svg logic)
     text_svg_width = len(area_name) * 8 + 20
     text_svg_height = DEFAULT_FONT_SIZE + 16
 
-    # Calculate text offset to avoid overlapping with link cables
-    # Offset is perpendicular to the link direction (ellipse short axis direction)
-    if text_offset_ratio != 0:
-        # Calculate perpendicular direction (rotate angle by 90 degrees)
-        # This gives us a vector perpendicular to the link direction
-        perpendicular_x = -math.sin(angle_rad)
-        perpendicular_y = math.cos(angle_rad)
+    if shape_type == "ellipse":
+        rx = distance / 2
+        ry = math.sqrt((node1_width / 2) ** 2 + (node1_height / 2) ** 2)
 
-        # Calculate offset distance
+        shape_width = rx * 2
+        shape_height = ry * 2
+
+        svg_x = center_x - (rx * math.cos(angle_rad) - ry * math.sin(angle_rad))
+        svg_y = center_y - (rx * math.sin(angle_rad) + ry * math.cos(angle_rad))
+
+        shape_svg = generate_ellipse_svg(
+            int(rx), int(ry), color_scheme, int(shape_width), int(shape_height)
+        )
+
         offset_distance = ry * text_offset_ratio
 
-        # Apply offset to text position
-        text_offset_x = perpendicular_x * offset_distance
-        text_offset_y = perpendicular_y * offset_distance
-
-        # Position text with offset
-        text_x = int(center_x + text_offset_x - text_svg_width / 2)
-        text_y = int(center_y + text_offset_y - text_svg_height / 2)
-    else:
-        # No offset, center text on ellipse center
-        text_x = int(center_x - text_svg_width / 2)
-        text_y = int(center_y - text_svg_height / 2)
-
-    # Text should always remain horizontal (rotation = 0), not rotate with ellipse
-    return {
-        "ellipse": {
-            "svg": ellipse_svg,
-            "x": int(svg_x),
-            "y": int(svg_y),
-            "rotation": int(angle_deg),
-        },
-        "text": {"svg": text_svg, "x": text_x, "y": text_y, "rotation": 0},
-        "metadata": {
+        metadata = {
             "center_x": center_x,
             "center_y": center_y,
             "distance": distance,
+            "shape_width": shape_width,
+            "shape_height": shape_height,
+            "angle_deg": angle_deg,
             "rx": rx,
             "ry": ry,
+        }
+
+    else:  # rectangle
+        shape_width = distance
+        shape_height = max(node1_width, node1_height, node2_width, node2_height)
+
+        svg_x = center_x - (
+            (shape_width / 2) * math.cos(angle_rad)
+            - (shape_height / 2) * math.sin(angle_rad)
+        )
+        svg_y = center_y - (
+            (shape_width / 2) * math.sin(angle_rad)
+            + (shape_height / 2) * math.cos(angle_rad)
+        )
+
+        shape_svg = generate_rectangle_svg(
+            int(shape_width), int(shape_height), color_scheme
+        )
+
+        offset_distance = (shape_height / 2) * text_offset_ratio
+
+        metadata = {
+            "center_x": center_x,
+            "center_y": center_y,
+            "distance": distance,
+            "shape_width": shape_width,
+            "shape_height": shape_height,
             "angle_deg": angle_deg,
+            "rx": None,
+            "ry": None,
+        }
+
+    if text_offset_ratio != 0:
+        perpendicular_x = -math.sin(angle_rad)
+        perpendicular_y = math.cos(angle_rad)
+
+        text_offset_x = perpendicular_x * offset_distance
+        text_offset_y = perpendicular_y * offset_distance
+
+        text_x = int(center_x + text_offset_x - text_svg_width / 2)
+        text_y = int(center_y + text_offset_y - text_svg_height / 2)
+    else:
+        text_x = int(center_x - text_svg_width / 2)
+        text_y = int(center_y - text_svg_height / 2)
+
+    return {
+        "shape": {
+            "svg": shape_svg,
+            "x": int(svg_x),
+            "y": int(svg_y),
+            "z": DEFAULT_SHAPE_Z,
+            "rotation": int(angle_deg),
+            "type": shape_type,
         },
+        "text": {
+            "svg": text_svg,
+            "x": text_x,
+            "y": text_y,
+            "z": DEFAULT_TEXT_Z,
+            "rotation": 0,
+        },
+        "metadata": metadata,
     }
 
 
@@ -217,88 +225,33 @@ def generate_ellipse_svg(
     svg_width: int,
     svg_height: int,
 ) -> str:
-    """
-    Generate SVG content for an ellipse.
+    """Generate SVG for ellipse."""
+    return f'''<svg width="{svg_width}" height="{svg_height}"><ellipse cx="{rx}" cy="{ry}" rx="{rx}" ry="{ry}" fill="{color_scheme["fill"]}" fill-opacity="{color_scheme["fill_opacity"]}"/></svg>'''
 
-    Matches the format used by GNS3 GUI to enable style editing in the interface.
 
-    Args:
-        rx: X radius of the ellipse
-        ry: Y radius of the ellipse
-        color_scheme: Dictionary with 'stroke', 'fill', and 'fill_opacity' (values can be str or float)
-        svg_width: Width of the SVG canvas
-        svg_height: Height of the SVG canvas
-
-    Returns:
-        SVG string for the ellipse
-
-    Example:
-        >>> color = {"stroke": "#00cc00", "fill": "#00cc00", "fill_opacity": 0.15}
-        >>> svg = generate_ellipse_svg(140, 100, color, 280, 200)
-    """
-    # Match GUI format: no xmlns, no quotes on numeric attributes, quotes on string attributes
-    return f'''<svg width="{svg_width}" height="{svg_height}"><ellipse cx="{rx}" cy="{ry}" rx="{rx}" ry="{ry}" fill="{color_scheme["fill"]}" fill-opacity="{color_scheme["fill_opacity"]}" stroke="{color_scheme["stroke"]}" stroke-width="2" stroke-dasharray="5,5"/></svg>'''
+def generate_rectangle_svg(
+    width: int,
+    height: int,
+    color_scheme: dict[str, Any],
+) -> str:
+    """Generate SVG for rectangle."""
+    return f'''<svg width="{width}" height="{height}"><rect x="0" y="0" width="{width}" height="{height}" fill="{color_scheme["fill"]}" fill-opacity="{color_scheme["fill_opacity"]}"/></svg>'''
 
 
 def generate_text_svg(text: str, color_scheme: dict[str, Any]) -> str:
-    """
-    Generate compact SVG content for text label.
-
-    The SVG size is calculated dynamically based on text length to minimize space usage.
-    Matches the format used by GNS3 GUI to enable style editing in the interface.
-
-    Args:
-        text: Text content to display (e.g., "Area 0", "AS 100")
-        color_scheme: Dictionary with 'stroke' for text color
-
-    Returns:
-        SVG string for the text with appropriate size
-
-    Example:
-        >>> color = {"stroke": "#00cc00"}
-        >>> svg = generate_text_svg("Area 0", color)
-        >>> # Returns compact SVG ~100x30 pixels
-    """
-    # Calculate SVG dimensions based on text length
-    # Each character is approximately 8 pixels wide with 14px font size
-    # Add 20 pixels padding (10 on each side)
+    """Generate SVG for text label."""
     text_width = len(text) * 8 + 20
-    text_height = DEFAULT_FONT_SIZE + 16  # 14px font + 16px padding
+    text_height = DEFAULT_FONT_SIZE + 16
 
-    # Text is centered within the SVG canvas
-    text_x = text_width / 2
-    text_y = text_height / 2 + DEFAULT_FONT_SIZE / 2 - 2
-
-    # Match GUI format: no xmlns, no quotes on numeric attributes, quotes on string attributes
-    return f'''<svg width="{text_width}" height="{text_height}"><text x="{text_x}" y="{text_y}" fill="{color_scheme["stroke"]}" font-size="{DEFAULT_FONT_SIZE}" font-weight="bold" text-anchor="middle">{text}</text></svg>'''
+    return f'''<svg width="{text_width}" height="{text_height}"><text font-family="TypeWriter" font-size="{DEFAULT_FONT_SIZE}.0" font-weight="bold" fill="{color_scheme["stroke"]}" text-anchor="middle" x="{text_width / 2}" y="{text_height / 2 + 4}">{text}</text></svg>'''
 
 
 def _hsv_to_hex(h: int, s: int, v: int) -> str:
-    """
-    Convert HSV color values to HEX color string.
-
-    HSV (Hue, Saturation, Value) is a color model that uses cylindrical coordinates.
-    High lightness (v value) is used for instance color generation to create
-    lighter, more transparent versions of base protocol colors.
-
-    Args:
-        h: Hue (0-360), color wheel position
-        s: Saturation (0-100), color intensity
-        v: Value (0-100), lightness/brightness
-
-    Returns:
-        HEX color string (e.g., "#ff00cc")
-
-    Example:
-        >>> _hsv_to_hex(120, 80, 90)
-        '#4ce68c'
-    """
-    # Normalize values to 0-1 range
+    """Convert HSV to HEX color."""
     h_norm = (h % 360) / 360
     s_norm = s / 100
     v_norm = v / 100
 
-    # Convert HSV to RGB
     c: float = v_norm * s_norm
     x: float = c * (1 - abs((h_norm / 60) % 2 - 1))
     m: float = v_norm - c
@@ -320,7 +273,6 @@ def _hsv_to_hex(h: int, s: int, v: int) -> str:
     else:
         r, g, b = c, 0.0, x
 
-    # Convert to 0-255 range and format as HEX
     r = int((r + m) * 255)
     g = int((g + m) * 255)
     b = int((b + m) * 255)
@@ -328,332 +280,140 @@ def _hsv_to_hex(h: int, s: int, v: int) -> str:
     return f"#{r:02x}{g:02x}{b:02x}"
 
 
-def _get_color_scheme(area_name: str) -> dict[str, Any]:
+def calculate_z_order(area_size: float) -> int:
     """
-    Get color scheme based on area name with keyword matching and instance support.
-
-    This function supports:
-    1. Exact matches (e.g., "Area 0", "AS 65000")
-    2. Protocol keyword matching (e.g., "OSPF", "BGP", "RIP")
-    3. Automatic instance color generation (e.g., "Area 1", "Area 2" get different light colors)
+    Calculate z-order based on area size for proper layering.
 
     Args:
-        area_name: Name of the area (e.g., "Area 0", "Area 1", "AS 65001", "OSPF Backbone")
+        area_size: Size of area (width for rectangles, 2*rx for ellipses)
 
     Returns:
-        Dictionary with color parameters (values can be str or float)
-
-    Examples:
-        >>> _get_color_scheme("Area 0")
-        {'stroke': '#00cc00', 'fill': '#00cc00', 'fill_opacity': 0.15}
-        >>> _get_color_scheme("Area 1")  # Auto-generated light color
-        {'stroke': '#4cd17c', 'fill': '#4cd17c', 'fill_opacity': 0.12}
-        >>> _get_color_scheme("AS 65001")  # Auto-generated light color
-        {'stroke': '#4c80ff', 'fill': '#4c80ff', 'fill_opacity': 0.12}
-        >>> _get_color_scheme("RIP Network")  # Protocol keyword match
-        {'stroke': '#9933ff', 'fill': '#9933ff', 'fill_opacity': 0.12}
+        Z-order: 1=back (large), 2=middle, 3=front (small)
     """
-    # Exact matches (highest priority)
+    if area_size >= Z_ORDER_LARGE_AREA_THRESHOLD:
+        return 1
+    elif area_size >= Z_ORDER_MEDIUM_AREA_THRESHOLD:
+        return 2
+    else:
+        return 3
+
+
+def _get_color_scheme(area_name: str) -> dict[str, Any]:
+    """
+    Get color scheme based on area name using keyword inference.
+
+    Maps labels to semantic groups for professional business styling.
+    """
     if area_name in COLOR_SCHEMES:
         return COLOR_SCHEMES[area_name]
 
-    # Check for specific instances with auto-generated colors
-    # Extract instance ID (e.g., "Area 1" -> 1, "AS 65001" -> 65001)
+    label = area_name.upper()
 
-    # OSPF Areas: "Area 0", "Area 1", "Area 2", etc. (IGP - Green)
-    area_match = re.search(r"Area\s+(\d+)", area_name)
-    if area_match:
-        area_id = int(area_match.group(1))
-        # Auto-generate light green color for all Area instances
-        # Base hue for green is ~120°, shift slightly for each instance
-        hue_shift = (area_id * 15) % 30  # Shift 0-30 degrees based on ID
-        color = _hsv_to_hex(120 + hue_shift, 60, 85)  # High lightness (85%)
-        return {"stroke": color, "fill": color, "fill_opacity": 0.12}
+    # 1. Routing Domain Core/Backbone
+    if "AREA 0" in label or "BACKBONE" in label or "CORE" in label:
+        return COLOR_SCHEMES["CORE_BACKBONE"]
 
-    # BGP AS numbers: "AS 65000", "AS 65001", "AS 100", etc. (EGP - Blue)
-    as_match = re.search(r"AS\s+(\d+)", area_name)
-    if as_match:
-        as_id = int(as_match.group(1))
-        # Auto-generate light blue color for different AS numbers
-        # Base hue for blue is ~240°, shift based on AS number
-        hue_shift = (as_id * 7) % 40  # Shift 0-40 degrees
-        color = _hsv_to_hex(240 + hue_shift, 65, 80)  # High lightness (80%)
-        return {"stroke": color, "fill": color, "fill_opacity": 0.12}
+    if "BGP" in label or "AS " in label:
+        return COLOR_SCHEMES["CORE_BACKBONE"]
 
-    # Protocol keyword matching (case-insensitive)
-    area_name_lower = area_name.lower()
+    # 2. Routing Domain Normal Areas
+    if "AREA " in label or "LEVEL" in label:
+        return COLOR_SCHEMES["NORMAL_AREA"]
 
-    # Group protocols into 5 color categories based on network protocol classification
+    # 3. Logical Isolation
+    if "VRF" in label or "VLAN" in label or "MSTP" in label or "VXLAN" in label or "MPLS" in label:
+        return COLOR_SCHEMES["ISOLATION"]
+
+    # 4. High Availability
+    if "VRRP" in label or "HSRP" in label or "HA" in label or "STACK" in label or "M-LAG" in label:
+        return COLOR_SCHEMES["HIGH_AVAILABILITY"]
+
+    # 5. External/Internet
+    if "INET" in label or "OUT" in label or "EXTERNAL" in label or "INTERNET" in label or "DMZ" in label:
+        return COLOR_SCHEMES["EXTERNAL"]
+
+    # 6. Management
+    if "MGMT" in label or "OOB" in label or "MANAGEMENT" in label:
+        return COLOR_SCHEMES["MANAGEMENT_INFRA"]
+
+    # 7. Security/Trusted
+    if "SECURITY" in label or "TRUSTED" in label or "VPN" in label:
+        return COLOR_SCHEMES["SECURITY_TRUSTED"]
+
+    # 8. Cloud/Tunnel
+    if "TUNNEL" in label or "CLOUD" in label or "GRE" in label or "IPSEC" in label:
+        return COLOR_SCHEMES["CLOUD_TUNNEL"]
+
+    # Legacy keyword matching for backward compatibility
+    label_lower = area_name.lower()
     protocol_keywords = [
-        # IGP (Interior Gateway Protocol) - Green
-        ("ospf", "IGP"),  # OSPF
-        ("is-is", "IGP"),  # IS-IS
-        ("rip", "IGP"),  # RIP
-        ("eigrp", "IGP"),  # EIGRP
-        # EGP (Exterior Gateway Protocol) - Blue
-        ("bgp", "EGP"),  # BGP
-        # Overlay - Orange
-        ("vxlan", "Overlay"),  # VXLAN
-        ("mpls", "Overlay"),  # MPLS
-        # Underlay - Gray
-        ("underlay", "Underlay"),  # Underlay network
-        ("base", "Underlay"),  # Base IP network
-        ("core", "Underlay"),  # Core network
-        # Switching - Purple
-        ("stp", "Switching"),  # STP
-        ("ldp", "Switching"),  # LDP
-        ("vrf", "Switching"),  # VRF
-        ("vlan", "Switching"),  # VLAN
-        ("hsrp", "Switching"),  # HSRP
-        ("vrrp", "Switching"),  # VRRP
-        ("lacp", "Switching"),  # LACP
+        ("ospf", "NORMAL_AREA"),
+        ("is-is", "NORMAL_AREA"),
+        ("rip", "NORMAL_AREA"),
+        ("eigrp", "NORMAL_AREA"),
+        ("bgp", "CORE_BACKBONE"),
+        ("vxlan", "ISOLATION"),
+        ("mpls", "ISOLATION"),
+        ("vrf", "ISOLATION"),
+        ("vlan", "ISOLATION"),
+        ("vrrp", "HIGH_AVAILABILITY"),
+        ("hsrp", "HIGH_AVAILABILITY"),
+        ("gre", "CLOUD_TUNNEL"),
+        ("ipsec", "SECURITY_TRUSTED"),
     ]
 
     for keyword, scheme_key in protocol_keywords:
-        if keyword in area_name_lower:
+        if keyword in label_lower:
             return COLOR_SCHEMES[scheme_key]
 
-    # Check for generic "Area" keyword as fallback for IGP
-    if "area" in area_name_lower:
-        return COLOR_SCHEMES["IGP"]
-
-    # Check for generic "AS" keyword as fallback for EGP
-    if "as" in area_name_lower:
-        return COLOR_SCHEMES["EGP"]
-
-    # Default to IGP color
-    return COLOR_SCHEMES["IGP"]
+    return COLOR_SCHEMES["DEFAULT"]
 
 
-def calculate_multi_node_ellipse(
-    nodes: list[dict[str, Any]],
+def calculate_two_node_ellipse(
+    node1: dict,
+    node2: dict,
     area_name: str,
-    padding_ratio: float = -0.05,
+    text_offset_ratio: float = 0.0,
 ) -> dict[str, Any]:
     """
-    Calculate ellipse annotation parameters for multiple nodes (2+ nodes).
+    Calculate ellipse annotation parameters for two nodes.
 
-    This function computes an axis-aligned ellipse that encloses multiple network devices.
-    Uses the "center point extreme value method" to find the bounding box of all device
-    center points and places an ellipse around it.
-
-    Algorithm:
-    1. Calculate device center points for all nodes
-    2. Find extreme points (min_x, max_x, min_y, max_y) among centers
-    3. Calculate base dimensions from extremes
-    4. Apply padding_ratio to adjust ellipse size
-    5. Calculate position to keep ellipse centered
-    6. Generate axis-aligned ellipse and text (no rotation needed)
-
-    Args:
-        nodes: List of node dictionaries with 'x', 'y', 'height', and 'width' (top-left corner)
-        area_name: Name of the area (e.g., "Area 0", "AS 100")
-        padding_ratio: Expansion/contraction ratio (default: -0.05)
-                      * 0.0: Ellipse passes through device centers
-                      * 0.1: 10% larger, includes device edges
-                      * -0.05: 5% smaller, tighter around centers (recommended)
-
-    Returns:
-        Dictionary containing ellipse and text SVG parameters:
-        {
-            "ellipse": {
-                "svg": str,  # Ellipse SVG content
-                "x": int,    # SVG x coordinate
-                "y": int,    # SVG y coordinate
-                "rotation": int  # Rotation angle (always 0 for multi-node)
-            },
-            "text": {
-                "svg": str,  # Text SVG content
-                "x": int,    # SVG x coordinate
-                "y": int,    # SVG y coordinate
-                "rotation": int  # Rotation angle (always 0)
-            },
-            "metadata": {
-                "center_x": float,
-                "center_y": float,
-                "rx": float,
-                "ry": float,
-                "base_width": float,
-                "base_height": float,
-                "node_count": int
-            }
-        }
-
-    Example:
-        >>> nodes = [
-        ...     {"x": 100, "y": 200, "width": 60, "height": 60},
-        ...     {"x": 300, "y": 200, "width": 60, "height": 60},
-        ...     {"x": 200, "y": 100, "width": 60, "height": 60}
-        ... ]
-        >>> result = calculate_multi_node_ellipse(nodes, "Area 0")
-        >>> print(result["metadata"]["center_x"])
-        230.0
+    Wrapper around calculate_two_node_shape with shape_type="ellipse".
     """
-    # Validate input
-    if not nodes or len(nodes) < 2:
-        raise ValueError("At least 2 nodes are required for multi-node ellipse")
-
-    # Step 1: Calculate center points for all nodes
-    centers = []
-    for node in nodes:
-        node_width = node.get("width", DEFAULT_DEVICE_WIDTH)
-        node_height = node.get("height", DEFAULT_DEVICE_HEIGHT)
-        center_x = node["x"] + (node_width / 2)
-        center_y = node["y"] + (node_height / 2)
-        centers.append((center_x, center_y))
-
-    # Step 2: Find extreme points among all centers
-    min_x = min(c[0] for c in centers)
-    max_x = max(c[0] for c in centers)
-    min_y = min(c[1] for c in centers)
-    max_y = max(c[1] for c in centers)
-
-    # Step 3: Calculate base dimensions from extremes
-    base_width = max_x - min_x
-    base_height = max_y - min_y
-
-    # Step 4: Apply padding to adjust ellipse size
-    # Positive padding_ratio = larger ellipse (includes device edges)
-    # Negative padding_ratio = smaller ellipse (tighter around centers)
-    draw_width = base_width * (1 + padding_ratio)
-    draw_height = base_height * (1 + padding_ratio)
-
-    # Ensure minimum dimensions to avoid degenerate ellipses
-    draw_width = max(draw_width, 100)  # Minimum 100px width
-    draw_height = max(draw_height, 80)  # Minimum 80px height
-
-    # Step 5: Calculate position to keep ellipse centered
-    # Calculate offset needed to maintain center alignment after padding
-    width_offset = (draw_width - base_width) / 2
-    height_offset = (draw_height - base_height) / 2
-
-    draw_x = min_x - width_offset
-    draw_y = min_y - height_offset
-
-    # Calculate ellipse center
-    center_x = (min_x + max_x) / 2
-    center_y = (min_y + max_y) / 2
-
-    # Step 6: Calculate ellipse radii
-    rx = draw_width / 2
-    ry = draw_height / 2
-
-    # Step 7: Get color scheme based on area name
-    color_scheme = _get_color_scheme(area_name)
-
-    # Step 8: Generate SVG content
-    # Axis-aligned ellipse (no rotation)
-    ellipse_svg = generate_ellipse_svg(
-        int(rx), int(ry), color_scheme, int(draw_width), int(draw_height)
+    result = calculate_two_node_shape(
+        node1, node2, area_name, "ellipse", text_offset_ratio
     )
-    text_svg = generate_text_svg(area_name, color_scheme)
-
-    # Calculate text SVG dimensions
-    text_svg_width = len(area_name) * 8 + 20
-    text_svg_height = DEFAULT_FONT_SIZE + 16
-
-    # Position text at ellipse center
-    text_x = int(center_x - text_svg_width / 2)
-    text_y = int(center_y - text_svg_height / 2)
-
     return {
-        "ellipse": {
-            "svg": ellipse_svg,
-            "x": int(draw_x),
-            "y": int(draw_y),
-            "rotation": 0,  # No rotation for multi-node ellipses
-        },
-        "text": {
-            "svg": text_svg,
-            "x": text_x,
-            "y": text_y,
-            "rotation": 0,
-        },
-        "metadata": {
-            "center_x": center_x,
-            "center_y": center_y,
-            "rx": rx,
-            "ry": ry,
-            "base_width": base_width,
-            "base_height": base_height,
-            "node_count": len(nodes),
-        },
+        "ellipse": result["shape"],
+        "text": result["text"],
+        "metadata": result["metadata"],
     }
 
 
-if __name__ == "__main__":
-    # Test the utility functions
-    print("Testing gns3_drawing_utils...")
+def calculate_two_node_rectangle(
+    node1: dict,
+    node2: dict,
+    area_name: str,
+    text_offset_ratio: float = 0.0,
+) -> dict[str, Any]:
+    """
+    Calculate rectangle annotation parameters for two nodes.
 
-    # Test 1: Horizontal layout (2 nodes)
-    print("\nTest 1: Horizontal layout (2 nodes)")
-    node1 = {"x": 100, "y": 200}
-    node2 = {"x": 300, "y": 200}
-    result = calculate_two_node_ellipse(node1, node2, "Area 0")
-    print(
-        f"Center: ({result['metadata']['center_x']}, {result['metadata']['center_y']})"
+    Wrapper around calculate_two_node_shape with shape_type="rectangle".
+    """
+    result = calculate_two_node_shape(
+        node1, node2, area_name, "rectangle", text_offset_ratio
     )
-    print(f"Distance: {result['metadata']['distance']:.2f}")
-    print(f"Angle: {result['metadata']['angle_deg']:.2f}°")
-
-    # Test 2: Vertical layout (2 nodes)
-    print("\nTest 2: Vertical layout (2 nodes)")
-    node1 = {"x": 200, "y": 100}
-    node2 = {"x": 200, "y": 300}
-    result = calculate_two_node_ellipse(node1, node2, "Area 0")
-    print(
-        f"Center: ({result['metadata']['center_x']}, {result['metadata']['center_y']})"
-    )
-    print(f"Angle: {result['metadata']['angle_deg']:.2f}°")
-
-    # Test 3: Diagonal layout (2 nodes)
-    print("\nTest 3: Diagonal layout (2 nodes)")
-    node1 = {"x": 100, "y": 100}
-    node2 = {"x": 300, "y": 300}
-    result = calculate_two_node_ellipse(node1, node2, "Area 0")
-    print(
-        f"Center: ({result['metadata']['center_x']}, {result['metadata']['center_y']})"
-    )
-    print(f"Angle: {result['metadata']['angle_deg']:.2f}°")
-
-    # Test 4: Multi-node (4 nodes from user example)
-    print("\nTest 4: Multi-node ellipse (4 nodes)")
-    nodes = [
-        {"x": -105, "y": -268, "width": 60, "height": 60, "name": "R-1"},
-        {"x": -416, "y": -37, "width": 60, "height": 60, "name": "R-2"},
-        {"x": -111, "y": 202, "width": 60, "height": 60, "name": "R-3"},
-        {"x": 183, "y": -23, "width": 60, "height": 60, "name": "R-4"},
-    ]
-    result = calculate_multi_node_ellipse(nodes, "Area 0", padding_ratio=-0.05)
-    print(
-        f"Center: ({result['metadata']['center_x']:.2f}, {result['metadata']['center_y']:.2f})"
-    )
-    print(
-        f"Base size: {result['metadata']['base_width']:.2f} x {result['metadata']['base_height']:.2f}"
-    )
-    print(
-        f"Draw size: {result['metadata']['rx'] * 2:.2f} x {result['metadata']['ry'] * 2:.2f}"
-    )
-    print(f"Position: ({result['ellipse']['x']}, {result['ellipse']['y']})")
-    print(f"Node count: {result['metadata']['node_count']}")
-
-    # Test 5: Multi-node (3 nodes - triangle)
-    print("\nTest 5: Multi-node ellipse (3 nodes - triangle)")
-    nodes = [
-        {"x": 100, "y": 100, "width": 60, "height": 60, "name": "R-1"},
-        {"x": 300, "y": 100, "width": 60, "height": 60, "name": "R-2"},
-        {"x": 200, "y": 300, "width": 60, "height": 60, "name": "R-3"},
-    ]
-    result = calculate_multi_node_ellipse(nodes, "Area 1", padding_ratio=-0.05)
-    print(
-        f"Center: ({result['metadata']['center_x']:.2f}, {result['metadata']['center_y']:.2f})"
-    )
-    print(
-        f"Base size: {result['metadata']['base_width']:.2f} x {result['metadata']['base_height']:.2f}"
-    )
-    print(
-        f"Draw size: {result['metadata']['rx'] * 2:.2f} x {result['metadata']['ry'] * 2:.2f}"
-    )
-    print(f"Node count: {result['metadata']['node_count']}")
-
-    print("\n✅ All tests passed!")
+    metadata = result["metadata"]
+    return {
+        "rectangle": result["shape"],
+        "text": result["text"],
+        "metadata": {
+            "center_x": metadata["center_x"],
+            "center_y": metadata["center_y"],
+            "distance": metadata["distance"],
+            "rect_width": metadata["shape_width"],
+            "rect_height": metadata["shape_height"],
+            "angle_deg": metadata["angle_deg"],
+        },
+    }

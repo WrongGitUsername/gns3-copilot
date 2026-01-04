@@ -195,6 +195,6 @@ if __name__ == "__main__":
     tool = GNS3GetNodesTool()
 
     # Example: Replace with your actual project_id
-    test_project_id = "0c0fde25-6ead-4413-a283-ea8fd2324291"
+    test_project_id = "d7fc094c-685e-4db1-ac11-5e33a1b2e066"
     result = tool._run(f'{{"project_id": "{test_project_id}"}}')
     pprint(result)
