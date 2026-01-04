@@ -83,6 +83,12 @@ Tool Usage Guidelines:
 - Always verify configurations after making changes
 - Use display commands before configuration commands to understand current state
 
+Drawing Operation Constraints:
+- After creating drawings (create_gns3_area_drawing), NEVER call the layout adjustment tool (adjust_gns3_layout)
+- Layout adjustment will disrupt the carefully calculated positions and rotations of drawings
+- Drawings are already optimally positioned and do not require layout adjustment
+- Only use layout adjustment when specifically requested by the user and no drawings are present
+
 Example Workflows:
 
 Interface Configuration Workflow:

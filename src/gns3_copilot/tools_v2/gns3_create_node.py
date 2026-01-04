@@ -14,7 +14,6 @@ from langchain.tools import BaseTool
 from langchain_core.callbacks import CallbackManagerForToolRun
 
 from gns3_copilot.gns3_client import Node, get_gns3_connector
-from gns3_copilot.gns3_client.gns3_adjust_layout import gns3_adjust_layout_tool
 from gns3_copilot.log_config import setup_tool_logger
 
 # Configure logging
@@ -232,29 +231,6 @@ class GNS3CreateNodeTool(BaseTool):
             successful_nodes = len([r for r in results if r.get("status") == "success"])
             failed_nodes = len([r for r in results if r.get("status") == "failed"])
 
-            # Adjust node layout after creation
-            layout_result = {}
-            if successful_nodes > 0:
-                try:
-                    logger.info("Adjusting node layout with min_distance=250...")
-                    layout_result = gns3_adjust_layout_tool.run(
-                        {"project_id": project_id, "min_distance": 250}
-                    )
-                    logger.info(
-                        f"Layout adjustment completed: {layout_result.get('message', 'Unknown')}"
-                    )
-                except Exception as e:
-                    logger.warning(f"Layout adjustment failed: {e}")
-                    layout_result = {
-                        "status": "error",
-                        "message": f"Layout adjustment failed: {str(e)}",
-                    }
-            else:
-                layout_result = {
-                    "status": "skipped",
-                    "message": "Layout adjustment skipped: no successful nodes",
-                }
-
             # Prepare final result
             final_result = {
                 "project_id": project_id,
@@ -262,7 +238,6 @@ class GNS3CreateNodeTool(BaseTool):
                 "total_nodes": len(nodes),
                 "successful_nodes": successful_nodes,
                 "failed_nodes": failed_nodes,
-                "layout_adjustment": layout_result,
             }
 
             # Log the final result
