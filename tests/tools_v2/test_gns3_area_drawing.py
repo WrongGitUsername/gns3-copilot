@@ -164,14 +164,14 @@ class TestCalculateTwoNodeEllipse:
         assert "fill=" in result["text"]["svg"]
 
         # Check for expected fill color (hex format)
-        expected_fill = "#1B4F72"
+        expected_fill = "#2980B9"
         assert expected_fill in result["ellipse"]["svg"]
 
         # Check for fill-opacity attribute
         assert 'fill-opacity="0.8"' in result["ellipse"]["svg"]
 
         # Check for expected text color (deep blue)
-        expected_text_color = "#1B4F72"
+        expected_text_color = "#2980B9"
         assert expected_text_color in result["text"]["svg"]
 
         print("✅ test_color_scheme_area0 passed")
@@ -191,14 +191,14 @@ class TestCalculateTwoNodeEllipse:
         assert "fill=" in result["text"]["svg"]
 
         # Check for expected fill color (hex format)
-        expected_fill = "#A9CCE3"
+        expected_fill = "#5AA9DD"
         assert expected_fill in result["ellipse"]["svg"]
 
         # Check for fill-opacity attribute
         assert 'fill-opacity="0.8"' in result["ellipse"]["svg"]
 
         # Check for expected text color (light blue)
-        expected_text_color = "#A9CCE3"
+        expected_text_color = "#229CEC"
         assert expected_text_color in result["text"]["svg"]
 
         print("✅ test_color_scheme_other_area passed")
