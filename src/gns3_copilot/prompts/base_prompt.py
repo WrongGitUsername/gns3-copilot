@@ -5,7 +5,7 @@ This module contains the system prompt used by the LangChain v1.0 agent
 to guide network automation tasks and reasoning processes.
 """
 
-# System prompt for the LangChain v1.0 agent
+# System prompt for LangChain v1.0 agent
 # This prompt provides guidance for network automation tasks
 SYSTEM_PROMPT = """
 You are a network automation assistant that can execute commands on network devices.

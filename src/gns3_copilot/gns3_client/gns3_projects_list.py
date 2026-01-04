@@ -75,3 +75,14 @@ class GNS3ProjectList(BaseTool):
         except Exception as e:
             logger.error("Error retrieving GNS3 project list: %s", str(e))
             return {"error": f"Failed to retrieve GNS3 project list: {str(e)}"}
+
+
+if __name__ == "__main__":
+    from pprint import pprint
+
+    # Test the tool
+    tool = GNS3ProjectList()
+
+    print("Testing GNS3ProjectList - retrieving all projects...")
+    result = tool._run()
+    pprint(result)

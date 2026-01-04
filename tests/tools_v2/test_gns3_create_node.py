@@ -394,9 +394,10 @@ class TestGNS3CreateNodeToolSuccessScenarios:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
+    @patch('gns3_copilot.tools_v2.gns3_create_node.gns3_adjust_layout_tool')
     @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_create_node.Node')
-    def test_single_node_creation(self, mock_node_class, mock_get_gns3_connector):
+    def test_single_node_creation(self, mock_node_class, mock_get_gns3_connector, mock_layout_tool):
         """Test successful single node creation"""
         tool = GNS3CreateNodeTool()
         
@@ -420,6 +421,12 @@ class TestGNS3CreateNodeToolSuccessScenarios:
         mock_node.node_id = "node123"
         mock_node.name = "TestNode"
         mock_node_class.return_value = mock_node
+        
+        # Mock layout tool
+        mock_layout_tool.run.return_value = {
+            "status": "success",
+            "message": "Layout adjusted successfully"
+        }
         
         result = tool._run(json.dumps(input_data))
         
@@ -450,14 +457,26 @@ class TestGNS3CreateNodeToolSuccessScenarios:
         # Verify node methods were called
         mock_node.create.assert_called_once()
         mock_node.get.assert_called_once()
+        
+        # Verify layout adjustment was called
+        mock_layout_tool.run.assert_called_once_with({
+            "project_id": "project1",
+            "min_distance": 250
+        })
+        
+        # Verify layout adjustment result is in response
+        assert "layout_adjustment" in result
+        assert result["layout_adjustment"]["status"] == "success"
+        assert "Layout adjusted successfully" in result["layout_adjustment"]["message"]
 
     @patch.dict(os.environ, {
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
+    @patch('gns3_copilot.tools_v2.gns3_create_node.gns3_adjust_layout_tool')
     @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
     @patch('gns3_copilot.tools_v2.gns3_create_node.Node')
-    def test_multiple_nodes_creation(self, mock_node_class, mock_get_gns3_connector):
+    def test_multiple_nodes_creation(self, mock_node_class, mock_get_gns3_connector, mock_layout_tool):
         """Test successful multiple nodes creation"""
         tool = GNS3CreateNodeTool()
         
@@ -500,6 +519,12 @@ class TestGNS3CreateNodeToolSuccessScenarios:
         mock_node3.name = "Node3"
         
         mock_node_class.side_effect = [mock_node1, mock_node2, mock_node3]
+        
+        # Mock layout tool
+        mock_layout_tool.run.return_value = {
+            "status": "success",
+            "message": "Layout adjusted successfully"
+        }
         
         result = tool._run(json.dumps(input_data))
         
