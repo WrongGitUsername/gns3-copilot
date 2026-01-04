@@ -21,6 +21,7 @@ GNS3 Copilot is a powerful network automation tool that integrates multiple AI m
 - 🤖 **AI-Powered Chat Interface**: Supports natural language interaction, understands network automation requirements
 - 🔧 **Device Configuration Management**: Batch configuration of network devices, supports multiple vendor devices (currently tested with Cisco IOSv image only)
 - 📊 **Topology Management**: Automatically create, modify, and manage GNS3 network topologies
+- 🎨 **Topology Visualization**: SVG drawing support for automatic network topology graphics generation with area annotation and connection line drawing
 - 🔍 **Network Diagnostics**: Intelligent network troubleshooting and performance monitoring
 - 🌐 **LLM Support**: Integrated DeepSeek AI model for natural language processing
 
@@ -192,10 +193,12 @@ This project uses MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Acknowledgements
 
-Special thanks to the following resources for their inspiration and technical foundation:
+This project was inspired by the following resources, which provided the foundation for Python programming, network automation, and AI applications:
 
-* **Powered by 《网络工程师的 Python 之路》**
-* **Powered by 《网络工程师的 AI 之路》**
+- **《网络工程师的 Python 之路》** - Network engineering automation with Python
+- **《网络工程师的 AI 之路》** - AI applications for network engineering
+
+Special thanks to these resources for their technical inspiration and guidance.
 
 ## Contact
 
