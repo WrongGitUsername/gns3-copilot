@@ -164,7 +164,9 @@ class Gns3Connector:
         temp_session.headers["Content-Type"] = "application/json"
 
         try:
-            response = temp_session.post(auth_url, json=auth_data, verify=self.verify)
+            response = temp_session.post(
+                auth_url, json=auth_data, verify=self.verify, timeout=10.0
+            )
             if response.status_code == 200:
                 auth_result = response.json()
                 self.access_token = auth_result["access_token"]
@@ -235,6 +237,7 @@ class Gns3Connector:
             "headers": headers,
             "params": params,
             "verify": verify,
+            "timeout": 10.0,  # Fixed 10-second timeout for all GNS3 API requests
         }
         if data is not None:
             kwargs["data"] = data
@@ -1504,6 +1507,7 @@ class Project:
     name: str | None = None
     project_id: str | None = None
     status: str | None = None
+    locked: bool | None = None
     path: str | None = None
     filename: str | None = None
     auto_start: bool | None = None
@@ -2590,6 +2594,63 @@ class Project:
         self.drawings = _response.json()
 
     @verify_connector_and_id
+    def create_drawing(
+        self,
+        svg: str,
+        x: int = 0,
+        y: int = 0,
+        z: int = 0,
+        locked: bool = False,
+        rotation: int = 0,
+    ) -> dict[str, Any]:
+        """
+        Creates a new drawing in the project
+
+        API: POST /v2/projects/{project_id}/drawings
+
+        Required Project instance attributes:
+
+        - `project_id`
+        - `connector`
+
+        Required parameters:
+
+        - `svg`: SVG content string
+
+        Optional parameters:
+
+        - `x`: X coordinate (default: 0)
+        - `y`: Y coordinate (default: 0)
+        - `z`: Z layer (default: 0)
+        - `locked`: Whether to lock the drawing (default: False)
+        - `rotation`: Rotation angle in degrees, range -359 to 359 (default: 0)
+        """
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
+
+        _url = f"{_conn.base_url}/projects/{_project_id}/drawings"
+
+        # Prepare request body
+        request_body = {
+            "svg": svg,
+            "x": x,
+            "y": y,
+            "z": z,
+            "locked": locked,
+            "rotation": rotation,
+        }
+
+        # Send POST request to create drawing
+        _response = _conn.http_call("post", _url, json_data=request_body)
+
+        # Refresh drawings list
+        self.get_drawings()
+
+        return cast(dict[str, Any], _response.json())
+
+    @verify_connector_and_id
     def update_drawing(
         self,
         drawing_id: str,
@@ -2678,3 +2739,124 @@ class Project:
         _conn.http_call("delete", _url)
 
         self.get_drawings()
+
+    @verify_connector_and_id
+    def get_locked(self) -> bool:
+        """
+        Retrieve locked status of the project.
+
+        Returns whether the project is locked or not.
+
+        API: GET /v3/projects/{project_id}/locked
+
+        Required Attributes:
+
+        - `project_id`
+        - `connector`
+
+        Returns:
+            bool: True if project is locked, False otherwise
+
+        Raises:
+            ValueError: If called with GNS3 API v2 (not supported)
+
+        Note:
+            This method is only available in GNS3 v3 API
+        """
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
+
+        # Check API version - only v3 supports lock operations
+        if _conn.api_version != 3:
+            raise ValueError(
+                "Project lock/unlock operations are only supported in GNS3 API v3. "
+                f"Current API version: v{_conn.api_version}"
+            )
+
+        _url = f"{_conn.base_url}/projects/{_project_id}/locked"
+
+        _response = _conn.http_call("get", _url)
+        locked_status = cast(bool, _response.json())
+
+        # Update the locked attribute
+        self.locked = locked_status
+
+        return locked_status
+
+    @verify_connector_and_id
+    def lock_project(self) -> None:
+        """
+        Lock all drawings and nodes in the project.
+
+        API: POST /v3/projects/{project_id}/lock
+
+        Required Attributes:
+
+        - `project_id`
+        - `connector`
+
+        Raises:
+            ValueError: If called with GNS3 API v2 (not supported)
+
+        Note:
+            This method is only available in GNS3 v3 API
+            Returns 204 on success (no content)
+        """
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
+
+        # Check API version - only v3 supports lock operations
+        if _conn.api_version != 3:
+            raise ValueError(
+                "Project lock/unlock operations are only supported in GNS3 API v3. "
+                f"Current API version: v{_conn.api_version}"
+            )
+
+        _url = f"{_conn.base_url}/projects/{_project_id}/lock"
+
+        _conn.http_call("post", _url)
+
+        # Update the locked attribute
+        self.locked = True
+
+    @verify_connector_and_id
+    def unlock_project(self) -> None:
+        """
+        Unlock all drawings and nodes in the project.
+
+        API: POST /v3/projects/{project_id}/unlock
+
+        Required Attributes:
+
+        - `project_id`
+        - `connector`
+
+        Raises:
+            ValueError: If called with GNS3 API v2 (not supported)
+
+        Note:
+            This method is only available in GNS3 v3 API
+            Returns 204 on success (no content)
+        """
+        _conn = self.connector
+        assert _conn is not None
+        _project_id = self.project_id
+        assert _project_id is not None
+
+        # Check API version - only v3 supports lock operations
+        if _conn.api_version != 3:
+            raise ValueError(
+                "Project lock/unlock operations are only supported in GNS3 API v3. "
+                f"Current API version: v{_conn.api_version}"
+            )
+
+        _url = f"{_conn.base_url}/projects/{_project_id}/unlock"
+
+        _conn.http_call("post", _url)
+
+        # Update the locked attribute
+        self.locked = False

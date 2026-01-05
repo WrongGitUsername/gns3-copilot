@@ -106,6 +106,7 @@ class ExecuteMultipleDeviceConfigCommands(BaseTool):
         self,
         tool_input: str,  # or Union[str, List[Any], Dict[str, Any]]
         run_manager: CallbackManagerForToolRun | None = None,
+        **kwargs: Any,
     ) -> list[dict[str, Any]]:
         """
         Executes configuration commands on multiple devices in the current GNS3 topology.
@@ -376,6 +377,24 @@ class ExecuteMultipleDeviceConfigCommands(BaseTool):
     def _initialize_nornir(self, hosts_data: dict[str, dict[str, Any]]) -> Nornir:
         """Initialize Nornir with the provided hosts data."""
         try:
+            # Log nornir account information
+            gns3_host = os.getenv("GNS3_SERVER_HOST")
+            # gns3_username = os.getenv("GNS3_SERVER_USERNAME")
+            # gns3_password = os.getenv("GNS3_SERVER_PASSWORD")
+
+            # Mask password for security (show only length)
+            # password_mask = f"{'*' * len(gns3_password)}" if gns3_password else "None"
+
+            logger.info(
+                "Initializing Nornir with account: host=%s, username=%s, password=%s, "
+                "platform=%s, timeout=%d",
+                gns3_host,
+                # gns3_username,
+                # password_mask,
+                groups_data["cisco_IOSv_telnet"]["platform"],
+                groups_data["cisco_IOSv_telnet"]["timeout"],
+            )
+
             return InitNornir(
                 inventory={
                     "plugin": "DictInventory",

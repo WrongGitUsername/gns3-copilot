@@ -6,7 +6,6 @@ using specified templates and coordinates through the GNS3 API.
 """
 
 import json
-import os
 from pprint import pprint
 from typing import Any
 
@@ -14,7 +13,7 @@ from dotenv import load_dotenv
 from langchain.tools import BaseTool
 from langchain_core.callbacks import CallbackManagerForToolRun
 
-from gns3_copilot.gns3_client import Gns3Connector, Node
+from gns3_copilot.gns3_client import Node, get_gns3_connector
 from gns3_copilot.log_config import setup_tool_logger
 
 # Configure logging
@@ -102,6 +101,8 @@ class GNS3CreateNodeTool(BaseTool):
                 }
             ]
         }
+    IMPORTANT: Ensure the distance between any two nodes is greater than 250 pixels.
+    This spacing is necessary to display interface numbers clearly for better topology visualization.
     Returns a dictionary with creation results for all nodes, including success/failure status.
     If the operation fails during input validation, returns a dictionary with an error message.
     """
@@ -165,26 +166,15 @@ class GNS3CreateNodeTool(BaseTool):
                         "error": f"Node {i + 1} missing or invalid template_id, x, or y."
                     }
 
-            raw_version = os.getenv("API_VERSION")
-            api_version = int(raw_version) if raw_version else 2  # Ensure it's int
-            server_url = os.getenv("GNS3_SERVER_URL")
+            # Initialize Gns3Connector using factory function
+            logger.info("Connecting to GNS3 server...")
+            gns3_server = get_gns3_connector()
 
-            # Initialize Gns3Connector
-            logger.info(
-                "Connecting to GNS3 server at %s...", os.getenv("GNS3_SERVER_URL")
-            )
-
-            if api_version == 2:
-                gns3_server = Gns3Connector(url=server_url, api_version=api_version)
-            elif api_version == 3:
-                gns3_server = Gns3Connector(
-                    url=server_url,
-                    user=os.getenv("GNS3_SERVER_USERNAME"),
-                    cred=os.getenv("GNS3_SERVER_PASSWORD"),
-                    api_version=api_version,
-                )
-            else:
-                raise ValueError(f"Unsupported API version: {api_version}")
+            if gns3_server is None:
+                logger.error("Failed to create GNS3 connector")
+                return {
+                    "error": "Failed to connect to GNS3 server. Please check your configuration."
+                }
 
             # Create nodes
             logger.info("Creating %d nodes in project %s...", len(nodes), project_id)
@@ -279,15 +269,15 @@ if __name__ == "__main__":
     # Test the tool locally with multiple nodes
     test_input = json.dumps(
         {
-            "project_id": "your-project-uuid",  # Replace with actual project UUID
+            "project_id": "d7fc094c-685e-4db1-ac11-5e33a1b2e066",  # Replace with actual project UUID
             "nodes": [
                 {
-                    "template_id": "your-template-uuid1",  # Replace with actual template UUID
+                    "template_id": "b923a635-b7cc-4cb5-9a86-9357e04c02f7",  # Replace with actual template UUID
                     "x": 100,
                     "y": -200,
                 },
                 {
-                    "template_id": "your-template-uuid2",  # Replace with actual template UUID
+                    "template_id": "b923a635-b7cc-4cb5-9a86-9357e04c02f7",  # Replace with actual template UUID
                     "x": 200,
                     "y": -300,
                 },

@@ -1,10 +1,9 @@
-import os
 from typing import Any
 
 from dotenv import load_dotenv
 from langchain.tools import BaseTool
 
-from gns3_copilot.gns3_client import Gns3Connector
+from gns3_copilot.gns3_client import get_gns3_connector
 from gns3_copilot.log_config import setup_tool_logger
 
 # Configure logging
@@ -52,26 +51,15 @@ class GNS3ProjectList(BaseTool):
         logger.info("Received input: %s", tool_input)
 
         try:
-            api_version_str = os.getenv("API_VERSION")
-            server_url = os.getenv("GNS3_SERVER_URL")
+            # Initialize Gns3Connector using factory function
+            logger.info("Connecting to GNS3 server...")
+            server = get_gns3_connector()
 
-            if api_version_str == "2":
-                server = Gns3Connector(
-                    url=server_url,
-                    api_version=int(api_version_str),  # Force convert to int
-                )
-            elif api_version_str == "3":
-                server = Gns3Connector(
-                    url=server_url,
-                    user=os.getenv("GNS3_SERVER_USERNAME"),
-                    cred=os.getenv("GNS3_SERVER_PASSWORD"),
-                    api_version=int(api_version_str),  # Force convert to int
-                )
-            else:
-                # Fallback handling: if API_VERSION is neither 2 nor 3
-                raise ValueError(
-                    f"Unsupported or missing API_VERSION: {api_version_str}"
-                )
+            if server is None:
+                logger.error("Failed to create GNS3 connector")
+                return {
+                    "error": "Failed to connect to GNS3 server. Please check your configuration."
+                }
 
             # Return the projects data in a structured format
             projects = server.projects_summary(is_print=False)
@@ -87,3 +75,14 @@ class GNS3ProjectList(BaseTool):
         except Exception as e:
             logger.error("Error retrieving GNS3 project list: %s", str(e))
             return {"error": f"Failed to retrieve GNS3 project list: {str(e)}"}
+
+
+if __name__ == "__main__":
+    from pprint import pprint
+
+    # Test the tool
+    tool = GNS3ProjectList()
+
+    print("Testing GNS3ProjectList - retrieving all projects...")
+    result = tool._run()
+    pprint(result)

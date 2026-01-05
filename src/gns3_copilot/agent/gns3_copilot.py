@@ -36,6 +36,7 @@ from gns3_copilot.prompts import TITLE_PROMPT, load_system_prompt
 from gns3_copilot.tools_v2 import (
     ExecuteMultipleDeviceCommands,
     ExecuteMultipleDeviceConfigCommands,
+    GNS3CreateAreaDrawingTool,
     GNS3CreateNodeTool,
     GNS3LinkTool,
     GNS3StartNodeTool,
@@ -58,6 +59,19 @@ base_model = init_chat_model(
     temperature=os.getenv("TEMPERATURE", "0"),
     configurable_fields="any",
     config_prefix="foo",
+)
+
+# Log loaded LLM model information
+model_name = os.getenv("MODEL_NAME")
+model_provider = os.getenv("MODE_PROVIDER")
+base_url = os.getenv("BASE_URL", "")
+temperature = os.getenv("TEMPERATURE", "0")
+logger.info(
+    "Loaded LLM model: name=%s, provider=%s, base_url=%s, temperature=%s",
+    model_name,
+    model_provider,
+    base_url,
+    temperature,
 )
 
 title_mode = base_model
@@ -87,6 +101,7 @@ tools = [
     ExecuteMultipleDeviceConfigCommands(),  # Execute configuration commands on multiple devices
     VPCSMultiCommands(),  # Execute VPCS commands on multiple devices
     LinuxTelnetBatchTool(),  # Execute Linux commands via Telnet on multiple devices
+    GNS3CreateAreaDrawingTool(),  # Create area drawings in GNS3 topologies
 ]
 # Augment the LLM with tools
 tools_by_name = {tool.name: tool for tool in tools}
@@ -147,6 +162,8 @@ def llm_call(state: dict):
             f"Link_Number={selected_p[3]}, "
             f"Status={selected_p[4]}"
         )
+        logger.debug("Project info for LLM context: %s", project_info)
+
         context_messages.append(
             SystemMessage(content=f"Current Context: {project_info}")
         )

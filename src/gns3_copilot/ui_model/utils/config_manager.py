@@ -78,7 +78,7 @@ CONFIG_MAP = {
     "STT_MODEL": "STT_MODEL",
     "STT_LANGUAGE": "STT_LANGUAGE",
     "STT_TEMPERATURE": "STT_TEMPERATURE",
-    "STT_RESPONSE_FORMAT": "STT_RESPONSE_FORMAT",
+    # STT_RESPONSE_FORMAT is fixed to "json" and no longer configurable
     # Other Settings
     "LINUX_TELNET_USERNAME": "LINUX_TELNET_USERNAME",
     "LINUX_TELNET_PASSWORD": "LINUX_TELNET_PASSWORD",
@@ -89,36 +89,6 @@ CONFIG_MAP = {
     "zoom_scale_topology": "ZOOM_SCALE_TOPOLOGY",
 }
 
-# Example list of supported providers (used for validation during loading)
-MODEL_PROVIDERS = [
-    "openai",
-    "anthropic",
-    "azure_openai",
-    "deepseek",
-    "xai",
-    "openrouter",
-    # ... other providers
-]
-
-# Voice TTS configuration options (used for validation during loading)
-TTS_MODELS = ["tts-1", "tts-1-hd", "gpt-4o-mini-tts"]
-TTS_VOICES = [
-    "alloy",
-    "ash",
-    "ballad",
-    "coral",
-    "echo",
-    "fable",
-    "onyx",
-    "nova",
-    "sage",
-    "shimmer",
-    "verse",
-]
-
-# Voice STT configuration options (used for validation during loading)
-STT_MODELS = ["whisper-1", "gpt-4o-transcribe", "gpt-4o-transcribe-diarize"]
-STT_RESPONSE_FORMATS = ["json", "text", "srt", "verbose_json", "vtt", "tsv"]
 
 # .env file path
 ENV_FILENAME = ".env"
@@ -196,16 +166,6 @@ def load_config_from_env() -> None:
             logger.debug("Loaded config: %s = %s", st_key, default_value)
             continue  # Skip the generic assignment below
 
-        # Special handling for MODE_PROVIDER (updated key name)
-        if st_key == "MODE_PROVIDER":
-            if default_value not in MODEL_PROVIDERS:
-                # If the loaded value is not in the supported list,
-                # set it to an empty string for the user to select
-                logger.warning(
-                    "Unsupported MODE_PROVIDER %s, setting to empty", default_value
-                )
-                default_value = ""
-
         # Special handling for TEMPERATURE (Ensure default is a number or empty string)
         if st_key == "TEMPERATURE" and not default_value.replace(".", "", 1).isdigit():
             # Provide a reasonable default value if not set or invalid
@@ -244,34 +204,6 @@ def load_config_from_env() -> None:
             continue  # Important: Skip this loop after processing boolean type to prevent override by the final generic assignment
 
         # Special handling for TTS configuration
-        if st_key == "TTS_MODEL":
-            # Only validate TTS_MODEL when voice features are enabled
-            voice_enabled = os.getenv("VOICE", "false").lower() in (
-                "true",
-                "1",
-                "yes",
-                "on",
-            )
-            if voice_enabled and default_value not in TTS_MODELS:
-                logger.warning(
-                    "Unsupported TTS_MODEL %s, setting to empty", default_value
-                )
-                default_value = ""
-
-        if st_key == "TTS_VOICE":
-            # Only validate TTS_VOICE when voice features are enabled
-            voice_enabled = os.getenv("VOICE", "false").lower() in (
-                "true",
-                "1",
-                "yes",
-                "on",
-            )
-            if voice_enabled and default_value not in TTS_VOICES:
-                logger.warning(
-                    "Unsupported TTS_VOICE %s, setting to empty", default_value
-                )
-                default_value = ""
-
         if st_key == "TTS_SPEED":
             try:
                 speed_float = float(default_value)
@@ -289,35 +221,6 @@ def load_config_from_env() -> None:
                 default_value = "1.0"
 
         # Special handling for STT configuration
-        if st_key == "STT_MODEL":
-            # Only validate STT_MODEL when voice features are enabled
-            voice_enabled = os.getenv("VOICE", "false").lower() in (
-                "true",
-                "1",
-                "yes",
-                "on",
-            )
-            if voice_enabled and default_value not in STT_MODELS:
-                logger.warning(
-                    "Unsupported STT_MODEL %s, setting to empty", default_value
-                )
-                default_value = ""
-
-        if st_key == "STT_RESPONSE_FORMAT":
-            # Only validate STT_RESPONSE_FORMAT when voice features are enabled
-            voice_enabled = os.getenv("VOICE", "false").lower() in (
-                "true",
-                "1",
-                "yes",
-                "on",
-            )
-            if voice_enabled and default_value not in STT_RESPONSE_FORMATS:
-                logger.warning(
-                    "Unsupported STT_RESPONSE_FORMAT %s, setting to empty",
-                    default_value,
-                )
-                default_value = ""
-
         if st_key == "STT_TEMPERATURE":
             try:
                 temp_float = float(default_value)
@@ -360,7 +263,7 @@ def load_config_from_env() -> None:
         if st_key == "zoom_scale_topology":
             try:
                 zoom_float = float(default_value) if default_value else 0.8
-                if not (0.5 <= zoom_float <= 1.0):
+                if not (0.5 <= zoom_float <= 1.2):
                     logger.debug(
                         "Invalid zoom_scale_topology value: %s, setting to default 0.8",
                         default_value,
@@ -438,4 +341,5 @@ def save_config_to_env() -> None:
         ENV_FILE_PATH,
     )
     st.success("Configuration successfully saved to the .env file!")
-    st.rerun()
+    st.session_state["_config_loaded"] = False
+    st.session_state["_needs_rerun"] = True

@@ -5,6 +5,7 @@ Supports concurrent execution of multiple command groups across multiple VPCS de
 
 import json
 import os
+import re
 import threading
 from time import sleep
 from typing import Any
@@ -195,8 +196,6 @@ class VPCSMultiCommands(BaseTool):
         Returns:
             True if valid UUID format, False otherwise
         """
-        import re
-
         uuid_pattern = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
         is_valid = bool(re.match(uuid_pattern, project_id, re.IGNORECASE))
         if is_valid:
@@ -315,7 +314,10 @@ class VPCSMultiCommands(BaseTool):
         return device_configs, project_id
 
     def _run(
-        self, tool_input: str, run_manager: CallbackManagerForToolRun | None = None
+        self,
+        tool_input: str,
+        run_manager: CallbackManagerForToolRun | None = None,
+        **kwargs: Any,
     ) -> list[dict[str, Any]]:
         """Main method to execute multi-device multi-commands"""
 

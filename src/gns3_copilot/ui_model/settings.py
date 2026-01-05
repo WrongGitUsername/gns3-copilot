@@ -20,14 +20,10 @@ from gns3_copilot.log_config import setup_logger
 from gns3_copilot.ui_model.utils import (
     ENV_FILE_PATH,
     check_gns3_api,
+    get_all_providers,
+    get_provider_config,
     render_update_settings,
     save_config_to_env,
-)
-from gns3_copilot.ui_model.utils.config_manager import (
-    STT_MODELS,
-    STT_RESPONSE_FORMATS,
-    TTS_MODELS,
-    TTS_VOICES,
 )
 
 logger = setup_logger("settings")
@@ -102,12 +98,70 @@ with st.container(width=800, horizontal_alignment="center", vertical_alignment="
             check_gns3_api()
 
     with st.expander("LLM Model Configuration", expanded=True):
+        # Recommended models information
+        st.success(
+            """
+            **🌟 Recommended Models:**
+            - **Best:** `deepseek-chat` or `deepseek/deepseek-v3.2` (via OpenRouter)
+            - Other recommended: `x-ai/grok-3`, `anthropic/claude-sonnet-4`, `z-ai/glm-4.7`
+            """
+        )
+
+        # Provider selector and model selector side-by-side
+        col1, col2 = st.columns([1, 2])
+
+        with col1:
+            # Provider selector with custom option
+            all_providers = get_all_providers()
+            selected_provider_preset = st.selectbox(
+                "Select LLM Provider",
+                ["Custom"] + all_providers,
+                help="Choose a predefined provider for automatic configuration",
+            )
+
+        with col2:
+            # Model selector - only show when provider is not Custom
+            if selected_provider_preset != "Custom":
+                provider_config = get_provider_config(selected_provider_preset)
+                if provider_config:
+                    model_options = provider_config.models + ["Custom model name..."]
+
+                    selected_model = st.selectbox(
+                        "Model Name *",
+                        model_options,
+                        help="Select a predefined model or choose custom to enter manually",
+                    )
+
+                    if selected_model == "Custom model name...":
+                        # Show custom input field
+                        custom_model = st.text_input(
+                            "Enter Custom Model Name",
+                            key="CUSTOM_MODEL_NAME",
+                            value=st.session_state.get("MODEL_NAME", ""),
+                            placeholder="e.g., custom-model-name",
+                            help="Enter the exact model name as required by the provider",
+                        )
+                        st.session_state["MODEL_NAME"] = custom_model
+                    else:
+                        # Set the selected model
+                        st.session_state["MODEL_NAME"] = selected_model
+
+        # Apply preset configuration only when provider is not Custom
+        if selected_provider_preset != "Custom":
+            provider_config = get_provider_config(selected_provider_preset)
+            if provider_config:
+                # Auto-fill provider type
+                st.session_state["MODE_PROVIDER"] = provider_config.provider
+                # Auto-fill base URL
+                st.session_state["BASE_URL"] = provider_config.base_url
+        st.markdown("---")
+        # Manual Configuration Section (always available)
         col1, col2, col3 = st.columns([1, 2, 1])
 
         with col1:
             # LLM Model Provider
             st.text_input(
-                "Model Provider *",  # Updated to use * for required field
+                "Model Provider *",
                 key="MODE_PROVIDER",
                 value=st.session_state.get("MODE_PROVIDER", ""),
                 type="default",
@@ -133,13 +187,13 @@ with st.container(width=800, horizontal_alignment="center", vertical_alignment="
                 value=st.session_state.get("MODEL_NAME", ""),
                 type="default",
                 help="""
-    The name or ID of the model, e.g. 'o3-mini', 'claude-sonnet-4-5-20250929', 'deepseek-caht'.
+    The name or ID of the model, e.g. 'o3-mini', 'claude-sonnet-4-5-20250929', 'deepseek-chat'.
 
     If using the OpenRouter platform,
     please enter the model name in the OpenRouter format,
     e.g.: 'openai/gpt-4o-mini', 'x-ai/grok-4-fast'.
                 """,
-                placeholder="e.g. 'o3-mini', 'claude-sonnet-4-5-20250929', 'deepseek-caht'",
+                placeholder="e.g. 'o3-mini', 'claude-sonnet-4-5-20250929', 'deepseek-chat'",
             )
 
         with col3:
@@ -218,36 +272,30 @@ with st.container(width=800, horizontal_alignment="center", vertical_alignment="
                     placeholder="Enter your TTS API key",
                 )
             with col2:
-                tts_model = st.session_state.get("TTS_MODEL", "")
-                tts_model_index = (
-                    TTS_MODELS.index(tts_model) + 1 if tts_model in TTS_MODELS else 0
-                )
-                st.selectbox(
+                st.text_input(
                     "TTS Model",
-                    options=[""] + TTS_MODELS,
-                    index=tts_model_index,
                     key="TTS_MODEL",
+                    value=st.session_state.get("TTS_MODEL", ""),
+                    type="default",
                     help="""
-    Select the TTS model to use:
+    Enter the TTS model to use (e.g., tts-1, tts-1-hd, gpt-4o-mini-tts).
     - **tts-1**: Standard quality, faster
     - **tts-1-hd**: High quality, slower
     - **gpt-4o-mini-tts**: Latest model with voice instructions support
                     """,
+                    placeholder="e.g., tts-1, tts-1-hd, gpt-4o-mini-tts",
                 )
             with col3:
-                tts_voice = st.session_state.get("TTS_VOICE", "")
-                tts_voice_index = (
-                    TTS_VOICES.index(tts_voice) + 1 if tts_voice in TTS_VOICES else 0
-                )
-                st.selectbox(
+                st.text_input(
                     "TTS Voice",
-                    options=[""] + TTS_VOICES,
-                    index=tts_voice_index,
                     key="TTS_VOICE",
+                    value=st.session_state.get("TTS_VOICE", ""),
+                    type="default",
                     help="""
-    Select the voice persona for TTS output.
+    Enter the voice persona for TTS output.
     Different voices have different tones and characteristics.
                     """,
+                    placeholder="e.g., alloy, echo, nova, shimmer",
                 )
 
             # TTS Second row: Base URL and Speed
@@ -305,21 +353,18 @@ with st.container(width=800, horizontal_alignment="center", vertical_alignment="
                     placeholder="Enter your STT API key",
                 )
             with col2:
-                stt_model = st.session_state.get("STT_MODEL", "")
-                stt_model_index = (
-                    STT_MODELS.index(stt_model) + 1 if stt_model in STT_MODELS else 0
-                )
-                st.selectbox(
+                st.text_input(
                     "STT Model",
-                    options=[""] + STT_MODELS,
-                    index=stt_model_index,
                     key="STT_MODEL",
+                    value=st.session_state.get("STT_MODEL", ""),
+                    type="default",
                     help="""
-    Select the STT model to use:
+    Enter the STT model to use (e.g., whisper-1, gpt-4o-transcribe).
     - **whisper-1**: Standard Whisper model
     - **gpt-4o-transcribe**: GPT-4 based transcription
     - **gpt-4o-transcribe-diarize**: With speaker diarization
                     """,
+                    placeholder="e.g., whisper-1, gpt-4o-transcribe",
                 )
             with col3:
                 st.text_input(
@@ -334,8 +379,8 @@ with st.container(width=800, horizontal_alignment="center", vertical_alignment="
                     placeholder="e.g., en, zh, ja (optional)",
                 )
 
-            # STT Second row: Base URL, Temperature, Response Format
-            col1, col2, col3 = st.columns([2, 1, 1])
+            # STT Second row: Base URL, Temperature
+            col1, col2 = st.columns([2, 1])
             with col1:
                 st.text_input(
                     "STT Base URL",
@@ -368,29 +413,9 @@ with st.container(width=800, horizontal_alignment="center", vertical_alignment="
     - 1.0: More creative, less accurate
                     """,
                 )
-            with col3:
-                stt_format = st.session_state.get("STT_RESPONSE_FORMAT", "")
-                stt_format_index = (
-                    STT_RESPONSE_FORMATS.index(stt_format) + 1
-                    if stt_format in STT_RESPONSE_FORMATS
-                    else 0
-                )
-                st.selectbox(
-                    "STT Response Format",
-                    options=[""] + STT_RESPONSE_FORMATS,
-                    index=stt_format_index,
-                    key="STT_RESPONSE_FORMAT",
-                    help="""
-    Output format for transcription results:
-    - **json**: Standard JSON with text
-    - **text**: Plain text only
-    - **verbose_json**: JSON with timestamps
-    - **srt/vtt**: Subtitle formats
-                    """,
-                )
         else:
-            st.info(
-                "💡 **Voice features are currently disabled.** Enable the toggle above to configure TTS/STT settings."
+            st.caption(
+                "💡 Voice features are currently disabled. Enable the toggle above to configure TTS/STT settings. (Experimental Test Feature)"
             )
 
     with st.expander("Other Settings", expanded=True):
@@ -446,6 +471,11 @@ with st.container(width=800, horizontal_alignment="center", vertical_alignment="
 
     if ENV_FILE_PATH:
         st.button("Save Settings to .env", on_click=save_config_to_env)
+
+        # Check if rerun is needed after callback execution
+        if st.session_state.get("_needs_rerun", False):
+            st.session_state["_needs_rerun"] = False
+            st.rerun()
     else:
         # Cannot find or create the .env file, so the save button is disabled.
         st.error(

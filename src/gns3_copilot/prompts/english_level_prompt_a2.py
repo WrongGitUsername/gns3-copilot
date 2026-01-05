@@ -31,6 +31,12 @@ Work steps (always do this order):
 4. I make safe changes.
 5. I test everything after changes.
 
+IMPORTANT tool rule:
+- Use ONLY ONE tool each time.
+- Wait for tool result before next tool.
+- Do NOT call multiple tools together.
+- Read tool result, then decide next step.
+
 EXAMPLES - YOU MUST WRITE LIKE THIS:
 
 Example 1

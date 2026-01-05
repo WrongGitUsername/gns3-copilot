@@ -41,6 +41,7 @@ from typing import Any
 
 import streamlit as st
 
+from gns3_copilot import __version__
 from gns3_copilot.agent import agent, langgraph_checkpointer, list_thread_ids
 from gns3_copilot.log_config import setup_logger
 from gns3_copilot.ui_model.utils import new_session, save_config_to_env
@@ -79,7 +80,7 @@ def render_sidebar(
 
         # Note: We don't use key parameter here to avoid automatic session_state management
         new_height = st.slider(
-            "Page Height (px)",
+            ":material/height: Page Height (px)",
             min_value=300,
             max_value=1500,
             value=current_height,
@@ -97,9 +98,9 @@ def render_sidebar(
                 logger.error("Failed to update CONTAINER_HEIGHT: %s", e)
 
         new_zoom = st.slider(
-            "Zoom Scale",
+            ":material/zoom_in: Zoom Scale",
             min_value=0.5,
-            max_value=1.0,
+            max_value=1.2,
             value=current_zoom,
             step=0.05,
             help="Adjust the zoom scale for GNS3 topology view",
@@ -154,7 +155,7 @@ def _render_session_management() -> tuple[Any | None, str | None]:
     logger.debug("session_options : %s", session_options)
 
     selected = st.selectbox(
-        "Session History",
+        ":material/history: Session History",
         options=session_options,
         format_func=lambda x: x[0],  # view conversation_title
         key="session_select",  # new key for state management
@@ -169,14 +170,16 @@ def _render_session_management() -> tuple[Any | None, str | None]:
     col1, col2 = st.columns(2)
     with col1:
         st.button(
-            "New Session",
+            ":material/add_circle: New Session",
             on_click=lambda: new_session(session_options),
             help="Create a new session",
         )
     with col2:
         # Only allow deletion if the user has selected a valid thread_id
         if selected_thread_id is not None:
-            if st.button("Delete", help="Delete current selection session"):
+            if st.button(
+                ":material/delete: Delete", help="Delete current selection session"
+            ):
                 langgraph_checkpointer.delete_thread(thread_id=selected_thread_id)
                 st.success(
                     f"_Delete Success_: {title} \n\n _Thread_id_: `{selected_thread_id}`"
@@ -198,12 +201,12 @@ def render_sidebar_about() -> None:
     """Render the about section in the sidebar."""
     with st.sidebar:
         st.markdown("---")
-        st.markdown("### About")
+        st.markdown("### :material/info: About")
         st.markdown(
-            """
-            **GNS3 Copilot** is an AI-powered network engineering assistant
+            f"""
+            **GNS3 Copilot** {__version__} is an AI-powered network engineering assistant
             designed to help you with GNS3 network simulation tasks.
 
-            📖 [Documentation](https://github.com/yueguobin/gns3-copilot)
+            :material/book: [Documentation](https://github.com/yueguobin/gns3-copilot)
             """
         )

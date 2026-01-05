@@ -36,17 +36,19 @@ import streamlit as st
 from langchain.messages import AIMessage, HumanMessage, ToolMessage
 
 from gns3_copilot.agent import agent
-from gns3_copilot.gns3_client import (
-    GNS3ProjectCreate,
-    GNS3ProjectList,
-    GNS3ProjectOpen,
-)
+from gns3_copilot.gns3_client import GNS3ProjectList
 from gns3_copilot.log_config import setup_logger
 from gns3_copilot.public_model import (
     format_tool_response,
     get_duration,
     speech_to_text,
     text_to_speech_wav,
+)
+from gns3_copilot.ui_model.utils import (
+    build_topology_iframe_url,
+    generate_topology_iframe_html,
+    render_create_project_form,
+    render_project_cards,
 )
 
 logger = setup_logger("chat")
@@ -115,166 +117,23 @@ if not selected_p:
         width=800,
     )
 
-    # Create New Project expander
-    with st.expander("Create New Project", expanded=False, width=800):
-        new_name = st.text_input("Project Name", placeholder="Enter project name...")
+    # Render create project form
+    render_create_project_form()
 
-        # Advanced options
-        with st.expander("Advanced Options", expanded=False):
-            auto_start = st.checkbox("Auto start project", value=False)
-            auto_close = st.checkbox("Auto close on disconnect", value=False)
-            auto_open = st.checkbox("Auto open on GNS3 start", value=False)
-            col_width, col_height = st.columns(2)
-            with col_width:
-                scene_width = st.number_input(
-                    "Scene Width", value=2000, min_value=500, max_value=5000
-                )
-            with col_height:
-                scene_height = st.number_input(
-                    "Scene Height", value=1000, min_value=500, max_value=5000
-                )
-
-        col_create, col_cancel = st.columns(2)
-        with col_create:
-            if st.button("Create", type="primary", key="btn_create_project"):
-                if new_name and new_name.strip():
-                    # Build project parameters
-                    params = {"name": new_name.strip()}
-                    if auto_start:
-                        params["auto_start"] = True
-                    if auto_close:
-                        params["auto_close"] = True
-                    if auto_open:
-                        params["auto_open"] = True
-                    params["scene_width"] = scene_width
-                    params["scene_height"] = scene_height
-
-                    # Call GNS3ProjectCreate tool
-                    create_tool = GNS3ProjectCreate()
-                    result = create_tool._run(params)
-
-                    if result.get("success"):
-                        st.success(f"Project '{new_name}' created successfully!")
-                        sleep(1)
-                        st.rerun()
-                    else:
-                        st.error(f"Failed to create project: {result.get('error')}")
-                else:
-                    st.warning("Please enter a project name.")
-        with col_cancel:
-            if st.button("Clear", key="btn_clear_project"):
-                st.rerun()
-
-    # Get project list
+    # Get project list and render project cards
     projects = GNS3ProjectList()._run().get("projects", [])
     if projects:
-        cols = st.columns([1, 1], width=800)
-        for i, p in enumerate(projects):
-            # Destructure project tuple for clarity: name, ID, device count, link count, status
-            name, p_id, dev_count, link_count, status = p
-            # Check status
-            is_opened = status.lower() == "opened"
-            with cols[i % 2]:
-                # If closed status, use container with background color or different title format
-                with st.container(border=True, width=400):
-                    # Add status icon to title
-                    status_icon = "🟢" if is_opened else "⚪"
-                    st.markdown(f"###### {status_icon} {name}")
-                    st.caption(f"ID: {p_id[:8]}")
-                    # Display device and link information
-                    st.write(f"{dev_count} Devices | {link_count} Links")
-                    # Dynamic status text display
-                    if is_opened:
-                        st.success(f"Status: {status.upper()}")
-                    else:
-                        st.warning(f"Status: {status.upper()} (Unavailable)")
-                    # --- Button logic ---
-                    # Show different buttons based on project status
-                    if is_opened:
-                        # Opened project: show Select Project and Close Project buttons
-                        col_btn1, col_btn2 = st.columns(2)
-                        with col_btn1:
-                            if st.button(
-                                "Select Project",
-                                key=f"btn_select_{p_id}",
-                                use_container_width=True,
-                                type="primary",
-                            ):
-                                if selected_thread_id:
-                                    # Historical session: update agent state
-                                    agent.update_state(config, {"selected_project": p})
-                                else:
-                                    # New session: store in temp storage
-                                    st.session_state["temp_selected_project"] = p
-                                st.success(f"Project {name} has been selected!")
-                                st.rerun()
-                        with col_btn2:
-                            if st.button(
-                                "Close Project",
-                                key=f"btn_close_{p_id}",
-                                use_container_width=True,
-                                type="secondary",
-                            ):
-                                close_tool = GNS3ProjectOpen()
-                                result = close_tool._run(
-                                    {"project_id": p_id, "close": True}
-                                )
-
-                                if result.get("success"):
-                                    st.success(f"Project {name} closed successfully!")
-                                    # Wait a moment and refresh to update project status
-                                    sleep(1)
-                                    st.rerun()
-                                else:
-                                    st.error(
-                                        f"Failed to close project {name}: {result.get('error', 'Unknown error')}"
-                                    )
-                    else:
-                        # Closed project: show Open Project button
-                        if st.button(
-                            "Open Project",
-                            key=f"btn_open_{p_id}",
-                            use_container_width=True,
-                            type="secondary",
-                        ):
-                            open_tool = GNS3ProjectOpen()
-                            result = open_tool._run({"project_id": p_id, "open": True})
-                            if result.get("success"):
-                                st.success(f"Project {name} opened successfully!")
-                                # Wait a moment and refresh to update project status
-                                sleep(1)
-                                st.rerun()
-                            else:
-                                st.error(
-                                    f"Failed to open project {name}: {result.get('error', 'Unknown error')}"
-                                )
+        render_project_cards(projects, selected_thread_id, config)
     else:
         st.error("No projects found in GNS3.")
         if st.button("Refresh List"):
             st.rerun()
 else:
-    # Top status bar logic
+    # Top status bar - Show current project name
     st.sidebar.success(f"Current Project: **{selected_p[0]}**")
-    if st.sidebar.button("Switch Project / Exit"):
-        if selected_thread_id:
-            # Historical session: update agent state
-            agent.update_state(config, {"selected_project": None})
-        else:
-            # New session: clear temp storage
-            st.session_state["temp_selected_project"] = None
-        # Clear chat history from session state
-        st.session_state["state_history"] = None
-        st.rerun()
 
 # --- Main workspace (only visible when a project is selected) ---
 if selected_p:
-    st.markdown(
-        """
-        <h3 style='text-align: left; font-size: 22px; font-weight: bold; margin-top: 20px;'>Workspace</h3>
-        """,
-        unsafe_allow_html=True,
-    )
-
     # Dynamic column layout based on iframe visibility
     if st.session_state.show_iframe:
         layout_col1, layout_col2 = st.columns([3, 7], gap="medium")
@@ -287,6 +146,12 @@ if selected_p:
             border=False,
         )
         with history_container:
+            st.markdown(
+                """
+                <h3 style='text-align: left; font-size: 22px; font-weight: bold; margin-top: 20px;'>Workspace</h3>
+                """,
+                unsafe_allow_html=True,
+            )
             # StateSnapshot state example test/langgraph_checkpoint.json file
             # Display previous messages from state history
             if st.session_state.get("state_history") is not None:
@@ -374,25 +239,8 @@ if selected_p:
             project_id = selected_p[
                 1
             ]  # selected_p is a tuple: (name, p_id, dev_count, link_count, status)
-            # Get GNS3 server URL from session_state (loaded from .env file)
-            gns3_server_url = st.session_state.get(
-                "GNS3_SERVER_URL", "http://127.0.0.1:3080/"
-            )
-
-            # Get API version and construct appropriate iframe URL
-            api_version = st.session_state.get("API_VERSION", "2")
-            if api_version == "3":
-                if st.session_state.gns3_url_mode == "login":
-                    # API v3 login page
-                    iframe_url = f"{gns3_server_url}"
-                else:
-                    # API v3 uses 'controller' instead of 'server'
-                    iframe_url = f"{gns3_server_url}/static/web-ui/controller/1/project/{project_id}"
-            else:
-                # API v2 uses 'server' (default behavior)
-                iframe_url = (
-                    f"{gns3_server_url}/static/web-ui/server/1/project/{project_id}"
-                )
+            # Build the topology iframe URL based on API version and URL mode
+            iframe_url = build_topology_iframe_url(project_id)
 
             iframe_container = st.container(
                 height=st.session_state.CONTAINER_HEIGHT,
@@ -406,41 +254,11 @@ if selected_p:
                     st.session_state.zoom_scale_topology
                 )  # Scale to 80%, you can adjust between 0.7-0.9
 
-                iframe_width = 2000
-                iframe_height = 1000
-
-                iframe_html = f"""
-                <style>
-                    .iframe-scroll-container {{
-                        width: 100%;
-                        height: {st.session_state.CONTAINER_HEIGHT};  /* Can be adjusted as needed, or use 70vh */
-                        overflow: auto;
-                        border: 1px solid #ddd;
-                        border-radius: 4px;
-                        background: #f9f9f9;
-                    }}
-
-                    .iframe-scroll-container iframe {{
-                        width: {iframe_width}px;
-                        height: {iframe_height}px;
-                        border: none;
-                        display: block;
-                        /* Use zoom instead of transform to keep coordinate system correct */
-                        zoom: {zoom_scale};
-                        /* Or use this alternative syntax */
-                        /* zoom: 80%; */
-                    }}
-                </style>
-
-                <div class="iframe-scroll-container">
-                    <iframe
-                        src="{iframe_url}"
-                        loading="lazy"
-                        allowfullscreen
-                        title="Embedded Content"
-                    ></iframe>
-                </div>
-                """
+                iframe_html = generate_topology_iframe_html(
+                    iframe_url=iframe_url,
+                    zoom_scale=zoom_scale,
+                    container_height=st.session_state.CONTAINER_HEIGHT,
+                )
 
                 st.markdown(iframe_html, unsafe_allow_html=True)
 
@@ -537,14 +355,18 @@ if selected_p:
                                     actual_text = msg.content[0]["text"]
                                     # Now actual_text is the clean text you need
                                     current_text_chunk += actual_text
-                                    active_text_placeholder.markdown(
-                                        current_text_chunk, unsafe_allow_html=True
-                                    )
+                                    # Only display text in non-voice mode
+                                    if not voice_enabled:
+                                        active_text_placeholder.markdown(
+                                            current_text_chunk, unsafe_allow_html=True
+                                        )
                                 elif isinstance(msg.content, str):
                                     current_text_chunk += str(msg.content)
-                                    active_text_placeholder.markdown(
-                                        current_text_chunk, unsafe_allow_html=True
-                                    )
+                                    # Only display text in non-voice mode
+                                    if not voice_enabled:
+                                        active_text_placeholder.markdown(
+                                            current_text_chunk, unsafe_allow_html=True
+                                        )
                                 # Determine if text message (i.e., msg.content) reception is complete
                                 is_text_ending = (
                                     # Case 1: Tool call starts
@@ -564,7 +386,9 @@ if selected_p:
                                     tts_played = True
                                     # Text_to_speech
                                     try:
-                                        with st.spinner("Generating voice..."):
+                                        with st.spinner(
+                                            "Generating voice...", width=200
+                                        ):
                                             audio_bytes = text_to_speech_wav(
                                                 current_text_chunk
                                             )
@@ -572,9 +396,17 @@ if selected_p:
                                                 audio_bytes,
                                                 format="audio/mp3",
                                                 autoplay=True,
+                                                width=200,
                                             )
+                                            # Wait for audio playback to complete
+                                            duration = get_duration(audio_bytes)
+                                            logger.info(
+                                                "TTS audio duration: %.2f seconds",
+                                                duration,
+                                            )
+                                            sleep(duration)  # Extra buffer time
                                     except Exception as e:
-                                        logger.error("TTS Error: %", e)
+                                        logger.error("TTS Error: %s", e)
                                         st.error(f"TTS Error: {e}")
                                 # Get metadata (ID and name) from tool_calls
                                 if msg.tool_calls:
@@ -649,9 +481,6 @@ if selected_p:
                                         # Use the final complete structure
                                         st.json(display_tool_call, expanded=False)
                             if isinstance(msg, ToolMessage):
-                                # Wait for audio playback to complete before returning ToolMessage to LLM
-                                if voice_enabled and audio_bytes:
-                                    sleep(get_duration(audio_bytes))
                                 # Clear state after completion, ready to receive next tool call
                                 current_tool_state = None
                                 content_pretty = format_tool_response(msg.content)
@@ -662,7 +491,6 @@ if selected_p:
                                     st.json(json.loads(content_pretty), expanded=False)
                                 active_text_placeholder = st.empty()
                                 current_text_chunk = ""
-                                # After a round of AIMessage/ToolMessage, reset tts_played switch, next round of AIMessage/ToolMessage can generate TTS again
                                 tts_played = False
                 # After the interaction, update the session state with the latest StateSnapshot
                 state_history = agent.get_state(config)
