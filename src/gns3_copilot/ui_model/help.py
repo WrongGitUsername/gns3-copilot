@@ -79,7 +79,15 @@ Model API Key: sk-or-v1-xxxxxxxxx
     1. Fill all required fields
     2. Adjust optional parameters as needed
     3. Click save button
-    4. Restart application for changes to take effect
+    4. **Restart the application** for changes to take effect
+    """)
+
+    st.info("""
+    :material:info: **Important**: 
+    
+    - **LLM model configuration changes require restarting the application**
+    - **GNS3 Server configuration changes require restarting the application**
+    - Simply refreshing the browser page (F5) is NOT sufficient
     """)
 
 with tab2_zh:
@@ -132,5 +140,13 @@ Model API Key: sk-or-v1-xxxxxxxxx
     1. 填写所有必填字段
     2. 根据需要调整可选参数
     3. 点击保存按钮
-    4. 重启应用使配置生效
+    4. **重启应用**使配置生效
+    """)
+
+    st.info("""
+    :material:info: **重要提示**: 
+    
+    - **LLM 模型配置修改后必须重启应用**
+    - **GNS3 服务器配置修改后必须重启应用**
+    - 仅刷新浏览器页面（按 F5）无法使配置生效
     """)

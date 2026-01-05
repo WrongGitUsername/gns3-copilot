@@ -8,7 +8,7 @@
 
 ### 问题描述
 
-在 Settings 页面修改了 GNS3 Server URL 或其他配置后，点击保存并切换到 Chat 页面，发现 Show 按钮显示的拓扑 iframe 仍使用旧的 GNS3 Server 地址，而不是新配置的地址。
+在 Settings 页面修改了 GNS3 Server URL 或其他配置后，点击保存并切换到 Chat 页面，发现 Show 按钮显示的拓扑 iframe 仍使用旧的 GNS3 Server 地址，而不是新配置的地址。这也适用于 LLM 模型配置的修改。
 
 ### 原因分析
 
@@ -52,9 +52,9 @@
 
 ### 解决方案
 
-**当前方案**：刷新页面（F5）
+**当前方案**：重启应用程序
 
-修改 GNS3 Server 配置后，在 Chat 页面按 **F5** 刷新浏览器页面即可。页面刷新会：
+修改 GNS3 Server 配置或 LLM 模型设置后，必须**重启应用程序**才能使更改生效。重启应用程序会：
 
 1. 清除 session_state（包括 `_config_loaded` 标志）
 2. app.py 从头重新执行
@@ -64,60 +64,22 @@
 **操作步骤**：
 ```
 1. 在 Settings 页面修改配置并保存
-2. 切换到 Chat 页面
-3. 按 F5 刷新页面（或点击浏览器刷新按钮）
+2. 停止 gns3-copilot 进程
+3. 重新启动应用程序
 4. 配置已生效
 ```
 
-**说明**：
-- 不需要重启应用程序（停止 `gns3-copilot` 进程）
-- 只需刷新浏览器页面即可
-- 这是最简单快捷的解决方案
+**重要提示**：
+- **LLM 模型配置的修改需要重启应用程序**
+- **GNS3 服务器配置的修改需要重启应用程序**
+- 仅刷新浏览器页面（按 F5）无法使配置生效
 
 ### 工作建议
 
-- 首次配置好 GNS3 Server 地址后，一般不需要再次修改
-- 如果确实需要修改，在 Chat 页面按 F5 刷新即可
-- 刷新页面比重启应用更快速便捷
+- 首次配置好 GNS3 Server 地址和 LLM 模型后，验证配置是否正常工作再继续
+- 如果确实需要修改配置，请重启应用程序以确保所有更改生效
+- 每次重启后测试配置以确认其正常工作
 
-### 未来可能的改进方案
-
-如果需要支持热重载配置（无需重启），可以考虑以下方案：
-
-1. **分离 Widget Key 和配置 Key**
-   ```python
-   # settings.py
-   st.text_input(
-       "GNS3 Server URL *",
-       key="widget_GNS3_SERVER_URL",  # widget 专用 key
-       value=st.session_state.get("GNS3_SERVER_URL", ""),
-       on_change=lambda: st.session_state.update({
-           "GNS3_SERVER_URL": st.session_state["widget_GNS3_SERVER_URL"]
-       })
-   )
-   ```
-
-2. **保存时重置配置加载标志**
-   ```python
-   # config_manager.py
-   def save_config_to_env() -> None:
-       # ... 现有保存逻辑 ...
-       
-       st.success("Configuration successfully saved to the .env file!")
-       
-       # 重置配置加载标志
-       st.session_state["_config_loaded"] = False
-       
-       st.rerun()
-   ```
-   ⚠️ 注意：此方案会导致在 Settings 页面切换输入框时，之前的输入会被 .env 文件覆盖，不建议使用。
-
-3. **检测 .env 文件修改时间**
-   ```python
-   # 保存 .env 文件修改时间
-   # 每次加载时检查文件是否被修改
-   # 如果修改则重新加载配置
-   ```
 
 ### 相关代码位置
 

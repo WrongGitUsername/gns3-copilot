@@ -8,7 +8,7 @@ This document collects common questions and solutions encountered while using GN
 
 ### Problem Description
 
-After modifying the GNS3 Server URL or other configuration in the Settings page and clicking save, when switching to the Chat page, the topology iframe displayed by the Show button still uses the old GNS3 Server address instead of the newly configured address.
+After modifying the GNS3 Server URL or other configuration in the Settings page and clicking save, when switching to the Chat page, the topology iframe displayed by the Show button still uses the old GNS3 Server address instead of the newly configured address. This also applies to LLM model configuration changes.
 
 ### Root Cause Analysis
 
@@ -52,9 +52,9 @@ This is caused by Streamlit's Widget behavior mechanism:
 
 ### Solution
 
-**Current Approach**: Refresh page (F5)
+**Current Approach**: Restart the application
 
-After modifying GNS3 Server configuration, simply press **F5** to refresh the browser page in the Chat page. Page refresh will:
+After modifying GNS3 Server configuration or LLM model settings, you must **restart the application** for the changes to take effect. Restarting will:
 
 1. Clear session_state (including `_config_loaded` flag)
 2. Re-execute app.py from the beginning
@@ -64,60 +64,22 @@ After modifying GNS3 Server configuration, simply press **F5** to refresh the br
 **Operation Steps**:
 ```
 1. Modify configuration and save in Settings page
-2. Switch to Chat page
-3. Press F5 to refresh page (or click browser refresh button)
+2. Stop the gns3-copilot process
+3. Restart the application
 4. Configuration is now effective
 ```
 
-**Notes**:
-- No need to restart the application (stop `gns3-copilot` process)
-- Just refresh the browser page
-- This is the simplest and fastest solution
+**Important Notes**:
+- **LLM model configuration changes require restarting the application**
+- **GNS3 Server configuration changes require restarting the application**
+- Simply refreshing the browser page (F5) is NOT sufficient for configuration changes to take effect
 
 ### Working Recommendations
 
-- After initially configuring the GNS3 Server address, generally no need to modify it again
-- If modification is really needed, just press F5 to refresh in the Chat page
-- Refreshing the page is faster and more convenient than restarting the application
+- After initially configuring the GNS3 Server address and LLM model, verify the configuration works correctly before proceeding
+- If configuration changes are needed, restart the application to ensure all changes take effect
+- Test the configuration after each restart to confirm it's working as expected
 
-### Possible Future Improvements
-
-If you need to support hot reload of configuration (without restart), consider these approaches:
-
-1. **Separate Widget Key and Configuration Key**
-   ```python
-   # settings.py
-   st.text_input(
-       "GNS3 Server URL *",
-       key="widget_GNS3_SERVER_URL",  # widget-specific key
-       value=st.session_state.get("GNS3_SERVER_URL", ""),
-       on_change=lambda: st.session_state.update({
-           "GNS3_SERVER_URL": st.session_state["widget_GNS3_SERVER_URL"]
-       })
-   )
-   ```
-
-2. **Reset configuration loading flag when saving**
-   ```python
-   # config_manager.py
-   def save_config_to_env() -> None:
-       # ... existing save logic ...
-       
-       st.success("Configuration successfully saved to the .env file!")
-       
-       # Reset configuration loading flag
-       st.session_state["_config_loaded"] = False
-       
-       st.rerun()
-   ```
-   ⚠️ Note: This approach causes previous inputs to be overwritten by .env file when switching input boxes in Settings page, so it's not recommended.
-
-3. **Detect .env file modification time**
-   ```python
-   # Save .env file modification time
-   # Check if file was modified each time loading
-   # Reload configuration if modified
-   ```
 
 ### Related Code Locations
 
