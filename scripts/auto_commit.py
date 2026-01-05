@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Automatic Commit Message Generator using Zhipu GLM-4.5-X API
+Automatic Commit Message Generator using DeepSeek API
 
 This script analyzes current git changes and generates an appropriate commit message,
 then executes git commit with the AI-generated message.
 
 Usage:
-    export ZHIPU_API_KEY="your-api-key"
+    export DEEPSEEK_API_KEY="your-api-key"
     python scripts/auto_commit.py
     
     # Dry run mode (generate message without committing)
@@ -22,8 +22,9 @@ import re
 from typing import Optional, List, Dict
 
 # Configuration
-ZHIPU_API_KEY = os.getenv('ZHIPU_API_KEY')
-ZHIPU_MODEL = os.getenv('ZHIPU_MODEL', 'GLM-4.5-X')
+DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
+DEEPSEEK_MODEL = os.getenv('DEEPSEEK_MODEL', 'deepseek-chat')
+DEEPSEEK_API_URL = os.getenv('DEEPSEEK_API_URL', 'https://api.deepseek.com/v1/chat/completions')
 
 
 def get_staged_files() -> List[str]:
@@ -56,25 +57,25 @@ def get_staged_diff() -> str:
         return ""
 
 
-def call_zhipu_api(prompt: str) -> Optional[Dict]:
-    """Call Zhipu API for commit message generation"""
-    if not ZHIPU_API_KEY:
-        print("ERROR: ZHIPU_API_KEY not found")
-        print("Please set environment variable: export ZHIPU_API_KEY='your-api-key'")
+def call_deepseek_api(prompt: str) -> Optional[Dict]:
+    """Call DeepSeek API for commit message generation"""
+    if not DEEPSEEK_API_KEY:
+        print("ERROR: DEEPSEEK_API_KEY not found")
+        print("Please set environment variable: export DEEPSEEK_API_KEY='your-api-key'")
         return None
     
     import urllib.request
     import urllib.error
     
-    url = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
+    url = DEEPSEEK_API_URL
     
     headers = {
-        "Authorization": f"Bearer {ZHIPU_API_KEY}",
+        "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
         "Content-Type": "application/json"
     }
     
     data = {
-        "model": ZHIPU_MODEL,
+        "model": DEEPSEEK_MODEL,
         "messages": [
             {
                 "role": "system",
@@ -153,10 +154,10 @@ Output ONLY valid JSON:
             return None
             
     except urllib.error.HTTPError as e:
-        print(f"API Error {e.code}: {e.read().decode('utf-8')}")
-        return None
+            print(f"API Error {e.code}: {e.read().decode('utf-8')}")
+            return None
     except Exception as e:
-        print(f"Error calling Zhipu API: {e}")
+        print(f"Error calling DeepSeek API: {e}")
         return None
 
 
@@ -188,7 +189,7 @@ def execute_commit(message: str, amend: bool = False) -> bool:
 
 def generate_commit_message(staged_files: List[str], diff_content: str) -> Optional[str]:
     """Generate commit message using AI"""
-    print("🤖 Calling Zhipu API for commit message generation...")
+    print("🤖 Calling DeepSeek API for commit message generation...")
     
     # Build prompt
     prompt = f"""Analyze the following staged changes in the GNS3 Copilot project:
@@ -202,7 +203,7 @@ Git diff (for detailed analysis):
 Generate a commit message following Conventional Commits format.
 Focus on the actual functionality changes, not just file modifications."""
     
-    api_response = call_zhipu_api(prompt)
+    api_response = call_deepseek_api(prompt)
     
     if not api_response:
         return None
