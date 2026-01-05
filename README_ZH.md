@@ -175,6 +175,13 @@ gns3-copilot --help
 - **GNS3 Server Password**: GNS3 服务器密码（仅 API v3 需要）
 
 ##### 2. LLM 模型配置
+
+**🌟 推荐模型：**
+- **最佳选择：** `deepseek-chat`（通过 DeepSeek API）或 `deepseek/deepseek-v3.2`（通过 OpenRouter）
+- **其他推荐：** `x-ai/grok-3`、`anthropic/claude-sonnet-4`、`z-ai/glm-4.7`
+
+**注意：** 这些模型已经过测试验证，在网络自动化任务中表现优异。
+
 - **Model Provider**: 模型提供商（支持：openai, anthropic, deepseek, xai, openrouter 等）
 - **Model Name**: 具体模型名称（如：deepseek-chat, gpt-4o-mini 等）
 - **Model API Key**: 模型 API 密钥

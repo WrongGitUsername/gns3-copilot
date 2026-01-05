@@ -18,7 +18,6 @@ MODULE_PATH_MAPPING: dict[str, str] = {
     "connector_factory": "gns3_client",
     "custom_gns3fy": "gns3_client",
     "gns3_file_index": "gns3_client",
-    "gns3_adjust_layout": "gns3_client",
     "gns3_create_drawing": "gns3_client",
     "gns3_delete_drawing": "gns3_client",
     "gns3_get_drawings": "gns3_client",
@@ -37,7 +36,6 @@ MODULE_PATH_MAPPING: dict[str, str] = {
     "gns3_update_drawing": "gns3_client",
     # Public model modules
     "gns3_drawing_utils": "public_model",
-    "gns3_layout_utils": "public_model",
     "get_gns3_device_port": "public_model",
     "openai_stt": "public_model",
     "openai_tts": "public_model",

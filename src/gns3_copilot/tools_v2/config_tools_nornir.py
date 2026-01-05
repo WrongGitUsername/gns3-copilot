@@ -106,6 +106,7 @@ class ExecuteMultipleDeviceConfigCommands(BaseTool):
         self,
         tool_input: str,  # or Union[str, List[Any], Dict[str, Any]]
         run_manager: CallbackManagerForToolRun | None = None,
+        **kwargs: Any,
     ) -> list[dict[str, Any]]:
         """
         Executes configuration commands on multiple devices in the current GNS3 topology.

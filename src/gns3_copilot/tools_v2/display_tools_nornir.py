@@ -5,6 +5,7 @@ This module provides a tool to execute display commands on multiple devices
 
 import json
 import os
+import re
 from typing import Any
 
 from dotenv import load_dotenv
@@ -90,6 +91,7 @@ class ExecuteMultipleDeviceCommands(BaseTool):
         self,
         tool_input: str | bytes | list[Any] | dict[str, Any],
         run_manager: CallbackManagerForToolRun | None = None,
+        **kwargs: Any,
     ) -> list[dict[str, Any]]:
         """
         Executes display commands on multiple devices in current GNS3 topology.
@@ -316,8 +318,6 @@ class ExecuteMultipleDeviceCommands(BaseTool):
         Returns:
             True if valid UUID format, False otherwise
         """
-        import re
-
         uuid_pattern = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
         return bool(re.match(uuid_pattern, project_id, re.IGNORECASE))
 

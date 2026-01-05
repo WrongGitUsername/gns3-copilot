@@ -178,6 +178,13 @@ GNS3 Copilot configuration is managed through a Streamlit interface, with all se
 - **GNS3 Server Password**: GNS3 server password (required only for API v3)
 
 ##### 2. LLM Model Configuration
+
+**🌟 Recommended Models:**
+- **Best:** `deepseek-chat` (via DeepSeek API) or `deepseek/deepseek-v3.2` (via OpenRouter)
+- **Other Recommended:** `x-ai/grok-3`, `anthropic/claude-sonnet-4`, `z-ai/glm-4.7`
+
+**Note:** These models have been tested and verified to provide excellent performance for network automation tasks.
+
 - **Model Provider**: Model provider (supports: openai, anthropic, deepseek, xai, openrouter, etc.)
 - **Model Name**: Specific model name (e.g., deepseek-chat, gpt-4o-mini, etc.)
 - **Model API Key**: Model API key

@@ -102,7 +102,10 @@ class LinuxTelnetBatchTool(BaseTool):
     """
 
     def _run(
-        self, tool_input: str, run_manager: CallbackManagerForToolRun | None = None
+        self,
+        tool_input: str | bytes | list[Any] | dict[str, Any],
+        run_manager: CallbackManagerForToolRun | None = None,
+        **kwargs: Any,
     ) -> list[dict[str, Any]]:
         """
         Batch execute Linux read-only commands (main entry).
@@ -393,8 +396,6 @@ class LinuxTelnetBatchTool(BaseTool):
         Returns:
             True if valid UUID format, False otherwise
         """
-        import re
-
         uuid_pattern = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
         return bool(re.match(uuid_pattern, project_id, re.IGNORECASE))
 

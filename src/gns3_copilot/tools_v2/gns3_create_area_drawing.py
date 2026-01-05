@@ -19,7 +19,10 @@ from gns3_copilot.gns3_client import (
     get_gns3_connector,
 )
 from gns3_copilot.log_config import setup_tool_logger
-from gns3_copilot.public_model.gns3_drawing_utils import calculate_two_node_ellipse
+from gns3_copilot.public_model.gns3_drawing_utils import (
+    calculate_two_node_ellipse,
+    calculate_two_node_rectangle,
+)
 
 # Configure logging
 logger = setup_tool_logger("gns3_create_area_drawing")
@@ -117,7 +120,7 @@ class GNS3CreateAreaDrawingTool(BaseTool):
 
     name: str = "create_gns3_area_drawing"
     description: str = """
-    Creates a visual ellipse annotation to mark logical groupings between two network devices.
+    Creates a visual annotation (ellipse or rectangle) to mark logical groupings between two network devices.
 
     Use for protocol domains (OSPF areas, BGP AS, IS-IS levels), logical isolation (VRF, VLAN),
     or high availability groups (VRRP, HSRP). Automatically calculates optimal position,
@@ -127,6 +130,7 @@ class GNS3CreateAreaDrawingTool(BaseTool):
     - project_id: GNS3 project UUID
     - area_name: Logical group name (e.g., "Area 0", "VLAN 10", "VRRP Group 1")
     - node_names: List of exactly 2 node names (e.g., ["R-1", "R-2"])
+    - shape_type: Shape type, either "ellipse" (default) or "rectangle"
     """
 
     def _run(
@@ -154,6 +158,7 @@ class GNS3CreateAreaDrawingTool(BaseTool):
             project_id = input_data.get("project_id")
             area_name = input_data.get("area_name")
             node_names = input_data.get("node_names", [])
+            shape_type = input_data.get("shape_type", "ellipse")
 
             # Validate input
             if not project_id:
@@ -229,37 +234,54 @@ class GNS3CreateAreaDrawingTool(BaseTool):
             ]
             logger.info("Found nodes: %s", ", ".join(node_info_list))
 
-            # Calculate ellipse parameters for 2 nodes
-            logger.info("Calculating ellipse parameters for 2 nodes...")
+            # Validate shape_type
+            if shape_type not in ["ellipse", "rectangle"]:
+                logger.error("Invalid shape_type: %s", shape_type)
+                return {
+                    "error": f"Invalid shape_type '{shape_type}'. Must be 'ellipse' or 'rectangle'."
+                }
 
-            # Use rotated ellipse connecting the two nodes
-            ellipse_result = calculate_two_node_ellipse(nodes[0], nodes[1], area_name)
+            # Calculate shape parameters for 2 nodes
+            logger.info("Calculating %s parameters for 2 nodes...", shape_type)
+
+            # Use the appropriate calculation function based on shape_type
+            if shape_type == "ellipse":
+                shape_result = calculate_two_node_ellipse(nodes[0], nodes[1], area_name)
+                shape_key = "ellipse"
+            else:  # rectangle
+                shape_result = calculate_two_node_rectangle(
+                    nodes[0], nodes[1], area_name
+                )
+                shape_key = "rectangle"
+
+            metadata = shape_result["metadata"]
             logger.info(
-                "Two-node ellipse: center=(%.2f, %.2f), distance=%.2f, angle=%.2f°",
-                ellipse_result["metadata"]["center_x"],
-                ellipse_result["metadata"]["center_y"],
-                ellipse_result["metadata"]["distance"],
-                ellipse_result["metadata"]["angle_deg"],
+                "Two-node %s: center=(%.2f, %.2f), distance=%.2f, angle=%.2f°",
+                shape_type,
+                metadata["center_x"],
+                metadata["center_y"],
+                metadata["distance"],
+                metadata["angle_deg"],
             )
 
             # Prepare drawings for creation
             # Ensure all coordinates are integers as required by GNS3 API
             drawings = [
                 {
-                    "svg": ellipse_result["ellipse"]["svg"],
-                    "x": int(ellipse_result["ellipse"]["x"]),
-                    "y": int(ellipse_result["ellipse"]["y"]),
-                    "z": ellipse_result["ellipse"]["z"],
+                    "svg": shape_result[shape_key]["svg"],
+                    "x": int(shape_result[shape_key]["x"]),
+                    "y": int(shape_result[shape_key]["y"]),
+                    "z": shape_result[shape_key]["z"],
                     "locked": False,
-                    "rotation": int(ellipse_result["ellipse"]["rotation"]),
+                    "rotation": int(shape_result[shape_key]["rotation"]),
                 },
                 {
-                    "svg": ellipse_result["text"]["svg"],
-                    "x": int(ellipse_result["text"]["x"]),
-                    "y": int(ellipse_result["text"]["y"]),
-                    "z": ellipse_result["text"]["z"],
+                    "svg": shape_result["text"]["svg"],
+                    "x": int(shape_result["text"]["x"]),
+                    "y": int(shape_result["text"]["y"]),
+                    "z": shape_result["text"]["z"],
                     "locked": False,
-                    "rotation": int(ellipse_result["text"]["rotation"]),
+                    "rotation": int(shape_result["text"]["rotation"]),
                 },
             ]
 
@@ -271,7 +293,7 @@ class GNS3CreateAreaDrawingTool(BaseTool):
 
             for i, drawing_data in enumerate(drawings):
                 try:
-                    drawing_type = "ellipse" if i == 0 else "text"
+                    drawing_type = shape_type if i == 0 else "text"
                     logger.info(
                         "Creating drawing %d/%d: %s at (%d, %d) with rotation %d°...",
                         i + 1,
@@ -325,7 +347,7 @@ class GNS3CreateAreaDrawingTool(BaseTool):
                 "area_name": area_name,
                 "node_count": len(node_names),
                 "nodes": node_names,
-                "shape_type": "ellipse",
+                "shape_type": shape_type,
                 "created_drawings": results,
                 "total_drawings": len(drawings),
                 "successful_drawings": successful_drawings,
@@ -359,16 +381,28 @@ if __name__ == "__main__":
     # Test the tool locally
     from pprint import pprint
 
-    test_input = json.dumps(
+    # Test with ellipse (default)
+    test_input_ellipse = json.dumps(
         {
             "project_id": "d7fc094c-685e-4db1-ac11-5e33a1b2e066",  # Replace with actual project UUID
             "area_name": "Core Area",
             "node_names": ["R-6", "R-4"],  # Replace with actual node names
+            "shape_type": "ellipse",
+        }
+    )
+
+    # Test with rectangle
+    test_input_rectangle = json.dumps(
+        {
+            "project_id": "d7fc094c-685e-4db1-ac11-5e33a1b2e066",  # Replace with actual project UUID
+            "area_name": "VLAN 10",
+            "node_names": ["SW-1", "SW-2"],  # Replace with actual node names
+            "shape_type": "rectangle",
         }
     )
 
     tool = GNS3CreateAreaDrawingTool()
-    result = tool._run(test_input)
+    result = tool._run(test_input_ellipse)
     pprint(result)
 
 

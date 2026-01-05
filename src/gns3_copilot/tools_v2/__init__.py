@@ -32,8 +32,6 @@ Author: Guobin Yue
 """
 
 # Import main tool classes
-# Import GNS3 layout adjustment tool
-from ..gns3_client.gns3_adjust_layout import GNS3AdjustLayoutTool
 from .config_tools_nornir import ExecuteMultipleDeviceConfigCommands
 from .display_tools_nornir import ExecuteMultipleDeviceCommands
 from .gns3_create_area_drawing import GNS3CreateAreaDrawingTool
@@ -67,7 +65,6 @@ __all__ = [
     "GNS3TemplateTool",
     "GNS3CreateAreaDrawingTool",
     "LinuxTelnetBatchTool",
-    "GNS3AdjustLayoutTool",
 ]
 
 # Package initialization message

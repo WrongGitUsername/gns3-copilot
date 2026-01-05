@@ -98,6 +98,15 @@ with st.container(width=800, horizontal_alignment="center", vertical_alignment="
             check_gns3_api()
 
     with st.expander("LLM Model Configuration", expanded=True):
+        # Recommended models information
+        st.success(
+            """
+            **🌟 Recommended Models:**
+            - **Best:** `deepseek-chat` or `deepseek/deepseek-v3.2` (via OpenRouter)
+            - Other recommended: `x-ai/grok-3`, `anthropic/claude-sonnet-4`, `z-ai/glm-4.7`
+            """
+        )
+
         # Provider selector and model selector side-by-side
         col1, col2 = st.columns([1, 2])
 
@@ -406,7 +415,7 @@ with st.container(width=800, horizontal_alignment="center", vertical_alignment="
                 )
         else:
             st.caption(
-                "💡 Voice features are currently disabled. Enable the toggle above to configure TTS/STT settings."
+                "💡 Voice features are currently disabled. Enable the toggle above to configure TTS/STT settings. (Experimental Test Feature)"
             )
 
     with st.expander("Other Settings", expanded=True):
