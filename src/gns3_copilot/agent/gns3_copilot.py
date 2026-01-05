@@ -61,6 +61,19 @@ base_model = init_chat_model(
     config_prefix="foo",
 )
 
+# Log loaded LLM model information
+model_name = os.getenv("MODEL_NAME")
+model_provider = os.getenv("MODE_PROVIDER")
+base_url = os.getenv("BASE_URL", "")
+temperature = os.getenv("TEMPERATURE", "0")
+logger.info(
+    "Loaded LLM model: name=%s, provider=%s, base_url=%s, temperature=%s",
+    model_name,
+    model_provider,
+    base_url,
+    temperature,
+)
+
 title_mode = base_model
 # use OpenRouter
 # base_model = init_chat_model(
