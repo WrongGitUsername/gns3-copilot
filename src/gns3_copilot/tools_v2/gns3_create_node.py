@@ -101,6 +101,8 @@ class GNS3CreateNodeTool(BaseTool):
                 }
             ]
         }
+    IMPORTANT: Ensure the distance between any two nodes is greater than 250 pixels.
+    This spacing is necessary to display interface numbers clearly for better topology visualization.
     Returns a dictionary with creation results for all nodes, including success/failure status.
     If the operation fails during input validation, returns a dictionary with an error message.
     """

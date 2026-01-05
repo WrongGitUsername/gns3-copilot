@@ -10,7 +10,7 @@ import math
 from typing import Any
 
 # Default parameters for layout algorithms
-DEFAULT_MIN_DISTANCE = 150  # Minimum distance between nodes in pixels
+DEFAULT_MIN_DISTANCE = 250  # Minimum distance between nodes in pixels
 DEFAULT_ITERATIONS = 100  # Default number of iterations
 
 # GNS3 GUI compatibility
