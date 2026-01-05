@@ -102,7 +102,10 @@ class LinuxTelnetBatchTool(BaseTool):
     """
 
     def _run(
-        self, tool_input: str, run_manager: CallbackManagerForToolRun | None = None
+        self,
+        tool_input: str | bytes | list[Any] | dict[str, Any],
+        run_manager: CallbackManagerForToolRun | None = None,
+        **kwargs: Any,
     ) -> list[dict[str, Any]]:
         """
         Batch execute Linux read-only commands (main entry).

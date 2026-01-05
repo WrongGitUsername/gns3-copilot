@@ -90,6 +90,7 @@ class ExecuteMultipleDeviceCommands(BaseTool):
         self,
         tool_input: str | bytes | list[Any] | dict[str, Any],
         run_manager: CallbackManagerForToolRun | None = None,
+        **kwargs: Any,
     ) -> list[dict[str, Any]]:
         """
         Executes display commands on multiple devices in current GNS3 topology.

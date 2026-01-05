@@ -315,7 +315,10 @@ class VPCSMultiCommands(BaseTool):
         return device_configs, project_id
 
     def _run(
-        self, tool_input: str, run_manager: CallbackManagerForToolRun | None = None
+        self,
+        tool_input: str,
+        run_manager: CallbackManagerForToolRun | None = None,
+        **kwargs: Any,
     ) -> list[dict[str, Any]]:
         """Main method to execute multi-device multi-commands"""
 
