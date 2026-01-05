@@ -396,8 +396,6 @@ class LinuxTelnetBatchTool(BaseTool):
         Returns:
             True if valid UUID format, False otherwise
         """
-        import re
-
         uuid_pattern = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
         return bool(re.match(uuid_pattern, project_id, re.IGNORECASE))
 
