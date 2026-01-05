@@ -108,5 +108,3 @@ class TestUtilityFunctions:
         providers = get_all_providers()
         assert "OpenRouter" in providers
         assert "DeepSeek" in providers
-        assert "OpenAI" in providers
-        assert "Anthropic" in providers

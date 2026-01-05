@@ -11,7 +11,7 @@ from typing import Any, Literal
 # Default parameters
 DEFAULT_DEVICE_WIDTH = 50
 DEFAULT_DEVICE_HEIGHT = 50
-DEFAULT_FONT_SIZE = 12
+DEFAULT_FONT_SIZE = 14
 DEFAULT_SHAPE_Z = 0
 DEFAULT_TEXT_Z = 1
 
@@ -24,56 +24,56 @@ Z_ORDER_MEDIUM_AREA_THRESHOLD = 300  # z=2 for medium areas
 COLOR_SCHEMES = {
     # Core/Backbone - biz_blue
     "CORE_BACKBONE": {
-        "stroke": "#2980B9",  # Blue (for text)
+        "stroke": "#FFFFFF",  # White (for text on dark background)
         "fill": "#2980B9",  # Blue background
         "fill_opacity": 0.8,  # Transparency level
     },
     # Normal Areas - biz_blue_light
     "NORMAL_AREA": {
-        "stroke": "#229CEC",  # Light blue (for text)
+        "stroke": "#000000",  # Black (for text on light background)
         "fill": "#5AA9DD",  # Light blue background
         "fill_opacity": 0.8,  # Transparency level
     },
     # Logical Isolation - biz_purple
     "ISOLATION": {
-        "stroke": "#9B59B6",  # Purple (for text)
+        "stroke": "#FFFFFF",  # White (for text on dark background)
         "fill": "#9B59B6",  # Purple background
         "fill_opacity": 0.8,  # Transparency level
     },
     # Management/Infrastructure - biz_orange
     "MANAGEMENT_INFRA": {
-        "stroke": "#E67E22",  # Orange (for text)
+        "stroke": "#FFFFFF",  # White (for text on medium-dark background)
         "fill": "#E67E22",  # Orange background
         "fill_opacity": 0.8,  # Transparency level
     },
     # Redundancy/High Availability - biz_orange_bright
     "HIGH_AVAILABILITY": {
-        "stroke": "#F39C12",  # Bright orange (for text)
+        "stroke": "#000000",  # Black (for text on bright background)
         "fill": "#F39C12",  # Bright orange background
         "fill_opacity": 0.8,  # Transparency level
     },
     # External/Boundary - biz_red_bright
     "EXTERNAL": {
-        "stroke": "#E74C3C",  # Bright red (for text)
+        "stroke": "#FFFFFF",  # White (for text on dark background)
         "fill": "#E74C3C",  # Bright red background
         "fill_opacity": 0.8,  # Transparency level
     },
     # Security/Trusted - biz_green_bright
     "SECURITY_TRUSTED": {
-        "stroke": "#2ECC71",  # Bright green (for text)
+        "stroke": "#FFFFFF",  # White (for text on medium-dark background)
         "fill": "#2ECC71",  # Bright green background
         "fill_opacity": 0.8,  # Transparency level
     },
     # Cloud/Tunnel - biz_cyan_dark
     "CLOUD_TUNNEL": {
-        "stroke": "#00CED1",  # Dark cyan (for text)
+        "stroke": "#FFFFFF",  # White (for text on dark background)
         "fill": "#00CED1",  # Dark cyan background
         "fill_opacity": 0.8,  # Transparency level
     },
     # Default - biz_gray
     "DEFAULT": {
-        "stroke": "#808B96",  # Gray (for text)
-        "fill": "#808B96",  # Gray background
+        "stroke": "#FFFFFF",  # White (for text on medium-dark background)
+        "fill": "#A5CC78",  # Gray background
         "fill_opacity": 0.8,  # Transparency level
     },
 }
