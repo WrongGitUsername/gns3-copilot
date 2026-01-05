@@ -29,17 +29,25 @@ GNS3 Copilot is a powerful network automation tool that integrates multiple AI m
 
 ## Technical Architecture
 
-[GNS3-Copilot Architecture](Architecture/gns3_copilot_architecture.md)
-
-[Core Framework Detailed Design](Architecture/Core%20Framework%20Detailed%20Design.md)
+- [System Architecture](docs/architecture/system-architecture.md) - Comprehensive system architecture overview with 7-layer design
+- [Core Framework Design](docs/architecture/core-framework-design.md) - Detailed LangGraph and LangChain framework design
+- [Architecture Documentation Index](docs/architecture/) - All architecture diagrams and design documents
 
 ## Documentation
 
-- [FAQ](docs/FAQ.md) - Frequently asked questions and troubleshooting guide
-- [LLM Quick Configuration Guide](docs/llm-quick-configuration-guide.md) - Quick setup guide for LLM providers
-- [Manual Testing Guide](docs/manual_testing_guide.md) - Comprehensive manual testing instructions
-- [Auto Documentation Automation Guide](docs/auto-doc-automation-guide.md) - Automated documentation guide
-- [Packaging Guide](docs/packaging-guide.md) - Package distribution and release guide
+### User Documentation
+- [FAQ](docs/user/FAQ.md) - Frequently asked questions and troubleshooting guide
+- [LLM Quick Configuration Guide](docs/user/llm-quick-configuration-guide.md) - Quick setup guide for LLM providers
+
+### Development Documentation
+- [Manual Testing Guide](docs/development/testing/manual_testing_guide.md) - Comprehensive manual testing instructions
+- [Test Coverage Report](docs/development/testing/TEST_COVERAGE_REPORT.md) - Automated test coverage statistics
+- [Auto Commit Usage Guide](docs/development/automation/auto-commit-usage-guide.md) - Git commit message automation guide
+- [Auto Documentation Automation Guide](docs/development/automation/auto-doc-automation-guide.md) - Automated documentation updates
+- [Backend Evolution Plan](docs/development/evolution/GNS3-Copilot%20Backend%20Evolution%20Plan.md) - Project evolution roadmap
+
+### Technical Documentation
+- [GNS3 Drawing SVG Format Guide](docs/technical/gns3-drawing-svg-format-guide.md) - GNS3 drawing format and color scheme
 
 
 The Final Concept: Multi-Agent System Architecture and Dynamic Context Manager (Based on Current Understanding)
@@ -176,7 +184,21 @@ GNS3 Copilot configuration is managed through a Streamlit interface, with all se
 - **Base URL**: Base URL for model service (required when using third-party platforms like OpenRouter)
 - **Temperature**: Model temperature parameter (controls output randomness, range 0.0-1.0)
 
-##### 3. Other Settings
+##### 3. Voice Features Configuration (Experimental)
+- **Voice Features**: Voice features toggle (enable/disable TTS/STT functionality)
+- **TTS API Key**: Text-to-speech service API key
+- **TTS Model**: TTS model selection (supports: tts-1, tts-1-hd, gpt-4o-mini-tts)
+- **TTS Voice**: Voice character selection (supports: alloy, ash, ballad, etc.)
+- **TTS Speed**: Voice playback speed (range: 0.25-4.0)
+- **TTS Base URL**: TTS service base URL
+- **STT API Key**: Speech-to-text service API key
+- **STT Model**: STT model selection (supports: whisper-1, gpt-4o-transcribe, etc.)
+- **STT Language**: Recognition language code (e.g., en, zh, ja)
+- **STT Temperature**: Recognition temperature parameter (controls randomness, range 0.0-1.0)
+- **STT Response Format**: Output format (supports: json, text, srt, etc.)
+- **STT Base URL**: STT service base URL
+
+##### 4. Other Settings
 - **Linux Console Username**: Linux console username (for Debian devices in GNS3)
 - **Linux Console Password**: Linux console password
 

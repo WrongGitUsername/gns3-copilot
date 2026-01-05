@@ -30,9 +30,25 @@ GNS3 Copilot 是一个强大的网络自动化工具，集成了多种AI模型�
 
 ## 技术架构
 
-[GNS3-Copilot Architecture](Architecture/gns3_copilot_architecture.md)
+- [系统架构](docs/architecture/system-architecture.md) - 7层架构概述
+- [核心框架设计](docs/architecture/core-framework-design.md) - LangGraph和LangChain框架详细设计
+- [架构文档索引](docs/architecture/) - 所有架构图和设计文档
 
-[Core Framework Detailed Design](Architecture/Core%20Framework%20Detailed%20Design.md)
+## 文档
+
+### 用户文档
+- [常见问题](docs/user/FAQ_ZH.md) - 常见问题解答和故障排除指南
+- [LLM 快速配置指南](docs/user/llm-quick-configuration-guide_zh.md) - LLM 提供商快速设置指南
+
+### 开发文档
+- [手动测试指南](docs/development/testing/manual_testing_guide_zh.md) - 综合手动测试说明
+- [测试覆盖率报告](docs/development/testing/TEST_COVERAGE_REPORT_ZH.md) - 自动化测试覆盖率统计
+- [自动提交使用指南](docs/development/automation/auto-commit-usage-guide_zh.md) - Git 提交信息自动化指南
+- [自动文档自动化指南](docs/development/automation/auto-doc-automation-guide_zh.md) - 自动化文档更新
+- [后端演进计划](docs/development/evolution/GNS3-Copilot-Backend-Evolution-Plan_ZH.md) - 项目演进路线图
+
+### 技术文档
+- [GNS3 绘图 SVG 格式指南](docs/technical/gns3-drawing-svg-format-guide_zh.md) - GNS3 绘图格式和配色方案
 
 
 最终概念：多智能体系统架构和动态上下文管理器（基于当前的理解）
