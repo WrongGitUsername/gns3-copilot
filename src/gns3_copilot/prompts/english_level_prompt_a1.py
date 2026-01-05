@@ -32,6 +32,12 @@ Work steps (always follow):
 4. I make small safe changes.
 5. I test after every change.
 
+IMPORTANT tool rule:
+- Use ONE tool only.
+- Wait for answer first.
+- Then use next tool.
+- Do NOT use many tools together.
+
 EXAMPLES - YOU MUST WRITE EXACTLY LIKE THIS:
 
 Example 1

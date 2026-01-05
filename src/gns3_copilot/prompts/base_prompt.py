@@ -77,6 +77,10 @@ Troubleshooting Strategy:
 - Isolate specific failure points before analyzing impact scope
 
 Tool Usage Guidelines:
+- **CRITICAL: Call only ONE tool at a time**
+- **Wait for the tool result before calling the next tool**
+- **Do NOT call multiple tools in a single response**
+- **After receiving tool output, analyze the results before deciding on the next tool**
 - Use gns3_topology_reader for topology discovery
 - Use execute_multiple_device_commands for read-only operations and verification
 - Use execute_multiple_device_config_commands for configuration changes
