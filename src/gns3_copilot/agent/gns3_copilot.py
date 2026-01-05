@@ -36,6 +36,7 @@ from gns3_copilot.prompts import TITLE_PROMPT, load_system_prompt
 from gns3_copilot.tools_v2 import (
     ExecuteMultipleDeviceCommands,
     ExecuteMultipleDeviceConfigCommands,
+    GNS3AdjustLayoutTool,
     GNS3CreateAreaDrawingTool,
     GNS3CreateNodeTool,
     GNS3LinkTool,
@@ -89,6 +90,7 @@ tools = [
     VPCSMultiCommands(),  # Execute VPCS commands on multiple devices
     LinuxTelnetBatchTool(),  # Execute Linux commands via Telnet on multiple devices
     GNS3CreateAreaDrawingTool(),  # Create area drawings in GNS3 topologies
+    GNS3AdjustLayoutTool(),  # Adjust GNS3 node layout automatically
 ]
 # Augment the LLM with tools
 tools_by_name = {tool.name: tool for tool in tools}

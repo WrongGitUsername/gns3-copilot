@@ -23,8 +23,8 @@ class LayoutAdjustmentInput(BaseModel):
 
     project_id: str = Field(..., description="GNS3 project ID")
     min_distance: int = Field(
-        default=150,
-        description="Minimum distance between nodes in pixels (default: 150)",
+        default=250,
+        description="Minimum distance between nodes in pixels (default: 250)",
     )
     max_iterations: int = Field(
         default=100,
@@ -91,7 +91,7 @@ class GNS3AdjustLayoutTool(BaseTool):
             # Parse input
             project_id = kwargs.get("project_id")
             layout_type = "auto_spacing"  # Fixed to auto_spacing
-            min_distance = kwargs.get("min_distance", 150)
+            min_distance = kwargs.get("min_distance", 250)
             max_iterations = kwargs.get("max_iterations", 100)
 
             logger.info(f"Adjusting layout for project {project_id} using auto_spacing")

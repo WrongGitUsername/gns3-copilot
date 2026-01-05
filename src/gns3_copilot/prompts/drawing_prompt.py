@@ -53,16 +53,16 @@ The tool automatically selects colors based on keywords in area_name:
 
 | Color | Semantics | Keywords | Examples |
 |-------|-----------|----------|----------|
-| `#1B4F72` (Deep Blue) | Core/Backbone | BGP, AS, AREA 0, BACKBONE | "BGP AS 65001", "Area 0" |
-| `#A9CCE3` (Light Blue) | Normal Areas | AREA, LEVEL, OSPF, IS-IS, RIP, EIGRP | "Area 1", "Level-1" |
-| `#7D3C98` (Purple) | Logical Isolation | VRF, VLAN, MSTP, VXLAN, MPLS | "VRF A", "VLAN 10" |
-| `#808B96` (Gray) | Management | MGMT, OOB, MANAGEMENT, INFRA | "MGMT", "OOB Network" |
-| `#D68910` (Orange) | High Availability | VRRP, HSRP, HA, STACK, M-LAG, GLBP | "VRRP Group 1", "Core Stack" |
-| `#943126` (Red) | External/Boundary | INET, OUT, EXTERNAL, INTERNET, DMZ | "Internet", "DMZ" |
-| `#1D8348` (Green) | Security/Trusted | TRUST, SECURE, SAFE, DATA CENTER, SECURITY, VPN, IPSEC | "Trust Zone", "Data Center" |
-| `#16A085` (Cyan) | Cloud/Tunnel | GRE, IPSEC, VPN, TUNNEL, CLOUD, AWS, AZURE | "GRE Tunnel", "Cloud Provider" |
+| `#2980B9` (Blue) | Core/Backbone | BGP, AS, AREA 0, BACKBONE | "BGP AS 65001", "Area 0" |
+| `#5AA9DD` (Light Blue) | Normal Areas | AREA, LEVEL, OSPF, IS-IS, RIP, EIGRP | "Area 1", "Level-1" |
+| `#9B59B6` (Purple) | Logical Isolation | VRF, VLAN, MSTP, VXLAN, MPLS | "VRF A", "VLAN 10" |
+| `#E67E22` (Orange) | Management | MGMT, OOB, MANAGEMENT, INFRA | "MGMT", "OOB Network" |
+| `#F39C12` (Bright Orange) | High Availability | VRRP, HSRP, HA, STACK, M-LAG, GLBP | "VRRP Group 1", "Core Stack" |
+| `#E74C3C` (Bright Red) | External/Boundary | INET, OUT, EXTERNAL, INTERNET, DMZ | "Internet", "DMZ" |
+| `#2ECC71` (Bright Green) | Security/Trusted | TRUST, SECURE, SAFE, DATA CENTER, SECURITY, VPN, IPSEC | "Trust Zone", "Data Center" |
+| `#00CED1` (Cyan) | Cloud/Tunnel | GRE, IPSEC, VPN, TUNNEL, CLOUD, AWS, AZURE | "GRE Tunnel", "Cloud Provider" |
 
-**Default**: Uses gray for labels without matching keywords.
+**Default**: Uses gray (`#808B96`) for labels without matching keywords.
 
 ### Best Practices
 

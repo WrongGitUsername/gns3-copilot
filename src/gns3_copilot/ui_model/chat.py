@@ -134,13 +134,6 @@ else:
 
 # --- Main workspace (only visible when a project is selected) ---
 if selected_p:
-    st.markdown(
-        """
-        <h3 style='text-align: left; font-size: 22px; font-weight: bold; margin-top: 20px;'>Workspace</h3>
-        """,
-        unsafe_allow_html=True,
-    )
-
     # Dynamic column layout based on iframe visibility
     if st.session_state.show_iframe:
         layout_col1, layout_col2 = st.columns([3, 7], gap="medium")
@@ -153,6 +146,12 @@ if selected_p:
             border=False,
         )
         with history_container:
+            st.markdown(
+                """
+                <h3 style='text-align: left; font-size: 22px; font-weight: bold; margin-top: 20px;'>Workspace</h3>
+                """,
+                unsafe_allow_html=True,
+            )
             # StateSnapshot state example test/langgraph_checkpoint.json file
             # Display previous messages from state history
             if st.session_state.get("state_history") is not None:

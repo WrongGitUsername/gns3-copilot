@@ -22,6 +22,7 @@ GNS3 Copilot 是一个强大的网络自动化工具，集成了多种AI模型�
 - 🤖 **AI驱动的对话界面**: 支持自然语言交互，理解网络自动化需求
 - 🔧 **设备配置管理**: 批量配置网络设备，支持多种厂商设备（目前仅测试了Cisco IOSv镜像）
 - 📊 **拓扑管理**: 自动创建、修改和管理GNS3网络拓扑
+- 🎨 **拓扑可视化**: SVG 绘图支持，自动生成网络拓扑图形，支持区域标注和连接线绘制
 - 🔍 **网络诊断**: 智能网络故障排查和性能监控
 - 🌐 **LLM支持**: 集成DeepSeek AI模型进行自然语言处理
 
@@ -29,9 +30,25 @@ GNS3 Copilot 是一个强大的网络自动化工具，集成了多种AI模型�
 
 ## 技术架构
 
-[GNS3-Copilot Architecture](Architecture/gns3_copilot_architecture.md)
+- [系统架构](docs/architecture/system-architecture.md) - 7层架构概述
+- [核心框架设计](docs/architecture/core-framework-design.md) - LangGraph和LangChain框架详细设计
+- [架构文档索引](docs/architecture/) - 所有架构图和设计文档
 
-[Core Framework Detailed Design](Architecture/Core%20Framework%20Detailed%20Design.md)
+## 文档
+
+### 用户文档
+- [常见问题](docs/user/FAQ_ZH.md) - 常见问题解答和故障排除指南
+- [LLM 快速配置指南](docs/user/llm-quick-configuration-guide_zh.md) - LLM 提供商快速设置指南
+
+### 开发文档
+- [手动测试指南](docs/development/testing/manual_testing_guide_zh.md) - 综合手动测试说明
+- [测试覆盖率报告](docs/development/testing/TEST_COVERAGE_REPORT_ZH.md) - 自动化测试覆盖率统计
+- [自动提交使用指南](docs/development/automation/auto-commit-usage-guide_zh.md) - Git 提交信息自动化指南
+- [自动文档自动化指南](docs/development/automation/auto-doc-automation-guide_zh.md) - 自动化文档更新
+- [后端演进计划](docs/development/evolution/GNS3-Copilot-Backend-Evolution-Plan_ZH.md) - 项目演进路线图
+
+### 技术文档
+- [GNS3 绘图 SVG 格式指南](docs/technical/gns3-drawing-svg-format-guide_zh.md) - GNS3 绘图格式和配色方案
 
 
 最终概念：多智能体系统架构和动态上下文管理器（基于当前的理解）
@@ -164,7 +181,7 @@ gns3-copilot --help
 - **Base URL**: 模型服务的基础 URL（使用 OpenRouter 等第三方平台时必需）
 - **Temperature**: 模型温度参数（控制输出随机性，范围 0.0-1.0）
 
-##### 3. 语音功能配置
+##### 3. 语音功能配置（实验功能）
 - **Voice Features**: 语音功能开关（启用/禁用TTS/STT功能）
 - **TTS API Key**: 文本转语音服务API密钥
 - **TTS Model**: TTS模型选择（支持：tts-1, tts-1-hd, gpt-4o-mini-tts）
@@ -195,12 +212,14 @@ gns3-copilot --help
 
 本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
 
-## Acknowledgements
+## 致谢
 
-Special thanks to the following resources for their inspiration and technical foundation:
+本项目受到以下资源的启发，它们为 Python 编程、网络自动化和 AI 应用提供了重要的技术基础：
 
-* **Powered by 《网络工程师的 Python 之路》**
-* **Powered by 《网络工程师的 AI 之路》**
+- **《网络工程师的 Python 之路》** - 网络工程师 Python 自动化技术
+- **《网络工程师的 AI 之路》** - 网络工程师 AI 应用技术
+
+特别感谢这些资源提供的技术启发和指导。
 
 
 ## 联系方式
