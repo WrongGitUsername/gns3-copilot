@@ -137,7 +137,7 @@ class MessagesState(TypedDict):
     conversation_title: str | None
 
     # Store the complete tuple selected by the user
-    selected_project: tuple[str, str, int, int, str]
+    selected_project: tuple[str, str, int, int, str] | None
 
 
 # Define llm call  node
@@ -365,16 +365,27 @@ def get_agent():
     """
     Compile and cache the LangGraph agent.
 
-    The agent builder (`agent_builder`) and checkpointer are defined earlier in the file.
-    By not passing them as parameters we avoid Streamlit cache invalidation issues
-    when objects are recreated (even if they are logically identical).
+    Args:
+        checkpointer: Optional checkpointer for persistence.
+                     If None, uses the default SqliteSaver for Streamlit.
     """
-    return agent_builder.compile(checkpointer=get_checkpointer())
+    return agent_builder.compile(
+        checkpointer=get_checkpointer(),
+        interrupt_before=["llm_call"],
+    )
 
 
 langgraph_checkpointer = get_checkpointer()  # Cached SqliteSaver instance
+
+# Streamlit UI use
 agent = get_agent()  # Cached compiled LangGraph agent (with persistence)
 
+
+def get_deployed_agent():
+    return agent_builder.compile()
+
+# LangGraph API use
+deployed_agent = get_deployed_agent()
 # Show the agent
 # graph_image_data = agent.get_graph(xray=True).draw_mermaid_png()
 # with open("agent_graph.png", "wb") as f:
