@@ -83,8 +83,8 @@ Model API Key: sk-or-v1-xxxxxxxxx
     """)
 
     st.info("""
-    :material:info: **Important**: 
-    
+    :material:info: **Important**:
+
     - **LLM model configuration changes require restarting the application**
     - **GNS3 Server configuration changes require restarting the application**
     - Simply refreshing the browser page (F5) is NOT sufficient
@@ -144,8 +144,8 @@ Model API Key: sk-or-v1-xxxxxxxxx
     """)
 
     st.info("""
-    :material:info: **重要提示**: 
-    
+    :material:info: **重要提示**:
+
     - **LLM 模型配置修改后必须重启应用**
     - **GNS3 服务器配置修改后必须重启应用**
     - 仅刷新浏览器页面（按 F5）无法使配置生效
