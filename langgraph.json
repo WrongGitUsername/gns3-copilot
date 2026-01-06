@@ -1,0 +1,19 @@
+{
+  "graphs": {
+    "agent": {
+      "path": "src.gns3_copilot.agent:agent",
+      "title": "GNS3 Copilot Agent",
+      "description": "AI-powered network automation assistant for GNS3 with Linux specialist subgraph. Supports topology management, device configuration, and network diagnostics."
+    }
+  },
+  "env": {
+    "MODEL_NAME": "deepseek-chat",
+    "MODE_PROVIDER": "deepseek",
+    "MODEL_API_KEY": "${LANGGRAPH_API_KEY}",
+    "BASE_URL": "https://api.deepseek.com/v1",
+    "TEMPERATURE": "0.3"
+  },
+  "dependencies": [
+    "."
+  ]
+}
