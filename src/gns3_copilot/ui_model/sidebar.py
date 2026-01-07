@@ -68,10 +68,10 @@ def render_sidebar(
     """
     with st.sidebar:
         # Initialize sidebar configuration values
-        # Get current container height from session state or default to 1200
+        # Get current container height from session state or default to 900
         current_height = st.session_state.get("CONTAINER_HEIGHT")
         if current_height is None or not isinstance(current_height, int):
-            current_height = 1200
+            current_height = 900
 
         # Get current zoom scale from session state
         current_zoom = st.session_state.get("zoom_scale_topology")

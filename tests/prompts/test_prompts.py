@@ -433,7 +433,7 @@ class TestModuleImports:
         """Test __all__ exports are available."""
         from gns3_copilot.prompts import __all__
         
-        expected_exports = ["load_system_prompt", "TITLE_PROMPT"]
+        expected_exports = ["load_system_prompt", "TITLE_PROMPT", "LINUX_SPECIALIST_PROMPT"]
         assert set(__all__) == set(expected_exports)
 
 

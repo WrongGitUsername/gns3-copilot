@@ -1,0 +1,13 @@
+{
+  "graphs": {
+    "deployed_agent": {
+      "path": "gns3_copilot.agent.gns3_copilot:deployed_agent",
+      "title": "GNS3 Copilot Agent",
+      "description": "AI-powered network automation assistant for GNS3 with Linux specialist subgraph. Supports topology management, device configuration, and network diagnostics."
+    }
+  },
+  "env": ".env",
+  "dependencies": [
+    "."
+  ]
+}
