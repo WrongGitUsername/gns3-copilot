@@ -84,43 +84,44 @@ def render_sidebar(
         if current_zoom is None:
             current_zoom = 0.8
 
-        # Note: We don't use key parameter here to avoid automatic session_state management
-        new_height = st.slider(
-            ":material/height: Page Height (px)",
-            min_value=300,
-            max_value=1500,
-            value=current_height,
-            step=50,
-            help="Adjust the height for chat and GNS3 view",
-        )
+        with st.expander(":material/settings: Display Settings", expanded=False):
+            # Note: We don't use key parameter here to avoid automatic session_state management
+            new_height = st.slider(
+                ":material/height: Page Height (px)",
+                min_value=300,
+                max_value=1500,
+                value=current_height,
+                step=50,
+                help="Adjust the height for chat and GNS3 view",
+            )
 
-        # If the height changed, update session state and save to .env file
-        if new_height != current_height:
-            st.session_state["CONTAINER_HEIGHT"] = new_height
-            # Save to .env file using the centralized save function
-            try:
-                save_config_to_env()
-            except Exception as e:
-                logger.error("Failed to update CONTAINER_HEIGHT: %s", e)
+            # If the height changed, update session state and save to .env file
+            if new_height != current_height:
+                st.session_state["CONTAINER_HEIGHT"] = new_height
+                # Save to .env file using the centralized save function
+                try:
+                    save_config_to_env()
+                except Exception as e:
+                    logger.error("Failed to update CONTAINER_HEIGHT: %s", e)
 
-        new_zoom = st.slider(
-            ":material/zoom_in: Zoom Scale",
-            min_value=0.5,
-            max_value=1.2,
-            value=current_zoom,
-            step=0.05,
-            help="Adjust the zoom scale for GNS3 topology view",
-        )
+            new_zoom = st.slider(
+                ":material/zoom_in: Zoom Scale",
+                min_value=0.5,
+                max_value=1.2,
+                value=current_zoom,
+                step=0.05,
+                help="Adjust the zoom scale for GNS3 topology view",
+            )
 
-        # If the zoom changed, update session state and save to .env file
-        if new_zoom != current_zoom:
-            st.session_state["zoom_scale_topology"] = new_zoom
-            try:
-                save_config_to_env()
-            except Exception as e:
-                logger.error("Failed to update ZOOM_SCALE_TOPOLOGY: %s", e)
+            # If the zoom changed, update session state and save to .env file
+            if new_zoom != current_zoom:
+                st.session_state["zoom_scale_topology"] = new_zoom
+                try:
+                    save_config_to_env()
+                except Exception as e:
+                    logger.error("Failed to update ZOOM_SCALE_TOPOLOGY: %s", e)
 
-        st.markdown("---")
+        #st.markdown("---")
 
         # Session management - render for all pages
         selected_thread_id = None
@@ -271,7 +272,7 @@ def _render_session_management() -> tuple[Any | None, str | None]:
                         st.error(f"❌ Export error: {str(e)}")
                         logger.error("Export error: %s", e)
 
-    #st.markdown("---")
+    # st.markdown("---")
 
     # Import session functionality in expander
     with st.expander(":material/upload: Import Session", expanded=False):
@@ -365,7 +366,7 @@ def _render_session_management() -> tuple[Any | None, str | None]:
 def render_sidebar_about() -> None:
     """Render the about section in the sidebar."""
     with st.sidebar:
-        st.markdown("---")
+        #st.markdown("---")
         st.markdown("### :material/info: About")
         st.markdown(
             f"""
