@@ -23,13 +23,16 @@ from typing import Annotated, Literal
 
 import streamlit as st
 from dotenv import load_dotenv
-from langchain.chat_models import init_chat_model
 from langchain.messages import AnyMessage, SystemMessage, ToolMessage
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.managed.is_last_step import RemainingSteps
 from typing_extensions import TypedDict
 
+from gns3_copilot.agent.model_factory import (
+    create_base_model_with_tools,
+    create_title_model,
+)
 from gns3_copilot.gns3_client import GNS3TopologyTool
 from gns3_copilot.log_config import setup_logger
 from gns3_copilot.prompts import TITLE_PROMPT, load_system_prompt
@@ -50,45 +53,18 @@ load_dotenv()
 # Set up logger for GNS3 Copilot
 logger = setup_logger("gns3_copilot", log_file="log/gns3_copilot.log")
 
-# LangChain 1.2.0 requires 'model' as the first positional argument
-base_model = init_chat_model(
-    os.getenv("MODEL_NAME"),
-    model_provider=os.getenv("MODE_PROVIDER"),
-    api_key=os.getenv("MODEL_API_KEY"),
-    base_url=os.getenv("BASE_URL", ""),
-    temperature=os.getenv("TEMPERATURE", "0"),
-    configurable_fields="any",
-    config_prefix="foo",
-)
-
 # Log loaded LLM model information
 model_name = os.getenv("MODEL_NAME")
 model_provider = os.getenv("MODE_PROVIDER")
 base_url = os.getenv("BASE_URL", "")
 temperature = os.getenv("TEMPERATURE", "0")
 logger.info(
-    "Loaded LLM model: name=%s, provider=%s, base_url=%s, temperature=%s",
+    "LLM model configuration: name=%s, provider=%s, base_url=%s, temperature=%s",
     model_name,
     model_provider,
     base_url,
     temperature,
 )
-
-title_mode = base_model
-# use OpenRouter
-# base_model = init_chat_model(
-#    model_provider="openai",
-#    base_url = "https://openrouter.ai/api/v1",
-#    temperature = 0,
-#    api_key = os.getenv("OPENROUTER_API_KEY"),
-# model="openai/gpt-4o-mini",
-# model="google/gemini-2.5-flash", # It ignores the observations after the tool is executed.
-#    model="x-ai/grok-4-fast",
-# )
-# assist_model = init_chat_model(
-#    model="google_genai:gemini-2.5-flash",
-#    temperature=1
-# )
 
 # Define the available tools for the agent
 tools = [
@@ -105,7 +81,7 @@ tools = [
 ]
 # Augment the LLM with tools
 tools_by_name = {tool.name: tool for tool in tools}
-model_with_tools = base_model.bind_tools(tools)
+# Model with tools will be created dynamically by the factory when needed
 
 # Log application startup
 logger.info("GNS3 Copilot application starting up")
@@ -173,6 +149,11 @@ def llm_call(state: dict):
         [SystemMessage(content=current_prompt)] + context_messages + state["messages"]
     )
     # print(full_messages)
+
+    # Create fresh model with tools for each LLM call
+    # This ensures configuration changes in .env take effect immediately
+    model_with_tools = create_base_model_with_tools(tools)
+
     return {
         "messages": [model_with_tools.invoke(full_messages)],
         "llm_calls": state.get("llm_calls", 0) + 1,
@@ -198,9 +179,11 @@ def generate_title(state: MessagesState) -> dict:
         ]
         logger.debug("summary_messages for title generation: %s", title_prompt_messages)
 
-        # Call the title generation model (currently using the same base_model / DeepSeek)
+        # Call the title generation model (create fresh instance for each call)
         try:
-            response = title_mode.invoke(
+            # Create fresh title model instance from current env configuration
+            title_model = create_title_model()
+            response = title_model.invoke(
                 title_prompt_messages, config={"configurable": {"foo_temperature": 1.0}}
             )
             logger.debug("generate_title: %s", response)
@@ -371,7 +354,6 @@ def get_agent():
     """
     return agent_builder.compile(
         checkpointer=get_checkpointer(),
-        interrupt_before=["llm_call"],
     )
 
 
@@ -384,9 +366,11 @@ agent = get_agent()  # Cached compiled LangGraph agent (with persistence)
 def get_deployed_agent():
     return agent_builder.compile()
 
+
 # LangGraph API use
 deployed_agent = get_deployed_agent()
 # Show the agent
 # graph_image_data = agent.get_graph(xray=True).draw_mermaid_png()
 # with open("agent_graph.png", "wb") as f:
+#    f.write(graph_image_data)
 #    f.write(graph_image_data)
