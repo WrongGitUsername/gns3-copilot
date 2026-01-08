@@ -4,11 +4,9 @@ This module provides a tool to execute display commands on multiple devices
 """
 
 import json
-import os
 import re
 from typing import Any
 
-from dotenv import load_dotenv
 from langchain.tools import BaseTool
 from langchain_core.callbacks import CallbackManagerForToolRun
 from netmiko.exceptions import ReadTimeout
@@ -19,36 +17,14 @@ from nornir_netmiko.tasks import netmiko_multiline
 
 from gns3_copilot.log_config import setup_tool_logger
 from gns3_copilot.public_model import get_device_ports_from_topology
+from gns3_copilot.utils.env_loader import (
+    get_env_var,
+    get_nornir_defaults,
+    get_nornir_groups_config,
+)
 
 # config log
 logger = setup_tool_logger("display_tools_nornir")
-
-# Load environment variables
-dotenv_loaded = load_dotenv()
-if dotenv_loaded:
-    logger.info(
-        "ExecuteMultipleDeviceCommands Successfully loaded environment variables from .env file"
-    )
-else:
-    logger.warning(
-        "ExecuteMultipleDeviceCommands No .env file found or failed to load. Using existing environment variables."
-    )
-
-# Nornir configuration groups
-groups_data = {
-    "cisco_IOSv_telnet": {
-        "platform": "cisco_ios",
-        "hostname": os.getenv("GNS3_SERVER_HOST"),
-        "timeout": 120,
-        "username": os.getenv("GNS3_SERVER_USERNAME"),
-        "password": os.getenv("GNS3_SERVER_PASSWORD"),
-        "connection_options": {
-            "netmiko": {"extras": {"device_type": "cisco_ios_telnet"}}
-        },
-    }
-}
-
-defaults = {"data": {"location": "gns3"}}
 
 
 class ExecuteMultipleDeviceCommands(BaseTool):
@@ -366,22 +342,18 @@ class ExecuteMultipleDeviceCommands(BaseTool):
     def _initialize_nornir(self, hosts_data: dict[str, dict[str, Any]]) -> Nornir:
         """Initialize Nornir with the provided hosts data."""
         try:
-            # Log nornir account information
-            gns3_host = os.getenv("GNS3_SERVER_HOST")
-            # gns3_username = os.getenv("GNS3_SERVER_USERNAME")
-            # gns3_password = os.getenv("GNS3_SERVER_PASSWORD")
+            # Get latest environment configuration
+            groups_data = get_nornir_groups_config("cisco_IOSv_telnet")
+            defaults = get_nornir_defaults()
 
-            # Mask password for security (show only length)
-            # password_mask = f"{'*' * len(gns3_password)}" if gns3_password else "None"
+            # Log nornir account information
+            gns3_host = get_env_var("GNS3_SERVER_HOST")
 
             logger.info(
-                "Initializing Nornir with account: host=%s, username=%s, password=%s, "
-                "platform=%s, timeout=%d",
+                "Initializing Nornir with account: host=%s, platform=%s, timeout=%d",
                 gns3_host,
-                # gns3_username,
-                # password_mask,
-                groups_data["cisco_IOSv_telnet"]["platform"],
-                groups_data["cisco_IOSv_telnet"]["timeout"],
+                groups_data.get("platform"),
+                groups_data.get("timeout"),
             )
 
             return InitNornir(
@@ -389,7 +361,7 @@ class ExecuteMultipleDeviceCommands(BaseTool):
                     "plugin": "DictInventory",
                     "options": {
                         "hosts": hosts_data,
-                        "groups": groups_data,
+                        "groups": {"cisco_IOSv_telnet": groups_data},
                         "defaults": defaults,
                     },
                 },

@@ -9,7 +9,6 @@ import json
 from pprint import pprint
 from typing import Any
 
-from dotenv import load_dotenv
 from langchain.tools import BaseTool
 from langchain_core.callbacks import CallbackManagerForToolRun
 
@@ -18,17 +17,6 @@ from gns3_copilot.log_config import setup_tool_logger
 
 # Configure logging
 logger = setup_tool_logger("gns3_get_node_temp")
-
-# Load environment variables
-dotenv_loaded = load_dotenv()
-if dotenv_loaded:
-    logger.info(
-        "GNS3TemplateTool Successfully loaded environment variables from .env file"
-    )
-else:
-    logger.warning(
-        "GNS3TemplateTool No .env file found or failed to load. Using existing environment variables."
-    )
 
 
 class GNS3TemplateTool(BaseTool):
@@ -129,7 +117,7 @@ class GNS3TemplateTool(BaseTool):
 
 
 if __name__ == "__main__":
-    # Test the tool locally
+    # Test's tool locally
     tool = GNS3TemplateTool()
     result = tool._run("")
     pprint(result)

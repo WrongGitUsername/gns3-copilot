@@ -57,8 +57,9 @@ class TestConnectorFactoryBasic:
     def test_return_type_none_on_missing_env(self):
         """Test returns None when environment variables are missing"""
         with patch.dict(os.environ, {}, clear=True):
-            connector = get_gns3_connector()
-            assert connector is None
+            with patch('gns3_copilot.gns3_client.connector_factory.load_env'):
+                connector = get_gns3_connector()
+                assert connector is None
 
 
 class TestConnectorFactorySuccessV2:
@@ -68,8 +69,9 @@ class TestConnectorFactorySuccessV2:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
+    @patch('gns3_copilot.gns3_client.connector_factory.load_env')
     @patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector')
-    def test_success_v2_api(self, mock_connector_class):
+    def test_success_v2_api(self, mock_connector_class, mock_load_env):
         """Test successful connector creation with v2 API"""
         # Mock connector
         mock_connector = Mock()
@@ -89,8 +91,9 @@ class TestConnectorFactorySuccessV2:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://192.168.1.100:3080"
     })
+    @patch('gns3_copilot.gns3_client.connector_factory.load_env')
     @patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector')
-    def test_custom_server_url_v2(self, mock_connector_class):
+    def test_custom_server_url_v2(self, mock_connector_class, mock_load_env):
         """Test connector creation with custom server URL for v2"""
         mock_connector = Mock()
         mock_connector_class.return_value = mock_connector
@@ -106,8 +109,9 @@ class TestConnectorFactorySuccessV2:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "https://gns3.example.com:3080"
     })
+    @patch('gns3_copilot.gns3_client.connector_factory.load_env')
     @patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector')
-    def test_https_url_v2(self, mock_connector_class):
+    def test_https_url_v2(self, mock_connector_class, mock_load_env):
         """Test connector creation with HTTPS URL for v2"""
         mock_connector = Mock()
         mock_connector_class.return_value = mock_connector

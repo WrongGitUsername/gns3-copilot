@@ -10,7 +10,6 @@ import time
 from pprint import pprint
 from typing import Any
 
-from dotenv import load_dotenv
 from langchain.tools import BaseTool
 from langchain_core.callbacks import CallbackManagerForToolRun
 
@@ -19,17 +18,6 @@ from gns3_copilot.log_config import setup_tool_logger
 
 # Configure logging
 logger = setup_tool_logger("gns3_start_node")
-
-# Load environment variables
-dotenv_loaded = load_dotenv()
-if dotenv_loaded:
-    logger.info(
-        "GNS3StartNodeTool Successfully loaded environment variables from .env file"
-    )
-else:
-    logger.warning(
-        "GNS3StartNodeTool No .env file found or failed to load. Using existing environment variables."
-    )
 
 
 def show_progress_bar(

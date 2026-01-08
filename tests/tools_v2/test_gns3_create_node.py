@@ -830,7 +830,8 @@ class TestGNS3CreateNodeToolEdgeCases:
         # Mock with missing environment to trigger validation error
         with patch.dict(os.environ, {}, clear=True):
             result = tool._run(json.dumps(input_data))
-            assert "error" in result
+            # The tool may return either top-level error or nested error in created_nodes
+            assert "error" in result or ("created_nodes" in result and "error" in result["created_nodes"][0])
 
     def test_very_long_ids(self):
         """Test very long IDs"""
