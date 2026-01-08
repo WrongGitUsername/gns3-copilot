@@ -45,8 +45,7 @@ DEEPSEEK_MODEL = (
     os.getenv('MODEL_NAME', 'deepseek-chat')
 )
 DEEPSEEK_API_URL = (
-    os.getenv('DEEPSEEK_API_URL') or 
-    os.getenv('BASE_URL', 'https://api.deepseek.com/v1/chat/completions')
+    os.getenv('DEEPSEEK_API_URL', 'https://api.deepseek.com/v1/chat/completions')
 )
 PR_NUMBER = os.getenv('PR_NUMBER')
 GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
