@@ -1,141 +1,141 @@
 # Checkpoint Import/Export Guide
 
-本指南说明如何在 GNS3 Copilot 侧边栏中使用导入和导出会话功能。
+This guide explains how to use the session import and export functionality in the GNS3 Copilot sidebar.
 
-## 功能概述
+## Feature Overview
 
-GNS3 Copilot 现在支持在侧边栏中直接导出和导入会话，方便您：
+GNS3 Copilot now supports exporting and importing sessions directly from the sidebar, allowing you to:
 
-- 📤 **导出会话**：保存当前会话到本地文件作为备份
-- 📥 **导入会话**：从本地文件恢复之前导出的会话
-- 🔄 **会话迁移**：在不同实例或设备之间迁移会话
+- 📤 **Export Session**: Save the current session to a local file as a backup
+- 📥 **Import Session**: Restore a previously exported session from a local file
+- 🔄 **Session Migration**: Migrate sessions between different instances or devices
 
-## 使用导出功能
+## Using the Export Function
 
-### 步骤 1：选择会话
+### Step 1: Select a Session
 
-在侧边栏的"Session History"下拉框中选择要导出的会话。
+Select the session you want to export from the "Session History" dropdown in the sidebar.
 
-### 步骤 2：点击导出按钮
+### Step 2: Click the Export Button
 
-在"Current Session"信息下方，点击 **:material/download: Export** 按钮。
+Below the "Current Session" information, click the **:material/download: Export** button.
 
-### 步骤 3：下载文件
+### Step 3: Download the File
 
-导出成功后，会显示一个下载按钮 **:material/download_file: Download File**，点击即可下载文件。
+After successful export, a download button **:material/download_file: Download File** will appear. Click it to download the file.
 
-### 文件命名
+### File Naming
 
-导出的文件名格式为：`{会话标题}_{时间戳}.json`
+The exported file name format is: `{Session Title}_{Timestamp}.json`
 
-例如：`Network_Configuration_20260108_234012.json`
+Example: `Network_Configuration_20260108_234012.json`
 
-### 文件内容
+### File Contents
 
-导出的文件包含：
-- ✅ 完整的 checkpoint 数据
-- ✅ 所有消息（包括 tool_calls）
-- ✅ 对话标题
-- ✅ 选中的 GNS3 项目
-- ✅ 会话元数据
+The exported file includes:
+- ✅ Complete checkpoint data
+- ✅ All messages (including tool_calls)
+- ✅ Conversation title
+- ✅ Selected GNS3 project
+- ✅ Session metadata
 
-## 使用导入功能
+## Using the Import Function
 
-### 步骤 1：上传文件
+### Step 1: Upload a File
 
-在侧边栏的"**Import Session**"区域，点击"**Browse files**"按钮选择文件。
+In the "**Import Session**" area in the sidebar, click the "**Browse files**" button to select a file.
 
-### 支持的文件格式
+### Supported File Formats
 
-- `.json` - 推荐格式
-- `.txt` - 兼容格式
+- `.json` - Recommended format
+- `.txt` - Compatible format
 
-### 步骤 2：自动导入
+### Step 2: Automatic Import
 
-选择文件后，系统会自动：
-1. 验证文件格式
-2. 导入会话数据
-3. 创建新的线程
-4. 刷新会话列表
+After selecting a file, the system will automatically:
+1. Verify the file format
+2. Import session data
+3. Create a new thread
+4. Refresh the session list
 
-### 步骤 3：查看导入的会话
+### Step 3: View the Imported Session
 
-导入成功后，会显示成功消息，包括新的 thread ID。您可以从会话历史下拉框中选择新导入的会话。
+After successful import, a success message will appear including the new thread ID. You can select the newly imported session from the session history dropdown.
 
-## 使用场景
+## Use Cases
 
-### 场景 1：备份重要会话
-
-```text
-1. 选择重要会话
-2. 点击"导出"按钮
-3. 下载并保存文件到安全位置
-```
-
-### 场景 2：在不同设备间迁移
+### Use Case 1: Back Up Important Sessions
 
 ```text
-设备 A:
-1. 导出会话 → 下载文件 → 传输文件
-
-设备 B:
-2. 上传文件 → 导入会话 → 开始使用
+1. Select an important session
+2. Click the "Export" button
+3. Download and save the file to a safe location
 ```
 
-### 场景 3：恢复误删的会话
+### Use Case 2: Migrate Between Devices
 
 ```text
-1. 从备份文件选择导出的会话
-2. 导入到新的线程
-3. 继续使用恢复的会话
+Device A:
+1. Export session → Download file → Transfer file
+
+Device B:
+2. Upload file → Import session → Start using
 ```
 
-## 常见问题
+### Use Case 3: Restore Accidentally Deleted Sessions
 
-### Q: 导出的文件包含哪些数据？
+```text
+1. Select the exported session from backup file
+2. Import to a new thread
+3. Continue using the restored session
+```
 
-A: 导出的文件包含完整的会话状态，包括：
-- 所有对话消息（用户、AI、工具调用）
-- 对话标题
-- 选中的 GNS3 项目
-- 会话元数据和配置
+## Frequently Asked Questions
 
-### Q: 导入的会话会覆盖现有会话吗？
+### Q: What data is included in the exported file?
 
-A: 不会。导入功能会创建一个新的线程，不会影响现有会话。
+A: The exported file contains the complete session state, including:
+- All conversation messages (user, AI, tool calls)
+- Conversation title
+- Selected GNS3 project
+- Session metadata and configuration
 
-### Q: 导入后需要重新选择会话吗？
+### Q: Will importing a session overwrite existing sessions?
 
-A: 是的。导入成功后，您需要在会话历史下拉框中选择新导入的会话才能查看和使用。
+A: No. The import function creates a new thread and will not affect existing sessions.
 
-### Q: 支持导入其他版本的导出文件吗？
+### Q: Do I need to reselect the session after importing?
 
-A: 支持导入任何通过 GNS3 Copilot 导出的会话文件。只要文件格式正确，都可以成功导入。
+A: Yes. After successful import, you need to select the newly imported session from the session history dropdown to view and use it.
 
-### Q: 导入失败怎么办？
+### Q: Can I import files exported from other versions?
 
-A: 如果导入失败，系统会显示详细的错误信息。常见原因包括：
-- 文件格式不正确（必须是有效的 JSON）
-- 文件不是由 GNS3 Copilot 导出的
-- 文件已损坏
+A: You can import any session file exported by GNS3 Copilot. As long as the file format is correct, it can be successfully imported.
 
-### Q: 中文内容会乱码吗？
+### Q: What should I do if import fails?
 
-A: 不会。导出和导入都使用 UTF-8 编码，正确处理中文等多语言内容。
+A: If import fails, the system will display detailed error information. Common reasons include:
+- Incorrect file format (must be valid JSON)
+- File was not exported by GNS3 Copilot
+- File is corrupted
 
-## 最佳实践
+### Q: Will Chinese content be garbled?
 
-1. **定期备份**：定期导出重要会话作为备份
-2. **命名规范**：保持会话标题清晰，便于识别导出的文件
-3. **安全存储**：将导出的文件存储在安全的位置
-4. **验证导入**：导入后检查会话内容是否完整
-5. **版本兼容**：确保使用相同版本的 GNS3 Copilot 导入和导出
+A: No. Both export and import use UTF-8 encoding, properly handling Chinese and other multilingual content.
 
-## 技术细节
+## Best Practices
 
-### 文件格式
+1. **Regular Backups**: Regularly export important sessions as backups
+2. **Naming Convention**: Keep session titles clear for easy identification of exported files
+3. **Secure Storage**: Store exported files in secure locations
+4. **Verify Imports**: Check session content after import to ensure completeness
+5. **Version Compatibility**: Ensure you use the same version of GNS3 Copilot for both import and export
 
-导出的文件是 JSON 格式，结构如下：
+## Technical Details
+
+### File Format
+
+The exported file is in JSON format with the following structure:
 
 ```json
 {
@@ -157,22 +157,22 @@ A: 不会。导出和导入都使用 UTF-8 编码，正确处理中文等多语�
 }
 ```
 
-### 消息序列化
+### Message Serialization
 
-所有消息都经过序列化处理，确保：
-- JSON 兼容性
-- 跨实例迁移
-- UI 兼容性
+All messages are serialized to ensure:
+- JSON compatibility
+- Cross-instance migration
+- UI compatibility
 
-### 数据验证
+### Data Validation
 
-导入时会验证：
-- 文件格式有效性
-- 数据结构完整性
-- 消息 UI 兼容性
+The following are validated during import:
+- File format validity
+- Data structure integrity
+- Message UI compatibility
 
-## 相关文档
+## Related Documentation
 
 - [Checkpoint Usage Guide](../CHECKPOINT_USAGE_GUIDE.md)
 - [Checkpoint Debugging Guide](../development/checkpoint-debugging-guide.md)
-- [User FAQ](FAQ_ZH.md)
+- [User FAQ](FAQ.md)

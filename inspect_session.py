@@ -5,6 +5,10 @@ This script provides a command-line interface for inspecting LangGraph
 checkpoint sessions. It displays detailed information about session state,
 message statistics, and UI compatibility.
 
+IMPORTANT: This script must be run from the project root directory:
+    cd /path/to/gns3-copilot
+    python inspect_session.py
+
 Usage:
     python inspect_session.py
 
@@ -13,6 +17,11 @@ Features:
 - Inspect specific thread details
 - Validate UI compatibility
 - Display message previews
+
+Requirements:
+- Must be run from project root directory
+- Requires GNS3 Copilot to be properly installed
+- Access to SQLite checkpoint database
 """
 
 import json
