@@ -73,7 +73,7 @@ class GNS3ProjectOpen(BaseTool):
         """
         # Load environment variables
         load_env()
-        
+
         # Log received input
         logger.info("Received input: %s", tool_input)
 
@@ -160,4 +160,3 @@ class GNS3ProjectOpen(BaseTool):
                 "success": False,
                 "error": f"Failed to operate on GNS3 project: {str(e)}",
             }
-

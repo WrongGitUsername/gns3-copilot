@@ -80,7 +80,7 @@ class GNS3ProjectUpdate(BaseTool):
         """
         # Load environment variables
         load_env()
-        
+
         # Log received input
         logger.info("Received input: %s", tool_input)
 
