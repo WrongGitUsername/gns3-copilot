@@ -115,10 +115,10 @@ def parse_message_string(msg_str: str) -> dict:
         dict: Parsed message data with type and content.
     """
     import re
-    
+
     # Try to determine message type from string content
     msg_type = "unknown"
-    
+
     # Check for ToolMessage pattern (has tool_call_id or tool_name)
     if "tool_call_id=" in msg_str or "name=" in msg_str:
         msg_type = "tool"
@@ -128,18 +128,18 @@ def parse_message_string(msg_str: str) -> dict:
     else:
         # Default to human if no other indicators
         msg_type = "human"
-    
+
     # Extract content using regex
     content_match = re.search(r"content='([^']*)'|content=\"([^\"]*)\"", msg_str)
-    content = content_match.group(1) if content_match and content_match.group(1) else (
-        content_match.group(2) if content_match and content_match.group(2) else ""
+    content = (
+        content_match.group(1)
+        if content_match and content_match.group(1)
+        else (
+            content_match.group(2) if content_match and content_match.group(2) else ""
+        )
     )
-    
-    return {
-        "type": msg_type,
-        "content": content,
-        "original_string": msg_str
-    }
+
+    return {"type": msg_type, "content": content, "original_string": msg_str}
 
 
 def serialize_message(msg: Any) -> dict:
@@ -159,7 +159,7 @@ def serialize_message(msg: Any) -> dict:
     # If it's already a string (stored in database), parse it
     if isinstance(msg, str):
         return parse_message_string(msg)
-    
+
     if isinstance(msg, HumanMessage):
         return {
             "type": "human",
@@ -173,13 +173,15 @@ def serialize_message(msg: Any) -> dict:
         tool_calls = []
         if msg.tool_calls:
             for tool_call in msg.tool_calls:
-                tool_calls.append({
-                    "id": tool_call.get("id", ""),
-                    "name": tool_call.get("name", ""),
-                    "args": tool_call.get("args", {}),
-                    "type": tool_call.get("type", "tool_call"),
-                })
-        
+                tool_calls.append(
+                    {
+                        "id": tool_call.get("id", ""),
+                        "name": tool_call.get("name", ""),
+                        "args": tool_call.get("args", {}),
+                        "type": tool_call.get("type", "tool_call"),
+                    }
+                )
+
         return {
             "type": "ai",
             "content": msg.content,
@@ -215,7 +217,7 @@ def deserialize_message(msg_dict: dict) -> Any:
 
     Returns:
         LangChain message object (HumanMessage, AIMessage, or ToolMessage).
-    
+
     Raises:
         ValueError: If message type is unknown or required fields are missing.
     """
@@ -232,18 +234,20 @@ def deserialize_message(msg_dict: dict) -> Any:
         # Reconstruct tool_calls with proper structure
         tool_calls = []
         serialized_tool_calls = msg_dict.get("tool_calls", [])
-        
+
         if serialized_tool_calls:
             for tool_call in serialized_tool_calls:
                 # Handle both dict and list formats
                 if isinstance(tool_call, dict):
-                    tool_calls.append({
-                        "id": tool_call.get("id", ""),
-                        "name": tool_call.get("name", ""),
-                        "args": tool_call.get("args", {}),
-                        "type": tool_call.get("type", "tool_call"),
-                    })
-        
+                    tool_calls.append(
+                        {
+                            "id": tool_call.get("id", ""),
+                            "name": tool_call.get("name", ""),
+                            "args": tool_call.get("args", {}),
+                            "type": tool_call.get("type", "tool_call"),
+                        }
+                    )
+
         return AIMessage(
             content=msg_dict.get("content", ""),
             additional_kwargs=msg_dict.get("additional_kwargs", {}),
@@ -295,9 +299,12 @@ def export_checkpoint_to_file(
 
         # Create a copy of checkpoint data to avoid modifying the original
         checkpoint_data = dict(checkpoint_tuple.checkpoint)
-        
+
         # Serialize messages for proper JSON export
-        if "channel_values" in checkpoint_data and "messages" in checkpoint_data["channel_values"]:
+        if (
+            "channel_values" in checkpoint_data
+            and "messages" in checkpoint_data["channel_values"]
+        ):
             messages = checkpoint_data["channel_values"]["messages"]
             serialized_messages = [serialize_message(msg) for msg in messages]
             checkpoint_data["channel_values"]["messages"] = serialized_messages
@@ -337,33 +344,33 @@ def validate_messages_for_ui(messages: list) -> tuple[bool, str, list[str]]:
                - validation_errors: List of specific validation errors per message
     """
     validation_errors = []
-    
+
     if not messages:
         return True, "", []
-    
+
     for idx, msg in enumerate(messages):
         msg_error = f"Message {idx}: "
-        
+
         # Check if message is a recognized type
         if isinstance(msg, HumanMessage):
             # HumanMessage requires content
-            if not hasattr(msg, 'content') or msg.content is None:
+            if not hasattr(msg, "content") or msg.content is None:
                 validation_errors.append(msg_error + "Missing content field")
             continue
         elif isinstance(msg, AIMessage):
             # AIMessage should have content and tool_calls
-            if not hasattr(msg, 'content'):
+            if not hasattr(msg, "content"):
                 validation_errors.append(msg_error + "Missing content field")
-            
+
             # Validate tool_calls if present
-            if hasattr(msg, 'tool_calls') and msg.tool_calls:
+            if hasattr(msg, "tool_calls") and msg.tool_calls:
                 for tool_idx, tool_call in enumerate(msg.tool_calls):
                     if not isinstance(tool_call, dict):
                         validation_errors.append(
                             f"{msg_error} Tool call {tool_idx} is not a dict"
                         )
                     else:
-                        required_fields = ['id', 'name', 'args']
+                        required_fields = ["id", "name", "args"]
                         missing = [f for f in required_fields if f not in tool_call]
                         if missing:
                             validation_errors.append(
@@ -372,28 +379,26 @@ def validate_messages_for_ui(messages: list) -> tuple[bool, str, list[str]]:
             continue
         elif isinstance(msg, ToolMessage):
             # ToolMessage requires content, tool_call_id, and name
-            if not hasattr(msg, 'content'):
+            if not hasattr(msg, "content"):
                 validation_errors.append(msg_error + "Missing content field")
-            if not hasattr(msg, 'tool_call_id') or not msg.tool_call_id:
+            if not hasattr(msg, "tool_call_id") or not msg.tool_call_id:
                 validation_errors.append(msg_error + "Missing or empty tool_call_id")
-            if not hasattr(msg, 'name') or not msg.name:
+            if not hasattr(msg, "name") or not msg.name:
                 validation_errors.append(msg_error + "Missing or empty name")
             continue
         else:
             validation_errors.append(
                 f"{msg_error} Unknown message type: {type(msg).__name__}"
             )
-    
+
     is_valid = len(validation_errors) == 0
     error_message = "; ".join(validation_errors) if validation_errors else ""
-    
+
     return is_valid, error_message, validation_errors
 
 
 def inspect_session(
-    thread_id: str,
-    graph: Pregel,
-    verbose: bool = False
+    thread_id: str, graph: Pregel, verbose: bool = False
 ) -> dict[str, Any]:
     """
     Inspect and return human-readable session state using graph.get_state().
@@ -422,21 +427,16 @@ def inspect_session(
             - messages_preview: Preview of messages (if verbose=True)
     """
     config = {"configurable": {"thread_id": thread_id}}
-    
+
     try:
         snapshot = graph.get_state(config)
-        
+
         # Extract message information
         messages = snapshot.values.get("messages", [])
         message_count = len(messages)
-        
+
         # Count message types
-        message_types = {
-            "human": 0,
-            "ai": 0,
-            "tool": 0,
-            "unknown": 0
-        }
+        message_types = {"human": 0, "ai": 0, "tool": 0, "unknown": 0}
         for msg in messages:
             if isinstance(msg, HumanMessage):
                 message_types["human"] += 1
@@ -446,26 +446,28 @@ def inspect_session(
                 message_types["tool"] += 1
             else:
                 message_types["unknown"] += 1
-        
+
         # Get latest message content
         latest_message = None
         if messages:
             latest_msg = messages[-1]
-            if hasattr(latest_msg, 'content'):
+            if hasattr(latest_msg, "content"):
                 if isinstance(latest_msg.content, str):
                     latest_message = latest_msg.content
                 elif isinstance(latest_msg.content, list) and latest_msg.content:
                     # Handle Gemini format (list with text field)
                     if isinstance(latest_msg.content[0], dict):
-                        latest_message = latest_msg.content[0].get("text", str(latest_msg.content))
+                        latest_message = latest_msg.content[0].get(
+                            "text", str(latest_msg.content)
+                        )
                     else:
                         latest_message = str(latest_msg.content)
                 else:
                     latest_message = str(latest_msg.content)
-        
+
         # Validate UI compatibility
         is_valid, error_msg, validation_errors = validate_messages_for_ui(messages)
-        
+
         # Build result dictionary
         result = {
             "thread_id": thread_id,
@@ -482,7 +484,7 @@ def inspect_session(
             "validation_error": error_msg,
             "validation_errors": validation_errors,
         }
-        
+
         # Add verbose details if requested
         if verbose:
             messages_preview = []
@@ -491,15 +493,21 @@ def inspect_session(
                     "index": idx,
                     "type": type(msg).__name__,
                 }
-                if hasattr(msg, 'content'):
-                    msg_preview["content"] = str(msg.content)[:200]  # Truncate long content
-                if isinstance(msg, AIMessage) and hasattr(msg, 'tool_calls') and msg.tool_calls:
+                if hasattr(msg, "content"):
+                    msg_preview["content"] = str(msg.content)[
+                        :200
+                    ]  # Truncate long content
+                if (
+                    isinstance(msg, AIMessage)
+                    and hasattr(msg, "tool_calls")
+                    and msg.tool_calls
+                ):
                     msg_preview["tool_calls_count"] = len(msg.tool_calls)
                 messages_preview.append(msg_preview)
             result["messages_preview"] = messages_preview
-        
+
         return result
-        
+
     except Exception as e:
         logger.error("Failed to inspect session %s: %s", thread_id, e)
         return {
@@ -549,11 +557,14 @@ def import_checkpoint_from_file(
 
         # Create a copy of checkpoint data to avoid modifying original
         checkpoint_data = dict(data["checkpoint"])
-        
+
         # Deserialize messages if they are in serialized format
-        if "channel_values" in checkpoint_data and "messages" in checkpoint_data["channel_values"]:
+        if (
+            "channel_values" in checkpoint_data
+            and "messages" in checkpoint_data["channel_values"]
+        ):
             messages = checkpoint_data["channel_values"]["messages"]
-            
+
             # Check if messages are in serialized format (have 'type' field)
             if messages and isinstance(messages[0], dict) and "type" in messages[0]:
                 deserialized_messages = []
@@ -564,7 +575,8 @@ def import_checkpoint_from_file(
                     except Exception as e:
                         logger.error(
                             "Failed to deserialize message: %s. Error: %s",
-                            msg_dict.get("type", "unknown"), e
+                            msg_dict.get("type", "unknown"),
+                            e,
                         )
                         # Skip invalid messages or add as dict
                         deserialized_messages.append(msg_dict)
@@ -579,21 +591,21 @@ def import_checkpoint_from_file(
                 "thread_id": new_thread_id,
                 "checkpoint_ns": "",  # Required: checkpoint namespace (empty string)
                 "checkpoint_id": str(uuid.uuid4()),  # Required: new checkpoint ID
-            }
+            },
         }
-        
+
         # Use saved metadata if available, otherwise create new
         metadata = data.get("metadata", {"source": "import"})
         if "source" not in metadata:
             metadata["source"] = "import"
-        
+
         new_versions = checkpoint_data["channel_versions"]
-        
+
         checkpointer.put(
             config=new_config,
             checkpoint=checkpoint_data,
             metadata=metadata,
-            new_versions=new_versions
+            new_versions=new_versions,
         )
 
         logger.info(
