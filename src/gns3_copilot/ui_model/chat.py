@@ -129,8 +129,8 @@ if not selected_p:
         if st.button("Refresh List"):
             st.rerun()
 else:
-    # Top status bar - Show current project name
-    st.sidebar.success(f"Current Project: **{selected_p[0]}**")
+    # Save current project to session_state for sidebar display
+    st.session_state["current_project"] = selected_p
 
 # --- Main workspace (only visible when a project is selected) ---
 if selected_p:

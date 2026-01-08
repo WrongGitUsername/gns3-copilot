@@ -171,7 +171,18 @@ def _render_session_management() -> tuple[Any | None, str | None]:
 
     logger.debug("selectbox selected : %s, %s", title, selected_thread_id)
 
-    st.markdown(f"Current Session: `{title} thread_id: {selected_thread_id}`")
+    st.markdown(
+        f"<span style='font-size: 13px;'>Current Session: `{title} thread_id: {selected_thread_id}`</span>",
+        unsafe_allow_html=True,
+    )
+
+    # Display current project (saved to session_state by chat.py)
+    current_project = st.session_state.get("current_project")
+    if current_project:
+        st.markdown(
+            f"<span style='font-size: 13px;'>Current Project: `{current_project[0]}`</span>",
+            unsafe_allow_html=True,
+        )
 
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
@@ -260,7 +271,7 @@ def _render_session_management() -> tuple[Any | None, str | None]:
                         st.error(f"❌ Export error: {str(e)}")
                         logger.error("Export error: %s", e)
 
-    st.markdown("---")
+    #st.markdown("---")
 
     # Import session functionality in expander
     with st.expander(":material/upload: Import Session", expanded=False):
