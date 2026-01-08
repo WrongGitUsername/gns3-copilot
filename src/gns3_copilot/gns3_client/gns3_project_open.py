@@ -1,24 +1,13 @@
 from typing import Any
 
-from dotenv import load_dotenv
 from langchain.tools import BaseTool
 
 from gns3_copilot.gns3_client import Project, get_gns3_connector
 from gns3_copilot.log_config import setup_tool_logger
+from gns3_copilot.utils.env_loader import load_env
 
 # Configure logging
 logger = setup_tool_logger("gns3_project_open")
-
-# Load environment variables
-dotenv_loaded = load_dotenv()
-if dotenv_loaded:
-    logger.info(
-        "GNS3ProjectOpen Tool Successfully loaded environment variables from .env file"
-    )
-else:
-    logger.warning(
-        "GNS3ProjectOpen Tool No .env file found or failed to load. Using existing environment variables."
-    )
 
 
 class GNS3ProjectOpen(BaseTool):
@@ -73,7 +62,7 @@ class GNS3ProjectOpen(BaseTool):
 
     def _run(self, tool_input: Any = None, run_manager: Any = None) -> dict:
         """
-        Execute the project open or close operation.
+        Execute project open or close operation.
 
         Args:
             tool_input: Dictionary containing project_id, open, or close
@@ -82,6 +71,9 @@ class GNS3ProjectOpen(BaseTool):
         Returns:
             Dictionary with operation result and project details
         """
+        # Load environment variables
+        load_env()
+
         # Log received input
         logger.info("Received input: %s", tool_input)
 

@@ -21,6 +21,7 @@ import os
 
 from gns3_copilot.gns3_client.custom_gns3fy import Gns3Connector
 from gns3_copilot.log_config import setup_logger
+from gns3_copilot.utils.env_loader import load_env
 
 logger = setup_logger("connector_factory")
 
@@ -51,6 +52,9 @@ def get_gns3_connector() -> Gns3Connector | None:
             logger.error("Failed to create GNS3 connector")
     """
     try:
+        # Reload environment variables from .env file to get the latest configuration
+        load_env()
+
         # Get GNS3 server configuration from environment variables
         api_version_str = os.getenv("API_VERSION")
         server_url = os.getenv("GNS3_SERVER_URL")

@@ -4,12 +4,10 @@ via Telnet console.
 """
 
 import json
-import os
 import re
 import time
 from typing import Any
 
-from dotenv import load_dotenv
 from langchain.tools import BaseTool
 from langchain_core.callbacks import CallbackManagerForToolRun
 from nornir import InitNornir
@@ -19,47 +17,14 @@ from nornir_netmiko.tasks import netmiko_send_command
 
 from gns3_copilot.log_config import setup_tool_logger
 from gns3_copilot.public_model import get_device_ports_from_topology
+from gns3_copilot.utils.env_loader import (
+    get_env_var,
+    get_nornir_defaults,
+    get_nornir_groups_config,
+)
 
 # config log
 logger = setup_tool_logger("linux_tools_nornir")
-
-# Load environment variables
-dotenv_loaded = load_dotenv()
-if dotenv_loaded:
-    logger.info(
-        "LinuxTelnetBatchTool Successfully loaded environment variables from .env file"
-    )
-else:
-    logger.warning(
-        "LinuxTelnetBatchTool No .env file found or failed to load. Using existing environment variables."
-    )
-
-# Linux Telnet dedicated connection group
-# (using generic_telnet driver, suitable for GNS3 console)
-# Nornir configuration groups
-groups_data = {
-    "linux_telnet": {
-        "platform": "linux",
-        "hostname": os.getenv("GNS3_SERVER_HOST"),
-        "timeout": 120,
-        "username": os.getenv("LINUX_TELNET_USERNAME"),
-        "password": os.getenv("LINUX_TELNET_PASSWORD"),
-        "connection_options": {
-            "netmiko": {
-                "platform": "linux",
-                "extras": {
-                    "device_type": "generic_telnet",
-                    # "use_timing": True,
-                    "global_delay_factor": 3,
-                    "timeout": 120,
-                    "fast_cli": False,
-                },
-            }
-        },
-    }
-}
-
-defaults = {"data": {"location": "gns3"}}
 
 
 class LinuxTelnetBatchTool(BaseTool):
@@ -121,9 +86,10 @@ class LinuxTelnetBatchTool(BaseTool):
         # Log received input
         logger.info("Received input: %s", tool_input)
 
-        if not os.getenv("LINUX_TELNET_USERNAME") or not os.getenv(
-            "LINUX_TELNET_PASSWORD"
-        ):
+        linux_username = get_env_var("LINUX_TELNET_USERNAME")
+        linux_password = get_env_var("LINUX_TELNET_PASSWORD")
+
+        if not linux_username or not linux_password:
             user_message = (
                 "Sorry, I can't proceed just yet.\n\n"
                 "You haven't configured the Linux login credentials (username and password) yet.\n"
@@ -448,12 +414,16 @@ class LinuxTelnetBatchTool(BaseTool):
     def _initialize_nornir(self, hosts_data: dict[str, dict[str, Any]]) -> Nornir:
         """Initialize Nornir with the provided hosts data."""
         try:
+            # Get latest environment configuration
+            groups_data = get_nornir_groups_config("linux_telnet")
+            defaults = get_nornir_defaults()
+
             return InitNornir(
                 inventory={
                     "plugin": "DictInventory",
                     "options": {
                         "hosts": hosts_data,
-                        "groups": groups_data,
+                        "groups": {"linux_telnet": groups_data},
                         "defaults": defaults,
                     },
                 },

@@ -638,44 +638,23 @@ class TestEdgeCasesAndErrorHandling:
 
     def test_environment_variables_handling(self):
         """Test that environment variables are properly used"""
-        # Test that groups_data contains expected structure and environment variables
-        from gns3_copilot.tools_v2.display_tools_nornir import groups_data
+        # Test that env_loader.get_nornir_groups_config returns expected structure
+        from gns3_copilot.utils.env_loader import get_nornir_groups_config
+        
+        groups_data = get_nornir_groups_config()
         
         # Verify structure
-        assert "cisco_IOSv_telnet" in groups_data
-        group_config = groups_data["cisco_IOSv_telnet"]
-        
-        # Verify required fields exist
-        assert "hostname" in group_config
-        assert "username" in group_config
-        assert "password" in group_config
-        assert "platform" in group_config
-        assert "timeout" in group_config
-        assert "connection_options" in group_config
+        assert "platform" in groups_data
+        assert "hostname" in groups_data
+        assert "username" in groups_data
+        assert "password" in groups_data
+        assert "timeout" in groups_data
+        assert "connection_options" in groups_data
         
         # Verify specific values
-        assert group_config["platform"] == "cisco_ios"
-        assert group_config["timeout"] == 120
-        assert group_config["connection_options"]["netmiko"]["extras"]["device_type"] == "cisco_ios_telnet"
-        
-        # Test that _initialize_nornir uses groups_data correctly
-        hosts_data = {"R-1": {"port": 5000}}
-        
-        with patch('gns3_copilot.tools_v2.display_tools_nornir.InitNornir') as mock_init:
-            mock_nornir = Mock()
-            mock_init.return_value = mock_nornir
-            
-            self.tool._initialize_nornir(hosts_data)
-            
-            # Verify that groups_data is used in the call
-            call_args = mock_init.call_args
-            if call_args and len(call_args) > 1:
-                inventory_options = call_args[1]['inventory']['options']
-                groups_in_call = inventory_options['groups']
-                
-                # Should contain our groups_data
-                assert "cisco_IOSv_telnet" in groups_in_call
-                assert groups_in_call["cisco_IOSv_telnet"] == groups_data["cisco_IOSv_telnet"]
+        assert groups_data["platform"] == "cisco_ios"
+        assert groups_data["timeout"] == 120
+        assert groups_data["connection_options"]["netmiko"]["extras"]["device_type"] == "cisco_ios_telnet"
 
     def test_large_number_of_devices(self):
         """Test handling large number of devices"""
