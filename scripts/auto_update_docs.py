@@ -26,10 +26,27 @@ from typing import Dict, List, Optional, Tuple
 from pathlib import Path
 import re
 
-# Configuration
-DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
-DEEPSEEK_MODEL = os.getenv('DEEPSEEK_MODEL', 'deepseek-chat')
-DEEPSEEK_API_URL = os.getenv('DEEPSEEK_API_URL', 'https://api.deepseek.com/v1/chat/completions')
+# Load .env file if it exists (for local development)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    # dotenv not available, will use environment variables directly
+    pass
+
+# Configuration with fallback support
+# Priority: DEEPSEEK_* env vars > MODEL_* env vars (from .env) > defaults
+DEEPSEEK_API_KEY = (
+    os.getenv('DEEPSEEK_API_KEY') or 
+    os.getenv('MODEL_API_KEY')
+)
+DEEPSEEK_MODEL = (
+    os.getenv('DEEPSEEK_MODEL') or 
+    os.getenv('MODEL_NAME', 'deepseek-chat')
+)
+DEEPSEEK_API_URL = (
+    os.getenv('DEEPSEEK_API_URL', 'https://api.deepseek.com/v1/chat/completions')
+)
 PR_NUMBER = os.getenv('PR_NUMBER')
 GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
 REPO_OWNER = os.getenv('REPO_OWNER')

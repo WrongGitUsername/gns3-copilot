@@ -37,12 +37,18 @@ See Also:
     - src/gns3_copilot/ui_model/chat: Chat page that uses sidebar state
 """
 
+import tempfile
+from datetime import datetime
 from typing import Any
 
 import streamlit as st
 
 from gns3_copilot import __version__
 from gns3_copilot.agent import agent, langgraph_checkpointer, list_thread_ids
+from gns3_copilot.agent.checkpoint_utils import (
+    export_checkpoint_to_file,
+    import_checkpoint_from_file,
+)
 from gns3_copilot.log_config import setup_logger
 from gns3_copilot.ui_model.utils import new_session, save_config_to_env
 
@@ -78,43 +84,44 @@ def render_sidebar(
         if current_zoom is None:
             current_zoom = 0.8
 
-        # Note: We don't use key parameter here to avoid automatic session_state management
-        new_height = st.slider(
-            ":material/height: Page Height (px)",
-            min_value=300,
-            max_value=1500,
-            value=current_height,
-            step=50,
-            help="Adjust the height for chat and GNS3 view",
-        )
+        with st.expander(":material/settings: Display Settings", expanded=False):
+            # Note: We don't use key parameter here to avoid automatic session_state management
+            new_height = st.slider(
+                ":material/height: Page Height (px)",
+                min_value=300,
+                max_value=1500,
+                value=current_height,
+                step=50,
+                help="Adjust the height for chat and GNS3 view",
+            )
 
-        # If the height changed, update session state and save to .env file
-        if new_height != current_height:
-            st.session_state["CONTAINER_HEIGHT"] = new_height
-            # Save to .env file using the centralized save function
-            try:
-                save_config_to_env()
-            except Exception as e:
-                logger.error("Failed to update CONTAINER_HEIGHT: %s", e)
+            # If the height changed, update session state and save to .env file
+            if new_height != current_height:
+                st.session_state["CONTAINER_HEIGHT"] = new_height
+                # Save to .env file using the centralized save function
+                try:
+                    save_config_to_env()
+                except Exception as e:
+                    logger.error("Failed to update CONTAINER_HEIGHT: %s", e)
 
-        new_zoom = st.slider(
-            ":material/zoom_in: Zoom Scale",
-            min_value=0.5,
-            max_value=1.2,
-            value=current_zoom,
-            step=0.05,
-            help="Adjust the zoom scale for GNS3 topology view",
-        )
+            new_zoom = st.slider(
+                ":material/zoom_in: Zoom Scale",
+                min_value=0.5,
+                max_value=1.2,
+                value=current_zoom,
+                step=0.05,
+                help="Adjust the zoom scale for GNS3 topology view",
+            )
 
-        # If the zoom changed, update session state and save to .env file
-        if new_zoom != current_zoom:
-            st.session_state["zoom_scale_topology"] = new_zoom
-            try:
-                save_config_to_env()
-            except Exception as e:
-                logger.error("Failed to update ZOOM_SCALE_TOPOLOGY: %s", e)
+            # If the zoom changed, update session state and save to .env file
+            if new_zoom != current_zoom:
+                st.session_state["zoom_scale_topology"] = new_zoom
+                try:
+                    save_config_to_env()
+                except Exception as e:
+                    logger.error("Failed to update ZOOM_SCALE_TOPOLOGY: %s", e)
 
-        st.markdown("---")
+        # st.markdown("---")
 
         # Session management - render for all pages
         selected_thread_id = None
@@ -165,25 +172,184 @@ def _render_session_management() -> tuple[Any | None, str | None]:
 
     logger.debug("selectbox selected : %s, %s", title, selected_thread_id)
 
-    st.markdown(f"Current Session: `{title} thread_id: {selected_thread_id}`")
+    st.markdown(
+        f"<span style='font-size: 13px;'>Current Session: `{title} thread_id: {selected_thread_id}`</span>",
+        unsafe_allow_html=True,
+    )
 
-    col1, col2 = st.columns(2)
+    # Display current project (saved to session_state by chat.py)
+    current_project = st.session_state.get("current_project")
+    if current_project:
+        st.markdown(
+            f"<span style='font-size: 13px;'>Current Project: `{current_project[0]}`</span>",
+            unsafe_allow_html=True,
+        )
+
+    col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
         st.button(
-            ":material/add_circle: New Session",
+            ":material/add_circle:",
             on_click=lambda: new_session(session_options),
             help="Create a new session",
         )
     with col2:
         # Only allow deletion if the user has selected a valid thread_id
         if selected_thread_id is not None:
-            if st.button(
-                ":material/delete: Delete", help="Delete current selection session"
-            ):
+            if st.button(":material/delete:", help="Delete current selection session"):
                 langgraph_checkpointer.delete_thread(thread_id=selected_thread_id)
                 st.success(
                     f"_Delete Success_: {title} \n\n _Thread_id_: `{selected_thread_id}`"
                 )
+                st.rerun()
+    with col3:
+        # Export button - only show if a session is selected
+        if selected_thread_id is not None:
+            if st.button(":material/download:", help="Export current session"):
+                with st.spinner("Exporting session..."):
+                    try:
+                        # Create a temporary file for export
+                        with tempfile.NamedTemporaryFile(
+                            mode="w", delete=False, suffix=".json", encoding="utf-8"
+                        ) as tmp_file:
+                            temp_path = tmp_file.name
+
+                        # Export checkpoint to temporary file
+                        success = export_checkpoint_to_file(
+                            langgraph_checkpointer, selected_thread_id, temp_path
+                        )
+
+                        if success:
+                            # Read the exported data
+                            with open(temp_path, encoding="utf-8") as f:
+                                export_data = f.read()
+
+                            # Generate safe filename
+                            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                            # Extract title without the thread_id suffix
+                            display_title = (
+                                title.split(" (")[0] if " (" in title else title
+                            )
+                            safe_title = (
+                                display_title.replace(" ", "_")
+                                .replace("/", "_")
+                                .replace("\\", "_")
+                                .replace(":", "_")
+                                .replace("*", "_")
+                                .replace("?", "_")
+                                .replace('"', "_")
+                                .replace("<", "_")
+                                .replace(">", "_")
+                                .replace("|", "_")[:50]
+                            )
+                            filename = f"{safe_title}_{timestamp}.json"
+
+                            # Provide download button
+                            st.download_button(
+                                label=":material/download_file:",
+                                data=export_data,
+                                file_name=filename,
+                                mime="application/json",
+                                key=f"download_{selected_thread_id}",
+                                help="Download exported file",
+                            )
+                            st.success("✅")
+                            logger.info(
+                                "Exported session %s to %s",
+                                selected_thread_id,
+                                filename,
+                            )
+
+                            # Clean up temporary file
+                            import os
+
+                            os.unlink(temp_path)
+                        else:
+                            st.error("❌ Failed to export session")
+                            logger.error(
+                                "Failed to export session %s", selected_thread_id
+                            )
+                    except Exception as e:
+                        st.error(f"❌ Export error: {str(e)}")
+                        logger.error("Export error: %s", e)
+
+    # st.markdown("---")
+
+    # Import session functionality in expander
+    with st.expander(":material/upload: Import Session", expanded=False):
+        # Initialize import success flag in session_state
+        if "import_success" not in st.session_state:
+            st.session_state["import_success"] = False
+
+        uploaded_file = st.file_uploader(
+            "Upload a previously exported session file",
+            type=["json", "txt"],
+            help="Select a .json or .txt file exported from GNS3 Copilot",
+            key="file_uploader_import",
+        )
+
+        # Only import if a file is uploaded and we haven't marked it as successful yet
+        if uploaded_file is not None and not st.session_state["import_success"]:
+            with st.spinner("Importing session..."):
+                try:
+                    # Save uploaded file to temporary location
+                    with tempfile.NamedTemporaryFile(
+                        delete=False, suffix=".json", encoding="utf-8", mode="w"
+                    ) as tmp_file:
+                        tmp_file.write(uploaded_file.getvalue().decode("utf-8"))
+                        temp_path = tmp_file.name
+
+                    logger.info(
+                        "Importing session from file: %s (size: %d bytes)",
+                        uploaded_file.name,
+                        uploaded_file.size,
+                    )
+
+                    # Import the checkpoint
+                    success, result = import_checkpoint_from_file(
+                        langgraph_checkpointer, temp_path
+                    )
+
+                    # Clean up temporary file
+                    import os
+
+                    os.unlink(temp_path)
+
+                    if success:
+                        new_thread_id = result
+                        st.session_state["import_success"] = True
+                        st.success(
+                            f"✅ **Import successful!**\n\n"
+                            f"New thread ID: `{new_thread_id[:8]}...`\n\n"
+                            f"Select the new session from the dropdown above."
+                        )
+                        logger.info(
+                            "Successfully imported session to new thread: %s",
+                            new_thread_id,
+                        )
+                        # Refresh the session list after a short delay to show success message
+                        import time
+
+                        time.sleep(0.5)
+                        st.rerun()
+                    else:
+                        st.error(f"❌ **Import failed:** {result}")
+                        logger.error("Import failed: %s", result)
+                        # Reset flag on failure so user can try again
+                        st.session_state["import_success"] = False
+                except Exception as e:
+                    st.error(f"❌ **Import error:** {str(e)}")
+                    logger.error("Import exception: %s", e)
+                    # Reset flag on error so user can try again
+                    st.session_state["import_success"] = False
+
+        # Show "Import Another File" button if import was successful
+        if st.session_state["import_success"] and uploaded_file is not None:
+            if st.button(
+                ":material/add:",
+                key="import_another_button",
+                help="Import another file",
+            ):
+                st.session_state["import_success"] = False
                 st.rerun()
 
     # If a valid thread id is selected, load the historical messages
@@ -200,7 +366,7 @@ def _render_session_management() -> tuple[Any | None, str | None]:
 def render_sidebar_about() -> None:
     """Render the about section in the sidebar."""
     with st.sidebar:
-        st.markdown("---")
+        # st.markdown("---")
         st.markdown("### :material/info: About")
         st.markdown(
             f"""
