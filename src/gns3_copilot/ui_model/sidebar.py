@@ -176,16 +176,14 @@ def _render_session_management() -> tuple[Any | None, str | None]:
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
         st.button(
-            ":material/add_circle: New Session",
+            ":material/add_circle:",
             on_click=lambda: new_session(session_options),
             help="Create a new session",
         )
     with col2:
         # Only allow deletion if the user has selected a valid thread_id
         if selected_thread_id is not None:
-            if st.button(
-                ":material/delete: Delete", help="Delete current selection session"
-            ):
+            if st.button(":material/delete:", help="Delete current selection session"):
                 langgraph_checkpointer.delete_thread(thread_id=selected_thread_id)
                 st.success(
                     f"_Delete Success_: {title} \n\n _Thread_id_: `{selected_thread_id}`"
@@ -194,7 +192,7 @@ def _render_session_management() -> tuple[Any | None, str | None]:
     with col3:
         # Export button - only show if a session is selected
         if selected_thread_id is not None:
-            if st.button(":material/download: Export", help="Export current session"):
+            if st.button(":material/download:", help="Export current session"):
                 with st.spinner("Exporting session..."):
                     try:
                         # Create a temporary file for export
@@ -235,13 +233,14 @@ def _render_session_management() -> tuple[Any | None, str | None]:
 
                             # Provide download button
                             st.download_button(
-                                label=":material/download_file: Download File",
+                                label=":material/download_file:",
                                 data=export_data,
                                 file_name=filename,
                                 mime="application/json",
                                 key=f"download_{selected_thread_id}",
+                                help="Download exported file",
                             )
-                            st.success(f"✅ Exported: {filename}")
+                            st.success("✅")
                             logger.info(
                                 "Exported session %s to %s",
                                 selected_thread_id,
@@ -263,84 +262,83 @@ def _render_session_management() -> tuple[Any | None, str | None]:
 
     st.markdown("---")
 
-    # Import session functionality
-    st.subheader(":material/upload: Import Session")
-
-    # Initialize import success flag in session_state
-    if "import_success" not in st.session_state:
-        st.session_state["import_success"] = False
-
-    uploaded_file = st.file_uploader(
-        "Upload a previously exported session file",
-        type=["json", "txt"],
-        help="Select a .json or .txt file exported from GNS3 Copilot",
-        key="file_uploader_import",
-    )
-
-    # Only import if a file is uploaded and we haven't marked it as successful yet
-    if uploaded_file is not None and not st.session_state["import_success"]:
-        with st.spinner("Importing session..."):
-            try:
-                # Save uploaded file to temporary location
-                with tempfile.NamedTemporaryFile(
-                    delete=False, suffix=".json", encoding="utf-8", mode="w"
-                ) as tmp_file:
-                    tmp_file.write(uploaded_file.getvalue().decode("utf-8"))
-                    temp_path = tmp_file.name
-
-                logger.info(
-                    "Importing session from file: %s (size: %d bytes)",
-                    uploaded_file.name,
-                    uploaded_file.size,
-                )
-
-                # Import the checkpoint
-                success, result = import_checkpoint_from_file(
-                    langgraph_checkpointer, temp_path
-                )
-
-                # Clean up temporary file
-                import os
-
-                os.unlink(temp_path)
-
-                if success:
-                    new_thread_id = result
-                    st.session_state["import_success"] = True
-                    st.success(
-                        f"✅ **Import successful!**\n\n"
-                        f"New thread ID: `{new_thread_id[:8]}...`\n\n"
-                        f"Select the new session from the dropdown above."
-                    )
-                    logger.info(
-                        "Successfully imported session to new thread: %s", new_thread_id
-                    )
-                    # Refresh the session list after a short delay to show success message
-                    import time
-
-                    time.sleep(0.5)
-                    st.rerun()
-                else:
-                    st.error(f"❌ **Import failed:** {result}")
-                    logger.error("Import failed: %s", result)
-                    # Reset flag on failure so user can try again
-                    st.session_state["import_success"] = False
-            except Exception as e:
-                st.error(f"❌ **Import error:** {str(e)}")
-                logger.error("Import exception: %s", e)
-                # Reset flag on error so user can try again
-                st.session_state["import_success"] = False
-
-    # Show "Import Another File" button if import was successful
-    if st.session_state["import_success"] and uploaded_file is not None:
-        if st.button(
-            ":material/add: Import Another File",
-            key="import_another_button",
-        ):
+    # Import session functionality in expander
+    with st.expander(":material/upload: Import Session", expanded=False):
+        # Initialize import success flag in session_state
+        if "import_success" not in st.session_state:
             st.session_state["import_success"] = False
-            st.rerun()
 
-    st.markdown("---")
+        uploaded_file = st.file_uploader(
+            "Upload a previously exported session file",
+            type=["json", "txt"],
+            help="Select a .json or .txt file exported from GNS3 Copilot",
+            key="file_uploader_import",
+        )
+
+        # Only import if a file is uploaded and we haven't marked it as successful yet
+        if uploaded_file is not None and not st.session_state["import_success"]:
+            with st.spinner("Importing session..."):
+                try:
+                    # Save uploaded file to temporary location
+                    with tempfile.NamedTemporaryFile(
+                        delete=False, suffix=".json", encoding="utf-8", mode="w"
+                    ) as tmp_file:
+                        tmp_file.write(uploaded_file.getvalue().decode("utf-8"))
+                        temp_path = tmp_file.name
+
+                    logger.info(
+                        "Importing session from file: %s (size: %d bytes)",
+                        uploaded_file.name,
+                        uploaded_file.size,
+                    )
+
+                    # Import the checkpoint
+                    success, result = import_checkpoint_from_file(
+                        langgraph_checkpointer, temp_path
+                    )
+
+                    # Clean up temporary file
+                    import os
+
+                    os.unlink(temp_path)
+
+                    if success:
+                        new_thread_id = result
+                        st.session_state["import_success"] = True
+                        st.success(
+                            f"✅ **Import successful!**\n\n"
+                            f"New thread ID: `{new_thread_id[:8]}...`\n\n"
+                            f"Select the new session from the dropdown above."
+                        )
+                        logger.info(
+                            "Successfully imported session to new thread: %s",
+                            new_thread_id,
+                        )
+                        # Refresh the session list after a short delay to show success message
+                        import time
+
+                        time.sleep(0.5)
+                        st.rerun()
+                    else:
+                        st.error(f"❌ **Import failed:** {result}")
+                        logger.error("Import failed: %s", result)
+                        # Reset flag on failure so user can try again
+                        st.session_state["import_success"] = False
+                except Exception as e:
+                    st.error(f"❌ **Import error:** {str(e)}")
+                    logger.error("Import exception: %s", e)
+                    # Reset flag on error so user can try again
+                    st.session_state["import_success"] = False
+
+        # Show "Import Another File" button if import was successful
+        if st.session_state["import_success"] and uploaded_file is not None:
+            if st.button(
+                ":material/add:",
+                key="import_another_button",
+                help="Import another file",
+            ):
+                st.session_state["import_success"] = False
+                st.rerun()
 
     # If a valid thread id is selected, load the historical messages
     if selected_thread_id is not None:
