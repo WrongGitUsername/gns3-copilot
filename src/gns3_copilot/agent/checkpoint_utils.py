@@ -12,6 +12,7 @@ from typing import Any
 
 from langchain.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph.pregel import Pregel
+from langgraph.types import RunnableConfig
 
 from gns3_copilot.log_config import setup_logger
 
@@ -290,7 +291,7 @@ def export_checkpoint_to_file(
         bool: True if export succeeded, False otherwise.
     """
     try:
-        config = {"configurable": {"thread_id": thread_id}}
+        config: RunnableConfig = {"configurable": {"thread_id": thread_id}}
         checkpoint_tuple = checkpointer.get_tuple(config)
 
         if checkpoint_tuple is None:
@@ -365,17 +366,12 @@ def validate_messages_for_ui(messages: list) -> tuple[bool, str, list[str]]:
             # Validate tool_calls if present
             if hasattr(msg, "tool_calls") and msg.tool_calls:
                 for tool_idx, tool_call in enumerate(msg.tool_calls):
-                    if not isinstance(tool_call, dict):
+                    required_fields = ["id", "name", "args"]
+                    missing = [f for f in required_fields if f not in tool_call]
+                    if missing:
                         validation_errors.append(
-                            f"{msg_error} Tool call {tool_idx} is not a dict"
+                            f"{msg_error} Tool call {tool_idx} missing: {', '.join(missing)}"
                         )
-                    else:
-                        required_fields = ["id", "name", "args"]
-                        missing = [f for f in required_fields if f not in tool_call]
-                        if missing:
-                            validation_errors.append(
-                                f"{msg_error} Tool call {tool_idx} missing: {', '.join(missing)}"
-                            )
             continue
         elif isinstance(msg, ToolMessage):
             # ToolMessage requires content, tool_call_id, and name
@@ -390,6 +386,7 @@ def validate_messages_for_ui(messages: list) -> tuple[bool, str, list[str]]:
             validation_errors.append(
                 f"{msg_error} Unknown message type: {type(msg).__name__}"
             )
+            continue
 
     is_valid = len(validation_errors) == 0
     error_message = "; ".join(validation_errors) if validation_errors else ""
@@ -426,7 +423,7 @@ def inspect_session(
             - validation_errors: List of validation errors (if any)
             - messages_preview: Preview of messages (if verbose=True)
     """
-    config = {"configurable": {"thread_id": thread_id}}
+    config: RunnableConfig = {"configurable": {"thread_id": thread_id}}
 
     try:
         snapshot = graph.get_state(config)
@@ -475,7 +472,9 @@ def inspect_session(
             "message_count": message_count,
             "message_types": message_types,
             "latest_message": latest_message,
-            "step": snapshot.metadata.get("step", "N/A"),
+            "step": snapshot.metadata.get("step", "N/A")
+            if snapshot.metadata
+            else "N/A",
             "pending_tasks": len(snapshot.tasks),
             "has_interrupts": len(snapshot.interrupts) > 0,
             "conversation_title": snapshot.values.get("conversation_title"),

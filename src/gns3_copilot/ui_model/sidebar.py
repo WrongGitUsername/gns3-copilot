@@ -121,7 +121,7 @@ def render_sidebar(
                 except Exception as e:
                     logger.error("Failed to update ZOOM_SCALE_TOPOLOGY: %s", e)
 
-        #st.markdown("---")
+        # st.markdown("---")
 
         # Session management - render for all pages
         selected_thread_id = None
@@ -366,7 +366,7 @@ def _render_session_management() -> tuple[Any | None, str | None]:
 def render_sidebar_about() -> None:
     """Render the about section in the sidebar."""
     with st.sidebar:
-        #st.markdown("---")
+        # st.markdown("---")
         st.markdown("### :material/info: About")
         st.markdown(
             f"""
