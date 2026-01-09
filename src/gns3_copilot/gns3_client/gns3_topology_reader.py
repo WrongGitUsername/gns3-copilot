@@ -33,50 +33,16 @@ class GNS3TopologyTool(BaseTool):
 
     name: str = "gns3_topology_reader"
     description: str = """
-    Retrieves the topology of a specific GNS3 project by project ID.
+    Retrieves the topology of a GNS3 project including nodes and links.
 
-    Input: JSON string or dictionary containing:
-    - `project_id` (str, required): UUID of the specific GNS3 project to retrieve topology from.
-    Optional: server_url (defaults to environment variable GNS3_SERVER_URL).
+    Input: `project_id` (str, required): UUID of the GNS3 project.
 
-    Output: A dictionary containing:
-    - `project_id` (str): UUID of the project.
-    - `name` (str): Project name.
-    - `status` (str): Project status (e.g., 'opened', 'closed').
-    - `nodes` (dict): Dictionary with node names as keys and details as values, including:
-    - `node_id` (str): Node UUID.
-    - `ports` (list): List of port details (e.g., `{"name": "Gi0/0", "adapter_number": int, "port_number": int, ...}`).
-    - Other fields like `console_port`, `type`, `x`, `y`.
-    - `links` (list): List of link details (e.g., `[{"link_id": str, "nodes": list, ...}]`), empty if no links exist.
-    - If project_id is not provided or invalid: `{"error": str}`.
-    - If an error occurs: `{"error": str}` (e.g., `{"error": "Failed to retrieve topology: ..."}`).
+    Output: Dictionary with:
+    - `project_id`, `name`, `status`: Project metadata
+    - `nodes`: Dict of node details (node_id, name, ports, console_port, type, etc.)
+    - `links`: List of link connections
 
-    Example Input: `{"project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24"}`
-
-    Example Output*:
-    {
-    "project_id": "f32ebf3d-ef8c-4910-b0d6-566ed828cd24",
-    "name": "network llm iosv",
-    "status": "opened",
-    "nodes": {
-        "R-1": {
-        "node_id": "e5ca32a8-9f5d-45b0-82aa-ccfbf1d1a070",
-        "name": "R-1",
-        "ports": [
-            {'name': 'Ge 0/0', 'short_name': 'Ge 0/0'},
-            {'name': 'Ge 0/1', 'short_name': 'Ge 0/1'}
-        ],
-        "console_port": 5000,
-        "type": "qemu",
-        ...
-        },
-        "R-2": {...}
-    },
-    "links": [('R-1', 'Ge 0/0', 'R-2', 'Ge 0/0'), ...]
-    }
-    **Note**:
-    Requires a running GNS3 server at the specified URL and a valid project_id.
-    Use the ports field(e.g., name: "Gi0/0") to provide input for the create_gns3_link tool.
+    Use this to understand network structure before making changes.
     """
 
     def _run(
