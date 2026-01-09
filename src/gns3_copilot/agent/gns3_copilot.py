@@ -361,16 +361,3 @@ langgraph_checkpointer = get_checkpointer()  # Cached SqliteSaver instance
 
 # Streamlit UI use
 agent = get_agent()  # Cached compiled LangGraph agent (with persistence)
-
-
-def get_deployed_agent():
-    return agent_builder.compile()
-
-
-# LangGraph API use
-deployed_agent = get_deployed_agent()
-# Show the agent
-# graph_image_data = agent.get_graph(xray=True).draw_mermaid_png()
-# with open("agent_graph.png", "wb") as f:
-#    f.write(graph_image_data)
-#    f.write(graph_image_data)
