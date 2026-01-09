@@ -51,7 +51,7 @@ from gns3_copilot.tools_v2 import (
 load_dotenv()
 
 # Set up logger for GNS3 Copilot
-logger = setup_logger("gns3_copilot", log_file="log/gns3_copilot.log")
+logger = setup_logger("gns3_copilot", log_file="gns3_copilot.log")
 
 # Log loaded LLM model information
 model_name = os.getenv("MODEL_NAME")
@@ -101,6 +101,7 @@ class MessagesState(TypedDict):
         llm_calls: Counter for tracking the number of LLM invocations
         remaining_steps: Is automatically managed by LangGraph's RemainingSteps to track and limit recursion depth.
         conversation_title: Optional conversation title for session identification and management
+        topology_info: Dictionary containing GNS3 project topology information
     """
 
     messages: Annotated[list[AnyMessage], operator.add]
@@ -115,6 +116,9 @@ class MessagesState(TypedDict):
     # Store the complete tuple selected by the user
     selected_project: tuple[str, str, int, int, str] | None
 
+    # Store GNS3 topology information
+    topology_info: dict | None
+
 
 # Define llm call  node
 def llm_call(state: dict):
@@ -128,6 +132,8 @@ def llm_call(state: dict):
 
     # Construct context messages
     context_messages = []
+    topology_info = None
+
     if selected_p:
         # Convert tuple information to natural language to tell LLM which project user selected
         project_info = (
@@ -140,9 +146,38 @@ def llm_call(state: dict):
         )
         logger.debug("Project info for LLM context: %s", project_info)
 
-        context_messages.append(
-            SystemMessage(content=f"Current Context: {project_info}")
-        )
+        # Try to retrieve topology information
+        try:
+            topology_tool = GNS3TopologyTool()
+            topology = topology_tool._run(project_id=selected_p[1])
+
+            if topology and "error" not in topology:
+                topology_info = topology
+                logger.info(
+                    "Successfully retrieved topology for project: %s", selected_p[0]
+                )
+
+                # Convert topology dict to string for LLM consumption
+                topology_context = str(topology)
+                logger.debug("Topology context for LLM:\n%s", topology_context)
+                context_messages.append(
+                    SystemMessage(
+                        content=f"Current Context: {project_info}\n\nTopology:\n{topology_context}"
+                    )
+                )
+            else:
+                logger.warning(
+                    "Failed to retrieve topology: %s",
+                    topology.get("error", "Unknown error"),
+                )
+                context_messages.append(
+                    SystemMessage(content=f"Current Context: {project_info}")
+                )
+        except Exception as e:
+            logger.warning("Error retrieving topology: %s", e)
+            context_messages.append(
+                SystemMessage(content=f"Current Context: {project_info}")
+            )
 
     # Merge message lists
     full_messages = (
@@ -157,6 +192,7 @@ def llm_call(state: dict):
     return {
         "messages": [model_with_tools.invoke(full_messages)],
         "llm_calls": state.get("llm_calls", 0) + 1,
+        "topology_info": topology_info,
     }
 
 
