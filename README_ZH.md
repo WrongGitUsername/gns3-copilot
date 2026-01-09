@@ -8,6 +8,16 @@
 ![License](https://img.shields.io/badge/license-MIT-green.svg) 
 [![platform](https://img.shields.io/badge/platform-linux%20%7C%20windows%20%7C%20macOS-lightgrey)](https://shields.io/)
 
+---
+
+<div align="center">
+
+[🇺🇸 English](README.md) | [🇨🇳 中文](README_ZH.md)
+
+</div>
+
+---
+
 一个基于AI的网络自动化助手，专为GNS3网络模拟器设计，提供智能化的网络设备管理和自动化操作。
 
 ## 项目简介
@@ -26,77 +36,42 @@ GNS3 Copilot 是一个强大的网络自动化工具，集成了多种AI模型�
 - 🔍 **网络诊断**: 智能网络故障排查和性能监控
 - 🌐 **LLM支持**: 集成DeepSeek AI模型进行自然语言处理
 
+### 实战经验
 
+在开发和使用 gns3-copilot 的过程中，我们发现 AI 接入网络仿真不仅仅是技术对接，更是一种思维方式的转变。以下是我们在实验室总结出的几条“金律”：
 
-## 技术架构
+1. **把它当成“陪练”，而不是“代练”**
 
-- [系统架构](docs/architecture/system-architecture.md) - 7层架构概述
-- [核心框架设计](docs/architecture/core-framework-design.md) - LangGraph和LangChain框架详细设计
-- [架构文档索引](docs/architecture/) - 所有架构图和设计文档
+    **不要**直接问："帮我把 OSPF 调通"。
+
+    **尝试问**： "我的 OSPF 邻居卡在 Exstart 状态，帮我梳理一下可能的排查思路？"
+
+    **理由**： AI 最大的价值在于它不厌其烦的** 7x24 引导能力**。通过让它提供“故障树”，你自己动手验证，学习效率会提高数倍。
+
+2. **警惕“厂商私有协议”与“版本幻觉”**
+   
+    AI 是基于公开语料训练的。对于标准的 RFC 协议（OSPF, BGP）它非常强；但对于某些厂商的**私有协议**或**最新版本特性**，它可能会产生“幻觉”。
+
+   ** 建议**： 凡是涉及到具体厂商的特殊命令，务必查阅官方文档进行二次确认。
+
+3. **复杂拓扑的“记忆瓶颈”**
+
+    当拓扑超过 20 个节点时，LLM 可能会出现“顾头不顾尾”的情况，给出前后矛盾的建议。
+
+    **最佳实践**： 采用**模块化思维**。先让 Copilot 辅助你搞定一个区域（Area）或一个自治系统（AS），再进行全局联调。
+
+4. **模拟器 vs. 真实世界**
+   
+    记住：GNS3 模拟不出光纤弯折、硬件坏道或真实的 CPU 瓶颈。
+
+    AI 可能会给出逻辑上完美的建议，但在物理现实中可能行不通。**验证、抓包、再验证**，是唯一的准则。
 
 ## 文档
 
-### 用户文档
-- [常见问题](docs/user/FAQ_ZH.md) - 常见问题解答和故障排除指南
-- [LLM 快速配置指南](docs/user/llm-quick-configuration-guide_zh.md) - LLM 提供商快速设置指南
-
-### 开发文档
-- [手动测试指南](docs/development/testing/manual_testing_guide_zh.md) - 综合手动测试说明
-- [测试覆盖率报告](docs/development/testing/TEST_COVERAGE_REPORT_ZH.md) - 自动化测试覆盖率统计
-- [自动提交使用指南](docs/development/automation/auto-commit-usage-guide_zh.md) - Git 提交信息自动化指南
-- [自动文档自动化指南](docs/development/automation/auto-doc-automation-guide_zh.md) - 自动化文档更新
-- [后端演进计划](docs/development/evolution/GNS3-Copilot-Backend-Evolution-Plan_ZH.md) - 项目演进路线图
-
-### 技术文档
-- [GNS3 绘图 SVG 格式指南](docs/technical/gns3-drawing-svg-format-guide_zh.md) - GNS3 绘图格式和配色方案
+详细文档请参见 [docs/](docs/) 目录，包括用户指南、开发指南和技术文档。
 
 
-最终概念：多智能体系统架构和动态上下文管理器（基于当前的理解）
 
-**多智能体角色分配**
-
-该系统采用不同的智能体，每个智能体专门负责特定功能：
-
-- **规划智能体（Planning Agent）**：负责**识别用户意图**并**制定详细任务计划**。
-    
-- **执行智能体（Execution Agent）**：负责根据计划**逐步执行具体设备操作**。
-    
-- **监督智能体（Supervision Agent）**：负责**持续监控**和评估执行智能体的结果。如果发现问题，它会要求执行智能体**重试**或通知**专家智能体**介入。
-    
-- **专家智能体（Expert Agent）**：负责解决监督智能体发现的复杂问题，提供**指导**、**纠正计划**或**提出解决方案**。
-    
-
-**系统工作流程**
-
-该过程以闭环结构运行，确保可靠性和自我纠正：
-
-1. **用户输入请求**
-    
-    - 用户通过提交任务或请求启动系统。
-        
-2. **规划智能体：意图识别和计划制定**
-    
-    - 规划智能体分析请求，理解目标，并生成执行步骤序列。
-        
-3. **执行智能体：执行计划步骤**
-    
-    - 执行智能体获取计划步骤并执行相应的具体操作。
-        
-4. **监督智能体：实时监控和评估**
-    
-    - 监督智能体持续检查每个执行步骤的结果。
-        
-    - **检测到问题** $\rightarrow$ 要求执行智能体**重试**或**通知专家智能体**。
-        
-5. **专家智能体：干预和指导/纠正**
-    
-    - 当报告复杂问题时，专家智能体介入。
-        
-    - 它提供指导 $\rightarrow$ **纠正计划**（循环回到步骤2）或**提出解决方案**（循环回到步骤3）。
-        
-6. **返回最终工作结果**
-    
-    - 一旦所有步骤成功完成并验证，最终结果将交付给用户。
 
 ## 🤝 参与贡献
 我们非常欢迎来自社区的贡献！为了保障项目代码的稳定性，请遵循以下分支管理策略：
@@ -141,27 +116,6 @@ gns3-copilot
 
 ## 使用指南
 
-### 启动
-
-```bash
-# 基本启动，默认端口8501
-gns3-copilot
-
-# 指定自定义端口
-gns3-copilot --server.port 8080
-
-# 指定地址和端口
-gns3-copilot --server.address 0.0.0.0 --server.port 8080
-
-# 无头模式运行
-gns3-copilot --server.headless true
-
-# 获取帮助
-gns3-copilot --help
-
-```
-
-
 ### 配置参数详解
 
 
@@ -188,21 +142,8 @@ gns3-copilot --help
 - **Base URL**: 模型服务的基础 URL（使用 OpenRouter 等第三方平台时必需）
 - **Temperature**: 模型温度参数（控制输出随机性，范围 0.0-1.0）
 
-##### 3. 语音功能配置（实验功能）
-- **Voice Features**: 语音功能开关（启用/禁用TTS/STT功能）
-- **TTS API Key**: 文本转语音服务API密钥
-- **TTS Model**: TTS模型选择（支持：tts-1, tts-1-hd, gpt-4o-mini-tts）
-- **TTS Voice**: 语音角色选择（支持：alloy, ash, ballad等）
-- **TTS Speed**: 语音播放速度（范围：0.25-4.0）
-- **TTS Base URL**: TTS服务基础URL
-- **STT API Key**: 语音转文本服务API密钥
-- **STT Model**: STT模型选择（支持：whisper-1, gpt-4o-transcribe等）
-- **STT Language**: 识别语言代码（如：en, zh, ja）
-- **STT Temperature**: 识别温度参数（控制随机性，范围0.0-1.0）
-- **STT Response Format**: 输出格式（支持：json, text, srt等）
-- **STT Base URL**: STT服务基础URL
 
-##### 4. 其他设置
+##### 3. 其他设置
 - **Linux Console Username**: Linux 控制台用户名（用于 GNS3 中的 Debian 设备）
 - **Linux Console Password**: Linux 控制台密码
 
