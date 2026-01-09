@@ -1226,7 +1226,8 @@ class TestGNS3CreateNodeToolEnvironmentVariables:
     """Test cases for environment variable handling"""
 
     @patch.dict(os.environ, {}, clear=True)
-    def test_missing_server_url(self):
+    @patch('gns3_copilot.gns3_client.connector_factory.load_env')
+    def test_missing_server_url(self, mock_load_env):
         """Test missing GNS3_SERVER_URL environment variable"""
         tool = GNS3CreateNodeTool()
         
@@ -1249,7 +1250,8 @@ class TestGNS3CreateNodeToolEnvironmentVariables:
         "GNS3_SERVER_URL": "http://localhost:3080",
         "API_VERSION": "1"
     })
-    def test_unsupported_api_version_env(self):
+    @patch('gns3_copilot.gns3_client.connector_factory.load_env')
+    def test_unsupported_api_version_env(self, mock_load_env):
         """Test unsupported API version from environment"""
         tool = GNS3CreateNodeTool()
         
