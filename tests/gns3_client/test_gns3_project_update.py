@@ -509,7 +509,8 @@ class TestGNS3ProjectUpdateInputValidation:
 class TestGNS3ProjectUpdateEnvironmentValidation:
     """Tests for environment variable validation"""
 
-    def test_missing_api_version(self):
+    @patch('gns3_copilot.gns3_client.gns3_project_update.load_env')
+    def test_missing_api_version(self, mock_load_env):
         """Test missing API_VERSION environment variable"""
         tool = GNS3ProjectUpdate()
         
@@ -520,7 +521,8 @@ class TestGNS3ProjectUpdateEnvironmentValidation:
             assert "error" in result
             assert "Failed to connect to GNS3 server" in result["error"]
 
-    def test_missing_server_url(self):
+    @patch('gns3_copilot.gns3_client.gns3_project_update.load_env')
+    def test_missing_server_url(self, mock_load_env):
         """Test missing GNS3_SERVER_URL environment variable"""
         tool = GNS3ProjectUpdate()
         
@@ -533,7 +535,8 @@ class TestGNS3ProjectUpdateEnvironmentValidation:
             assert "error" in result
             assert "Failed to connect to GNS3 server" in result["error"]
 
-    def test_invalid_api_version(self):
+    @patch('gns3_copilot.gns3_client.gns3_project_update.load_env')
+    def test_invalid_api_version(self, mock_load_env):
         """Test invalid API_VERSION value"""
         tool = GNS3ProjectUpdate()
         
@@ -994,7 +997,8 @@ class TestGNS3ProjectUpdateReturnFormat:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    def test_error_response_format(self):
+    @patch('gns3_copilot.gns3_client.gns3_project_update.load_env')
+    def test_error_response_format(self, mock_load_env):
         """Test error response has correct format"""
         tool = GNS3ProjectUpdate()
         

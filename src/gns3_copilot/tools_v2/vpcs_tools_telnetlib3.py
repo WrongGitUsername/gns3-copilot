@@ -4,32 +4,20 @@ Supports concurrent execution of multiple command groups across multiple VPCS de
 """
 
 import json
-import os
 import re
 import threading
 from time import sleep
 from typing import Any
 
-from dotenv import load_dotenv
 from langchain.tools import BaseTool
 from langchain_core.callbacks import CallbackManagerForToolRun
 from telnetlib3 import Telnet
 
 from gns3_copilot.log_config import setup_tool_logger
 from gns3_copilot.public_model import get_device_ports_from_topology
+from gns3_copilot.utils.env_loader import get_env_var
 
 logger = setup_tool_logger("vpcs_multi_commands")
-
-# Load environment variables
-dotenv_loaded = load_dotenv()
-if dotenv_loaded:
-    logger.info(
-        "VPCSMultiCommands Successfully loaded environment variables from .env file"
-    )
-else:
-    logger.warning(
-        "VPCSMultiCommands No .env file found or failed to load. Using existing environment variables."
-    )
 
 
 class VPCSMultiCommands(BaseTool):
@@ -351,7 +339,7 @@ class VPCSMultiCommands(BaseTool):
         )
 
         # Get host IP from environment variable
-        gns3_host = os.getenv("GNS3_SERVER_HOST", "127.0.0.1")
+        gns3_host = get_env_var("GNS3_SERVER_HOST", "127.0.0.1")
         logger.info("Using GNS3 server host: %s", gns3_host)
 
         # Initialize results list (pre-allocate space for concurrent writes)

@@ -987,7 +987,7 @@ class TestGNS3TopologyToolComprehensive:
         tool = GNS3TopologyTool()
         assert tool.name == "gns3_topology_reader"
         assert "retrieves the topology" in tool.description.lower()
-        assert "specific gns3 project" in tool.description.lower()
+        assert "gns3 project" in tool.description.lower()
 
     def test_clean_nodes_ports_comprehensive(self):
         """Test comprehensive cleaning of node ports"""

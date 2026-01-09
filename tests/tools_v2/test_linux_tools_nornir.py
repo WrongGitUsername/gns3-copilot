@@ -729,46 +729,57 @@ class TestEdgeCasesAndErrorHandling:
 
     def test_environment_variables_handling(self):
         """Test that environment variables are properly used"""
-        # Test that groups_data contains expected structure and environment variables
-        from gns3_copilot.tools_v2.linux_tools_nornir import groups_data
+        # Test that get_nornir_all_groups_config returns expected structure
+        from gns3_copilot.utils.env_loader import get_nornir_all_groups_config
         
-        # Verify structure
-        assert "linux_telnet" in groups_data
-        group_config = groups_data["linux_telnet"]
-        
-        # Verify required fields exist
-        assert "hostname" in group_config
-        assert "username" in group_config
-        assert "password" in group_config
-        assert "platform" in group_config
-        assert "timeout" in group_config
-        assert "connection_options" in group_config
-        
-        # Verify specific values
-        assert group_config["platform"] == "linux"
-        assert group_config["timeout"] == 120
-        assert group_config["connection_options"]["netmiko"]["extras"]["device_type"] == "generic_telnet"
-        assert group_config["connection_options"]["netmiko"]["extras"]["global_delay_factor"] == 3
-        assert group_config["connection_options"]["netmiko"]["extras"]["fast_cli"] is False
-        
-        # Test that _initialize_nornir uses groups_data correctly
-        hosts_data = {"debian01": {"port": 5000}}
-        
-        with patch('gns3_copilot.tools_v2.linux_tools_nornir.InitNornir') as mock_init:
-            mock_nornir = Mock()
-            mock_init.return_value = mock_nornir
+        # Set required environment variables for testing
+        with patch.dict(os.environ, {
+            'LINUX_TELNET_USERNAME': 'testuser',
+            'LINUX_TELNET_PASSWORD': 'testpass'
+        }):
+            # Call the function to get all groups config
+            groups_config = get_nornir_all_groups_config()
             
-            self.tool._initialize_nornir(hosts_data)
+            # Verify it returns a dict with group keys
+            assert isinstance(groups_config, dict)
+            assert "linux_telnet" in groups_config
             
-            # Verify that groups_data is used in the call
-            call_args = mock_init.call_args
-            if call_args and len(call_args) > 1:
-                inventory_options = call_args[1]['inventory']['options']
-                groups_in_call = inventory_options['groups']
+            group_config = groups_config["linux_telnet"]
+            
+            # Verify required fields exist
+            assert "hostname" in group_config
+            assert "username" in group_config
+            assert "password" in group_config
+            assert "platform" in group_config
+            assert "timeout" in group_config
+            assert "connection_options" in group_config
+            
+            # Verify specific values for linux_telnet group
+            assert group_config["platform"] == "linux"
+            assert group_config["timeout"] == 120
+            assert group_config["connection_options"]["netmiko"]["extras"]["device_type"] == "generic_telnet"
+            assert group_config["connection_options"]["netmiko"]["extras"]["global_delay_factor"] == 3
+            assert group_config["connection_options"]["netmiko"]["extras"]["fast_cli"] is False
+            
+            # Test that _initialize_nornir uses groups_data correctly
+            hosts_data = {"debian01": {"port": 5000}}
+            
+            with patch('gns3_copilot.tools_v2.linux_tools_nornir.InitNornir') as mock_init:
+                mock_nornir = Mock()
+                mock_init.return_value = mock_nornir
                 
-                # Should contain our groups_data
-                assert "linux_telnet" in groups_in_call
-                assert groups_in_call["linux_telnet"] == groups_data["linux_telnet"]
+                self.tool._initialize_nornir(hosts_data)
+                
+                # Verify that groups_data is used in the call
+                call_args = mock_init.call_args
+                if call_args and len(call_args) > 1:
+                    inventory_options = call_args[1]['inventory']['options']
+                    groups_in_call = inventory_options['groups']
+                    
+                    # Should contain our groups_data
+                    assert "linux_telnet" in groups_in_call
+                    assert groups_in_call["linux_telnet"]["platform"] == "linux"
+                    assert groups_in_call["linux_telnet"]["connection_options"]["netmiko"]["extras"]["device_type"] == "generic_telnet"
 
     def test_large_number_of_devices(self):
         """Test handling large number of devices"""

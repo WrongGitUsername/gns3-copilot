@@ -242,7 +242,8 @@ class TestGNS3StartNodeToolInputValidation:
         # None values are treated as falsy, so they trigger missing fields validation
         assert "Missing required fields" in result["error"]
 
-    def test_valid_minimal_input(self):
+    @patch('gns3_copilot.tools_v2.gns3_start_node.get_gns3_connector')
+    def test_valid_minimal_input(self, mock_get_gns3_connector):
         """Test valid minimal input"""
         tool = GNS3StartNodeTool()
         input_data = {
@@ -250,13 +251,14 @@ class TestGNS3StartNodeToolInputValidation:
             "node_ids": ["node1"]
         }
         
-        # Mock with missing environment to trigger validation error
-        with patch.dict(os.environ, {}, clear=True):
-            result = tool._run(json.dumps(input_data))
-            assert "error" in result
-            assert "Failed to connect to GNS3 server" in result["error"] or "Failed to connect to GNS3 server" in result["error"]
+        # Mock connector returning None to simulate connection failure
+        mock_get_gns3_connector.return_value = None
+        result = tool._run(json.dumps(input_data))
+        assert "error" in result
+        assert "Failed to connect to GNS3 server" in result["error"]
 
-    def test_valid_multiple_nodes(self):
+    @patch('gns3_copilot.tools_v2.gns3_start_node.get_gns3_connector')
+    def test_valid_multiple_nodes(self, mock_get_gns3_connector):
         """Test valid input with multiple nodes"""
         tool = GNS3StartNodeTool()
         input_data = {
@@ -264,11 +266,11 @@ class TestGNS3StartNodeToolInputValidation:
             "node_ids": ["node1", "node2", "node3"]
         }
         
-        # Mock with missing environment to trigger validation error
-        with patch.dict(os.environ, {}, clear=True):
-            result = tool._run(json.dumps(input_data))
-            assert "error" in result
-            assert "Failed to connect to GNS3 server" in result["error"] or "Failed to connect to GNS3 server" in result["error"]
+        # Mock connector returning None to simulate connection failure
+        mock_get_gns3_connector.return_value = None
+        result = tool._run(json.dumps(input_data))
+        assert "error" in result
+        assert "Failed to connect to GNS3 server" in result["error"]
 
 
 class TestGNS3StartNodeToolAPIVersionHandling:
@@ -342,11 +344,8 @@ class TestGNS3StartNodeToolAPIVersionHandling:
         mock_get_gns3_connector.assert_called_once()
         assert mock_connector is not None
 
-    @patch.dict(os.environ, {
-        "API_VERSION": "invalid",
-        "GNS3_SERVER_URL": "http://localhost:3080"
-    })
-    def test_unsupported_api_version(self):
+    @patch('gns3_copilot.tools_v2.gns3_start_node.get_gns3_connector')
+    def test_unsupported_api_version(self, mock_get_gns3_connector):
         """Test unsupported API version"""
         tool = GNS3StartNodeTool()
         
@@ -355,9 +354,11 @@ class TestGNS3StartNodeToolAPIVersionHandling:
             "node_ids": ["node1"]
         }
         
+        # Mock connector returning None to simulate connection failure
+        mock_get_gns3_connector.return_value = None
         result = tool._run(json.dumps(input_data))
         assert "error" in result
-        assert "Failed to connect to GNS3 server" in result["error"] or "Failed to connect to GNS3 server" in result["error"]
+        assert "Failed to connect to GNS3 server" in result["error"]
 
     @patch.dict(os.environ, {
         "GNS3_SERVER_URL": "http://localhost:3080"
@@ -634,8 +635,8 @@ class TestGNS3StartNodeToolErrorHandling:
         assert "Failed to start nodes" in result["error"]
         assert "Connector initialization failed" in result["error"]
 
-    @patch.dict(os.environ, {}, clear=True)
-    def test_missing_server_url(self):
+    @patch('gns3_copilot.tools_v2.gns3_start_node.get_gns3_connector')
+    def test_missing_server_url(self, mock_get_gns3_connector):
         """Test missing GNS3_SERVER_URL environment variable"""
         tool = GNS3StartNodeTool()
         
@@ -644,9 +645,11 @@ class TestGNS3StartNodeToolErrorHandling:
             "node_ids": ["node1"]
         }
         
+        # Mock connector returning None to simulate connection failure
+        mock_get_gns3_connector.return_value = None
         result = tool._run(json.dumps(input_data))
         assert "error" in result
-        assert "Failed to connect to GNS3 server" in result["error"] or "Failed to connect to GNS3 server" in result["error"]
+        assert "Failed to connect to GNS3 server" in result["error"]
 
 
 class TestGNS3StartNodeToolEdgeCases:
@@ -797,9 +800,13 @@ class TestGNS3StartNodeToolIntegration:
         # Base duration: 140s + 10s * (3-1) = 160s
         mock_progress.assert_called_once_with(duration=160, interval=1, node_count=3)
 
-    def test_json_parsing_edge_cases(self):
+    @patch('gns3_copilot.tools_v2.gns3_start_node.get_gns3_connector')
+    def test_json_parsing_edge_cases(self, mock_get_gns3_connector):
         """Test JSON parsing edge cases"""
         tool = GNS3StartNodeTool()
+        
+        # Mock connector returning None
+        mock_get_gns3_connector.return_value = None
         
         # Test with extra whitespace
         input_with_whitespace = """
@@ -808,11 +815,8 @@ class TestGNS3StartNodeToolIntegration:
             "node_ids": ["node1"]
         }
         """
-        
-        # Mock with missing environment to trigger validation error
-        with patch.dict(os.environ, {}, clear=True):
-            result = tool._run(input_with_whitespace)
-            assert "error" in result
+        result = tool._run(input_with_whitespace)
+        assert "error" in result
 
         # Test with additional fields
         input_with_extra_fields = {
@@ -820,11 +824,8 @@ class TestGNS3StartNodeToolIntegration:
             "node_ids": ["node1"],
             "extra_field": "should_be_ignored"
         }
-        
-        # Mock with missing environment to trigger validation error
-        with patch.dict(os.environ, {}, clear=True):
-            result = tool._run(json.dumps(input_with_extra_fields))
-            assert "error" in result
+        result = tool._run(json.dumps(input_with_extra_fields))
+        assert "error" in result
 
 
 class TestGNS3StartNodeToolProgressBarCalculation:

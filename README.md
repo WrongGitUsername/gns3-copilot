@@ -8,6 +8,16 @@
 ![License](https://img.shields.io/badge/license-MIT-green.svg) 
 [![platform](https://img.shields.io/badge/platform-linux%20%7C%20windows%20%7C%20macOS-lightgrey)](https://shields.io/)
 
+---
+
+<div align="center">
+
+[🇺🇸 English](README.md) | [🇨🇳 中文](README_ZH.md)
+
+</div>
+
+---
+
 An AI-powered network automation assistant designed specifically for GNS3 network simulator, providing intelligent network device management and automated operations.
 
 ## Project Overview
@@ -16,86 +26,23 @@ GNS3 Copilot is a powerful network automation tool that integrates multiple AI m
 
 <img src="https://raw.githubusercontent.com/yueguobin/gns3-copilot/refs/heads/master/demo.gif" alt="GNS3 Copilot Function demonstration" width="1280"/>
 
-### Core Features
 
-- 🤖 **AI-Powered Chat Interface**: Supports natural language interaction, understands network automation requirements
-- 🔧 **Device Configuration Management**: Batch configuration of network devices, supports multiple vendor devices (currently tested with Cisco IOSv image only)
-- 📊 **Topology Management**: Automatically create, modify, and manage GNS3 network topologies
-- 🎨 **Topology Visualization**: SVG drawing support for automatic network topology graphics generation with area annotation and connection line drawing
-- 🔍 **Network Diagnostics**: Intelligent network troubleshooting and performance monitoring
-- 🌐 **LLM Support**: Integrated DeepSeek AI model for natural language processing
+### 🧠 Practical Insights
 
+From our extensive testing with gns3-copilot, here are some hard-earned lessons on how to effectively use AI as your network co-pilot:
 
+- The Power of "Why", Not Just "How": Don't just ask for the config. Ask the AI to build a Diagnostic Tree. It’s a 24/7 mentor that never gets tired of your "Active" BGP status.
 
-## Technical Architecture
+- Mind the Gap (Vendor Specifics): While LLMs excel at standard RFC protocols (OSPF, BGP), they might hallucinate when it comes to Proprietary Protocols or bleeding-edge features. Always verify vendor-specific syntax.
 
-- [System Architecture](docs/architecture/system-architecture.md) - Comprehensive system architecture overview with 7-layer design
-- [Core Framework Design](docs/architecture/core-framework-design.md) - Detailed LangGraph and LangChain framework design
-- [Architecture Documentation Index](docs/architecture/) - All architecture diagrams and design documents
+- Modular Approach for Complex Topologies: For networks with 20+ nodes, break down your requests. AI works best when focusing on specific segments rather than trying to memorize the entire routing table at once.
+
+- Simulation != Reality: GNS3 is a perfect sandbox, but it doesn't simulate faulty transceivers or hardware bugs. Use the Copilot to master logic, but keep your hands on the "real world" troubleshooting tools.
 
 ## Documentation
 
-### User Documentation
-- [FAQ](docs/user/FAQ.md) - Frequently asked questions and troubleshooting guide
-- [LLM Quick Configuration Guide](docs/user/llm-quick-configuration-guide.md) - Quick setup guide for LLM providers
+See [docs/](docs/) directory for detailed documentation including user guides, development guides, and technical documentation.
 
-### Development Documentation
-- [Manual Testing Guide](docs/development/testing/manual_testing_guide.md) - Comprehensive manual testing instructions
-- [Test Coverage Report](docs/development/testing/TEST_COVERAGE_REPORT.md) - Automated test coverage statistics
-- [Auto Commit Usage Guide](docs/development/automation/auto-commit-usage-guide.md) - Git commit message automation guide
-- [Auto Documentation Automation Guide](docs/development/automation/auto-doc-automation-guide.md) - Automated documentation updates
-- [Backend Evolution Plan](docs/development/evolution/GNS3-Copilot%20Backend%20Evolution%20Plan.md) - Project evolution roadmap
-
-### Technical Documentation
-- [GNS3 Drawing SVG Format Guide](docs/technical/gns3-drawing-svg-format-guide.md) - GNS3 drawing format and color scheme
-
-
-The Final Concept: Multi-Agent System Architecture and Dynamic Context Manager (Based on Current Understanding)
-
- **Multi-Agent Role Assignment**
-
-This system employs distinct agents, each specializing in a specific function:
-
-- **Planning Agent:** Responsible for **identifying user intent** and **formulating the detailed task plan**.
-    
-- **Execution Agent:** Responsible for **executing specific device operations** step-by-step according to the plan.
-    
-- **Supervision Agent:** Responsible for **continuous monitoring** and evaluation of the Execution Agent's results. If issues are found, it requests the Execution Agent to **retry** or notifies the **Expert Agent** to intervene.
-    
-- **Expert Agent:** Responsible for addressing complex problems discovered by the Supervision Agent, providing **guidance**, **correcting the plan**, or **proposing solutions**.
-    
-
- **System Workflow**
-
-The process operates in a closed-loop structure, ensuring reliability and self-correction:
-
-1. **User Input Request**
-    
-    - The user initiates the system by submitting a task or request.
-        
-2. **Planning Agent: Intent Recognition & Plan Formulation**
-    
-    - The Planning Agent analyzes the request, understands the objective, and generates a sequence of execution steps.
-        
-3. **Execution Agent: Execute Plan Steps**
-    
-    - The Execution Agent takes the planned steps and performs the corresponding concrete operations.
-        
-4. **Supervision Agent: Real-time Monitoring & Evaluation**
-    
-    - The Supervision Agent continuously checks the outcome of each execution step.
-        
-    - **Issue Detected** $\rightarrow$ Requests the Execution Agent to **Retry** OR **Notifies the Expert Agent**.
-        
-5. **Expert Agent: Intervention & Guidance/Correction**
-    
-    - The Expert Agent intervenes when complex problems are reported.
-        
-    - It provides guidance $\rightarrow$ **Corrects the Plan** (loops back to Step 2) OR **Proposes a Solution** (loops back to Step 3).
-        
-6. **Return Final Work Result**
-    
-    - Once all steps are successfully completed and verified, the final result is delivered to the user.
 
 ## 🤝 Contributing
 
@@ -144,25 +91,6 @@ gns3-copilot
 
 ## Usage Guide
 
-### Startup
-
-```bash
-# Basic startup, default port 8501
-gns3-copilot
-
-# Specify custom port
-gns3-copilot --server.port 8080
-
-# Specify address and port
-gns3-copilot --server.address 0.0.0.0 --server.port 8080
-
-# Run in headless mode
-gns3-copilot --server.headless true
-
-# Get help
-gns3-copilot --help
-
-```
 
 ### Configure on Settings Page
 
@@ -191,21 +119,8 @@ GNS3 Copilot configuration is managed through a Streamlit interface, with all se
 - **Base URL**: Base URL for model service (required when using third-party platforms like OpenRouter)
 - **Temperature**: Model temperature parameter (controls output randomness, range 0.0-1.0)
 
-##### 3. Voice Features Configuration (Experimental)
-- **Voice Features**: Voice features toggle (enable/disable TTS/STT functionality)
-- **TTS API Key**: Text-to-speech service API key
-- **TTS Model**: TTS model selection (supports: tts-1, tts-1-hd, gpt-4o-mini-tts)
-- **TTS Voice**: Voice character selection (supports: alloy, ash, ballad, etc.)
-- **TTS Speed**: Voice playback speed (range: 0.25-4.0)
-- **TTS Base URL**: TTS service base URL
-- **STT API Key**: Speech-to-text service API key
-- **STT Model**: STT model selection (supports: whisper-1, gpt-4o-transcribe, etc.)
-- **STT Language**: Recognition language code (e.g., en, zh, ja)
-- **STT Temperature**: Recognition temperature parameter (controls randomness, range 0.0-1.0)
-- **STT Response Format**: Output format (supports: json, text, srt, etc.)
-- **STT Base URL**: STT service base URL
 
-##### 4. Other Settings
+##### 3. Other Settings
 - **Linux Console Username**: Linux console username (for Debian devices in GNS3)
 - **Linux Console Password**: Linux console password
 
