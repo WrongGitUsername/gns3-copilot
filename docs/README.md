@@ -7,6 +7,7 @@ This directory contains all documentation for the GNS3 Copilot project.
 ```
 docs/
 ├── README.md                                # This file - documentation index
+├── project-announcement.md                  # Project announcement and roadmap
 ├── architecture/                            # Architecture documentation
 │   ├── README.md                            # Architecture index
 │   ├── README_ZH.md                         # Architecture index (Chinese)
@@ -27,7 +28,9 @@ docs/
 │   ├── FAQ.md                               # Frequently asked questions
 │   ├── FAQ_ZH.md                            # FAQ (Chinese)
 │   ├── llm-quick-configuration-guide.md     # LLM quick setup guide
-│   └── llm-quick-configuration-guide_zh.md  # LLM quick setup guide (Chinese)
+│   ├── llm-quick-configuration-guide_zh.md  # LLM quick setup guide (Chinese)
+│   ├── checkpoint-import-export-guide.md  # Checkpoint import/export guide
+│   └── checkpoint-import-export-guide_ZH.md # Checkpoint import/export guide (Chinese)
 ├── development/                             # Development documentation
 │   ├── testing/                             # Testing guides and reports
 │   │   ├── manual_testing_guide.md          # Manual testing instructions
@@ -54,6 +57,7 @@ docs/
 ### For Users
 
 If you're looking to use GNS3 Copilot, start with:
+- [Project Announcement](project-announcement.md) - Project overview, features, and roadmap
 - [FAQ](user/FAQ.md) - Common questions and troubleshooting
 - [LLM Quick Configuration Guide](user/llm-quick-configuration-guide.md) - Setting up your LLM provider
 

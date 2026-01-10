@@ -173,6 +173,4 @@ The following are validated during import:
 
 ## Related Documentation
 
-- [Checkpoint Usage Guide](../CHECKPOINT_USAGE_GUIDE.md)
-- [Checkpoint Debugging Guide](../development/checkpoint-debugging-guide.md)
 - [User FAQ](FAQ.md)
