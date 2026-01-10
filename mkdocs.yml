@@ -1,0 +1,107 @@
+site_name: GNS3 Copilot Documentation
+site_url: https://yueguobin.github.io/gns3-copilot
+repo_url: https://github.com/yueguobin/gns3-copilot
+repo_name: yueguobin/gns3-copilot
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - search
+    - search.suggest
+    - search.highlight
+    - navigation.tabs
+    - navigation.tracking
+    - navigation.top
+    - toc.integrate
+    - content.code.copy
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search:
+      lang:
+        - en
+        - zh
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/yueguobin/gns3-copilot
+      name: GitHub
+
+nav:
+  - Home: index.md
+  - Project Announcement: project-announcement.md
+  - Architecture Documentation:
+    - architecture/index.md
+    - System Architecture: 
+      - architecture/system-architecture.md
+      - architecture/system-architecture_ZH.md
+    - Core Framework Design:
+      - architecture/core-framework-design.md
+      - architecture/core-framework-design_ZH.md
+  - User Guide:
+    - user/index.md
+    - FAQ:
+      - user/FAQ.md
+      - user/FAQ_ZH.md
+    - LLM Configuration Guide:
+      - user/llm-quick-configuration-guide.md
+      - user/llm-quick-configuration-guide_ZH.md
+    - Checkpoint Import/Export:
+      - user/checkpoint-import-export-guide.md
+      - user/checkpoint-import-export-guide_ZH.md
+  - Development:
+    - development/index.md
+    - Testing:
+      - development/testing/manual_testing_guide.md
+      - development/testing/manual_testing_guide_zh.md
+      - development/testing/TEST_COVERAGE_REPORT.md
+      - development/testing/TEST_COVERAGE_REPORT_ZH.md
+    - Automation:
+      - Auto Commit: 
+        - development/automation/auto-commit-usage-guide.md
+        - development/automation/auto-commit-usage-guide_zh.md
+      - Auto Documentation:
+        - development/automation/auto-doc-automation-guide.md
+        - development/automation/auto-doc-automation-guide_zh.md
+      - Documentation Improvements:
+        - development/automation/doc-update-improvements.md
+        - development/automation/doc-update-improvements_zh.md
+    - Evolution:
+      - Backend Evolution Plan:
+        - development/evolution/GNS3-Copilot%20Backend%20Evolution%20Plan.md
+        - development/evolution/GNS3-Copilot-Backend-Evolution-Plan_ZH.md
+  - Technical Documentation:
+    - technical/index.md
+    - GNS3 Drawing SVG Format:
+      - technical/gns3-drawing-svg-format-guide.md
+      - technical/gns3-drawing-svg-format-guide_zh.md
