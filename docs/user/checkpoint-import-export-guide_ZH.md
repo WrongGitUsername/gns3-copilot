@@ -173,6 +173,4 @@ A: 不会。导出和导入都使用 UTF-8 编码，正确处理中文等多语�
 
 ## 相关文档
 
-- [Checkpoint 使用指南](../CHECKPOINT_USAGE_GUIDE.md)
-- [Checkpoint 调试指南](../development/checkpoint-debugging-guide.md)
 - [用户常见问题](FAQ_ZH.md)
