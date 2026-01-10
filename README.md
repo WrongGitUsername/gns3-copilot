@@ -26,35 +26,6 @@ GNS3 Copilot is a powerful network automation tool that integrates multiple AI m
 
 <img src="https://raw.githubusercontent.com/yueguobin/gns3-copilot/refs/heads/master/demo.gif" alt="GNS3 Copilot Function demonstration" width="1280"/>
 
-
-### 🧠 Practical Insights
-
-From our extensive testing with gns3-copilot, here are some hard-earned lessons on how to effectively use AI as your network co-pilot:
-
-- The Power of "Why", Not Just "How": Don't just ask for the config. Ask the AI to build a Diagnostic Tree. It’s a 24/7 mentor that never gets tired of your "Active" BGP status.
-
-- Mind the Gap (Vendor Specifics): While LLMs excel at standard RFC protocols (OSPF, BGP), they might hallucinate when it comes to Proprietary Protocols or bleeding-edge features. Always verify vendor-specific syntax.
-
-- Modular Approach for Complex Topologies: For networks with 20+ nodes, break down your requests. AI works best when focusing on specific segments rather than trying to memorize the entire routing table at once.
-
-- Simulation != Reality: GNS3 is a perfect sandbox, but it doesn't simulate faulty transceivers or hardware bugs. Use the Copilot to master logic, but keep your hands on the "real world" troubleshooting tools.
-
-## Documentation
-
-See [docs/](docs/) directory for detailed documentation including user guides, development guides, and technical documentation.
-
-
-## 🤝 Contributing
-
-We welcome contributions from the community! To keep the project stable, please follow our branching strategy:
-
-- **Target Branch**: Always submit your Pull Requests to the `Development` branch (not `master`).
-
-- **Feature Branches**: Create a new branch for each feature or bug fix: `git checkout -b feature/your-feature-name Development`.
-
-- **Workflow**: Fork -> Branch -> Commit -> Push -> Pull Request to `Development`.
-
-
 ## Installation Guide
 
 ### Environment Requirements
@@ -73,7 +44,7 @@ source venv/bin/activate  # Linux/macOS
 venv\Scripts\activate     # Windows
 ```
 
-1. **Install GNS3 Copilot**
+2. **Install GNS3 Copilot**
 ```bash
 pip install gns3-copilot
 ```
@@ -81,16 +52,16 @@ or
 ```bash
 pip install git+https://github.com/yueguobin/gns3-copilot
 ```
-1. **Start GNS3 Server**
+
+3. **Start GNS3 Server**
 Ensure GNS3 Server is running and can be accessed via its API interface: `http://x.x.x.x:3080`
 
-1. **Launch the application**
+4. **Launch the application**
 ```bash
 gns3-copilot
 ```
 
 ## Usage Guide
-
 
 ### Configure on Settings Page
 
@@ -119,10 +90,35 @@ GNS3 Copilot configuration is managed through a Streamlit interface, with all se
 - **Base URL**: Base URL for model service (required when using third-party platforms like OpenRouter)
 - **Temperature**: Model temperature parameter (controls output randomness, range 0.0-1.0)
 
-
 ##### 3. Other Settings
 - **Linux Console Username**: Linux console username (for Debian devices in GNS3)
 - **Linux Console Password**: Linux console password
+
+## Documentation
+
+See [docs/](docs/) directory for detailed documentation including user guides, development guides, and technical documentation.
+
+## 🤝 Contributing
+
+We welcome contributions from the community! To keep the project stable, please follow our branching strategy:
+
+- **Target Branch**: Always submit your Pull Requests to the `Development` branch (not `master`).
+
+- **Feature Branches**: Create a new branch for each feature or bug fix: `git checkout -b feature/your-feature-name Development`.
+
+- **Workflow**: Fork -> Branch -> Commit -> Push -> Pull Request to `Development`.
+
+## 🧠 Practical Insights
+
+From our extensive testing with gns3-copilot, here are some hard-earned lessons on how to effectively use AI as your network co-pilot:
+
+- **The Power of "Why", Not Just "How"**: Don't just ask for the config. Ask the AI to build a Diagnostic Tree. It's a 24/7 mentor that never gets tired of your "Active" BGP status.
+
+- **Mind the Gap (Vendor Specifics)**: While LLMs excel at standard RFC protocols (OSPF, BGP), they might hallucinate when it comes to Proprietary Protocols or bleeding-edge features. Always verify vendor-specific syntax.
+
+- **Modular Approach for Complex Topologies**: For networks with 20+ nodes, break down your requests. AI works best when focusing on specific segments rather than trying to memorize the entire routing table at once.
+
+- **Simulation != Reality**: GNS3 is a perfect sandbox, but it doesn't simulate faulty transceivers or hardware bugs. Use the Copilot to master logic, but keep your hands on the "real world" troubleshooting tools.
 
 ## Security Considerations
 
