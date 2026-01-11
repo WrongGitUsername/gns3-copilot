@@ -1,3 +1,4 @@
+# type: ignore
 """
 Notes management component for creating and managing markdown notes.
 
@@ -6,6 +7,7 @@ This module provides a comprehensive notes management system with:
 - Notes list with selection
 - Download and delete operations
 - Create new notes
+- AI-powered note organization
 - Notes stored as Markdown files
 """
 
@@ -13,8 +15,11 @@ import os
 from datetime import datetime
 
 import streamlit as st
+from langchain_core.messages import HumanMessage, SystemMessage
 
+from gns3_copilot.agent.model_factory import create_note_organizer_model
 from gns3_copilot.log_config import setup_logger
+from gns3_copilot.prompts.notes_prompt import SYSTEM_PROMPT
 
 logger = setup_logger("notes_manager")
 
@@ -154,17 +159,31 @@ def create_new_note_callback() -> None:
     create_new_note()
 
 
-def create_new_note() -> str | None:
+def _save_and_rerun_note(note_name: str, filepath: str, initial_content: str) -> None:
+    """
+    Save new note content and trigger UI refresh.
+
+    Args:
+        note_name: Name of the note file.
+        filepath: Full path to the note file.
+        initial_content: Initial content to write to the file.
+    """
+    with open(filepath, "w", encoding="utf-8") as f:
+        f.write(initial_content)
+    logger.info("Created new note: %s", note_name)
+    # Clear the input field after successful creation and rerun to update UI
+    st.session_state.new_note_name = ""
+    st.rerun()
+
+
+def create_new_note() -> None:
     """
     Create a new note file.
-
-    Returns:
-        The filename of the created note, or None if creation failed.
     """
     note_name = st.session_state.get("new_note_name", "").strip()
     if not note_name:
         st.error("Please enter a note name.")
-        return None
+        return
 
     # Ensure filename ends with .md
     if not note_name.endswith(".md"):
@@ -181,7 +200,7 @@ def create_new_note() -> str | None:
     # Check if file already exists
     if os.path.exists(filepath):
         st.error(f"Note '{note_name}' already exists.")
-        return None
+        return
 
     # Create empty note with header
     try:
@@ -192,12 +211,199 @@ def create_new_note() -> str | None:
         logger.info("Created new note: %s", note_name)
         # Clear the input field after successful creation and rerun to update UI
         st.session_state.new_note_name = ""
-        st.rerun()
-        return note_name  # type: ignore[unreachable]
+        st.rerun()  # type: ignore[unreachable]
     except Exception as e:
         logger.error("Failed to create note %s: %s", note_name, e)
         st.error(f"Failed to create note: {e}")
-        return None
+
+
+def organize_note_content(note_content: str) -> str:
+    """
+    Use LLM to organize and format note content.
+
+    Args:
+        note_content: The original note content to organize.
+
+    Returns:
+        The organized note content, or original content if organization fails.
+    """
+    if not note_content or not note_content.strip():
+        logger.warning("Empty note content, skipping organization")
+        return note_content
+
+    try:
+        logger.info("Starting AI note organization")
+
+        # Create note organizer model
+        model = create_note_organizer_model()
+
+        # Prepare messages
+        messages = [
+            SystemMessage(content=SYSTEM_PROMPT),
+            HumanMessage(content=note_content),
+        ]
+
+        # Show loading indicator and invoke model
+        st.toast("AI is organizing your note...", icon="🤖")
+        result = model.invoke(messages)
+
+        # Get content from result
+        organized_content: str = getattr(result, "content", "")
+        if not isinstance(organized_content, str):
+            organized_content = str(organized_content)
+
+        # Validate the result
+        if not organized_content or not organized_content.strip():
+            logger.error("Invalid response from LLM")
+            st.error("Failed to organize note: Invalid response from AI")
+            return note_content
+
+        logger.info("AI note organization completed successfully")
+        return organized_content
+
+    except Exception as e:
+        logger.error("Failed to organize note with AI: %s", e)
+        st.error(f"Failed to organize note: {e}")
+        return note_content
+
+
+def _save_organized_note(
+    filename: str,
+    editor_key: str,
+    organized_content: str,
+) -> bool:
+    """
+    Save organized note to file.
+
+    Args:
+        filename: Name of the note file.
+        editor_key: Session state key for the editor.
+        organized_content: Organized note content to save.
+
+    Returns:
+        True if saved successfully, False otherwise.
+    """
+    st.session_state.current_note_content = organized_content
+    return save_note_content(filename, organized_content)
+
+
+def render_ai_organize_button() -> None:
+    """
+    Render AI organize button and expander for note organization.
+
+    This function provides a button that triggers AI note organization.
+    When clicked, it organizes the current note content and displays the
+    result in an expander where the user can choose to accept or reorganize.
+    """
+    if not st.session_state.current_note_filename:
+        return
+
+    # AI Organize button
+    if st.button(
+        ":material/auto_fix_high: AI Organize",
+        key="ai_organize_button",
+        help="Use AI to organize and format your note",
+        use_container_width=True,
+    ):
+        # Set a flag to show the organizer expander
+        st.session_state.show_ai_organizer = True
+        st.rerun()
+
+    # Show AI Organizer expander if flag is set
+    if st.session_state.get("show_ai_organizer", False):
+        with st.expander("🤖 AI Note Organization", expanded=True):
+            # Define editor_key for use later in the function
+            editor_key = (
+                f"note_editor_{st.session_state.current_note_filename}"
+                if st.session_state.current_note_filename
+                else "note_editor_empty"
+            )
+
+            # Get current note content - prioritize current_note_content which is properly set
+            original_content = st.session_state.current_note_content
+
+            # Fallback to editor_key if current_note_content is empty
+            if not original_content or not original_content.strip():
+                original_content = st.session_state.get(editor_key, "")
+
+            # Store organized content in session state if not already done
+            if "organized_content" not in st.session_state:
+                organized_content = organize_note_content(original_content)
+                st.session_state.organized_content = organized_content
+                st.session_state.original_content = original_content
+            else:
+                organized_content = st.session_state.organized_content
+                original_content = st.session_state.original_content
+
+            # Display comparison
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown("**Original:**")
+                st.text_area(
+                    "Original Content",
+                    value=original_content,
+                    height=400,
+                    key="organizer_original_content",
+                    disabled=True,
+                    label_visibility="collapsed",
+                )
+            with col2:
+                st.markdown("**Organized:**")
+                st.text_area(
+                    "Organized Content",
+                    value=organized_content,
+                    height=400,
+                    key="organizer_organized_content",
+                    label_visibility="collapsed",
+                )
+
+            # Action buttons
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button(
+                    "Reorganize",
+                    key="organizer_reorganize_button",
+                    use_container_width=True,
+                ):
+                    # Clear organized content to trigger reorganization
+                    if "organized_content" in st.session_state:
+                        del st.session_state.organized_content
+                        del st.session_state.original_content
+                    st.rerun()
+            with col2:
+                if st.button(
+                    "Confirm & Apply",
+                    key="organizer_confirm_button",
+                    type="primary",
+                    use_container_width=True,
+                ):
+                    if _save_organized_note(
+                        st.session_state.current_note_filename,
+                        editor_key,
+                        organized_content,
+                    ):
+                        st.success("Note organized and saved!")
+                        # Clear organizer state
+                        st.session_state.show_ai_organizer = False
+                        if "organized_content" in st.session_state:
+                            del st.session_state.organized_content
+                            del st.session_state.original_content
+                        st.rerun()
+                    else:
+                        st.error("Failed to save organized note")
+
+            # Close button
+            if st.button(
+                "Cancel",
+                key="organizer_cancel_button",
+                use_container_width=True,
+            ):
+                # Clear organizer state
+                st.session_state.show_ai_organizer = False
+                if "organized_content" in st.session_state:
+                    del st.session_state.organized_content
+                    del st.session_state.original_content
+                st.rerun()
 
 
 def auto_save_note() -> None:
@@ -229,6 +435,14 @@ def render_notes_editor(
                          get from session state with key "CONTAINER_HEIGHT".
         show_title: Whether to show the notes management title. Defaults to True.
     """
+    # Initialize session state if not exists
+    if "current_note_filename" not in st.session_state:
+        st.session_state.current_note_filename = None
+    if "current_note_content" not in st.session_state:
+        st.session_state.current_note_content = ""
+    if "new_note_name" not in st.session_state:
+        st.session_state.new_note_name = ""
+
     # Get container height
     if container_height is None:
         container_height = st.session_state.get("CONTAINER_HEIGHT", 1000)
@@ -250,8 +464,11 @@ def render_notes_editor(
             # Auto-save indicator
             st.caption(":material/check_circle: Auto-save enabled")
 
+            # AI Organize button
+            render_ai_organize_button()
+
             # Text area for note content (subtract 100px from CONTAINER_HEIGHT for UI elements)
-            editor_height = container_height - 100
+            editor_height = container_height - 150
             editor_key = (
                 f"note_editor_{st.session_state.current_note_filename}"
                 if st.session_state.current_note_filename
@@ -279,11 +496,17 @@ def render_notes_editor(
             )
 
             if note_files:
-                # Create selectbox for note selection
+                # Create selectbox for note selection with proper index tracking
+                current_index = (
+                    note_files.index(st.session_state.current_note_filename)
+                    if st.session_state.current_note_filename in note_files
+                    else 0
+                )
                 selected_note = st.selectbox(
                     "Select a note to edit:",
                     options=note_files,
                     key="note_selectbox",
+                    index=current_index,
                     label_visibility="collapsed",
                 )
 
@@ -297,7 +520,7 @@ def render_notes_editor(
                         file_name=st.session_state.current_note_filename,
                         mime="text/markdown",
                         key="download_note_btn",
-                        help="Download the note file",
+                        help="Download note file",
                         use_container_width=True,
                     )
                 with col2:

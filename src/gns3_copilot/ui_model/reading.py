@@ -15,7 +15,9 @@ Features:
 import streamlit as st
 
 from gns3_copilot.ui_model.utils.iframe_viewer import render_iframe_viewer
-from gns3_copilot.ui_model.utils.notes_manager import render_notes_editor
+from gns3_copilot.ui_model.utils.notes_manager import (  # type: ignore[attr-defined]
+    render_notes_editor,
+)
 
 # Page title
 st.markdown(

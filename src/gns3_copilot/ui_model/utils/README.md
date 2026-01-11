@@ -100,6 +100,32 @@ success = delete_note_file("my_note.md")
 - `new_note_name`: 新笔记的名称
 - `READING_NOTES_DIR`: 笔记目录路径（可选，默认为 "notes"）
 
+#### AI 整理笔记功能
+
+笔记管理组件内置了 AI 整理功能，可以使用 LLM 自动优化笔记的排版和格式。
+
+**功能特点**：
+- 优化排版和结构
+- 修正错别字和语法错误
+- 使用标准的 Markdown 格式
+- 保持原始内容和风格
+- 支持中英文笔记
+
+**使用方法**：
+1. 在笔记编辑器中，点击 `:material/auto_fix_high: AI Organize` 按钮
+2. AI 会自动整理笔记内容
+3. 在弹出的对话框中预览整理前后的对比
+4. 点击"确认覆盖"应用整理结果，或"重新整理"再次尝试
+
+**注意事项**：
+- 需要在 Settings 中配置好 LLM 模型
+- AI 使用 temperature=0.3 进行整理，以获得更一致的结果
+- 如果笔记内容为空，则不会执行整理
+- 整理结果会自动保存到文件
+
+**自定义整理提示词**：
+如需修改 AI 整理的行为，可以编辑 `src/gns3_copilot/prompts/notes_prompt.py` 文件中的 `SYSTEM_PROMPT`。
+
 ---
 
 ## 在其他页面中使用示例
