@@ -16,7 +16,7 @@ from nornir.core.task import AggregatedResult, Result, Task
 from nornir_netmiko.tasks import netmiko_send_command
 
 from gns3_copilot.log_config import setup_tool_logger
-from gns3_copilot.public_model import get_device_ports_from_topology
+from gns3_copilot.utils import get_device_ports_from_topology
 from gns3_copilot.utils.env_loader import (
     get_env_var,
     get_nornir_defaults,

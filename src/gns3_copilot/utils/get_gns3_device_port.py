@@ -4,7 +4,6 @@ Public module for getting device port information from GNS3 topology
 
 from typing import Any
 
-from gns3_copilot.gns3_client import GNS3TopologyTool
 from gns3_copilot.log_config import setup_tool_logger
 
 logger = setup_tool_logger("get_gns3_device_port")
@@ -35,6 +34,9 @@ def get_device_ports_from_topology(
     logger.info("Called with device_names=%s, project_id=%s", device_names, project_id)
 
     try:
+        # Lazy import to avoid circular dependency
+        from gns3_copilot.gns3_client import GNS3TopologyTool
+
         # Get topology information
         topo = GNS3TopologyTool()
         topology = topo._run(project_id=project_id)

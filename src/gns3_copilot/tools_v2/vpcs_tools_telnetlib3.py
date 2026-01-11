@@ -14,7 +14,7 @@ from langchain_core.callbacks import CallbackManagerForToolRun
 from telnetlib3 import Telnet
 
 from gns3_copilot.log_config import setup_tool_logger
-from gns3_copilot.public_model import get_device_ports_from_topology
+from gns3_copilot.utils import get_device_ports_from_topology
 from gns3_copilot.utils.env_loader import get_env_var
 
 logger = setup_tool_logger("vpcs_multi_commands")

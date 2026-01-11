@@ -18,7 +18,7 @@ from gns3_copilot.gns3_client import (
     get_gns3_connector,
 )
 from gns3_copilot.log_config import setup_tool_logger
-from gns3_copilot.public_model.gns3_drawing_utils import (
+from gns3_copilot.utils.gns3_drawing_utils import (
     calculate_two_node_ellipse,
     calculate_two_node_rectangle,
 )
