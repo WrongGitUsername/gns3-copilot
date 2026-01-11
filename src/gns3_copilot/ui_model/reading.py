@@ -141,8 +141,9 @@ def create_new_note() -> str | None:
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(initial_content)
         logger.info("Created new note: %s", note_name)
-        # Clear the input field after successful creation
+        # Clear the input field after successful creation and rerun to update UI
         st.session_state.new_note_name = ""
+        st.rerun()
         return note_name
     except Exception as e:
         logger.error("Failed to create note %s: %s", note_name, e)
@@ -223,89 +224,88 @@ with notes_col:
     
     # ===== Notes Management Column =====
     with col_management:
-        st.markdown("#### :material/folder: Notes Management")
-        
-        # My Notes section (no container)
-        st.markdown('<span style="font-size: 14px; font-weight: bold;">📁 My Notes</span>', unsafe_allow_html=True)
-        
-        if note_files:
-            # Create selectbox for note selection
-            selected_note = st.selectbox(
-                "Select a note to edit:",
-                options=note_files,
-                key="note_selectbox",
-                label_visibility="collapsed",
-            )
+        with st.expander(":material/folder: Notes Management", expanded=True):
+            # My Notes section (no container)
+            st.markdown('<span style="font-size: 14px; font-weight: bold;">📁 My Notes</span>', unsafe_allow_html=True)
             
-            # Action buttons
-            col1, col2 = st.columns(2)
+            if note_files:
+                # Create selectbox for note selection
+                selected_note = st.selectbox(
+                    "Select a note to edit:",
+                    options=note_files,
+                    key="note_selectbox",
+                    label_visibility="collapsed",
+                )
+                
+                # Action buttons
+                col1, col2 = st.columns(2)
+                with col1:
+                    # Download button
+                    st.download_button(
+                        label=":material/download:",
+                        data=st.session_state.current_note_content,
+                        file_name=st.session_state.current_note_filename,
+                        mime="text/markdown",
+                        key="download_note_btn",
+                        help="Download the note file",
+                        use_container_width=True,
+                    )
+                with col2:
+                    # Delete button
+                    delete_btn = st.popover(":material/delete:", use_container_width=True)
+                    with delete_btn:
+                        st.write(f"Delete `{st.session_state.current_note_filename}`?")
+                        st.write("This action cannot be undone.")
+                        
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            if st.button("Cancel", key="cancel_popover_btn", use_container_width=True):
+                                st.rerun()
+                        with col2:
+                            if st.button(
+                                "Delete",
+                                key="confirm_delete_btn_popover",
+                                type="primary",
+                                use_container_width=True,
+                            ):
+                                if delete_note_file(st.session_state.current_note_filename):
+                                    st.success(f"Note deleted!")
+                                    st.session_state.current_note_filename = None
+                                    st.session_state.current_note_content = ""
+                                    st.rerun()
+                
+                # Load selected note if different from current
+                if selected_note != st.session_state.current_note_filename:
+                    st.session_state.current_note_filename = selected_note
+                    st.session_state.current_note_content = load_note_content(selected_note)
+                    st.rerun()
+            else:
+                st.info("No notes found.")
+                st.session_state.current_note_filename = None
+                st.session_state.current_note_content = ""
+            
+            # Create New Note section
+            st.markdown("---")
+            st.markdown('<span style="font-size: 14px; font-weight: bold;">:material/add_circle: Create New Note</span>', unsafe_allow_html=True)
+            col1, col2 = st.columns([3, 1])
             with col1:
-                # Download button
-                st.download_button(
-                    label=":material/download:",
-                    data=st.session_state.current_note_content,
-                    file_name=st.session_state.current_note_filename,
-                    mime="text/markdown",
-                    key="download_note_btn",
-                    help="Download the note file",
-                    use_container_width=True,
+                st.text_input(
+                    "Note Name",
+                    value=st.session_state.new_note_name,
+                    placeholder="e.g., Network Fundamentals",
+                    max_chars=40,
+                    key="new_note_name_input",
+                    help="Enter a name for your new note (.md will be added automatically)",
+                    on_change=lambda: st.session_state.update(
+                        {"new_note_name": st.session_state.new_note_name_input}
+                    ),
+                    label_visibility="collapsed",
                 )
             with col2:
-                # Delete button
-                delete_btn = st.popover(":material/delete:", use_container_width=True)
-                with delete_btn:
-                    st.write(f"Delete `{st.session_state.current_note_filename}`?")
-                    st.write("This action cannot be undone.")
-                    
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        if st.button("Cancel", key="cancel_popover_btn", use_container_width=True):
-                            st.rerun()
-                    with col2:
-                        if st.button(
-                            "Delete",
-                            key="confirm_delete_btn_popover",
-                            type="primary",
-                            use_container_width=True,
-                        ):
-                            if delete_note_file(st.session_state.current_note_filename):
-                                st.success(f"Note deleted!")
-                                st.session_state.current_note_filename = None
-                                st.session_state.current_note_content = ""
-                                st.rerun()
-            
-            # Load selected note if different from current
-            if selected_note != st.session_state.current_note_filename:
-                st.session_state.current_note_filename = selected_note
-                st.session_state.current_note_content = load_note_content(selected_note)
-                st.rerun()
-        else:
-            st.info("No notes found.")
-            st.session_state.current_note_filename = None
-            st.session_state.current_note_content = ""
-        
-        # Create New Note section
-        st.markdown("---")
-        st.markdown('<span style="font-size: 14px; font-weight: bold;">:material/add_circle: Create New Note</span>', unsafe_allow_html=True)
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            st.text_input(
-                "Note Name",
-                value=st.session_state.new_note_name,
-                placeholder="e.g., Network Fundamentals",
-                max_chars=40,
-                key="new_note_name_input",
-                help="Enter a name for your new note (.md will be added automatically)",
-                on_change=lambda: st.session_state.update(
-                    {"new_note_name": st.session_state.new_note_name_input}
-                ),
-                label_visibility="collapsed",
-            )
-        with col2:
-            st.button(
-                ":material/add:",
-                key="create_note_btn",
-                on_click=create_new_note,
-                help="Create a new note file",
-                use_container_width=True,
-            )
+                st.button(
+                    ":material/add:",
+                    key="create_note_btn",
+                    on_click=create_new_note,
+                    help="Create a new note file",
+                    use_container_width=True,
+                )
