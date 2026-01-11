@@ -418,6 +418,37 @@ with st.container(width=800, horizontal_alignment="center", vertical_alignment="
                 "💡 Voice features are currently disabled. Enable the toggle above to configure TTS/STT settings. (Experimental Test Feature)"
             )
 
+    with st.expander("Calibre & Reading Settings", expanded=True):
+        st.caption("Calibre E-book Server Configuration")
+        col1 = st.columns([1])
+        with col1[0]:
+            st.text_input(
+                "Calibre Server URL",
+                key="CALIBRE_SERVER_URL",
+                value=st.session_state.get("CALIBRE_SERVER_URL", "http://localhost:8080"),
+                type="default",
+                placeholder="e.g., http://localhost:8080",
+                help="""
+    Enter the URL of your Calibre Content Server.
+    Make sure the Calibre server is running and accessible.
+                """,
+            )
+
+        st.markdown("---")
+        st.caption("Reading Notes Directory")
+
+        st.text_input(
+            "Notes Directory Path",
+            key="READING_NOTES_DIR",
+            value=st.session_state.get("READING_NOTES_DIR", "notes"),
+            type="default",
+            placeholder="e.g., notes",
+            help="""
+    Directory where reading notes will be stored.
+    Notes are saved as Markdown (.md) files.
+                """,
+        )
+
     with st.expander("Other Settings", expanded=True):
         english_levels = ["Normal Prompt", "A1", "A2", "B1", "B2", "C1", "C2"]
         eng_level = st.session_state.get("ENGLISH_LEVEL", "Normal Prompt")

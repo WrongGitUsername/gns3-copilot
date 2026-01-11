@@ -84,6 +84,9 @@ CONFIG_MAP = {
     "LINUX_TELNET_PASSWORD": "LINUX_TELNET_PASSWORD",
     # Prompt Configuration
     "ENGLISH_LEVEL": "ENGLISH_LEVEL",
+    # Reading Page Configuration
+    "CALIBRE_SERVER_URL": "CALIBRE_SERVER_URL",
+    "READING_NOTES_DIR": "READING_NOTES_DIR",
     # UI Configuration
     "CONTAINER_HEIGHT": "CONTAINER_HEIGHT",
     "zoom_scale_topology": "ZOOM_SCALE_TOPOLOGY",
