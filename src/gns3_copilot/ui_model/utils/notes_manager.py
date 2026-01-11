@@ -209,9 +209,9 @@ def create_new_note() -> None:
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(initial_content)
         logger.info("Created new note: %s", note_name)
-        # Clear the input field after successful creation and rerun to update UI
+        # Clear the input field and set flag to trigger rerun
         st.session_state.new_note_name = ""
-        st.rerun()  # type: ignore[unreachable]
+        st.session_state.rerun = True
     except Exception as e:
         logger.error("Failed to create note %s: %s", note_name, e)
         st.error(f"Failed to create note: {e}")
@@ -237,10 +237,15 @@ def organize_note_content(note_content: str) -> str:
         # Create note organizer model
         model = create_note_organizer_model()
 
-        # Prepare messages
+        # Get current date and time in YYYY-MM-DD HH:MM format
+        current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+        # Prepare messages with current date and time
         messages = [
             SystemMessage(content=SYSTEM_PROMPT),
-            HumanMessage(content=note_content),
+            HumanMessage(
+                content=f"[CURRENT_DATETIME: {current_datetime}]\n\n{note_content}"
+            ),
         ]
 
         # Show loading indicator and invoke model
@@ -283,7 +288,9 @@ def _save_organized_note(
     Returns:
         True if saved successfully, False otherwise.
     """
+    # Update both current_note_content and editor's session state
     st.session_state.current_note_content = organized_content
+    st.session_state[editor_key] = organized_content
     return save_note_content(filename, organized_content)
 
 
@@ -442,6 +449,11 @@ def render_notes_editor(
         st.session_state.current_note_content = ""
     if "new_note_name" not in st.session_state:
         st.session_state.new_note_name = ""
+
+    # Check rerun flag set by callback functions
+    if st.session_state.get("rerun", False):
+        st.session_state.rerun = False
+        st.rerun()
 
     # Get container height
     if container_height is None:
