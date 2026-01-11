@@ -38,17 +38,17 @@ from langchain.messages import AIMessage, HumanMessage, ToolMessage
 from gns3_copilot.agent import agent
 from gns3_copilot.gns3_client import GNS3ProjectList
 from gns3_copilot.log_config import setup_logger
-from gns3_copilot.utils import (
-    format_tool_response,
-    get_duration,
-    speech_to_text,
-    text_to_speech_wav,
-)
 from gns3_copilot.ui_model.utils import (
     build_topology_iframe_url,
     generate_topology_iframe_html,
     render_create_project_form,
     render_project_cards,
+)
+from gns3_copilot.utils import (
+    format_tool_response,
+    get_duration,
+    speech_to_text,
+    text_to_speech_wav,
 )
 
 logger = setup_logger("chat")

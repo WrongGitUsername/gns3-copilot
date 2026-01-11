@@ -420,12 +420,14 @@ with st.container(width=800, horizontal_alignment="center", vertical_alignment="
 
     with st.expander("Calibre & Reading Settings", expanded=True):
         st.caption("Calibre E-book Server Configuration")
-        col1 = st.columns([1])
-        with col1[0]:
+        (col1,) = st.columns([1])
+        with col1:
             st.text_input(
                 "Calibre Server URL",
                 key="CALIBRE_SERVER_URL",
-                value=st.session_state.get("CALIBRE_SERVER_URL", "http://localhost:8080"),
+                value=st.session_state.get(
+                    "CALIBRE_SERVER_URL", "http://localhost:8080"
+                ),
                 type="default",
                 placeholder="e.g., http://localhost:8080",
                 help="""
