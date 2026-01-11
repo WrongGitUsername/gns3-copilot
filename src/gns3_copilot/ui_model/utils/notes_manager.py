@@ -45,6 +45,9 @@ def get_notes_directory() -> str:
     # Type assertion to ensure notes_dir is a string
     if not isinstance(notes_dir, str):
         notes_dir = "notes"
+    # Use default value "notes" if the configured value is empty
+    if not notes_dir or not notes_dir.strip():
+        notes_dir = "notes"
     # Make it absolute path relative to current working directory
     if not os.path.isabs(notes_dir):
         notes_dir = os.path.join(os.getcwd(), notes_dir)

@@ -419,14 +419,14 @@ with st.container(width=800, horizontal_alignment="center", vertical_alignment="
             )
 
     with st.expander("Calibre & Reading Settings", expanded=True):
-        st.caption("Calibre E-book Server Configuration")
+        #st.caption("Calibre E-book Server Configuration")
         (col1,) = st.columns([1])
         with col1:
             st.text_input(
                 "Calibre Server URL",
                 key="CALIBRE_SERVER_URL",
                 value=st.session_state.get(
-                    "CALIBRE_SERVER_URL", "http://localhost:8080"
+                    "CALIBRE_SERVER_URL",
                 ),
                 type="default",
                 placeholder="e.g., http://localhost:8080",
@@ -436,13 +436,13 @@ with st.container(width=800, horizontal_alignment="center", vertical_alignment="
                 """,
             )
 
-        st.markdown("---")
-        st.caption("Reading Notes Directory")
+        #st.caption("Reading Notes Directory")
 
+        notes_dir_value = st.session_state.get("READING_NOTES_DIR", "notes")
         st.text_input(
             "Notes Directory Path",
             key="READING_NOTES_DIR",
-            value=st.session_state.get("READING_NOTES_DIR", "notes"),
+            value=notes_dir_value,
             type="default",
             placeholder="e.g., notes",
             help="""
@@ -450,6 +450,12 @@ with st.container(width=800, horizontal_alignment="center", vertical_alignment="
     Notes are saved as Markdown (.md) files.
                 """,
         )
+
+        # Show warning if the value is empty or contains only whitespace
+        if not notes_dir_value or not notes_dir_value.strip():
+            st.info(
+                "💡 Empty path detected. The default directory **'notes'** will be used."
+            )
 
     with st.expander("Other Settings", expanded=True):
         english_levels = ["Normal Prompt", "A1", "A2", "B1", "B2", "C1", "C2"]
