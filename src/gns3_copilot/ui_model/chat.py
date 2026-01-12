@@ -210,10 +210,12 @@ if selected_p:
                                     ):
                                         st.json(
                                             {
-                                                #"name": tool_name,
-                                                #"id": tool_id,
-                                                "tool_input": tool_args.get("tool_input"),
-                                                #"type": "tool_call",
+                                                # "name": tool_name,
+                                                # "id": tool_id,
+                                                "tool_input": tool_args.get(
+                                                    "tool_input"
+                                                ),
+                                                # "type": "tool_call",
                                             },
                                             expanded=True,
                                         )

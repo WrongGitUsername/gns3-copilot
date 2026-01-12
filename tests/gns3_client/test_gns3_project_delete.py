@@ -327,7 +327,7 @@ class TestGNS3ProjectDeleteEnvironmentValidation:
         """Test missing API_VERSION environment variable"""
         tool = GNS3ProjectDelete()
         
-        with patch.dict(os.environ, {}, clear=True):
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', return_value=None):
             result = tool._run(tool_input={"project_id": "test_id"})
             
             assert result["success"] is False
@@ -338,9 +338,13 @@ class TestGNS3ProjectDeleteEnvironmentValidation:
         """Test missing GNS3_SERVER_URL environment variable"""
         tool = GNS3ProjectDelete()
         
-        with patch.dict(os.environ, {
-            "API_VERSION": "2"
-        }, clear=True):
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "2"
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
             result = tool._run(tool_input={"project_id": "test_id"})
             
             assert result["success"] is False
@@ -351,10 +355,14 @@ class TestGNS3ProjectDeleteEnvironmentValidation:
         """Test invalid API_VERSION value"""
         tool = GNS3ProjectDelete()
         
-        with patch.dict(os.environ, {
-            "API_VERSION": "invalid",
-            "GNS3_SERVER_URL": "http://localhost:3080"
-        }):
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "invalid",
+                "GNS3_SERVER_URL": "http://localhost:3080"
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
             result = tool._run(tool_input={"project_id": "test_id"})
             
             assert result["success"] is False
@@ -644,15 +652,11 @@ class TestGNS3ProjectDeleteReturnFormat:
         assert "status" in result["project"]
         assert "path" in result["project"]
 
-    @patch.dict(os.environ, {
-        "API_VERSION": "2",
-        "GNS3_SERVER_URL": "http://localhost:3080"
-    })
     def test_error_response_format(self):
         """Test error response has correct format"""
         tool = GNS3ProjectDelete()
         
-        with patch.dict(os.environ, {}, clear=True):
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', return_value=None):
             result = tool._run(tool_input={"project_id": "test_id"})
             
             # Verify error format

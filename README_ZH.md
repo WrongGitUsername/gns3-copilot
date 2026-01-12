@@ -8,7 +8,6 @@
 ![License](https://img.shields.io/badge/license-MIT-green.svg) 
 [![platform](https://img.shields.io/badge/platform-linux%20%7C%20windows%20%7C%20macOS-lightgrey)](https://shields.io/)
 
----
 
 <div align="center">
 
@@ -16,7 +15,6 @@
 
 </div>
 
----
 
 一个基于AI的网络自动化助手，专为GNS3网络模拟器设计，提供智能化的网络设备管理和自动化操作。
 
@@ -70,6 +68,8 @@ gns3-copilot
 
 ### 配置参数详解
 
+GNS3 Copilot 通过 Streamlit 界面进行配置管理，所有设置持久化保存在 SQLite 数据库中，提供可靠的数据存储。
+
 #### 🔧 主要配置内容
 
 ##### 1. GNS3 服务器配置
@@ -93,9 +93,31 @@ gns3-copilot
 - **Base URL**: 模型服务的基础 URL（使用 OpenRouter 等第三方平台时必需）
 - **Temperature**: 模型温度参数（控制输出随机性，范围 0.0-1.0）
 
-##### 3. 其他设置
+##### 3. Calibre 与阅读设置
+- **Calibre Server URL**: Calibre 内容服务器 URL（如：http://localhost:8080）
+  - 通过 Calibre GUI 启动：首选项 → 网络共享 → 启动服务器
+  - 或通过命令行启动：`calibre-server --port 8080`
+
+##### 4. 其他设置
 - **Linux Console Username**: Linux 控制台用户名（用于 GNS3 中的 Debian 设备）
 - **Linux Console Password**: Linux 控制台密码
+
+## 📚 阅读与笔记
+
+GNS3 Copilot 集成了 Calibre 内容服务器，提供专门的阅读界面：
+
+- **Calibre 电子书查看器**：嵌入式 iframe 查看器，可直接访问和阅读 Calibre 电子书库中的书籍
+- **多笔记管理**：创建、选择和删除阅读笔记，方便整理您的想法
+- **Markdown 笔记**：所有笔记均以 Markdown 格式保存，支持下载功能
+- **🤖 AI 智能笔记整理**：使用 AI 自动润色和整理您的笔记
+  - 点击 "AI Organize" 按钮，让 AI 自动格式化和结构化您的笔记
+  - 侧边对比原始内容与整理后的内容，确认前可预览
+  - 可反复重新整理，直到满意为止
+
+访问阅读界面的步骤：
+1. 在设置中配置 Calibre 服务器 URL
+2. 启动 Calibre 内容服务器（默认端口 8080）
+3. 在应用中导航到阅读页面
 
 ## 文档
 
@@ -143,10 +165,23 @@ gns3-copilot
 
 ## 安全注意事项
 
-**API密钥保护**: 
-   - 不要将 `.env` 文件提交到版本控制
+**API密钥保护**:
+   - API 密钥存储在 SQLite 数据库中（当前为明文存储）
    - 定期轮换API密钥
    - 使用最小权限原则
+   - 不要将数据库文件提交到版本控制
+
+**数据库安全**:
+   - **重要**: 数据库当前以明文形式存储密码和 API 密钥
+   - 配置数据库存储在本地机器上
+   - 确保数据库目录设置适当的文件权限
+   - 定期备份数据库以防数据丢失
+   - 限制对数据库文件的访问，仅允许授权用户
+
+**环境安全**:
+   - 在受信任的环境中运行 GNS3 Copilot
+   - 考虑使用加密文件系统存储敏感数据
+   - 共享数据库备份时需谨慎
 
 ## 许可证
 

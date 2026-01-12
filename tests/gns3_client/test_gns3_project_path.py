@@ -275,7 +275,7 @@ class TestGNS3ProjectPathEnvironmentValidation:
         """Test missing API_VERSION environment variable"""
         tool = GNS3ProjectPath()
         
-        with patch.dict(os.environ, {}, clear=True):
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', return_value=None):
             input_data = {
                 "project_name": "test_project",
                 "project_id": "1445a4ba-4635-430b-a332-bef438f65932"
@@ -289,9 +289,11 @@ class TestGNS3ProjectPathEnvironmentValidation:
         """Test missing GNS3_SERVER_URL environment variable"""
         tool = GNS3ProjectPath()
         
-        with patch.dict(os.environ, {
-            "API_VERSION": "2"
-        }, clear=True):
+        def mock_get_config(key, default=None):
+            config = {"API_VERSION": "2"}
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
             input_data = {
                 "project_name": "test_project",
                 "project_id": "1445a4ba-4635-430b-a332-bef438f65932"
@@ -305,10 +307,11 @@ class TestGNS3ProjectPathEnvironmentValidation:
         """Test invalid API_VERSION value"""
         tool = GNS3ProjectPath()
         
-        with patch.dict(os.environ, {
-            "API_VERSION": "invalid",
-            "GNS3_SERVER_URL": "http://localhost:3080"
-        }):
+        def mock_get_config(key, default=None):
+            config = {"API_VERSION": "invalid", "GNS3_SERVER_URL": "http://localhost:3080"}
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
             input_data = {
                 "project_name": "test_project",
                 "project_id": "1445a4ba-4635-430b-a332-bef438f65932"
