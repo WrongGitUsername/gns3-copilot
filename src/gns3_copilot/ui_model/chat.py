@@ -210,10 +210,10 @@ if selected_p:
                                     ):
                                         st.json(
                                             {
-                                                "name": tool_name,
-                                                "id": tool_id,
-                                                "args": tool_args,
-                                                "type": "tool_call",
+                                                #"name": tool_name,
+                                                #"id": tool_id,
+                                                "tool_input": tool_args.get("tool_input"),
+                                                #"type": "tool_call",
                                             },
                                             expanded=True,
                                         )
@@ -468,7 +468,7 @@ if selected_p:
                                         "name": tool_data["name"],
                                         "id": tool_data["id"],
                                         # Inject tool_input structure
-                                        "args": parsed_args,
+                                        "tool_input": parsed_args.get("tool_input"),
                                         "type": tool_data.get(
                                             "type", "tool_call"
                                         ),  # Maintain completeness
