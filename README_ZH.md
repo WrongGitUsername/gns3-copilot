@@ -22,7 +22,7 @@
 
 GNS3 Copilot 是一个强大的网络自动化工具，集成了多种AI模型和网络自动化框架，能够通过自然语言与用户交互，执行网络设备配置、拓扑管理和故障诊断等任务。
 
-<img src="https://raw.githubusercontent.com/yueguobin/gns3-copilot/refs/heads/master/demo.gif" alt="GNS3 Copilot 功能演示" width="1280"/>
+<img src="https://raw.githubusercontent.com/yueguobin/gns3-copilot/refs/heads/Development/docs/media/demo.gif" alt="GNS3 Copilot Function demonstration" width="1280"/>
 
 ### 核心功能
 
@@ -118,6 +118,9 @@ GNS3 Copilot 集成了 Calibre 内容服务器，提供专门的阅读界面：
 1. 在设置中配置 Calibre 服务器 URL
 2. 启动 Calibre 内容服务器（默认端口 8080）
 3. 在应用中导航到阅读页面
+
+<img src="https://raw.githubusercontent.com/yueguobin/gns3-copilot/refs/heads/Development/docs/media/reading_and_notes.gif" alt="GNS3 Copilot Function demonstration" width="1280"/>
+
 
 ## 文档
 

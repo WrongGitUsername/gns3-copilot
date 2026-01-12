@@ -22,7 +22,7 @@ An AI-powered network automation assistant designed specifically for GNS3 networ
 
 GNS3 Copilot is a powerful network automation tool that integrates multiple AI models and network automation frameworks. It can interact with users through natural language and perform tasks such as network device configuration, topology management, and fault diagnosis.
 
-<img src="https://raw.githubusercontent.com/yueguobin/gns3-copilot/refs/heads/master/demo.gif" alt="GNS3 Copilot Function demonstration" width="1280"/>
+<img src="https://raw.githubusercontent.com/yueguobin/gns3-copilot/refs/heads/Development/docs/media/demo.gif" alt="GNS3 Copilot Function demonstration" width="1280"/>
 
 ## Installation Guide
 
@@ -113,6 +113,9 @@ To access the reading interface:
 1. Configure Calibre Server URL in Settings
 2. Start Calibre Content Server (port 8080 by default)
 3. Navigate to the Reading page in the application
+
+
+<img src="https://raw.githubusercontent.com/yueguobin/gns3-copilot/refs/heads/Development/docs/media/reading_and_notes.gif" alt="GNS3 Copilot Function demonstration" width="1280"/>
 
 ## Documentation
 
