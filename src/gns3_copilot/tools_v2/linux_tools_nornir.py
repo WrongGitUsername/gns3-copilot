@@ -16,9 +16,9 @@ from nornir.core.task import AggregatedResult, Result, Task
 from nornir_netmiko.tasks import netmiko_send_command
 
 from gns3_copilot.log_config import setup_tool_logger
-from gns3_copilot.utils import get_device_ports_from_topology
-from gns3_copilot.utils.env_loader import (
-    get_env_var,
+from gns3_copilot.utils import (
+    get_config,
+    get_device_ports_from_topology,
     get_nornir_defaults,
     get_nornir_groups_config,
 )
@@ -86,8 +86,8 @@ class LinuxTelnetBatchTool(BaseTool):
         # Log received input
         logger.info("Received input: %s", tool_input)
 
-        linux_username = get_env_var("LINUX_TELNET_USERNAME")
-        linux_password = get_env_var("LINUX_TELNET_PASSWORD")
+        linux_username = get_config("LINUX_TELNET_USERNAME")
+        linux_password = get_config("LINUX_TELNET_PASSWORD")
 
         if not linux_username or not linux_password:
             user_message = (

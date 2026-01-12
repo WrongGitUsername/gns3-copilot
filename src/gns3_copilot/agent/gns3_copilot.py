@@ -17,12 +17,10 @@ solution for GNS3 environments.
 """
 
 import operator
-import os
 import sqlite3
 from typing import Annotated, Literal
 
 import streamlit as st
-from dotenv import load_dotenv
 from langchain.messages import AnyMessage, SystemMessage, ToolMessage
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import END, START, StateGraph
@@ -47,17 +45,16 @@ from gns3_copilot.tools_v2 import (
     LinuxTelnetBatchTool,
     VPCSMultiCommands,
 )
-
-load_dotenv()
+from gns3_copilot.utils import get_config
 
 # Set up logger for GNS3 Copilot
 logger = setup_logger("gns3_copilot", log_file="gns3_copilot.log")
 
 # Log loaded LLM model information
-model_name = os.getenv("MODEL_NAME")
-model_provider = os.getenv("MODE_PROVIDER")
-base_url = os.getenv("BASE_URL", "")
-temperature = os.getenv("TEMPERATURE", "0")
+model_name = get_config("MODEL_NAME")
+model_provider = get_config("MODE_PROVIDER")
+base_url = get_config("BASE_URL", "")
+temperature = get_config("TEMPERATURE", "0")
 logger.info(
     "LLM model configuration: name=%s, provider=%s, base_url=%s, temperature=%s",
     model_name,

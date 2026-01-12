@@ -2,35 +2,33 @@
 Model Factory for GNS3 Copilot Agent
 
 This module provides factory functions to create fresh LLM model instances
-on-demand from current environment variables. This allows configuration
-changes in .env file to take effect without restarting the application.
+on-demand from SQLite configuration. This allows configuration changes
+to take effect without restarting the application.
 """
 
-import os
 from typing import Any
 
-from dotenv import load_dotenv
 from langchain.chat_models import init_chat_model
 
 from gns3_copilot.log_config import setup_logger
+from gns3_copilot.utils import get_config
 
 logger = setup_logger("model_factory")
 
 
 def _load_env_variables() -> dict[str, str]:
     """
-    Load environment variables from .env file.
+    Load model configuration from SQLite database.
 
     Returns:
-        Dictionary containing environment variables.
+        Dictionary containing model configuration.
     """
-    load_dotenv()
     return {
-        "model_name": os.getenv("MODEL_NAME", ""),
-        "model_provider": os.getenv("MODE_PROVIDER", ""),
-        "api_key": os.getenv("MODEL_API_KEY", ""),
-        "base_url": os.getenv("BASE_URL", ""),
-        "temperature": os.getenv("TEMPERATURE", "0"),
+        "model_name": get_config("MODEL_NAME", ""),
+        "model_provider": get_config("MODE_PROVIDER", ""),
+        "api_key": get_config("MODEL_API_KEY", ""),
+        "base_url": get_config("BASE_URL", ""),
+        "temperature": get_config("TEMPERATURE", "0"),
     }
 
 

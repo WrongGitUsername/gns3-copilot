@@ -7,19 +7,15 @@ duration calculation.
 """
 
 import io
-import os
 from typing import Any
 
 import soundfile as sf
-from dotenv import load_dotenv
 from openai import (
     OpenAI,
 )
 
 from gns3_copilot.log_config import setup_logger
-
-# Load environment variables
-load_dotenv()
+from gns3_copilot.utils import get_config
 
 # Setup logger
 logger = setup_logger("openai_tts")
@@ -27,14 +23,14 @@ logger = setup_logger("openai_tts")
 
 def get_tts_config() -> dict[str, Any]:
     """
-    Get TTS configuration from environment variables with sensible defaults.
+    Get TTS configuration from SQLite database with sensible defaults.
     """
     return {
-        "api_key": os.getenv("TTS_API_KEY", "dummy-key"),
-        "base_url": os.getenv("TTS_BASE_URL", "http://localhost:4123/v1"),
-        "model": os.getenv("TTS_MODEL", "tts-1"),
-        "voice": os.getenv("TTS_VOICE", "alloy"),
-        "speed": float(os.getenv("TTS_SPEED", "1.0")),
+        "api_key": get_config("TTS_API_KEY", "dummy-key"),
+        "base_url": get_config("TTS_BASE_URL", "http://localhost:4123/v1"),
+        "model": get_config("TTS_MODEL", "tts-1"),
+        "voice": get_config("TTS_VOICE", "alloy"),
+        "speed": float(get_config("TTS_SPEED", "1.0")),
     }
 
 
@@ -219,7 +215,7 @@ if __name__ == "__main__":
         # Generate audio using environment variables (no explicit parameters needed)
         audio_data = text_to_speech_wav(
             text=test_topology
-            # All other parameters will be loaded from .env file
+            # All other parameters will be loaded from SQLite config
         )
 
         duration = get_duration(audio_data)

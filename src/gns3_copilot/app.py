@@ -11,9 +11,10 @@ from gns3_copilot.ui_model.sidebar import render_sidebar, render_sidebar_about
 from gns3_copilot.ui_model.styles import get_styles
 from gns3_copilot.ui_model.utils import (
     check_startup_updates,
+    init_app_config,
     initialize_page_config,
     inject_chat_styles,
-    load_config_from_env,
+    load_config,
     render_startup_update_result,
 )
 
@@ -30,9 +31,12 @@ def main() -> None:
     # Initialize page configuration early to ensure consistent layout
     initialize_page_config()
 
-    # Load configuration from .env file into session state
+    # Initialize configuration database with default values
+    init_app_config()
+
+    # Load configuration from database into session state
     # This ensures all pages have access to the configuration
-    load_config_from_env()
+    load_config()
 
     # Apply centralized CSS styles
     st.markdown(get_styles(), unsafe_allow_html=True)

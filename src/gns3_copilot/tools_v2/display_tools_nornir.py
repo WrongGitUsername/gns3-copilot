@@ -16,9 +16,9 @@ from nornir.core.task import AggregatedResult, Result, Task
 from nornir_netmiko.tasks import netmiko_multiline
 
 from gns3_copilot.log_config import setup_tool_logger
-from gns3_copilot.utils import get_device_ports_from_topology
-from gns3_copilot.utils.env_loader import (
-    get_env_var,
+from gns3_copilot.utils import (
+    get_config,
+    get_device_ports_from_topology,
     get_nornir_defaults,
     get_nornir_groups_config,
 )
@@ -347,7 +347,7 @@ class ExecuteMultipleDeviceCommands(BaseTool):
             defaults = get_nornir_defaults()
 
             # Log nornir account information
-            gns3_host = get_env_var("GNS3_SERVER_HOST")
+            gns3_host = get_config("GNS3_SERVER_HOST")
 
             logger.info(
                 "Initializing Nornir with account: host=%s, platform=%s, timeout=%d",

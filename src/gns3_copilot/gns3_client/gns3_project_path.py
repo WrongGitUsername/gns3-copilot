@@ -13,7 +13,6 @@ Usage:
 
 from typing import Any
 
-from dotenv import load_dotenv
 from langchain.tools import BaseTool
 
 from gns3_copilot.gns3_client import Project, get_gns3_connector
@@ -21,18 +20,6 @@ from gns3_copilot.log_config import setup_tool_logger
 
 # Configure logging
 logger = setup_tool_logger("gns3_project_path")
-
-# Load environment variables
-dotenv_loaded = load_dotenv()
-if dotenv_loaded:
-    logger.info(
-        "GNS3ProjectPath Tool Successfully loaded environment variables from .env file"
-    )
-else:
-    logger.warning(
-        "GNS3ProjectPath Tool No .env file found or failed to load. "
-        "Using existing environment variables."
-    )
 
 
 class GNS3ProjectPath(BaseTool):

@@ -12,6 +12,17 @@ Author: Guobin Yue
 """
 
 # Import main utility functions
+from .app_config import (
+    DEFAULT_CONFIG,
+    get_all_config,
+    get_config,
+    get_nornir_all_groups_config,
+    get_nornir_defaults,
+    get_nornir_groups_config,
+    init_config,
+    reset_config,
+    set_config,
+)
 from .get_gns3_device_port import get_device_ports_from_topology
 from .openai_stt import get_stt_config, speech_to_text
 from .openai_tts import get_duration, get_tts_config, text_to_speech_wav
@@ -32,6 +43,15 @@ __url__ = "https://github.com/yueguobin/gns3-copilot"
 
 # Export main utility functions
 __all__ = [
+    "DEFAULT_CONFIG",
+    "get_config",
+    "set_config",
+    "get_all_config",
+    "get_nornir_all_groups_config",
+    "get_nornir_defaults",
+    "get_nornir_groups_config",
+    "init_config",
+    "reset_config",
     "get_device_ports_from_topology",
     "parse_tool_content",
     "format_tool_response",

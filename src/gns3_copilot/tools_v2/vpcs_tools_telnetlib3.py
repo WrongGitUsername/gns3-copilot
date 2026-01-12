@@ -14,8 +14,7 @@ from langchain_core.callbacks import CallbackManagerForToolRun
 from telnetlib3 import Telnet
 
 from gns3_copilot.log_config import setup_tool_logger
-from gns3_copilot.utils import get_device_ports_from_topology
-from gns3_copilot.utils.env_loader import get_env_var
+from gns3_copilot.utils import get_config, get_device_ports_from_topology
 
 logger = setup_tool_logger("vpcs_multi_commands")
 
@@ -338,8 +337,8 @@ class VPCSMultiCommands(BaseTool):
             list(device_ports.keys()),
         )
 
-        # Get host IP from environment variable
-        gns3_host = get_env_var("GNS3_SERVER_HOST", "127.0.0.1")
+        # Get host IP from database
+        gns3_host = get_config("GNS3_SERVER_HOST", "127.0.0.1")
         logger.info("Using GNS3 server host: %s", gns3_host)
 
         # Initialize results list (pre-allocate space for concurrent writes)

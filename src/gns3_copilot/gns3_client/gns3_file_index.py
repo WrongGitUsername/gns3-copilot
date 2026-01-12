@@ -10,8 +10,6 @@ import json
 from datetime import datetime
 from typing import Any
 
-from dotenv import load_dotenv
-
 from gns3_copilot.gns3_client import Project, get_gns3_connector
 from gns3_copilot.log_config import setup_tool_logger
 
@@ -19,7 +17,6 @@ from gns3_copilot.log_config import setup_tool_logger
 logger = setup_tool_logger("gns3_file_index")
 
 # Load environment variables
-load_dotenv()
 
 # Index file name (stored in project directory)
 INDEX_FILE_NAME = ".gns3_copilot_file_index.json"

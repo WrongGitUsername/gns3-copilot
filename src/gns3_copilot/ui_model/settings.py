@@ -3,13 +3,13 @@ Streamlit-based settings management module for GNS3 Copilot application.
 
 This module provides a comprehensive configuration interface for managing GNS3 server
 connections, LLM model settings, and application preferences. It handles loading and
-saving configuration to/from .env files, validates input parameters, and maintains
+saving configuration to/from SQLite database, validates input parameters, and maintains
 session state for persistent settings across the Streamlit application.
 
 Key Features:
 - GNS3 server configuration (host, URL, API version, authentication)
 - LLM model provider setup with support for multiple providers
-- Environment variable management and persistence
+- SQLite database persistence for configuration
 - Input validation and error handling
 - Streamlit UI components for interactive configuration
 """
@@ -18,12 +18,11 @@ import streamlit as st
 
 from gns3_copilot.log_config import setup_logger
 from gns3_copilot.ui_model.utils import (
-    ENV_FILE_PATH,
     check_gns3_api,
     get_all_providers,
     get_provider_config,
     render_update_settings,
-    save_config_to_env,
+    save_config,
 )
 
 logger = setup_logger("settings")
@@ -38,7 +37,7 @@ st.markdown(
 )
 
 with st.container(width=800, horizontal_alignment="center", vertical_alignment="top"):
-    st.info(f"Configuration file path: **{ENV_FILE_PATH}**")
+    st.info("Configuration is stored in SQLite database (data/app_config.db)")
 
     with st.expander("GNS3 Copilot Updates", expanded=True):
         render_update_settings()
@@ -139,11 +138,11 @@ with st.container(width=800, horizontal_alignment="center", vertical_alignment="
                             key="CUSTOM_MODEL_NAME",
                             value=st.session_state.get("MODEL_NAME", ""),
                             placeholder="e.g., custom-model-name",
-                            help="Enter the exact model name as required by the provider",
+                            help="Enter exact model name as required by the provider",
                         )
                         st.session_state["MODEL_NAME"] = custom_model
                     else:
-                        # Set the selected model
+                        # Set it to selected model
                         st.session_state["MODEL_NAME"] = selected_model
 
         # Apply preset configuration only when provider is not Custom
@@ -174,7 +173,7 @@ with st.container(width=800, horizontal_alignment="center", vertical_alignment="
         deepseek,
         xai...
 
-        If using the 'OpenRouter' platform, please enter 'openai' here.
+        If using "OpenRouter" platform, please enter "openai" here.
                 """,
                 placeholder="e.g. 'deepseek', 'openai'",
             )
@@ -187,11 +186,11 @@ with st.container(width=800, horizontal_alignment="center", vertical_alignment="
                 value=st.session_state.get("MODEL_NAME", ""),
                 type="default",
                 help="""
-    The name or ID of the model, e.g. 'o3-mini', 'claude-sonnet-4-5-20250929', 'deepseek-chat'.
+    The name or ID of the model, e.g. "o3-mini", "claude-sonnet-4-5-20250929", "deepseek-chat".
 
     If using the OpenRouter platform,
     please enter the model name in the OpenRouter format,
-    e.g.: 'openai/gpt-4o-mini', 'x-ai/grok-4-fast'.
+    e.g.: "openai/gpt-4o-mini", "x-ai/grok-4-fast".
                 """,
                 placeholder="e.g. 'o3-mini', 'claude-sonnet-4-5-20250929', 'deepseek-chat'",
             )
@@ -215,7 +214,7 @@ with st.container(width=800, horizontal_alignment="center", vertical_alignment="
             value=st.session_state.get("BASE_URL", ""),
             type="default",
             help="""
-    To use OpenRouter, the Base Url must be entered, e.g., https://openrouter.ai/api/v1.
+    To use OpenRouter, Base Url must be entered, e.g., https://openrouter.ai/api/v1.
             """,
             placeholder="e.g., OpenRouter https://openrouter.ai/api/v1",
         )
@@ -228,7 +227,7 @@ with st.container(width=800, horizontal_alignment="center", vertical_alignment="
             type="password",
             help="""
     The key required for authenticating with the model's provider.
-    This is usually issued when you sign up for access to the model.
+    This is usually issued when you sign up for access to a model.
             """,
         )
 
@@ -415,11 +414,11 @@ with st.container(width=800, horizontal_alignment="center", vertical_alignment="
                 )
         else:
             st.caption(
-                "💡 Voice features are currently disabled. Enable the toggle above to configure TTS/STT settings. (Experimental Test Feature)"
+                "💡 Voice features are currently disabled. Enable toggle above to configure TTS/STT settings. (Experimental Test Feature)"
             )
 
     with st.expander("Calibre & Reading Settings", expanded=True):
-        #st.caption("Calibre E-book Server Configuration")
+        # st.caption("Calibre E-book Server Configuration")
         (col1,) = st.columns([1])
         with col1:
             st.text_input(
@@ -436,7 +435,7 @@ with st.container(width=800, horizontal_alignment="center", vertical_alignment="
                 """,
             )
 
-        #st.caption("Reading Notes Directory")
+        # st.caption("Reading Notes Directory")
 
         notes_dir_value = st.session_state.get("READING_NOTES_DIR", "notes")
         st.text_input(
@@ -508,15 +507,4 @@ with st.container(width=800, horizontal_alignment="center", vertical_alignment="
                 type="password",
             )
 
-    if ENV_FILE_PATH:
-        st.button("Save Settings to .env", on_click=save_config_to_env)
-
-        # Check if rerun is needed after callback execution
-        if st.session_state.get("_needs_rerun", False):
-            st.session_state["_needs_rerun"] = False
-            st.rerun()
-    else:
-        # Cannot find or create the .env file, so the save button is disabled.
-        st.error(
-            "Could not find or create the .env file, so the save button has been disabled."
-        )
+    st.button("Save Settings", on_click=save_config)

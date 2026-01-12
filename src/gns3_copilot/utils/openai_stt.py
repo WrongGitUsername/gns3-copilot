@@ -2,14 +2,11 @@ import io
 import os
 from typing import IO, Any, BinaryIO, Literal, cast
 
-from dotenv import load_dotenv
 from openai import OpenAI
 from openai._types import NOT_GIVEN
 
 from gns3_copilot.log_config import setup_logger
-
-# Load environment variables
-load_dotenv()
+from gns3_copilot.utils import get_config
 
 logger = setup_logger("openai_stt")
 
@@ -22,14 +19,14 @@ DEFAULT_GNS3_PROMPT = (
 
 def get_stt_config() -> dict[str, Any]:
     """
-    Get STT configuration from environment variables with sensible defaults.
+    Get STT configuration from SQLite database with sensible defaults.
     """
     return {
-        "api_key": os.getenv("STT_API_KEY", ""),
-        "base_url": os.getenv("STT_BASE_URL", "http://127.0.0.1:8001/v1"),
-        "model": os.getenv("STT_MODEL", "whisper-1"),
-        "language": os.getenv("STT_LANGUAGE", None),
-        "temperature": float(os.getenv("STT_TEMPERATURE", "0.0")),
+        "api_key": get_config("STT_API_KEY", ""),
+        "base_url": get_config("STT_BASE_URL", "http://127.0.0.1:8001/v1"),
+        "model": get_config("STT_MODEL", "whisper-1"),
+        "language": get_config("STT_LANGUAGE", None),
+        "temperature": float(get_config("STT_TEMPERATURE", "0.0")),
         "response_format": "json",  # Fixed to json format
     }
 
@@ -144,8 +141,8 @@ def speech_to_text_simple(audio_data: bytes | BinaryIO, **kwargs: Any) -> str:
 if __name__ == "__main__":
     print("Whisper STT module initialized...")
 
-    # Display current environment configuration
-    print("\n=== Current STT Environment Configuration ===")
+    # Display current configuration
+    print("\n=== Current STT Configuration ===")
     config = get_stt_config()
     for key, value in config.items():
         if "key" in key.lower() and value:
@@ -153,9 +150,9 @@ if __name__ == "__main__":
         else:
             print(f"{key}: {value}")
 
-    # Example usage with environment variables
+    # Example usage
     print("\n=== Example Usage ===")
-    print("Using environment variables for configuration:")
+    print("Using SQLite configuration:")
     print("result = speech_to_text(audio_data)")
     print()
     print("Overriding specific parameters:")

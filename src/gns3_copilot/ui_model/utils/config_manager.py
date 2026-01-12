@@ -2,13 +2,14 @@
 Configuration Management Module for GNS3 Copilot.
 
 This module handles loading, saving, and validating application configuration
-settings for the GNS3 Copilot application. It provides functions to manage
-configuration stored in .env files, including GNS3 server settings, LLM model
+settings for the GNS3 Copilot application. It uses SQLite database for
+persistent configuration storage, including GNS3 server settings, LLM model
 configurations, voice settings (TTS/STT), and other application preferences.
 
 Key Functions:
-    load_config_from_env(): Load configuration from .env file into session state
-    save_config_to_env(): Save current session state configuration to .env file
+    init_config(): Initialize configuration database with default values
+    load_config(): Load configuration from database into session state
+    save_config(): Save current session state configuration to database
 
 Configuration Categories:
     - GNS3 Server: Host, URL, API version, authentication credentials
@@ -19,37 +20,39 @@ Configuration Categories:
     - UI Settings: Container height, zoom scale for topology view
 
 Constants:
-    CONFIG_MAP: Mapping between Streamlit widget keys and .env variable names
+    CONFIG_MAP: Mapping between Streamlit widget keys and config keys
     MODEL_PROVIDERS: List of supported LLM model providers
     TTS_MODELS: Supported text-to-speech models
     TTS_VOICES: Available voice options for TTS
     STT_MODELS: Supported speech-to-text models
     STT_RESPONSE_FORMATS: Available output formats for STT
-    ENV_FILE_PATH: Path to the .env configuration file
 
 Example:
-    Load configuration at application startup:
-        from gns3_copilot.ui_model.utils import load_config_from_env
+    Initialize configuration at application startup:
+        from gns3_copilot.ui_model.utils import init_config
 
-        load_config_from_env()  # Loads config into st.session_state
+        init_config()  # Initializes config database
+
+    Load configuration for use in UI:
+        from gns3_copilot.ui_model.utils import load_config
+
+        load_config()  # Loads config into st.session_state
 
     Save configuration after user modifies settings:
-        from gns3_copilot.ui_model.utils import save_config_to_env
+        from gns3_copilot.ui_model.utils import save_config
 
-        save_config_to_env()  # Persists session state to .env file
+        save_config()  # Persists session state to database
 """
 
-import os
-
 import streamlit as st
-from dotenv import find_dotenv, load_dotenv, set_key
 
 from gns3_copilot.log_config import setup_logger
+from gns3_copilot.utils import get_config, init_config, set_config
 
 logger = setup_logger("config_manager")
 
-# Defines the mapping between Streamlit widget keys and their corresponding .env variable names.
-# Format: {Streamlit_Key: Env_Variable_Name}
+# Defines the configuration keys used in the application.
+# Format: {Streamlit_Session_State_Key: Config_Database_Key}
 CONFIG_MAP = {
     # GNS3 Server Configuration
     "GNS3_SERVER_HOST": "GNS3_SERVER_HOST",
@@ -59,9 +62,8 @@ CONFIG_MAP = {
     "GNS3_SERVER_PASSWORD": "GNS3_SERVER_PASSWORD",
     # Model Configuration
     "MODE_PROVIDER": "MODE_PROVIDER",
-    # Note: This key might require special handling (e.g., dynamic loading or mapping)
     "MODEL_NAME": "MODEL_NAME",
-    "MODEL_API_KEY": "MODEL_API_KEY",  # Base API Key
+    "MODEL_API_KEY": "MODEL_API_KEY",
     "BASE_URL": "BASE_URL",
     "TEMPERATURE": "TEMPERATURE",
     # Voice Configuration
@@ -78,7 +80,6 @@ CONFIG_MAP = {
     "STT_MODEL": "STT_MODEL",
     "STT_LANGUAGE": "STT_LANGUAGE",
     "STT_TEMPERATURE": "STT_TEMPERATURE",
-    # STT_RESPONSE_FORMAT is fixed to "json" and no longer configurable
     # Other Settings
     "LINUX_TELNET_USERNAME": "LINUX_TELNET_USERNAME",
     "LINUX_TELNET_PASSWORD": "LINUX_TELNET_PASSWORD",
@@ -90,45 +91,40 @@ CONFIG_MAP = {
     # UI Configuration
     "CONTAINER_HEIGHT": "CONTAINER_HEIGHT",
     "zoom_scale_topology": "ZOOM_SCALE_TOPOLOGY",
+    # Other Settings
+    "LANGUAGE": "LANGUAGE",
+    "TTS_HTTP_REFERER": "TTS_HTTP_REFERER",
+    "TTS_X_TITLE": "TTS_X_TITLE",
 }
 
 
-# .env file path
-ENV_FILENAME = ".env"
-ENV_FILE_PATH = find_dotenv(usecwd=True)
+def init_app_config() -> None:
+    """Initialize the application configuration database.
 
-# If find_dotenv fails to locate the file, or if the file does not exist, attempt to create it.
-if not ENV_FILE_PATH or not os.path.exists(ENV_FILE_PATH):
-    # Assume the file should be located in the current working directory
-    ENV_FILE_PATH = os.path.join(os.getcwd(), ENV_FILENAME)
+    This function should be called once at application startup to initialize
+    the SQLite database with default configuration values. It will not
+    overwrite existing values.
 
-    # If the file still does not exist, create it
-    if not os.path.exists(ENV_FILE_PATH):
-        try:
-            # Create an empty .env file so that set_key can write to it later
-            with open(ENV_FILE_PATH, "w", encoding="utf-8") as f:
-                f.write(f"# Configuration file: {ENV_FILENAME}\n")
-            logger.info("Created new .env file at: %s", ENV_FILE_PATH)
-            st.warning(
-                f"**{ENV_FILENAME}** file not found. "
-                "A new file has been automatically created in the application root directory. "
-                "Please configure below and click Save."
-            )
-        except Exception as e:
-            logger.error("Failed to create %s file: %s", ENV_FILENAME, e)
-            st.error(
-                f"Failed to create {ENV_FILENAME} file. "
-                f"Save function will be disabled. Error: {e}"
-            )
-            ENV_FILE_PATH = ""
+    This replaces the old .env file initialization.
+    """
+    try:
+        logger.info("Initializing application configuration database")
+        init_config()
+        logger.info("Application configuration database initialized successfully")
+    except Exception as e:
+        logger.error("Failed to initialize configuration database: %s", e)
+        st.error(
+            f"Failed to initialize configuration database: {e}. "
+            "Please check the application logs."
+        )
 
 
-def load_config_from_env() -> None:
-    """Load configuration from the .env file and initialize st.session_state.
+def load_config() -> None:
+    """Load configuration from database and initialize st.session_state.
 
-    This function loads configuration items from the .env file only once,
-    on the first call. This allows users to modify settings in the UI without
-    being overwritten by the .env file until they explicitly save.
+    This function loads configuration items from SQLite database into
+    Streamlit's session state for use in UI components. It applies
+    type conversion and validation to ensure proper data types.
 
     The function uses a marker `_config_loaded` in session_state to track
     whether configuration has been initialized.
@@ -138,51 +134,42 @@ def load_config_from_env() -> None:
         logger.debug("Configuration already loaded, skipping reload")
         return
 
-    # Only attempt to load if the path is valid and the file exists
-    logger.info("Starting to load configuration from .env file")
-    if ENV_FILE_PATH and os.path.exists(ENV_FILE_PATH):
-        logger.debug("Loading .env file from: %s", ENV_FILE_PATH)
-        load_dotenv(ENV_FILE_PATH)
-        logger.info("Successfully loaded .env file")
-    else:
-        logger.warning(".env file not found at: %s", ENV_FILE_PATH)
+    logger.info("Starting to load configuration from database")
 
-    # Load environment variables into Streamlit's session state
-    for st_key, env_key in CONFIG_MAP.items():
-        # Get the value from os.environ; default to an empty string if not found
-        env_value = os.getenv(env_key)
-        default_value = env_value if env_value is not None else ""
+    # Load configuration values from database into session_state
+    for st_key, config_key in CONFIG_MAP.items():
+        # Get value from database
+        config_value = get_config(config_key, "")
 
         # Special handling for GNS3 Server settings
         if st_key in ("GNS3_SERVER_HOST", "GNS3_SERVER_URL"):
-            # Explicitly set the value in session_state
-            st.session_state[st_key] = default_value
-            logger.debug("Loaded config: %s = %s", st_key, default_value)
-            continue  # Skip the generic assignment below
+            st.session_state[st_key] = config_value
+            logger.debug("Loaded config: %s = %s", st_key, config_value)
+            continue
 
         # Special handling for API_VERSION
         if st_key == "API_VERSION":
-            # Ensure the value is either "2" or "3"
-            default_value = "2" if default_value not in ["2", "3"] else default_value
-            # Explicitly set the value in session_state
-            st.session_state[st_key] = default_value
-            logger.debug("Loaded config: %s = %s", st_key, default_value)
-            continue  # Skip the generic assignment below
+            # Ensure value is either "2" or "3"
+            if config_value not in ("2", "3"):
+                config_value = "2"
+            st.session_state[st_key] = config_value
+            logger.debug("Loaded config: %s = %s", st_key, config_value)
+            continue
 
-        # Special handling for TEMPERATURE (Ensure default is a number or empty string)
-        if st_key == "TEMPERATURE" and not default_value.replace(".", "", 1).isdigit():
-            # Provide a reasonable default value if not set or invalid
-            logger.debug(
-                "Invalid TEMPERATURE value : %s, setting to default '0.0'",
-                default_value,
-            )
-            default_value = "0.0"
+        # Special handling for TEMPERATURE
+        if st_key == "TEMPERATURE":
+            if not config_value.replace(".", "", 1).isdigit():
+                logger.debug(
+                    "Invalid TEMPERATURE value: %s, setting to default '0.0'",
+                    config_value,
+                )
+                config_value = "0.0"
+            st.session_state[st_key] = config_value
+            continue
 
         # Special handling for VOICE (boolean)
         if st_key == "VOICE":
-            # Ensure default_value is a string before processing
-            voice_str = str(default_value).lower().strip()
-
+            voice_str = str(config_value).lower().strip()
             if voice_str not in (
                 "true",
                 "false",
@@ -195,137 +182,126 @@ def load_config_from_env() -> None:
                 "",
             ):
                 logger.debug(
-                    "Invalid VOICE value: %s, setting to default 'false'", default_value
+                    "Invalid VOICE value: %s, setting to default 'false'", config_value
                 )
                 voice_str = "false"
-
-            # Directly calculate boolean value and store in session_state
             is_enabled: bool = voice_str in ("true", "1", "yes", "on")
             st.session_state[st_key] = is_enabled
-
             logger.debug("Loaded config: %s = %s", st_key, is_enabled)
-            continue  # Important: Skip this loop after processing boolean type to prevent override by the final generic assignment
+            continue
 
-        # Special handling for TTS configuration
+        # Special handling for TTS_SPEED
         if st_key == "TTS_SPEED":
             try:
-                speed_float = float(default_value)
+                speed_float = float(config_value) if config_value else 1.0
                 if not (0.25 <= speed_float <= 4.0):
                     logger.debug(
                         "Invalid TTS_SPEED value: %s, setting to default '1.0'",
-                        default_value,
+                        config_value,
                     )
-                    default_value = "1.0"
+                    speed_float = 1.0
+                st.session_state[st_key] = speed_float
+                logger.debug("Loaded config: %s = %s", st_key, speed_float)
             except ValueError:
                 logger.debug(
                     "Invalid TTS_SPEED value: %s, setting to default '1.0'",
-                    default_value,
+                    config_value,
                 )
-                default_value = "1.0"
+                st.session_state[st_key] = 1.0
+            continue
 
-        # Special handling for STT configuration
+        # Special handling for STT_TEMPERATURE
         if st_key == "STT_TEMPERATURE":
             try:
-                temp_float = float(default_value)
+                temp_float = float(config_value) if config_value else 0.0
                 if not (0.0 <= temp_float <= 1.0):
                     logger.debug(
                         "Invalid STT_TEMPERATURE value: %s, setting to default '0.0'",
-                        default_value,
+                        config_value,
                     )
-                    default_value = "0.0"
+                    temp_float = 0.0
+                st.session_state[st_key] = temp_float
+                logger.debug("Loaded config: %s = %s", st_key, temp_float)
             except ValueError:
                 logger.debug(
                     "Invalid STT_TEMPERATURE value: %s, setting to default '0.0'",
-                    default_value,
+                    config_value,
                 )
-                default_value = "0.0"
+                st.session_state[st_key] = 0.0
+            continue
 
         # Special handling for CONTAINER_HEIGHT (UI setting)
         if st_key == "CONTAINER_HEIGHT":
             try:
-                height_int = int(default_value) if default_value else 1200
+                height_int = int(config_value) if config_value else 1200
                 if not (300 <= height_int <= 1500):
                     logger.debug(
                         "Invalid CONTAINER_HEIGHT value: %s, setting to default 1200",
-                        default_value,
+                        config_value,
                     )
                     height_int = 1200
-                # Store as integer for slider
                 st.session_state[st_key] = height_int
                 logger.debug("Loaded config: %s = %s", st_key, height_int)
             except ValueError:
                 logger.debug(
                     "Invalid CONTAINER_HEIGHT value: %s, setting to default 1200",
-                    default_value,
+                    config_value,
                 )
                 st.session_state[st_key] = 1200
-                logger.debug("Loaded config: %s = %s", st_key, 1200)
-            continue  # Skip the generic assignment below
+            continue
 
         # Special handling for zoom_scale_topology (UI setting)
         if st_key == "zoom_scale_topology":
             try:
-                zoom_float = float(default_value) if default_value else 0.8
+                zoom_float = float(config_value) if config_value else 0.8
                 if not (0.5 <= zoom_float <= 1.2):
                     logger.debug(
                         "Invalid zoom_scale_topology value: %s, setting to default 0.8",
-                        default_value,
+                        config_value,
                     )
                     zoom_float = 0.8
-                # Store as float for slider
                 st.session_state[st_key] = zoom_float
                 logger.debug("Loaded config: %s = %s", st_key, zoom_float)
             except ValueError:
                 logger.debug(
                     "Invalid zoom_scale_topology value: %s, setting to default 0.8",
-                    default_value,
+                    config_value,
                 )
                 st.session_state[st_key] = 0.8
-                logger.debug("Loaded config: %s = %s", st_key, 0.8)
-            continue  # Skip the generic assignment below
+            continue
 
-        else:
-            # Always set the value from .env file to session_state
-            # This ensures persistent configuration takes precedence
-            st.session_state[st_key] = default_value
-            logger.debug(
-                "Loaded config: %s = %s",
-                st_key,
-                "[HIDDEN]"
-                if "PASSWORD" in st_key or "KEY" in st_key
-                else default_value,
-            )
+        # Default handling for string values
+        st.session_state[st_key] = config_value
+        logger.debug(
+            "Loaded config: %s = %s",
+            st_key,
+            "[HIDDEN]" if "PASSWORD" in st_key or "KEY" in st_key else config_value,
+        )
 
-    # Mark configuration as loaded to prevent re-loading on subsequent calls
+    # Mark configuration as loaded
     st.session_state["_config_loaded"] = True
     logger.info("Configuration loading completed")
 
 
-def save_config_to_env() -> None:
-    """Save the current session state to the .env file."""
-    # Prevent saving if the .env file path is invalid
-    logger.info("Starting to save configuration to .env file")
+def save_config() -> None:
+    """Save current session state to configuration database.
 
-    # Initialize saved_count counter
+    This function persists all configuration values from Streamlit's
+    session_state to the SQLite database.
+    """
+    logger.info("Starting to save configuration to database")
+
     saved_count = 0
 
-    if not ENV_FILE_PATH:
-        logger.error("Cannot save configuration: .env file path is invalid")
-        st.error("Cannot save configuration because the .env file path is invalid.")
-        return
-
-    for st_key, env_key in CONFIG_MAP.items():
+    for st_key, config_key in CONFIG_MAP.items():
         current_value = st.session_state.get(st_key)
 
         if current_value is not None:
             str_value = str(current_value)
 
             try:
-                # Save the value back to the .env file
-                set_key(ENV_FILE_PATH, env_key, str_value)
-
-                # Immediately update the current Python process's environment variables
-                os.environ[env_key] = str_value
+                # Save value to database
+                set_config(config_key, str_value)
 
                 saved_count += 1
                 logger.debug(
@@ -339,10 +315,9 @@ def save_config_to_env() -> None:
                 logger.error("Failed to save %s: %s", st_key, e)
 
     logger.info(
-        "Configuration save completed. Saved %s configuration items to %s",
-        saved_count,
-        ENV_FILE_PATH,
+        "Configuration save completed. Saved %d configuration items", saved_count
     )
-    st.success("Configuration successfully saved to the .env file!")
+    st.success("Configuration successfully saved!")
+
+    # Mark config as loaded so it will be reloaded on next page
     st.session_state["_config_loaded"] = False
-    st.session_state["_needs_rerun"] = True
