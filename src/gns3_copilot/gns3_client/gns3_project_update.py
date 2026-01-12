@@ -4,7 +4,6 @@ from langchain.tools import BaseTool
 
 from gns3_copilot.gns3_client import Project, get_gns3_connector
 from gns3_copilot.log_config import setup_tool_logger
-from gns3_copilot.utils.env_loader import load_env
 
 # Configure logging
 logger = setup_tool_logger("gns3_project_update")
@@ -78,9 +77,6 @@ class GNS3ProjectUpdate(BaseTool):
         Returns:
             Dictionary with operation result and updated project details
         """
-        # Load environment variables
-        load_env()
-
         # Log received input
         logger.info("Received input: %s", tool_input)
 

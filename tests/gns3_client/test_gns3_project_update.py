@@ -509,41 +509,41 @@ class TestGNS3ProjectUpdateInputValidation:
 class TestGNS3ProjectUpdateEnvironmentValidation:
     """Tests for environment variable validation"""
 
-    @patch('gns3_copilot.gns3_client.gns3_project_update.load_env')
-    def test_missing_api_version(self, mock_load_env):
+    def test_missing_api_version(self):
         """Test missing API_VERSION environment variable"""
         tool = GNS3ProjectUpdate()
         
-        with patch.dict(os.environ, {}, clear=True):
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', return_value=None):
             result = tool._run(tool_input={"project_id": "test_id", "auto_start": True})
             
             assert result["success"] is False
             assert "error" in result
             assert "Failed to connect to GNS3 server" in result["error"]
 
-    @patch('gns3_copilot.gns3_client.gns3_project_update.load_env')
-    def test_missing_server_url(self, mock_load_env):
+    def test_missing_server_url(self):
         """Test missing GNS3_SERVER_URL environment variable"""
         tool = GNS3ProjectUpdate()
         
-        with patch.dict(os.environ, {
-            "API_VERSION": "2"
-        }, clear=True):
+        def mock_get_config(key, default=None):
+            config = {"API_VERSION": "2"}
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
             result = tool._run(tool_input={"project_id": "test_id", "auto_start": True})
             
             assert result["success"] is False
             assert "error" in result
             assert "Failed to connect to GNS3 server" in result["error"]
 
-    @patch('gns3_copilot.gns3_client.gns3_project_update.load_env')
-    def test_invalid_api_version(self, mock_load_env):
+    def test_invalid_api_version(self):
         """Test invalid API_VERSION value"""
         tool = GNS3ProjectUpdate()
         
-        with patch.dict(os.environ, {
-            "API_VERSION": "invalid",
-            "GNS3_SERVER_URL": "http://localhost:3080"
-        }):
+        def mock_get_config(key, default=None):
+            config = {"API_VERSION": "invalid", "GNS3_SERVER_URL": "http://localhost:3080"}
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
             result = tool._run(tool_input={"project_id": "test_id", "auto_start": True})
             
             assert result["success"] is False
@@ -997,12 +997,11 @@ class TestGNS3ProjectUpdateReturnFormat:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.gns3_client.gns3_project_update.load_env')
-    def test_error_response_format(self, mock_load_env):
+    def test_error_response_format(self):
         """Test error response has correct format"""
         tool = GNS3ProjectUpdate()
         
-        with patch.dict(os.environ, {}, clear=True):
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', return_value=None):
             result = tool._run(tool_input={"project_id": "test_id", "auto_start": True})
             
             # Verify error format

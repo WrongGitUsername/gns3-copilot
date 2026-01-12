@@ -7,7 +7,7 @@ for calculating ellipse parameters and generating SVG content.
 
 import math
 
-from gns3_copilot.public_model.gns3_drawing_utils import (
+from gns3_copilot.utils.gns3_drawing_utils import (
     calculate_two_node_ellipse,
     generate_ellipse_svg,
     generate_text_svg,

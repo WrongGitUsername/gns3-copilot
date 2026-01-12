@@ -45,14 +45,20 @@ from gns3_copilot.ui_model.utils.chat_helpers import (
     new_session,
 )
 from gns3_copilot.ui_model.utils.config_manager import (
-    ENV_FILE_PATH,
-    load_config_from_env,
-    save_config_to_env,
+    init_app_config,
+    load_config,
+    save_config,
 )
 from gns3_copilot.ui_model.utils.gns3_checker import check_gns3_api
+from gns3_copilot.ui_model.utils.iframe_viewer import (
+    render_iframe_viewer,
+)
 from gns3_copilot.ui_model.utils.llm_providers import (
     get_all_providers,
     get_provider_config,
+)
+from gns3_copilot.ui_model.utils.notes_manager import (  # type: ignore[attr-defined]
+    render_notes_editor,
 )
 from gns3_copilot.ui_model.utils.project_manager_ui import (
     render_create_project_form,
@@ -65,14 +71,18 @@ from gns3_copilot.ui_model.utils.update_ui import (
 )
 
 __all__ = [
+    # Iframe Viewer
+    "render_iframe_viewer",
+    # Notes Manager
+    "render_notes_editor",
     # Update UI
     "check_startup_updates",
     "render_startup_update_result",
     "render_update_settings",
     # Config Manager
-    "load_config_from_env",
-    "save_config_to_env",
-    "ENV_FILE_PATH",
+    "init_app_config",
+    "load_config",
+    "save_config",
     # GNS3 Checker
     "check_gns3_api",
     # LLM Providers
