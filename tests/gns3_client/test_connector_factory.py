@@ -40,6 +40,7 @@ from unittest.mock import Mock, patch, MagicMock
 
 # Import the module to test
 from gns3_copilot.gns3_client.connector_factory import get_gns3_connector
+from gns3_copilot.gns3_client.custom_gns3fy import Gns3Connector
 
 
 class TestConnectorFactoryBasic:
@@ -55,29 +56,34 @@ class TestConnectorFactoryBasic:
         assert get_gns3_connector.__name__ == "get_gns3_connector"
 
     def test_return_type_none_on_missing_env(self):
-        """Test returns None when environment variables are missing"""
-        with patch.dict(os.environ, {}, clear=True):
-            with patch('gns3_copilot.gns3_client.connector_factory.load_env'):
-                connector = get_gns3_connector()
-                assert connector is None
+        """Test returns None when config variables are missing"""
+        def mock_get_config(key, default=None):
+            return None
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
+            connector = get_gns3_connector()
+            assert connector is None
 
 
 class TestConnectorFactorySuccessV2:
     """Tests for successful connector creation with API v2"""
 
-    @patch.dict(os.environ, {
-        "API_VERSION": "2",
-        "GNS3_SERVER_URL": "http://localhost:3080"
-    })
-    @patch('gns3_copilot.gns3_client.connector_factory.load_env')
     @patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector')
-    def test_success_v2_api(self, mock_connector_class, mock_load_env):
+    def test_success_v2_api(self, mock_connector_class):
         """Test successful connector creation with v2 API"""
         # Mock connector
         mock_connector = Mock()
         mock_connector_class.return_value = mock_connector
         
-        connector = get_gns3_connector()
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "2",
+                "GNS3_SERVER_URL": "http://localhost:3080"
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
+            connector = get_gns3_connector()
         
         assert connector is not None
         mock_connector_class.assert_called_once()
@@ -87,53 +93,63 @@ class TestConnectorFactorySuccessV2:
         assert "user" not in call_kwargs
         assert "cred" not in call_kwargs
 
-    @patch.dict(os.environ, {
-        "API_VERSION": "2",
-        "GNS3_SERVER_URL": "http://192.168.1.100:3080"
-    })
-    @patch('gns3_copilot.gns3_client.connector_factory.load_env')
     @patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector')
-    def test_custom_server_url_v2(self, mock_connector_class, mock_load_env):
+    def test_custom_server_url_v2(self, mock_connector_class):
         """Test connector creation with custom server URL for v2"""
         mock_connector = Mock()
         mock_connector_class.return_value = mock_connector
         
-        connector = get_gns3_connector()
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "2",
+                "GNS3_SERVER_URL": "http://192.168.1.100:3080"
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
+            connector = get_gns3_connector()
         
         assert connector is not None
         call_kwargs = mock_connector_class.call_args[1]
         assert call_kwargs["url"] == "http://192.168.1.100:3080"
         assert call_kwargs["api_version"] == 2
 
-    @patch.dict(os.environ, {
-        "API_VERSION": "2",
-        "GNS3_SERVER_URL": "https://gns3.example.com:3080"
-    })
-    @patch('gns3_copilot.gns3_client.connector_factory.load_env')
     @patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector')
-    def test_https_url_v2(self, mock_connector_class, mock_load_env):
+    def test_https_url_v2(self, mock_connector_class):
         """Test connector creation with HTTPS URL for v2"""
         mock_connector = Mock()
         mock_connector_class.return_value = mock_connector
         
-        connector = get_gns3_connector()
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "2",
+                "GNS3_SERVER_URL": "https://gns3.example.com:3080"
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
+            connector = get_gns3_connector()
         
         assert connector is not None
         call_kwargs = mock_connector_class.call_args[1]
         assert call_kwargs["url"] == "https://gns3.example.com:3080"
         assert call_kwargs["api_version"] == 2
 
-    @patch.dict(os.environ, {
-        "API_VERSION": "2",
-        "GNS3_SERVER_URL": "http://localhost:3080"
-    })
     @patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector')
     def test_return_value_is_connector_instance(self, mock_connector_class):
         """Test that return value is a Gns3Connector instance"""
         mock_connector = Mock()
         mock_connector_class.return_value = mock_connector
         
-        connector = get_gns3_connector()
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "2",
+                "GNS3_SERVER_URL": "http://localhost:3080"
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
+            connector = get_gns3_connector()
         
         assert connector is mock_connector
 
@@ -141,12 +157,7 @@ class TestConnectorFactorySuccessV2:
 class TestConnectorFactorySuccessV3:
     """Tests for successful connector creation with API v3"""
 
-    @patch.dict(os.environ, {
-        "API_VERSION": "3",
-        "GNS3_SERVER_URL": "http://localhost:3080",
-        "GNS3_SERVER_USERNAME": "admin",
-        "GNS3_SERVER_PASSWORD": "password123"
-    })
+    @patch.dict(os.environ, {}, clear=True)
     @patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector')
     def test_success_v3_api(self, mock_connector_class):
         """Test successful connector creation with v3 API"""
@@ -154,7 +165,17 @@ class TestConnectorFactorySuccessV3:
         mock_connector = Mock()
         mock_connector_class.return_value = mock_connector
         
-        connector = get_gns3_connector()
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "3",
+                "GNS3_SERVER_URL": "http://localhost:3080",
+                "GNS3_SERVER_USERNAME": "admin",
+                "GNS3_SERVER_PASSWORD": "password123"
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
+            connector = get_gns3_connector()
         
         assert connector is not None
         mock_connector_class.assert_called_once()
@@ -164,19 +185,24 @@ class TestConnectorFactorySuccessV3:
         assert call_kwargs["user"] == "admin"
         assert call_kwargs["cred"] == "password123"
 
-    @patch.dict(os.environ, {
-        "API_VERSION": "3",
-        "GNS3_SERVER_URL": "http://192.168.1.100:3080",
-        "GNS3_SERVER_USERNAME": "testuser",
-        "GNS3_SERVER_PASSWORD": "testpass"
-    })
+    @patch.dict(os.environ, {}, clear=True)
     @patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector')
     def test_custom_credentials_v3(self, mock_connector_class):
         """Test connector creation with custom credentials for v3"""
         mock_connector = Mock()
         mock_connector_class.return_value = mock_connector
         
-        connector = get_gns3_connector()
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "3",
+                "GNS3_SERVER_URL": "http://192.168.1.100:3080",
+                "GNS3_SERVER_USERNAME": "testuser",
+                "GNS3_SERVER_PASSWORD": "testpass"
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
+            connector = get_gns3_connector()
         
         assert connector is not None
         call_kwargs = mock_connector_class.call_args[1]
@@ -184,38 +210,48 @@ class TestConnectorFactorySuccessV3:
         assert call_kwargs["user"] == "testuser"
         assert call_kwargs["cred"] == "testpass"
 
-    @patch.dict(os.environ, {
-        "API_VERSION": "3",
-        "GNS3_SERVER_URL": "http://localhost:3080",
-        "GNS3_SERVER_USERNAME": "user@domain.com",
-        "GNS3_SERVER_PASSWORD": "P@ssw0rd!123"
-    })
+    @patch.dict(os.environ, {}, clear=True)
     @patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector')
     def test_special_characters_in_credentials(self, mock_connector_class):
         """Test connector creation with special characters in credentials"""
         mock_connector = Mock()
         mock_connector_class.return_value = mock_connector
         
-        connector = get_gns3_connector()
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "3",
+                "GNS3_SERVER_URL": "http://localhost:3080",
+                "GNS3_SERVER_USERNAME": "user@domain.com",
+                "GNS3_SERVER_PASSWORD": "P@ssw0rd!123"
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
+            connector = get_gns3_connector()
         
         assert connector is not None
         call_kwargs = mock_connector_class.call_args[1]
         assert call_kwargs["user"] == "user@domain.com"
         assert call_kwargs["cred"] == "P@ssw0rd!123"
 
-    @patch.dict(os.environ, {
-        "API_VERSION": "3",
-        "GNS3_SERVER_URL": "http://localhost:3080",
-        "GNS3_SERVER_USERNAME": "",
-        "GNS3_SERVER_PASSWORD": ""
-    })
+    @patch.dict(os.environ, {}, clear=True)
     @patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector')
     def test_empty_credentials_v3(self, mock_connector_class):
         """Test connector creation with empty credentials for v3"""
         mock_connector = Mock()
         mock_connector_class.return_value = mock_connector
         
-        connector = get_gns3_connector()
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "3",
+                "GNS3_SERVER_URL": "http://localhost:3080",
+                "GNS3_SERVER_USERNAME": "",
+                "GNS3_SERVER_PASSWORD": ""
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
+            connector = get_gns3_connector()
         
         assert connector is not None
         call_kwargs = mock_connector_class.call_args[1]
@@ -227,44 +263,65 @@ class TestConnectorFactoryInputValidation:
     """Tests for input validation"""
 
     def test_missing_api_version(self):
-        """Test missing API_VERSION environment variable"""
-        with patch.dict(os.environ, {}, clear=True):
+        """Test missing API_VERSION config variable"""
+        def mock_get_config(key, default=None):
+            if key == "API_VERSION":
+                return None
+            return ""
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
             connector = get_gns3_connector()
             assert connector is None
 
-    @patch.dict(os.environ, {
-        "API_VERSION": "",
-        "GNS3_SERVER_URL": "http://localhost:3080"
-    })
     def test_empty_api_version(self):
         """Test empty API_VERSION value"""
-        connector = get_gns3_connector()
-        assert connector is None
-
-    def test_missing_server_url(self):
-        """Test missing GNS3_SERVER_URL environment variable"""
-        with patch.dict(os.environ, {
-            "API_VERSION": "2"
-        }, clear=True):
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "",
+                "GNS3_SERVER_URL": "http://localhost:3080"
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
             connector = get_gns3_connector()
             assert connector is None
 
-    @patch.dict(os.environ, {
-        "API_VERSION": "2",
-        "GNS3_SERVER_URL": ""
-    })
+    def test_missing_server_url(self):
+        """Test missing GNS3_SERVER_URL config variable"""
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "2"
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
+            connector = get_gns3_connector()
+            assert connector is None
+
     def test_empty_server_url(self):
         """Test empty GNS3_SERVER_URL value"""
-        connector = get_gns3_connector()
-        assert connector is None
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "2",
+                "GNS3_SERVER_URL": ""
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
+            connector = get_gns3_connector()
+            assert connector is None
 
+    @patch.dict(os.environ, {}, clear=True)
     def test_missing_credentials_for_v3(self):
         """Test v3 API without username/password"""
-        with patch.dict(os.environ, {
-            "API_VERSION": "3",
-            "GNS3_SERVER_URL": "http://localhost:3080"
-        }, clear=True):
-            # Should still create connector but with None credentials
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "3",
+                "GNS3_SERVER_URL": "http://localhost:3080"
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
             with patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector') as mock_connector_class:
                 mock_connector = Mock()
                 mock_connector_class.return_value = mock_connector
@@ -276,13 +333,18 @@ class TestConnectorFactoryInputValidation:
                 assert call_kwargs["user"] is None
                 assert call_kwargs["cred"] is None
 
+    @patch.dict(os.environ, {}, clear=True)
     def test_missing_password_for_v3(self):
         """Test v3 API without password"""
-        with patch.dict(os.environ, {
-            "API_VERSION": "3",
-            "GNS3_SERVER_URL": "http://localhost:3080",
-            "GNS3_SERVER_USERNAME": "user"
-        }, clear=True):
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "3",
+                "GNS3_SERVER_URL": "http://localhost:3080",
+                "GNS3_SERVER_USERNAME": "user"
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
             with patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector') as mock_connector_class:
                 mock_connector = Mock()
                 mock_connector_class.return_value = mock_connector
@@ -294,13 +356,18 @@ class TestConnectorFactoryInputValidation:
                 assert call_kwargs["user"] == "user"
                 assert call_kwargs["cred"] is None
 
+    @patch.dict(os.environ, {}, clear=True)
     def test_missing_username_for_v3(self):
         """Test v3 API without username"""
-        with patch.dict(os.environ, {
-            "API_VERSION": "3",
-            "GNS3_SERVER_URL": "http://localhost:3080",
-            "GNS3_SERVER_PASSWORD": "pass"
-        }, clear=True):
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "3",
+                "GNS3_SERVER_URL": "http://localhost:3080",
+                "GNS3_SERVER_PASSWORD": "pass"
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
             with patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector') as mock_connector_class:
                 mock_connector = Mock()
                 mock_connector_class.return_value = mock_connector
@@ -318,117 +385,155 @@ class TestConnectorFactoryErrorHandling:
 
     def test_invalid_api_version(self):
         """Test invalid API_VERSION value"""
-        with patch.dict(os.environ, {
-            "API_VERSION": "invalid",
-            "GNS3_SERVER_URL": "http://localhost:3080"
-        }):
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "invalid",
+                "GNS3_SERVER_URL": "http://localhost:3080"
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
             connector = get_gns3_connector()
             assert connector is None
 
     def test_api_version_1(self):
         """Test API_VERSION = 1 (not supported)"""
-        with patch.dict(os.environ, {
-            "API_VERSION": "1",
-            "GNS3_SERVER_URL": "http://localhost:3080"
-        }):
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "1",
+                "GNS3_SERVER_URL": "http://localhost:3080"
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
             connector = get_gns3_connector()
             assert connector is None
 
     def test_api_version_4(self):
         """Test API_VERSION = 4 (not supported)"""
-        with patch.dict(os.environ, {
-            "API_VERSION": "4",
-            "GNS3_SERVER_URL": "http://localhost:3080"
-        }):
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "4",
+                "GNS3_SERVER_URL": "http://localhost:3080"
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
             connector = get_gns3_connector()
             assert connector is None
 
-    @patch.dict(os.environ, {
-        "API_VERSION": "2",
-        "GNS3_SERVER_URL": "http://localhost:3080"
-    })
     def test_connector_initialization_error(self):
         """Test handling of connector initialization error"""
-        with patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector') as mock_connector_class:
-            # Simulate connector initialization error
-            mock_connector_class.side_effect = Exception("Initialization failed")
-            
-            connector = get_gns3_connector()
-            assert connector is None
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "2",
+                "GNS3_SERVER_URL": "http://localhost:3080"
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
+            with patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector') as mock_connector_class:
+                # Simulate connector initialization error
+                mock_connector_class.side_effect = Exception("Initialization failed")
+                
+                connector = get_gns3_connector()
+                assert connector is None
 
-    @patch.dict(os.environ, {
-        "API_VERSION": "2",
-        "GNS3_SERVER_URL": "http://localhost:3080"
-    })
     def test_connection_error(self):
         """Test handling of connection error"""
-        with patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector') as mock_connector_class:
-            # Simulate connection error
-            mock_connector_class.side_effect = ConnectionError("Connection refused")
-            
-            connector = get_gns3_connector()
-            assert connector is None
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "2",
+                "GNS3_SERVER_URL": "http://localhost:3080"
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
+            with patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector') as mock_connector_class:
+                # Simulate connection error
+                mock_connector_class.side_effect = ConnectionError("Connection refused")
+                
+                connector = get_gns3_connector()
+                assert connector is None
 
-    @patch.dict(os.environ, {
-        "API_VERSION": "2",
-        "GNS3_SERVER_URL": "http://localhost:3080"
-    })
     def test_timeout_error(self):
         """Test handling of timeout error"""
-        with patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector') as mock_connector_class:
-            # Simulate timeout
-            mock_connector_class.side_effect = TimeoutError("Request timeout")
-            
-            connector = get_gns3_connector()
-            assert connector is None
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "2",
+                "GNS3_SERVER_URL": "http://localhost:3080"
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
+            with patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector') as mock_connector_class:
+                # Simulate timeout
+                mock_connector_class.side_effect = TimeoutError("Request timeout")
+                
+                connector = get_gns3_connector()
+                assert connector is None
 
-    @patch.dict(os.environ, {
-        "API_VERSION": "2",
-        "GNS3_SERVER_URL": "http://localhost:3080"
-    })
     def test_exception_handling(self):
         """Test generic exception handling"""
-        with patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector') as mock_connector_class:
-            # Simulate generic exception
-            mock_connector_class.side_effect = RuntimeError("Unexpected error")
-            
-            connector = get_gns3_connector()
-            assert connector is None
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "2",
+                "GNS3_SERVER_URL": "http://localhost:3080"
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
+            with patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector') as mock_connector_class:
+                # Simulate generic exception
+                mock_connector_class.side_effect = RuntimeError("Unexpected error")
+                
+                connector = get_gns3_connector()
+                assert connector is None
 
 
 class TestConnectorFactoryEdgeCases:
     """Tests for edge cases"""
 
-    @patch.dict(os.environ, {
-        "API_VERSION": "2",
-        "GNS3_SERVER_URL": "http://localhost:3080"
-    })
+    @patch.dict(os.environ, {}, clear=True)
     @patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector')
     def test_whitespace_in_url(self, mock_connector_class):
         """Test connector creation with whitespace in URL"""
         mock_connector = Mock()
         mock_connector_class.return_value = mock_connector
         
-        connector = get_gns3_connector()
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "2",
+                "GNS3_SERVER_URL": "http://localhost:3080"
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
+            connector = get_gns3_connector()
         
         assert connector is not None
         call_kwargs = mock_connector_class.call_args[1]
         # Should pass URL as-is (caller responsibility to validate)
         assert call_kwargs["url"] == "http://localhost:3080"
 
-    @patch.dict(os.environ, {
-        "API_VERSION": "3",
-        "GNS3_SERVER_URL": "http://localhost:3080",
-        "GNS3_SERVER_USERNAME": " user with spaces ",
-        "GNS3_SERVER_PASSWORD": " pass "
-    })
+    @patch.dict(os.environ, {}, clear=True)
     @patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector')
     def test_whitespace_in_credentials(self, mock_connector_class):
         """Test connector creation with whitespace in credentials"""
         mock_connector = Mock()
         mock_connector_class.return_value = mock_connector
         
-        connector = get_gns3_connector()
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "3",
+                "GNS3_SERVER_URL": "http://localhost:3080",
+                "GNS3_SERVER_USERNAME": " user with spaces ",
+                "GNS3_SERVER_PASSWORD": " pass "
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
+            connector = get_gns3_connector()
         
         assert connector is not None
         call_kwargs = mock_connector_class.call_args[1]
@@ -436,49 +541,64 @@ class TestConnectorFactoryEdgeCases:
         assert call_kwargs["user"] == " user with spaces "
         assert call_kwargs["cred"] == " pass "
 
-    @patch.dict(os.environ, {
-        "API_VERSION": "2",
-        "GNS3_SERVER_URL": "http://localhost:3080"
-    })
     @patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector')
     def test_multiple_calls(self, mock_connector_class):
         """Test multiple calls to get_gns3_connector"""
         mock_connector = Mock()
         mock_connector_class.return_value = mock_connector
         
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "2",
+                "GNS3_SERVER_URL": "http://localhost:3080"
+            }
+            return config.get(key, default)
+        
         # First call
-        connector1 = get_gns3_connector()
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
+            connector1 = get_gns3_connector()
         assert connector1 is not None
         
         # Second call
-        connector2 = get_gns3_connector()
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
+            connector2 = get_gns3_connector()
         assert connector2 is not None
         
         # Each call should create a new connector
         assert mock_connector_class.call_count == 2
 
-    @patch.dict(os.environ, {
-        "API_VERSION": " 2 ",
-        "GNS3_SERVER_URL": "http://localhost:3080"
-    })
+    @patch.dict(os.environ, {}, clear=True)
     @patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector')
     def test_whitespace_in_api_version(self, mock_connector_class):
         """Test API_VERSION with whitespace"""
         # This should fail because " 2 " is not "2"
-        connector = get_gns3_connector()
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": " 2 ",
+                "GNS3_SERVER_URL": "http://localhost:3080"
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
+            connector = get_gns3_connector()
         assert connector is None
 
-    @patch.dict(os.environ, {
-        "API_VERSION": "2",
-        "GNS3_SERVER_URL": "http://localhost:3080/"
-    })
+    @patch.dict(os.environ, {}, clear=True)
     @patch('gns3_copilot.gns3_client.connector_factory.Gns3Connector')
     def test_trailing_slash_in_url(self, mock_connector_class):
         """Test URL with trailing slash"""
         mock_connector = Mock()
         mock_connector_class.return_value = mock_connector
         
-        connector = get_gns3_connector()
+        def mock_get_config(key, default=None):
+            config = {
+                "API_VERSION": "2",
+                "GNS3_SERVER_URL": "http://localhost:3080/"
+            }
+            return config.get(key, default)
+        
+        with patch('gns3_copilot.gns3_client.connector_factory.get_config', side_effect=mock_get_config):
+            connector = get_gns3_connector()
         
         assert connector is not None
         call_kwargs = mock_connector_class.call_args[1]

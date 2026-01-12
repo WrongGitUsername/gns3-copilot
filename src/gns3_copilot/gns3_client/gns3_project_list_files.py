@@ -9,7 +9,6 @@ import json
 import re
 
 import requests
-from dotenv import load_dotenv
 from langchain.tools import BaseTool
 
 from gns3_copilot.gns3_client import Project, get_gns3_connector
@@ -20,7 +19,6 @@ from gns3_copilot.log_config import setup_tool_logger
 logger = setup_tool_logger("gns3_project_list_files")
 
 # Load environment variables
-load_dotenv()
 
 
 class GNS3ProjectListFilesTool(BaseTool):

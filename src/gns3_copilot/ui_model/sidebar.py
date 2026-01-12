@@ -1,7 +1,7 @@
 """
 Sidebar component for GNS3 Copilot application.
 
-This module provides reusable sidebar UI components for the GNS3 Copilot
+This module provides reusable sidebar UI components for GNS3 Copilot
 Streamlit application, including page configuration controls and session
 management. The sidebar is rendered centrally in app.py and provides
 consistent functionality across all pages.
@@ -28,7 +28,7 @@ Usage:
         render_sidebar_about()
 
 Notes:
-    - Configuration changes (height, zoom) are persisted to .env file
+    - Configuration changes (height, zoom) are persisted to SQLite database
     - Thread IDs are managed through LangGraph checkpointer
 
 See Also:
@@ -50,7 +50,7 @@ from gns3_copilot.agent.checkpoint_utils import (
     import_checkpoint_from_file,
 )
 from gns3_copilot.log_config import setup_logger
-from gns3_copilot.ui_model.utils import new_session, save_config_to_env
+from gns3_copilot.ui_model.utils import new_session, save_config
 
 logger = setup_logger("chat")
 
@@ -59,7 +59,7 @@ def render_sidebar(
     current_page: str,
 ) -> tuple[Any | None, str | None]:
     """
-    Render the global sidebar for all pages.
+    Render() global sidebar for all pages.
 
     This function renders sidebar controls including:
     - Page height adjustment
@@ -92,15 +92,15 @@ def render_sidebar(
                 max_value=1500,
                 value=current_height,
                 step=50,
-                help="Adjust the height for chat and GNS3 view",
+                help="Adjust height for chat and GNS3 view",
             )
 
-            # If the height changed, update session state and save to .env file
+            # If height changed, update session state and save to database
             if new_height != current_height:
                 st.session_state["CONTAINER_HEIGHT"] = new_height
-                # Save to .env file using the centralized save function
+                # Save to database using centralized save function
                 try:
-                    save_config_to_env()
+                    save_config()
                 except Exception as e:
                     logger.error("Failed to update CONTAINER_HEIGHT: %s", e)
 
@@ -110,14 +110,14 @@ def render_sidebar(
                 max_value=1.2,
                 value=current_zoom,
                 step=0.05,
-                help="Adjust the zoom scale for GNS3 topology view",
+                help="Adjust zoom scale for GNS3 topology view",
             )
 
-            # If the zoom changed, update session state and save to .env file
+            # If zoom changed, update session state and save to database
             if new_zoom != current_zoom:
                 st.session_state["zoom_scale_topology"] = new_zoom
                 try:
-                    save_config_to_env()
+                    save_config()
                 except Exception as e:
                     logger.error("Failed to update ZOOM_SCALE_TOPOLOGY: %s", e)
 
@@ -154,7 +154,7 @@ def _render_session_management() -> tuple[Any | None, str | None]:
         title_value = (
             ckpt.get("channel_values", {}).get("conversation_title") if ckpt else None
         ) or "New Session"
-        # Same title name caused the issue where selecting conversations always selected the same thread id.
+        # Same title name caused to issue where selecting conversations always selected to same thread id.
         # Use part of thread_id to avoid same title name
         unique_title = f"{title_value} ({tid[:6]})"
         session_options.append((unique_title, tid))
@@ -219,7 +219,7 @@ def _render_session_management() -> tuple[Any | None, str | None]:
                         )
 
                         if success:
-                            # Read the exported data
+                            # Read exported data
                             with open(temp_path, encoding="utf-8") as f:
                                 export_data = f.read()
 

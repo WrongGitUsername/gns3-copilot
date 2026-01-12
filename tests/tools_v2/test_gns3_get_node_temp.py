@@ -111,9 +111,8 @@ class TestGNS3TemplateToolAPIVersionHandling:
         "API_VERSION": "2",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.gns3_client.connector_factory.load_env')
     @patch('gns3_copilot.tools_v2.gns3_get_node_temp.get_gns3_connector')
-    def test_api_version_2_initialization(self, mock_get_gns3_connector, mock_load_env):
+    def test_api_version_2_initialization(self, mock_get_gns3_connector):
         """Test API version 2 initialization"""
         tool = GNS3TemplateTool()
         
@@ -136,9 +135,8 @@ class TestGNS3TemplateToolAPIVersionHandling:
         "GNS3_SERVER_USERNAME": "testuser",
         "GNS3_SERVER_PASSWORD": "testpass"
     })
-    @patch('gns3_copilot.gns3_client.connector_factory.load_env')
     @patch('gns3_copilot.tools_v2.gns3_get_node_temp.get_gns3_connector')
-    def test_api_version_3_initialization(self, mock_get_gns3_connector, mock_load_env):
+    def test_api_version_3_initialization(self, mock_get_gns3_connector):
         """Test API version 3 initialization"""
         tool = GNS3TemplateTool()
         
@@ -159,22 +157,24 @@ class TestGNS3TemplateToolAPIVersionHandling:
         "API_VERSION": "invalid",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.gns3_client.connector_factory.load_env')
-    def test_unsupported_api_version(self, mock_load_env):
+    @patch('gns3_copilot.tools_v2.gns3_get_node_temp.get_gns3_connector')
+    def test_unsupported_api_version(self, mock_get_gns3_connector):
         """Test unsupported API version"""
         tool = GNS3TemplateTool()
+        
+        # Mock get_gns3_connector to return None (simulating unsupported API version)
+        mock_get_gns3_connector.return_value = None
         
         result = tool._run("")
         assert "error" in result
         # Error comes from connector factory when it can't create connector due to invalid API version
-        assert "Failed to connect to GNS3 server" in result["error"] or "Failed to connect to GNS3 server" in result["error"]
+        assert "Failed to connect to GNS3 server" in result["error"]
 
     @patch.dict(os.environ, {
         "GNS3_SERVER_URL": "http://localhost:3080"
     }, clear=True)
-    @patch('gns3_copilot.gns3_client.connector_factory.load_env')
     @patch('gns3_copilot.tools_v2.gns3_get_node_temp.get_gns3_connector')
-    def test_default_api_version(self, mock_get_gns3_connector, mock_load_env):
+    def test_default_api_version(self, mock_get_gns3_connector):
         """Test default API version when not specified"""
         tool = GNS3TemplateTool()
 
@@ -195,9 +195,8 @@ class TestGNS3TemplateToolAPIVersionHandling:
         "API_VERSION": "",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    @patch('gns3_copilot.gns3_client.connector_factory.load_env')
     @patch('gns3_copilot.tools_v2.gns3_get_node_temp.get_gns3_connector')
-    def test_empty_api_version(self, mock_get_gns3_connector, mock_load_env):
+    def test_empty_api_version(self, mock_get_gns3_connector):
         """Test empty API version string"""
         tool = GNS3TemplateTool()
         
@@ -511,15 +510,18 @@ class TestGNS3TemplateToolErrorHandling:
         assert "Failed to retrieve templates" in result["error"]
         assert "Request timeout" in result["error"]
 
-    @patch('gns3_copilot.gns3_client.connector_factory.load_env')
     @patch.dict(os.environ, {}, clear=True)
-    def test_missing_server_url(self, mock_load_env):
+    @patch('gns3_copilot.tools_v2.gns3_get_node_temp.get_gns3_connector')
+    def test_missing_server_url(self, mock_get_gns3_connector):
         """Test missing GNS3_SERVER_URL environment variable"""
         tool = GNS3TemplateTool()
         
+        # Mock get_gns3_connector to return None (simulating missing URL)
+        mock_get_gns3_connector.return_value = None
+        
         result = tool._run("")
         assert "error" in result
-        assert "Failed to connect to GNS3 server" in result["error"] or "Failed to connect to GNS3 server" in result["error"]
+        assert "Failed to connect to GNS3 server" in result["error"]
 
 
 class TestGNS3TemplateToolEdgeCases:

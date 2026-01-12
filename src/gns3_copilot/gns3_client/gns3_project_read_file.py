@@ -9,7 +9,6 @@ import json
 import re
 from typing import Any
 
-from dotenv import load_dotenv
 from langchain.tools import BaseTool
 from langchain_core.callbacks import CallbackManagerForToolRun
 
@@ -18,18 +17,6 @@ from gns3_copilot.log_config import setup_tool_logger
 
 # Configure logging
 logger = setup_tool_logger("gns3_project_read_file")
-
-# Load environment variables
-dotenv_loaded = load_dotenv()
-if dotenv_loaded:
-    logger.info(
-        "GNS3ProjectReadFileTool Successfully loaded environment variables from .env file"
-    )
-else:
-    logger.warning(
-        "GNS3ProjectReadFileTool No .env file found or failed to load. "
-        "Using existing environment variables."
-    )
 
 
 class GNS3ProjectReadFileTool(BaseTool):

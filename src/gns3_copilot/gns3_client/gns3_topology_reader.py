@@ -6,7 +6,6 @@ This module provides a LangChain BaseTool to retrieve the topology of a
 import copy
 from typing import Any
 
-from dotenv import load_dotenv
 from langchain.tools import BaseTool
 
 from gns3_copilot.gns3_client import Project, get_gns3_connector
@@ -14,17 +13,6 @@ from gns3_copilot.log_config import setup_tool_logger
 
 # Configure logging
 logger = setup_tool_logger("gns3_topology_reader")
-
-# load environment variables
-dotenv_loaded = load_dotenv()
-if dotenv_loaded:
-    logger.info(
-        "GNS3TopologyTool Successfully loaded environment variables from .env file"
-    )
-else:
-    logger.warning(
-        "GNS3TopologyTool No .env file found or failed to load. Using existing environment variables."
-    )
 
 
 # Define LangChain tool class

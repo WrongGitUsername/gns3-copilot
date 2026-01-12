@@ -331,7 +331,8 @@ class TestGNS3CreateNodeToolAPIVersionHandling:
         "API_VERSION": "invalid",
         "GNS3_SERVER_URL": "http://localhost:3080"
     })
-    def test_unsupported_api_version(self):
+    @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
+    def test_unsupported_api_version(self, mock_get_gns3_connector):
         """Test unsupported API version"""
         tool = GNS3CreateNodeTool()
         
@@ -345,6 +346,9 @@ class TestGNS3CreateNodeToolAPIVersionHandling:
                 }
             ]
         }
+        
+        # Mock connector factory to return None (simulating failure due to unsupported API version)
+        mock_get_gns3_connector.return_value = None
         
         result = tool._run(json.dumps(input_data))
         assert "error" in result
@@ -812,7 +816,9 @@ class TestGNS3CreateNodeToolMixedSuccessFailure:
 class TestGNS3CreateNodeToolEdgeCases:
     """Test cases for edge cases and boundary conditions"""
 
-    def test_unicode_template_id(self):
+    @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
+    @patch('gns3_copilot.tools_v2.gns3_create_node.Node')
+    def test_unicode_template_id(self, mock_node_class, mock_get_gns3_connector):
         """Test Unicode template ID"""
         tool = GNS3CreateNodeTool()
         
@@ -827,13 +833,25 @@ class TestGNS3CreateNodeToolEdgeCases:
             ]
         }
         
-        # Mock with missing environment to trigger validation error
-        with patch.dict(os.environ, {}, clear=True):
-            result = tool._run(json.dumps(input_data))
-            # The tool may return either top-level error or nested error in created_nodes
-            assert "error" in result or ("created_nodes" in result and "error" in result["created_nodes"][0])
+        # Mock connector and node
+        mock_connector = Mock()
+        mock_get_gns3_connector.return_value = mock_connector
+        
+        mock_node = Mock()
+        mock_node.node_id = "node123"
+        mock_node.name = "TestNode"
+        mock_node_class.return_value = mock_node
+        
+        result = tool._run(json.dumps(input_data))
+        
+        # Verify successful result
+        assert result["project_id"] == "project1"
+        assert result["successful_nodes"] == 1
+        assert result["created_nodes"][0]["status"] == "success"
 
-    def test_very_long_ids(self):
+    @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
+    @patch('gns3_copilot.tools_v2.gns3_create_node.Node')
+    def test_very_long_ids(self, mock_node_class, mock_get_gns3_connector):
         """Test very long IDs"""
         tool = GNS3CreateNodeTool()
         
@@ -850,12 +868,24 @@ class TestGNS3CreateNodeToolEdgeCases:
             ]
         }
         
-        # Mock with missing environment to trigger validation error
-        with patch.dict(os.environ, {}, clear=True):
-            result = tool._run(json.dumps(input_data))
-            assert "error" in result
+        # Mock connector and node
+        mock_connector = Mock()
+        mock_get_gns3_connector.return_value = mock_connector
+        
+        mock_node = Mock()
+        mock_node.node_id = "node123"
+        mock_node.name = "TestNode"
+        mock_node_class.return_value = mock_node
+        
+        result = tool._run(json.dumps(input_data))
+        
+        # Verify successful result
+        assert result["project_id"] == long_id
+        assert result["successful_nodes"] == 1
 
-    def test_special_characters_in_ids(self):
+    @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
+    @patch('gns3_copilot.tools_v2.gns3_create_node.Node')
+    def test_special_characters_in_ids(self, mock_node_class, mock_get_gns3_connector):
         """Test special characters in IDs"""
         tool = GNS3CreateNodeTool()
         
@@ -870,35 +900,63 @@ class TestGNS3CreateNodeToolEdgeCases:
             ]
         }
         
-        # Mock with missing environment to trigger validation error
-        with patch.dict(os.environ, {}, clear=True):
-            result = tool._run(json.dumps(input_data))
-            assert "error" in result
+        # Mock connector and node
+        mock_connector = Mock()
+        mock_get_gns3_connector.return_value = mock_connector
+        
+        mock_node = Mock()
+        mock_node.node_id = "node123"
+        mock_node.name = "TestNode"
+        mock_node_class.return_value = mock_node
+        
+        result = tool._run(json.dumps(input_data))
+        
+        # Verify successful result
+        assert result["project_id"] == "project-with-special-chars_123"
+        assert result["successful_nodes"] == 1
 
-    def test_large_number_of_nodes(self):
+    @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
+    @patch('gns3_copilot.tools_v2.gns3_create_node.Node')
+    def test_large_number_of_nodes(self, mock_node_class, mock_get_gns3_connector):
         """Test large number of nodes"""
         tool = GNS3CreateNodeTool()
         
         # Create 100 nodes
         nodes = []
+        mock_nodes = []
         for i in range(100):
             nodes.append({
                 "template_id": f"template{i}",
                 "x": i * 10,
                 "y": i * -10
             })
+            # Create mock node for each
+            mock_node = Mock()
+            mock_node.node_id = f"node{i}"
+            mock_node.name = f"Node{i}"
+            mock_nodes.append(mock_node)
         
         input_data = {
             "project_id": "project1",
             "nodes": nodes
         }
         
-        # Mock with missing environment to trigger validation error
-        with patch.dict(os.environ, {}, clear=True):
-            result = tool._run(json.dumps(input_data))
-            assert "error" in result
+        # Mock connector and nodes
+        mock_connector = Mock()
+        mock_get_gns3_connector.return_value = mock_connector
+        mock_node_class.side_effect = mock_nodes
+        
+        result = tool._run(json.dumps(input_data))
+        
+        # Verify successful result
+        assert result["project_id"] == "project1"
+        assert result["total_nodes"] == 100
+        assert result["successful_nodes"] == 100
+        assert result["failed_nodes"] == 0
 
-    def test_zero_coordinates(self):
+    @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
+    @patch('gns3_copilot.tools_v2.gns3_create_node.Node')
+    def test_zero_coordinates(self, mock_node_class, mock_get_gns3_connector):
         """Test zero coordinates"""
         tool = GNS3CreateNodeTool()
         
@@ -913,12 +971,28 @@ class TestGNS3CreateNodeToolEdgeCases:
             ]
         }
         
-        # Mock with missing environment to trigger validation error
-        with patch.dict(os.environ, {}, clear=True):
-            result = tool._run(json.dumps(input_data))
-            assert "error" in result
+        # Mock connector and node
+        mock_connector = Mock()
+        mock_get_gns3_connector.return_value = mock_connector
+        
+        mock_node = Mock()
+        mock_node.node_id = "node123"
+        mock_node.name = "TestNode"
+        mock_node_class.return_value = mock_node
+        
+        result = tool._run(json.dumps(input_data))
+        
+        # Verify successful result
+        assert result["successful_nodes"] == 1
+        
+        # Verify node was created with zero coordinates
+        call_args = mock_node_class.call_args
+        assert call_args[1]["x"] == 0
+        assert call_args[1]["y"] == 0
 
-    def test_very_large_coordinates(self):
+    @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
+    @patch('gns3_copilot.tools_v2.gns3_create_node.Node')
+    def test_very_large_coordinates(self, mock_node_class, mock_get_gns3_connector):
         """Test very large coordinates"""
         tool = GNS3CreateNodeTool()
         
@@ -933,10 +1007,24 @@ class TestGNS3CreateNodeToolEdgeCases:
             ]
         }
         
-        # Mock with missing environment to trigger validation error
-        with patch.dict(os.environ, {}, clear=True):
-            result = tool._run(json.dumps(input_data))
-            assert "error" in result
+        # Mock connector and node
+        mock_connector = Mock()
+        mock_get_gns3_connector.return_value = mock_connector
+        
+        mock_node = Mock()
+        mock_node.node_id = "node123"
+        mock_node.name = "TestNode"
+        mock_node_class.return_value = mock_node
+        
+        result = tool._run(json.dumps(input_data))
+        
+        # Verify successful result
+        assert result["successful_nodes"] == 1
+        
+        # Verify node was created with very large coordinates
+        call_args = mock_node_class.call_args
+        assert call_args[1]["x"] == 999999
+        assert call_args[1]["y"] == -999999
 
 
 class TestGNS3CreateNodeToolIntegration:
@@ -1046,9 +1134,20 @@ class TestGNS3CreateNodeToolIntegration:
             mock_node.create.assert_called_once()
             mock_node.get.assert_called_once()
 
-    def test_json_parsing_edge_cases(self):
+    @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
+    @patch('gns3_copilot.tools_v2.gns3_create_node.Node')
+    def test_json_parsing_edge_cases(self, mock_node_class, mock_get_gns3_connector):
         """Test JSON parsing edge cases"""
         tool = GNS3CreateNodeTool()
+        
+        # Mock connector and node
+        mock_connector = Mock()
+        mock_get_gns3_connector.return_value = mock_connector
+        
+        mock_node = Mock()
+        mock_node.node_id = "node123"
+        mock_node.name = "TestNode"
+        mock_node_class.return_value = mock_node
         
         # Test with extra whitespace
         input_with_whitespace = """
@@ -1064,10 +1163,11 @@ class TestGNS3CreateNodeToolIntegration:
         }
         """
         
-        # Mock with missing environment to trigger validation error
-        with patch.dict(os.environ, {}, clear=True):
-            result = tool._run(input_with_whitespace)
-            assert "error" in result
+        result = tool._run(input_with_whitespace)
+        
+        # Verify successful result - JSON should parse correctly
+        assert result["project_id"] == "project1"
+        assert result["successful_nodes"] == 1
 
         # Test with additional fields
         input_with_extra_fields = {
@@ -1083,10 +1183,11 @@ class TestGNS3CreateNodeToolIntegration:
             "extra_project_field": "should_be_ignored"
         }
         
-        # Mock with missing environment to trigger validation error
-        with patch.dict(os.environ, {}, clear=True):
-            result = tool._run(json.dumps(input_with_extra_fields))
-            assert "error" in result
+        result = tool._run(json.dumps(input_with_extra_fields))
+        
+        # Verify successful result - extra fields should be ignored
+        assert result["project_id"] == "project1"
+        assert result["successful_nodes"] == 1
 
 
 class TestGNS3CreateNodeToolLogging:
@@ -1225,9 +1326,8 @@ class TestGNS3CreateNodeToolLogging:
 class TestGNS3CreateNodeToolEnvironmentVariables:
     """Test cases for environment variable handling"""
 
-    @patch.dict(os.environ, {}, clear=True)
-    @patch('gns3_copilot.gns3_client.connector_factory.load_env')
-    def test_missing_server_url(self, mock_load_env):
+    @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
+    def test_missing_server_url(self, mock_get_gns3_connector):
         """Test missing GNS3_SERVER_URL environment variable"""
         tool = GNS3CreateNodeTool()
         
@@ -1242,16 +1342,19 @@ class TestGNS3CreateNodeToolEnvironmentVariables:
             ]
         }
         
+        # Mock connector factory to return None (simulating failure)
+        mock_get_gns3_connector.return_value = None
+        
         result = tool._run(json.dumps(input_data))
         assert "error" in result
-        assert "Failed to connect to GNS3 server" in result["error"] or "Failed to process node creation request" in result["error"]
+        assert "Failed to connect to GNS3 server" in result["error"]
 
     @patch.dict(os.environ, {
         "GNS3_SERVER_URL": "http://localhost:3080",
         "API_VERSION": "1"
     })
-    @patch('gns3_copilot.gns3_client.connector_factory.load_env')
-    def test_unsupported_api_version_env(self, mock_load_env):
+    @patch('gns3_copilot.tools_v2.gns3_create_node.get_gns3_connector')
+    def test_unsupported_api_version_env(self, mock_get_gns3_connector):
         """Test unsupported API version from environment"""
         tool = GNS3CreateNodeTool()
         
@@ -1266,6 +1369,9 @@ class TestGNS3CreateNodeToolEnvironmentVariables:
             ]
         }
         
+        # Mock connector factory to return None (simulating failure due to unsupported API version)
+        mock_get_gns3_connector.return_value = None
+        
         result = tool._run(json.dumps(input_data))
         assert "error" in result
-        assert "Failed to connect to GNS3 server" in result["error"] or "Failed to process node creation request" in result["error"]
+        assert "Failed to connect to GNS3 server" in result["error"]

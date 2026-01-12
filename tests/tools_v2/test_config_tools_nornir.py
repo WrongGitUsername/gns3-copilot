@@ -636,11 +636,26 @@ class TestEdgeCasesAndErrorHandling:
         assert "error" in result[0][0]
         assert "Tool input must be a JSON object with 'project_id' and 'device_configs' fields" in result[0][0]["error"]
 
-    def test_environment_variables_handling(self):
+    @patch('gns3_copilot.tools_v2.config_tools_nornir.get_nornir_groups_config')
+    def test_environment_variables_handling(self, mock_get_nornir_groups_config):
         """Test that environment variables are properly used"""
-        # Test that env_loader.get_nornir_groups_config returns expected structure
-        from gns3_copilot.utils.env_loader import get_nornir_groups_config
+        # Mock get_nornir_groups_config function to return expected structure
+        mock_get_nornir_groups_config.return_value = {
+            "platform": "cisco_ios",
+            "hostname": "localhost",
+            "username": "admin",
+            "password": "password",
+            "timeout": 120,
+            "connection_options": {
+                "netmiko": {
+                    "extras": {
+                        "device_type": "cisco_ios_telnet"
+                    }
+                }
+            }
+        }
         
+        from gns3_copilot.utils import get_nornir_groups_config
         groups_data = get_nornir_groups_config()
         
         # Verify structure
@@ -802,4 +817,3 @@ class TestIntegrationScenarios:
         
         # Check for safety warning message
         assert "important safety warning" in description.lower() or "important safety note" in description.lower()
-        

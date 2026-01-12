@@ -471,10 +471,10 @@ class TestLinuxTelnetBatchTool:
         assert result[0]["login_status"] == "Login failed: Authentication error"
 
     # Test main _run method
+    @patch('gns3_copilot.tools_v2.linux_tools_nornir.get_config')
     @patch('gns3_copilot.tools_v2.linux_tools_nornir.get_device_ports_from_topology')
     @patch('gns3_copilot.tools_v2.linux_tools_nornir.InitNornir')
-    @patch.dict(os.environ, {'LINUX_TELNET_USERNAME': 'testuser', 'LINUX_TELNET_PASSWORD': 'testpass'})
-    def test_run_success(self, mock_init_nornir, mock_get_ports):
+    def test_run_success(self, mock_init_nornir, mock_get_ports, mock_get_config):
         """Test successful run of the tool"""
         # Mock dependencies
         mock_get_ports.return_value = {
@@ -523,6 +523,9 @@ class TestLinuxTelnetBatchTool:
         # Configure nornir.run to return different results for login and commands
         mock_nornir.run.side_effect = [mock_login_task_result, mock_task_result]
         
+        # Mock get_config to return credentials
+        mock_get_config.side_effect = lambda key: 'testuser' if key == 'LINUX_TELNET_USERNAME' else ('testpass' if key == 'LINUX_TELNET_PASSWORD' else 'default_value')
+        
         # Execute
         result = self.tool._run(self.valid_input_json)
         
@@ -534,24 +537,30 @@ class TestLinuxTelnetBatchTool:
         mock_init_nornir.assert_called_once()
         assert mock_nornir.run.call_count == 2  # Once for login, once for commands
 
+    @patch('gns3_copilot.tools_v2.linux_tools_nornir.get_config')
     @patch('gns3_copilot.tools_v2.linux_tools_nornir.get_device_ports_from_topology')
-    @patch.dict(os.environ, {}, clear=True)
-    def test_run_missing_credentials(self, mock_get_ports):
+    def test_run_missing_credentials(self, mock_get_ports, mock_get_config):
         """Test run when Linux credentials are missing"""
+        # Mock get_config to return None for credentials (missing credentials)
+        mock_get_config.side_effect = lambda key: None if key in ['LINUX_TELNET_USERNAME', 'LINUX_TELNET_PASSWORD'] else 'default_value'
+        
         result = self.tool._run(self.valid_input_json)
         
         assert len(result) == 1
         assert "error" in result[0]
+        # Error should be about missing credentials
+        assert "You haven't configured the Linux login credentials" in result[0]["error"]
         assert "action_required" in result[0]
-        assert "configure_linux_credentials" in result[0]["action_required"]
-        assert "haven't configured the Linux login credentials" in result[0]["error"]
-        mock_get_ports.assert_not_called()
+        assert result[0]["action_required"] == "configure_linux_credentials"
 
+    @patch('gns3_copilot.tools_v2.linux_tools_nornir.get_config')
     @patch('gns3_copilot.tools_v2.linux_tools_nornir.get_device_ports_from_topology')
-    @patch.dict(os.environ, {'LINUX_TELNET_USERNAME': 'testuser', 'LINUX_TELNET_PASSWORD': 'testpass'})
-    def test_run_invalid_input(self, mock_get_ports):
+    def test_run_invalid_input(self, mock_get_ports, mock_get_config):
         """Test run with invalid input"""
         invalid_input = '{"device_name": "debian01"'  # Invalid JSON
+        
+        # Mock get_config to return credentials (shouldn't be called due to invalid input)
+        mock_get_config.side_effect = lambda key: 'testuser' if key == 'LINUX_TELNET_USERNAME' else ('testpass' if key == 'LINUX_TELNET_PASSWORD' else 'default_value')
         
         result = self.tool._run(invalid_input)
         
@@ -559,12 +568,16 @@ class TestLinuxTelnetBatchTool:
         assert "error" in result[0]
         assert "Invalid JSON string input from model" in result[0]["error"]
         mock_get_ports.assert_not_called()
+        mock_get_config.assert_not_called()  # Should not be called due to invalid input
 
+    @patch('gns3_copilot.tools_v2.linux_tools_nornir.get_config')
     @patch('gns3_copilot.tools_v2.linux_tools_nornir.get_device_ports_from_topology')
-    @patch.dict(os.environ, {'LINUX_TELNET_USERNAME': 'testuser', 'LINUX_TELNET_PASSWORD': 'testpass'})
-    def test_run_device_hosts_data_failure(self, mock_get_ports):
+    def test_run_device_hosts_data_failure(self, mock_get_ports, mock_get_config):
         """Test run when device hosts data preparation fails"""
         mock_get_ports.return_value = {}  # Empty result triggers ValueError
+        
+        # Mock get_config to return credentials
+        mock_get_config.side_effect = lambda key: 'testuser' if key == 'LINUX_TELNET_USERNAME' else ('testpass' if key == 'LINUX_TELNET_PASSWORD' else 'default_value')
         
         result = self.tool._run(self.valid_input_json)
         
@@ -572,10 +585,10 @@ class TestLinuxTelnetBatchTool:
         assert "error" in result[0]
         assert "Failed to get device information from topology" in result[0]["error"]
 
+    @patch('gns3_copilot.tools_v2.linux_tools_nornir.get_config')
     @patch('gns3_copilot.tools_v2.linux_tools_nornir.get_device_ports_from_topology')
     @patch('gns3_copilot.tools_v2.linux_tools_nornir.InitNornir')
-    @patch.dict(os.environ, {'LINUX_TELNET_USERNAME': 'testuser', 'LINUX_TELNET_PASSWORD': 'testpass'})
-    def test_run_nornir_init_failure(self, mock_init_nornir, mock_get_ports):
+    def test_run_nornir_init_failure(self, mock_init_nornir, mock_get_ports, mock_get_config):
         """Test run when Nornir initialization fails"""
         mock_get_ports.return_value = {
             "debian01": {"port": 5000}
@@ -583,16 +596,19 @@ class TestLinuxTelnetBatchTool:
         
         mock_init_nornir.side_effect = Exception("Nornir init failed")
         
+        # Mock get_config to return credentials
+        mock_get_config.side_effect = lambda key: 'testuser' if key == 'LINUX_TELNET_USERNAME' else ('testpass' if key == 'LINUX_TELNET_PASSWORD' else 'default_value')
+        
         result = self.tool._run(self.valid_input_json)
         
         assert len(result) == 1
         assert "error" in result[0]
         assert "Failed to initialize Nornir" in result[0]["error"]
 
+    @patch('gns3_copilot.tools_v2.linux_tools_nornir.get_config')
     @patch('gns3_copilot.tools_v2.linux_tools_nornir.get_device_ports_from_topology')
     @patch('gns3_copilot.tools_v2.linux_tools_nornir.InitNornir')
-    @patch.dict(os.environ, {'LINUX_TELNET_USERNAME': 'testuser', 'LINUX_TELNET_PASSWORD': 'testpass'})
-    def test_run_execution_exception(self, mock_init_nornir, mock_get_ports):
+    def test_run_execution_exception(self, mock_init_nornir, mock_get_ports, mock_get_config):
         """Test run when execution fails with exception"""
         mock_get_ports.return_value = {
             "debian01": {"port": 5000}
@@ -602,16 +618,19 @@ class TestLinuxTelnetBatchTool:
         mock_init_nornir.return_value = mock_nornir
         mock_nornir.run.side_effect = Exception("Execution failed")
         
+        # Mock get_config to return credentials
+        mock_get_config.side_effect = lambda key: 'testuser' if key == 'LINUX_TELNET_USERNAME' else ('testpass' if key == 'LINUX_TELNET_PASSWORD' else 'default_value')
+        
         result = self.tool._run(self.valid_input_json)
         
         assert len(result) == 1
         assert "error" in result[0]
         assert "Execution error" in result[0]["error"]
 
+    @patch('gns3_copilot.tools_v2.linux_tools_nornir.get_config')
     @patch('gns3_copilot.tools_v2.linux_tools_nornir.get_device_ports_from_topology')
     @patch('gns3_copilot.tools_v2.linux_tools_nornir.InitNornir')
-    @patch.dict(os.environ, {'LINUX_TELNET_USERNAME': 'testuser', 'LINUX_TELNET_PASSWORD': 'testpass'})
-    def test_run_with_list_input(self, mock_init_nornir, mock_get_ports):
+    def test_run_with_list_input(self, mock_init_nornir, mock_get_ports, mock_get_config):
         """Test run with list input instead of JSON string"""
         mock_get_ports.return_value = {
             "debian01": {"port": 5000}
@@ -642,6 +661,9 @@ class TestLinuxTelnetBatchTool:
         
         mock_nornir.run.side_effect = [mock_login_task_result, mock_task_result]
         
+        # Mock get_config to return credentials
+        mock_get_config.side_effect = lambda key: 'testuser' if key == 'LINUX_TELNET_USERNAME' else ('testpass' if key == 'LINUX_TELNET_PASSWORD' else 'default_value')
+        
         # Test with JSON string input
         single_device_input = json.dumps([self.valid_input[0]])
         result = self.tool._run(single_device_input)
@@ -657,10 +679,10 @@ class TestEdgeCasesAndErrorHandling:
         """Set up test fixtures"""
         self.tool = LinuxTelnetBatchTool()
 
+    @patch('gns3_copilot.tools_v2.linux_tools_nornir.get_config')
     @patch('gns3_copilot.tools_v2.linux_tools_nornir.get_device_ports_from_topology')
     @patch('gns3_copilot.tools_v2.linux_tools_nornir.InitNornir')
-    @patch.dict(os.environ, {'LINUX_TELNET_USERNAME': 'testuser', 'LINUX_TELNET_PASSWORD': 'testpass'})
-    def test_empty_commands(self, mock_init_nornir, mock_get_ports):
+    def test_empty_commands(self, mock_init_nornir, mock_get_ports, mock_get_config):
         """Test with empty commands for a device"""
         input_with_empty_commands = json.dumps([
             {
@@ -696,6 +718,9 @@ class TestEdgeCasesAndErrorHandling:
         
         mock_nornir.run.side_effect = [mock_login_task_result, mock_task_result]
         
+        # Mock get_config to return credentials
+        mock_get_config.side_effect = lambda key: 'testuser' if key == 'LINUX_TELNET_USERNAME' else ('testpass' if key == 'LINUX_TELNET_PASSWORD' else 'default_value')
+        
         result = self.tool._run(input_with_empty_commands)
         assert len(result) == 1
         assert result[0]["status"] == "success"
@@ -729,14 +754,34 @@ class TestEdgeCasesAndErrorHandling:
 
     def test_environment_variables_handling(self):
         """Test that environment variables are properly used"""
-        # Test that get_nornir_all_groups_config returns expected structure
-        from gns3_copilot.utils.env_loader import get_nornir_all_groups_config
+        # Mock get_nornir_all_groups_config function to return expected structure
+        from gns3_copilot.utils import get_nornir_all_groups_config
+        
+        def mock_get_nornir_all_groups_config():
+            return {
+                "linux_telnet": {
+                    "hostname": "localhost",
+                    "username": "testuser",
+                    "password": "testpass",
+                    "platform": "linux",
+                    "timeout": 120,
+                    "connection_options": {
+                        "netmiko": {
+                            "extras": {
+                                "device_type": "generic_telnet",
+                                "global_delay_factor": 3,
+                                "fast_cli": False
+                            }
+                        }
+                    }
+                }
+            }
         
         # Set required environment variables for testing
         with patch.dict(os.environ, {
             'LINUX_TELNET_USERNAME': 'testuser',
             'LINUX_TELNET_PASSWORD': 'testpass'
-        }):
+        }), patch('gns3_copilot.utils.get_nornir_all_groups_config', side_effect=mock_get_nornir_all_groups_config):
             # Call the function to get all groups config
             groups_config = get_nornir_all_groups_config()
             
@@ -815,10 +860,13 @@ class TestEdgeCasesAndErrorHandling:
         assert "top, vi/nano" in description
         assert "less or more" in description
 
-    @patch.dict(os.environ, {'LINUX_TELNET_USERNAME': 'testuser', 'LINUX_TELNET_PASSWORD': 'testpass'})
-    def test_credentials_configured_check(self):
+    @patch('gns3_copilot.tools_v2.linux_tools_nornir.get_config')
+    def test_credentials_configured_check(self, mock_get_config):
         """Test that credentials check works properly when credentials are configured"""
-        # Test that when credentials are set, the tool doesn't return credentials error
+        # Mock get_config to return credentials
+        mock_get_config.side_effect = lambda key: 'testuser' if key == 'LINUX_TELNET_USERNAME' else ('testpass' if key == 'LINUX_TELNET_PASSWORD' else 'default_value')
+        
+        # Test that when credentials are set, tool doesn't return credentials error
         # For empty input, we expect either empty result or a topology error (both are valid)
         result = self.tool._run("[]")  # Empty list is valid
         # The important thing is that we don't get a credentials error
@@ -838,10 +886,10 @@ class TestIntegrationScenarios:
         """Set up test fixtures"""
         self.tool = LinuxTelnetBatchTool()
 
+    @patch('gns3_copilot.tools_v2.linux_tools_nornir.get_config')
     @patch('gns3_copilot.tools_v2.linux_tools_nornir.get_device_ports_from_topology')
     @patch('gns3_copilot.tools_v2.linux_tools_nornir.InitNornir')
-    @patch.dict(os.environ, {'LINUX_TELNET_USERNAME': 'testuser', 'LINUX_TELNET_PASSWORD': 'testpass'})
-    def test_mixed_success_failure_scenario(self, mock_init_nornir, mock_get_ports):
+    def test_mixed_success_failure_scenario(self, mock_init_nornir, mock_get_ports, mock_get_config):
         """Test scenario with mixed success and failure results"""
         mock_get_ports.return_value = {
             "debian01": {"port": 5000},
@@ -879,6 +927,9 @@ class TestIntegrationScenarios:
         
         mock_nornir.run.side_effect = [mock_login_task_result, mock_task_result]
         
+        # Mock get_config to return credentials
+        mock_get_config.side_effect = lambda key: 'testuser' if key == 'LINUX_TELNET_USERNAME' else ('testpass' if key == 'LINUX_TELNET_PASSWORD' else 'default_value')
+        
         input_data = json.dumps([
             {"device_name": "debian01", "commands": ["uname -a"]},
             {"device_name": "ubuntu01", "commands": ["ip a"]}
@@ -893,10 +944,10 @@ class TestIntegrationScenarios:
         assert result[1]["status"] == "failed"
         assert "Login failed" in result[1]["error"]
 
+    @patch('gns3_copilot.tools_v2.linux_tools_nornir.get_config')
     @patch('gns3_copilot.tools_v2.linux_tools_nornir.get_device_ports_from_topology')
     @patch('gns3_copilot.tools_v2.linux_tools_nornir.InitNornir')
-    @patch.dict(os.environ, {'LINUX_TELNET_USERNAME': 'testuser', 'LINUX_TELNET_PASSWORD': 'testpass'})
-    def test_concurrent_execution_simulation(self, mock_init_nornir, mock_get_ports):
+    def test_concurrent_execution_simulation(self, mock_init_nornir, mock_get_ports, mock_get_config):
         """Test that tool is configured for concurrent execution"""
         mock_get_ports.return_value = {
             "debian01": {"port": 5000},
@@ -934,6 +985,9 @@ class TestIntegrationScenarios:
         mock_task_result.__contains__ = Mock(return_value=True)
         
         mock_nornir.run.side_effect = [mock_login_results, mock_task_result]
+        
+        # Mock get_config to return credentials
+        mock_get_config.side_effect = lambda key: 'testuser' if key == 'LINUX_TELNET_USERNAME' else ('testpass' if key == 'LINUX_TELNET_PASSWORD' else 'default_value')
         
         input_data = json.dumps([
             {"device_name": "debian01", "commands": ["uname -a"]},

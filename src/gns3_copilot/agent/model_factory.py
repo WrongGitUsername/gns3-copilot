@@ -2,35 +2,33 @@
 Model Factory for GNS3 Copilot Agent
 
 This module provides factory functions to create fresh LLM model instances
-on-demand from current environment variables. This allows configuration
-changes in .env file to take effect without restarting the application.
+on-demand from SQLite configuration. This allows configuration changes
+to take effect without restarting the application.
 """
 
-import os
 from typing import Any
 
-from dotenv import load_dotenv
 from langchain.chat_models import init_chat_model
 
 from gns3_copilot.log_config import setup_logger
+from gns3_copilot.utils import get_config
 
 logger = setup_logger("model_factory")
 
 
 def _load_env_variables() -> dict[str, str]:
     """
-    Load environment variables from .env file.
+    Load model configuration from SQLite database.
 
     Returns:
-        Dictionary containing environment variables.
+        Dictionary containing model configuration.
     """
-    load_dotenv()
     return {
-        "model_name": os.getenv("MODEL_NAME", ""),
-        "model_provider": os.getenv("MODE_PROVIDER", ""),
-        "api_key": os.getenv("MODEL_API_KEY", ""),
-        "base_url": os.getenv("BASE_URL", ""),
-        "temperature": os.getenv("TEMPERATURE", "0"),
+        "model_name": get_config("MODEL_NAME", ""),
+        "model_provider": get_config("MODE_PROVIDER", ""),
+        "api_key": get_config("MODEL_API_KEY", ""),
+        "base_url": get_config("BASE_URL", ""),
+        "temperature": get_config("TEMPERATURE", "0"),
     }
 
 
@@ -159,6 +157,56 @@ def create_model_with_tools(
     except Exception as e:
         logger.error("Failed to bind tools to model: %s", e)
         raise RuntimeError(f"Failed to bind tools to model: {e}") from e
+
+
+def create_note_organizer_model() -> Any:
+    """
+    Create a fresh model instance for note organization.
+
+    This creates a model instance suitable for organizing and formatting notes.
+    It uses the same configuration as the base model but with a lower temperature
+    for more consistent and predictable output.
+
+    Returns:
+        Any: A new LLM model instance for note organization.
+              The actual type depends on the provider.
+
+    Raises:
+        ValueError: If required environment variables are missing or invalid.
+    """
+    env_vars = _load_env_variables()
+
+    logger.info(
+        "Creating note organizer model: name=%s, provider=%s, base_url=%s, temperature=0.3",
+        env_vars["model_name"],
+        env_vars["model_provider"],
+        env_vars["base_url"] if env_vars["base_url"] else "default",
+    )
+
+    # Validate required fields
+    if not env_vars["model_name"]:
+        raise ValueError("MODEL_NAME environment variable is required")
+
+    if not env_vars["model_provider"]:
+        raise ValueError("MODE_PROVIDER environment variable is required")
+
+    try:
+        model = init_chat_model(
+            env_vars["model_name"],
+            model_provider=env_vars["model_provider"],
+            api_key=env_vars["api_key"],
+            base_url=env_vars["base_url"],
+            temperature="0.3",  # Lower temperature for more consistent note organization
+            configurable_fields="any",
+            config_prefix="foo",
+        )
+
+        logger.info("Note organizer model created successfully")
+        return model
+
+    except Exception as e:
+        logger.error("Failed to create note organizer model: %s", e)
+        raise RuntimeError(f"Failed to create note organizer model: {e}") from e
 
 
 def create_base_model_with_tools(tools: list[Any]) -> Any:

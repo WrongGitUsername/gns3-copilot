@@ -1,6 +1,5 @@
 from typing import Any
 
-from dotenv import load_dotenv
 from langchain.tools import BaseTool
 
 from gns3_copilot.gns3_client import get_gns3_connector
@@ -9,16 +8,6 @@ from gns3_copilot.log_config import setup_tool_logger
 # Configure logging
 logger = setup_tool_logger("gns3_project_list")
 
-# load environment variables
-dotenv_loaded = load_dotenv()
-if dotenv_loaded:
-    logger.info(
-        "GNS3ProjectList Tool Successfully loaded environment variables from .env file"
-    )
-else:
-    logger.warning(
-        "GNS3ProjectList Tool No .env file found or failed to load. Using existing environment variables."
-    )
 """
 example output:
 

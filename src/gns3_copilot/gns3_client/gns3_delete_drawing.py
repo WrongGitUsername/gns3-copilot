@@ -8,7 +8,6 @@ import json
 from pprint import pprint
 from typing import Any
 
-from dotenv import load_dotenv
 from langchain.tools import BaseTool
 from langchain_core.callbacks import CallbackManagerForToolRun
 
@@ -17,17 +16,6 @@ from gns3_copilot.log_config import setup_tool_logger
 
 # Configure logging
 logger = setup_tool_logger("gns3_delete_drawing")
-
-# Load environment variables
-dotenv_loaded = load_dotenv()
-if dotenv_loaded:
-    logger.info(
-        "GNS3DeleteDrawingTool Successfully loaded environment variables from .env file"
-    )
-else:
-    logger.warning(
-        "GNS3DeleteDrawingTool No .env file found or failed to load. Using existing environment variables."
-    )
 
 
 class GNS3DeleteDrawingTool(BaseTool):

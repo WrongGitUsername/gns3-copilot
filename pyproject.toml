@@ -104,10 +104,16 @@ dev = [
     "safety>=2.0.0",
 ]
 
+docs = [
+    "mkdocs>=1.6.0",
+    "mkdocs-material>=9.5.0",
+    "mkdocs-material-extensions>=1.3.0",
+]
+
 [project.urls]
 Homepage = "https://github.com/yueguobin/gns3-copilot"
 Repository = "https://github.com/yueguobin/gns3-copilot"
-Documentation = "https://github.com/yueguobin/gns3-copilot/blob/master/README.md"
+Documentation = "https://yueguobin.github.io/gns3-copilot/"
 "Bug Reports" = "https://github.com/yueguobin/gns3-copilot/issues"
 
 [project.scripts]

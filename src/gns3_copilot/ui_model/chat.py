@@ -38,17 +38,17 @@ from langchain.messages import AIMessage, HumanMessage, ToolMessage
 from gns3_copilot.agent import agent
 from gns3_copilot.gns3_client import GNS3ProjectList
 from gns3_copilot.log_config import setup_logger
-from gns3_copilot.public_model import (
-    format_tool_response,
-    get_duration,
-    speech_to_text,
-    text_to_speech_wav,
-)
 from gns3_copilot.ui_model.utils import (
     build_topology_iframe_url,
     generate_topology_iframe_html,
     render_create_project_form,
     render_project_cards,
+)
+from gns3_copilot.utils import (
+    format_tool_response,
+    get_duration,
+    speech_to_text,
+    text_to_speech_wav,
 )
 
 logger = setup_logger("chat")
@@ -210,10 +210,12 @@ if selected_p:
                                     ):
                                         st.json(
                                             {
-                                                "name": tool_name,
-                                                "id": tool_id,
-                                                "args": tool_args,
-                                                "type": "tool_call",
+                                                # "name": tool_name,
+                                                # "id": tool_id,
+                                                "tool_input": tool_args.get(
+                                                    "tool_input"
+                                                ),
+                                                # "type": "tool_call",
                                             },
                                             expanded=True,
                                         )
@@ -468,7 +470,7 @@ if selected_p:
                                         "name": tool_data["name"],
                                         "id": tool_data["id"],
                                         # Inject tool_input structure
-                                        "args": parsed_args,
+                                        "tool_input": parsed_args.get("tool_input"),
                                         "type": tool_data.get(
                                             "type", "tool_call"
                                         ),  # Maintain completeness

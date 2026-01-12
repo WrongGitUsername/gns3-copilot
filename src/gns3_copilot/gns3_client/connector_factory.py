@@ -17,11 +17,9 @@ Example:
         projects = connector.projects
 """
 
-import os
-
 from gns3_copilot.gns3_client.custom_gns3fy import Gns3Connector
 from gns3_copilot.log_config import setup_logger
-from gns3_copilot.utils.env_loader import load_env
+from gns3_copilot.utils import get_config
 
 logger = setup_logger("connector_factory")
 
@@ -52,19 +50,16 @@ def get_gns3_connector() -> Gns3Connector | None:
             logger.error("Failed to create GNS3 connector")
     """
     try:
-        # Reload environment variables from .env file to get the latest configuration
-        load_env()
-
-        # Get GNS3 server configuration from environment variables
-        api_version_str = os.getenv("API_VERSION")
-        server_url = os.getenv("GNS3_SERVER_URL")
+        # Get GNS3 server configuration from SQLite database
+        api_version_str = get_config("API_VERSION")
+        server_url = get_config("GNS3_SERVER_URL")
 
         if not api_version_str:
-            logger.error("API_VERSION environment variable not set")
+            logger.error("API_VERSION not configured")
             return None
 
         if not server_url:
-            logger.error("GNS3_SERVER_URL environment variable not set")
+            logger.error("GNS3_SERVER_URL not configured")
             return None
 
         # Create connector based on API version
@@ -77,8 +72,8 @@ def get_gns3_connector() -> Gns3Connector | None:
             logger.debug("Created Gns3Connector for API v2")
         elif api_version_str == "3":
             # API v3 requires username and password
-            username = os.getenv("GNS3_SERVER_USERNAME")
-            password = os.getenv("GNS3_SERVER_PASSWORD")
+            username = get_config("GNS3_SERVER_USERNAME")
+            password = get_config("GNS3_SERVER_PASSWORD")
 
             connector = Gns3Connector(
                 url=server_url,

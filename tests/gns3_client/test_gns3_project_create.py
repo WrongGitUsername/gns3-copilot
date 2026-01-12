@@ -326,7 +326,7 @@ class TestGNS3ProjectCreateEnvironmentValidation:
         """Test missing API_VERSION environment variable"""
         tool = GNS3ProjectCreate()
         
-        with patch.dict(os.environ, {}, clear=True):
+        with patch('gns3_copilot.gns3_client.gns3_project_create.get_gns3_connector', return_value=None):
             result = tool._run(tool_input={"name": "test_project"})
             
             assert result["success"] is False
@@ -337,9 +337,7 @@ class TestGNS3ProjectCreateEnvironmentValidation:
         """Test missing GNS3_SERVER_URL environment variable"""
         tool = GNS3ProjectCreate()
         
-        with patch.dict(os.environ, {
-            "API_VERSION": "2"
-        }, clear=True):
+        with patch('gns3_copilot.gns3_client.gns3_project_create.get_gns3_connector', return_value=None):
             result = tool._run(tool_input={"name": "test_project"})
             
             assert result["success"] is False
@@ -350,10 +348,7 @@ class TestGNS3ProjectCreateEnvironmentValidation:
         """Test invalid API_VERSION value"""
         tool = GNS3ProjectCreate()
         
-        with patch.dict(os.environ, {
-            "API_VERSION": "invalid",
-            "GNS3_SERVER_URL": "http://localhost:3080"
-        }):
+        with patch('gns3_copilot.gns3_client.gns3_project_create.get_gns3_connector', return_value=None):
             result = tool._run(tool_input={"name": "test_project"})
             
             assert result["success"] is False
@@ -719,7 +714,7 @@ class TestGNS3ProjectCreateReturnFormat:
         """Test error response has correct format"""
         tool = GNS3ProjectCreate()
         
-        with patch.dict(os.environ, {}, clear=True):
+        with patch('gns3_copilot.gns3_client.gns3_project_create.get_gns3_connector', return_value=None):
             result = tool._run(tool_input={"name": "test"})
             
             # Verify error format
