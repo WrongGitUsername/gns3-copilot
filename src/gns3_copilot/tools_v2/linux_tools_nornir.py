@@ -86,6 +86,16 @@ class LinuxTelnetBatchTool(BaseTool):
         # Log received input
         logger.info("Received input: %s", tool_input)
 
+        # Validate input first (before checking credentials)
+        device_configs_list, project_id = self._validate_tool_input(tool_input)
+        if (
+            isinstance(device_configs_list, list)
+            and len(device_configs_list) > 0
+            and "error" in device_configs_list[0]
+        ):
+            return device_configs_list
+
+        # Check credentials only for valid inputs
         linux_username = get_config("LINUX_TELNET_USERNAME")
         linux_password = get_config("LINUX_TELNET_PASSWORD")
 
@@ -108,14 +118,6 @@ class LinuxTelnetBatchTool(BaseTool):
                     "user_message": user_message,  # optional, if your frontend uses a separate field
                 }
             ]
-        # Validate input
-        device_configs_list, project_id = self._validate_tool_input(tool_input)
-        if (
-            isinstance(device_configs_list, list)
-            and len(device_configs_list) > 0
-            and "error" in device_configs_list[0]
-        ):
-            return device_configs_list
 
         # Create a mapping of device names to their display commands
         device_configs_map = self._configs_map(device_configs_list)
